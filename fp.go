@@ -24,6 +24,9 @@ type Option[T any] interface {
 	Get() T
 	Foreach(f func(v T))
 	Filter(p func(v T) bool) Option[T]
+	OrElse(t T) T
+	OrElseGet(func() T) T
+	Or(func() Option[T]) Option[T]
 }
 
 type Try[T any] interface {

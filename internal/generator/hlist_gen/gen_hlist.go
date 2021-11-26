@@ -54,6 +54,17 @@ func funcCallArgs(start, until int) string {
 	return f.String()
 }
 
+func reverseFuncCallArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := until; j >= start; j-- {
+		if j != until {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "a%d", j)
+	}
+	return f.String()
+}
+
 func reversConsType(start, until int) string {
 	ret := "Nil"
 	for j := start; j <= until; j++ {
@@ -145,6 +156,34 @@ func main() {
 	})
 }	
 `, i-1, funcDeclArgs(2, i), funcCallArgs(2, i))
+
+		}
+	})
+
+	generate("hlist", "of_gen.go", func(f io.Writer) {
+		for i := 2; i < 23; i++ {
+
+			fmt.Fprintf(f, "func Of%d [%s any](%s) %s { ", i, typeArgs(1, i), funcDeclArgs(1, i), consType(1, i, "Nil"))
+
+			fmt.Fprintf(f, `
+	return Concact(a1, Of%d(%s))
+}	
+`, i-1, funcCallArgs(2, i))
+
+		}
+	})
+
+	generate("hlist", "reverse_gen.go", func(f io.Writer) {
+		for i := 2; i < 23; i++ {
+
+			fmt.Fprintf(f, "func Reverse%d [%s any](hl %s ) %s { ", i, typeArgs(1, i), consType(1, i, "Nil"), reversConsType(1, i))
+
+			fmt.Fprintf(f, `
+		return Case%d(hl, func(%s) %s {
+			return Of%d(%s)
+		})
+	}
+	`, i, funcDeclArgs(1, i), reversConsType(1, i), i, reverseFuncCallArgs(1, i))
 
 		}
 	})

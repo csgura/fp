@@ -33,6 +33,25 @@ func (r option[T]) Filter(p func(v T) bool) fp.Option[T] {
 	})
 }
 
+func (r option[T]) OrElse(t T) T {
+	if r.IsDefined() {
+		return r.Get()
+	}
+	return t
+}
+func (r option[T]) OrElseGet(f func() T) T {
+	if r.IsDefined() {
+		return r.Get()
+	}
+	return f()
+}
+func (r option[T]) Or(f func() fp.Option[T]) fp.Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	return f()
+}
+
 func Some[T any](v T) fp.Option[T] {
 	return &option[T]{&v}
 }
