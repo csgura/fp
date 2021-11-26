@@ -78,4 +78,10 @@ func TestSome(t *testing.T) {
 			println(v)
 		})
 
+	// hl := hlist.Concact(true, hlist.Concact("hello", hlist.Concact(10, hlist.Empty())))
+	// hlist.Case2(hl, func(a bool, b string) string {
+	// 	fmt.Printf("a = %v , b = %v\n", a, b)
+	// 	return "good"
+	// })
+
 }
