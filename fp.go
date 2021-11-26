@@ -1,6 +1,8 @@
 //go:generate go run github.com/csgura/fp/internal/generator/fp_gen
 package fp
 
+import "github.com/csgura/fp/hlist"
+
 type Runnable interface {
 	Run()
 }
@@ -40,4 +42,20 @@ type Future[T any] interface {
 	Value() Try[T]
 }
 type Unit struct {
+}
+
+type Tuple1[T1 any] struct {
+	I1 T1
+}
+
+func (r Tuple1[T1]) Head() T1 {
+	return r.I1
+}
+
+func (r Tuple1[T1]) Tail() Unit {
+	return Unit{}
+}
+
+func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
+	return hlist.Concact(r.Head(), hlist.Empty())
 }

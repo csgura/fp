@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"io"
 	"io/ioutil"
 	"log"
 )
@@ -61,6 +62,14 @@ func reversConsType(start, until int) string {
 	return ret
 }
 
+func consType(start, until int, last string) string {
+	ret := last
+	for j := until; j >= start; j-- {
+		ret = fmt.Sprintf("Cons[A%d, %s]", j, ret)
+	}
+	return ret
+}
+
 func callFunc(nargs int) string {
 	f := &bytes.Buffer{}
 
@@ -84,21 +93,34 @@ func callFunc(nargs int) string {
 	return f.String()
 }
 
-func main() {
+func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 	f := &bytes.Buffer{}
 
-	fmt.Fprintf(f, "package hlist\n\n")
+	fmt.Fprintf(f, "package %s\n\n", packname)
+	writeFunc(f)
 
-	// 	fmt.Fprintln(f, `
-	// import (
-	// 	"github.com/csgura/fp"
-	// )`)
+	formatted, err := format.Source(f.Bytes())
+	if err != nil {
+		log.Print(f.String())
+		log.Fatal("format error ", err)
 
-	for i := 2; i < 23; i++ {
+		return
+	}
 
-		fmt.Fprintf(f, "func Ap%d [%s, R any]( f func(%s) R ) func(%s) R { ", i, typeArgs(1, i), funcDeclArgs(1, i), reversConsType(1, i))
+	err = ioutil.WriteFile(filename, formatted, 0644)
+	if err != nil {
+		return
+	}
+}
 
-		fmt.Fprintf(f, `
+func main() {
+
+	generate("hlist", "ap_gen.go", func(f io.Writer) {
+		for i := 2; i < 23; i++ {
+
+			fmt.Fprintf(f, "func Ap%d [%s, R any]( f func(%s) R ) func(%s) R { ", i, typeArgs(1, i), funcDeclArgs(1, i), reversConsType(1, i))
+
+			fmt.Fprintf(f, `
 	return func(v %s) R {
 		rf := Ap%d(func(%s) R {
 			return f(%s, v.Head())
@@ -109,18 +131,27 @@ func main() {
 }	
 `, reversConsType(1, i), i-1, funcDeclArgs(1, i-1), funcCallArgs(1, i-1))
 
-	}
+		}
+	})
 
-	formatted, err := format.Source(f.Bytes())
-	if err != nil {
-		log.Print(f.String())
-		log.Fatal("format error ", err)
+	generate("hlist", "case_gen.go", func(f io.Writer) {
+		for i := 2; i < 23; i++ {
 
-		return
-	}
+			fmt.Fprintf(f, "func Case%d [%s, T, R any](hl %s,  f func(%s) R ) R { ", i, typeArgs(1, i), consType(1, i, "T"), funcDeclArgs(1, i))
 
-	err = ioutil.WriteFile("ap_gen.go", formatted, 0666)
-	if err != nil {
-		return
-	}
+			fmt.Fprintf(f, `
+	return Case%d(hl.Tail(), func(%s) R {
+		return f(hl.Head(), %s)
+	})
+}	
+`, i-1, funcDeclArgs(2, i), funcCallArgs(2, i))
+
+		}
+	})
+
+	// 	fmt.Fprintln(f, `
+	// import (
+	// 	"github.com/csgura/fp"
+	// )`)
+
 }

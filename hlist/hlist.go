@@ -1,6 +1,8 @@
 //go:generate go run github.com/csgura/fp/internal/generator/hlist_gen
 package hlist
 
+import "fmt"
+
 type Header[HT any] interface {
 	Head() HT
 }
@@ -8,6 +10,7 @@ type Header[HT any] interface {
 type Cons[H, T any] interface {
 	Head() H
 	Tail() T
+	IsNil() bool
 }
 
 type Nil struct{}
@@ -18,6 +21,14 @@ func (r Nil) Head() Nil {
 
 func (r Nil) Tail() Nil {
 	return r
+}
+
+func (r Nil) IsNil() bool {
+	return true
+}
+
+func (r Nil) String() string {
+	return "Nil"
 }
 
 type hlistImpl[H, T any] struct {
@@ -31,6 +42,14 @@ func (r hlistImpl[H, T]) Head() H {
 
 func (r hlistImpl[H, T]) Tail() T {
 	return r.tail
+}
+
+func (r hlistImpl[H, T]) IsNil() bool {
+	return false
+}
+
+func (r hlistImpl[H, T]) String() string {
+	return fmt.Sprintf("%v :: %v", r.head, r.tail)
 }
 
 func hlist[H, T any](h H, t T) Cons[H, T] {
@@ -55,10 +74,6 @@ func Ap1[A, R any](f func(a A) R) func(v Cons[A, Nil]) R {
 	}
 }
 
-// func Case2[A, B, R, T any](list Cons[A, Cons[B, T]], f func(a A, b B) R) {
-// 	f(list.Head(), list.Tail().Head())
-// }
-
-// func Case3[A, B, C, R, T any](list Cons[A, Cons[B, Cons[C, T]]], f func(a A, b B, c C) R) {
-// 	f(list.Head(), list.Tail().Head(), list.Tail().Tail().Head())
-// }
+func Case1[A1, T, R any](hl Cons[A1, T], f func(a1 A1) R) R {
+	return f(hl.Head())
+}

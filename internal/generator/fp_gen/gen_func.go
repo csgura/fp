@@ -8,6 +8,36 @@ import (
 	"log"
 )
 
+func typeArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "T%d", j)
+	}
+	return f.String()
+}
+
+func tupleArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "r.I%d", j)
+	}
+	return f.String()
+}
+
+func consType(start, until int) string {
+	ret := "hlist.Nil"
+	for j := until; j >= start; j-- {
+		ret = fmt.Sprintf("hlist.Cons[T%d, %s]", j, ret)
+	}
+	return ret
+}
+
 func main() {
 
 	f := &bytes.Buffer{}
@@ -54,6 +84,11 @@ func main() {
 
 	fmt.Fprintf(f, "package fp\n\n")
 
+	fmt.Fprintln(f, `
+import (
+	"github.com/csgura/fp/hlist"
+)`)
+
 	for i := 2; i < 23; i++ {
 		fmt.Fprintf(f, "type Tuple%d", i)
 		fmt.Fprintf(f, "[")
@@ -72,6 +107,24 @@ func main() {
 			fmt.Fprintf(f, "    I%d T%d\n", j, j)
 		}
 		fmt.Fprintf(f, "}\n\n")
+
+		fmt.Fprintf(f, `
+func (r Tuple%d[%s]) Head() T1 {
+	return r.I1;
+}
+`, i, typeArgs(1, i))
+
+		fmt.Fprintf(f, `
+func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
+	return Tuple%d[%s]{%s};
+}
+`, i, typeArgs(1, i), i-1, typeArgs(2, i), i-1, typeArgs(2, i), tupleArgs(2, i))
+
+		fmt.Fprintf(f, `
+func (r Tuple%d[%s]) ToHList() %s {
+	return hlist.Concact( r.Head(), r.Tail().ToHList())
+}
+`, i, typeArgs(1, i), consType(1, i))
 	}
 
 	formatted, err = format.Source(f.Bytes())
