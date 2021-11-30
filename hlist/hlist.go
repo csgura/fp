@@ -3,15 +3,28 @@ package hlist
 
 import "fmt"
 
+// Sealed is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
+// but go does not support existential type
+// since it has non public method isNil(),  nothing can implement this interface except Cons and Nil
+type Sealed interface {
+	isNil() bool
+	HasTail() bool
+	// Cons[_,_] | Nil
+}
+
+// Header is constrains interface type,  enforce Head type of Cons is HT
 type Header[HT any] interface {
+	Sealed
 	Head() HT
 }
 
+// Cons means H :: T
+// zero value of Cons[H,T] is not allowed.
+// so Cons defined as interface type
 type Cons[H, T any] interface {
-	Head() H
+	Sealed
+	Header[H]
 	Tail() T
-	IsNil() bool
-	HasTail() bool
 }
 
 type Nil struct{}
@@ -24,7 +37,7 @@ func (r Nil) Tail() Nil {
 	return r
 }
 
-func (r Nil) IsNil() bool {
+func (r Nil) isNil() bool {
 	return true
 }
 
@@ -49,7 +62,7 @@ func (r hlistImpl[H, T]) Tail() T {
 	return r.tail
 }
 
-func (r hlistImpl[H, T]) IsNil() bool {
+func (r hlistImpl[H, T]) isNil() bool {
 	return false
 }
 
@@ -61,11 +74,11 @@ func (r hlistImpl[H, T]) String() string {
 	return fmt.Sprintf("%v :: %v", r.head, r.tail)
 }
 
-func hlist[H, T any](h H, t T) Cons[H, T] {
+func hlist[H any, T Sealed](h H, t T) Cons[H, T] {
 	return hlistImpl[H, T]{h, t}
 }
 
-func Concact[H, T any](h H, t T) Cons[H, T] {
+func Concact[H any, T Sealed](h H, t T) Cons[H, T] {
 	return hlist(h, t)
 }
 

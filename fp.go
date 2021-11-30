@@ -30,10 +30,16 @@ type Option[T any] interface {
 }
 
 type Try[T any] interface {
-	Get() T
 	IsSuccess() bool
-	Failed() Try[error]
+	Get() T
 	Foreach(f func(v T))
+	Failed() Try[error]
+	OrElse(t T) T
+	OrElseGet(func() T) T
+	Or(func() Try[T]) Try[T]
+	Recover(func(err error) T) Try[T]
+	RecoverWith(func(err error) Try[T]) Try[T]
+	ToOption() Option[T]
 }
 
 type Future[T any] interface {

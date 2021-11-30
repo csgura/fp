@@ -8,6 +8,21 @@ import (
 	"github.com/csgura/fp/product"
 )
 
+type clImpl struct {
+}
+
+func (r clImpl) isNil() bool {
+	return true
+}
+
+func (r clImpl) String() string {
+	return "Nil"
+}
+
+func (r clImpl) HasTail() bool {
+	return false
+}
+
 func TestGeneric(t *testing.T) {
 
 	tp := product.Tuple3(10, "hello", map[string]any{})
@@ -24,4 +39,7 @@ func TestGeneric(t *testing.T) {
 	hl = hlist.Of3(11, "hello", map[string]any{})
 	fmt.Printf("%s\n", hlist.Reverse3(hl))
 
+	h10 := hlist.Concact(10, hlist.Empty())
+	hhello10 := hlist.Concact("hello", h10)
+	fmt.Printf("%s\n", hhello10)
 }

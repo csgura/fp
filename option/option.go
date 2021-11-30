@@ -76,9 +76,15 @@ func Map[T, U any](opt fp.Option[T], f func(v T) U) fp.Option[U] {
 
 func FlatMap[T, U any](opt fp.Option[T], fn func(v T) fp.Option[U]) fp.Option[U] {
 	if opt.IsDefined() {
-		return fn(opt.Get()).(fp.Option[U])
+		return fn(opt.Get())
 	}
 	return None[U]()
+}
+
+func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
+	return FlatMap(opt, func(v fp.Option[T]) fp.Option[T] {
+		return v
+	})
 }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
