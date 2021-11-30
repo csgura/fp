@@ -112,7 +112,7 @@ import (
 	"github.com/csgura/fp/hlist"
 )`)
 
-		for i := 2; i < 5; i++ {
+		for i := 2; i < 23; i++ {
 
 			fmt.Fprintf(f, `
 type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
