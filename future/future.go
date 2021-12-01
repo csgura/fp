@@ -1,6 +1,8 @@
 package future
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/promise"
 )
@@ -18,6 +20,22 @@ func Failed[T any](err error) fp.Future[T] {
 }
 
 var Unit fp.Future[fp.Unit] = Successful(fp.Unit{})
+
+func FromOption[T any](v fp.Option[T]) fp.Future[T] {
+	if v.IsDefined() {
+		return Successful(v.Get())
+	} else {
+		return Failed[T](fmt.Errorf("Option.empty"))
+	}
+}
+
+func FromTry[T any](v fp.Try[T]) fp.Future[T] {
+	if v.IsSuccess() {
+		return Successful(v.Get())
+	} else {
+		return Failed[T](v.Failed().Get())
+	}
+}
 
 func Ap[T, U any](t fp.Future[fp.Func1[T, U]], a fp.Future[T], ctx ...fp.ExecContext) fp.Future[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Future[U] {

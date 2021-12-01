@@ -102,6 +102,10 @@ func (r success[T]) ToOption() fp.Option[T] {
 	return option.Some(r.v)
 }
 
+func (r success[T]) String() string {
+	return fmt.Sprintf("Success(%v)", r.Get())
+}
+
 type failure[T any] struct {
 	err error
 }
@@ -142,6 +146,10 @@ func (r failure[T]) RecoverWith(f func(err error) fp.Try[T]) fp.Try[T] {
 }
 func (r failure[T]) ToOption() fp.Option[T] {
 	return option.None[T]()
+}
+
+func (r failure[T]) String() string {
+	return fmt.Sprintf("Failure(%v)", r.err)
 }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {

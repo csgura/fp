@@ -23,6 +23,14 @@ type future[T any] struct {
 	p *promise[T]
 }
 
+func (r future[T]) String() string {
+	v := r.Value()
+	if v.IsDefined() {
+		return fmt.Sprintf("fp.Future(%v)", v.Get())
+	} else {
+		return fmt.Sprintf("fp.Future[%s](not completed)", fp.TypeName[T]())
+	}
+}
 func (r future[T]) OnFailure(cb func(err error), ctx ...fp.ExecContext) {
 	r.OnComplete(func(try fp.Try[T]) {
 		if !try.IsSuccess() {

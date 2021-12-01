@@ -2,6 +2,8 @@
 package option
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 )
@@ -22,6 +24,14 @@ func (r option[T]) IsDefined() bool {
 
 func (r option[T]) Get() T {
 	return *r.v
+}
+
+func (r option[T]) String() string {
+	if r.IsDefined() {
+		return fmt.Sprintf("Some(%v)", r.Get())
+	} else {
+		return "None"
+	}
 }
 
 func (r option[T]) Filter(p func(v T) bool) fp.Option[T] {

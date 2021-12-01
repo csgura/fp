@@ -3,6 +3,7 @@ package fp
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/csgura/fp/hlist"
 )
@@ -31,6 +32,7 @@ type Option[T any] interface {
 	OrElse(t T) T
 	OrElseGet(func() T) T
 	Or(func() Option[T]) Option[T]
+	String() string
 }
 
 type Try[T any] interface {
@@ -45,6 +47,7 @@ type Try[T any] interface {
 	RecoverWith(func(err error) Try[T]) Try[T]
 	ToOption() Option[T]
 	Unapply() (T, error)
+	String() string
 }
 
 type Promise[T any] interface {
@@ -97,4 +100,9 @@ func Println[T any](v T) {
 
 func ToString[T any](v T) string {
 	return fmt.Sprintf("%v", v)
+}
+
+func TypeName[T any]() string {
+	var zero *T
+	return reflect.TypeOf(zero).Elem().String()
 }
