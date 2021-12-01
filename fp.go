@@ -63,6 +63,8 @@ type Future[T any] interface {
 	IsCompleted() bool
 	Value() Option[Try[T]]
 	Failed() Future[error]
+	Recover(f func(err error) T, ctx ...ExecContext) Future[T]
+	RecoverWith(f func(err error) Future[T], ctx ...ExecContext) Future[T]
 }
 type Unit struct {
 }

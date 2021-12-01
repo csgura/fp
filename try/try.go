@@ -32,6 +32,35 @@ func Apply[T any](v T, err error) fp.Try[T] {
 	return Success(v)
 }
 
+var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
+
+func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
+	return FlatMap(t, func(f fp.Func1[T, U]) fp.Try[U] {
+		return Map(a.(fp.Try[T]), func(a T) U {
+			return f(a)
+		})
+	})
+}
+
+func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
+	return FlatMap(opt, func(v T) fp.Try[U] {
+		return Success(f(v))
+	})
+}
+
+func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
+	if opt.IsSuccess() {
+		return fn(opt.Get())
+	}
+	return Failure[U](opt.Failed().Get())
+}
+
+func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
+	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {
+		return v
+	})
+}
+
 type success[T any] struct {
 	v T
 }
@@ -113,33 +142,6 @@ func (r failure[T]) RecoverWith(f func(err error) fp.Try[T]) fp.Try[T] {
 }
 func (r failure[T]) ToOption() fp.Option[T] {
 	return option.None[T]()
-}
-
-func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
-	return FlatMap(t, func(f fp.Func1[T, U]) fp.Try[U] {
-		return Map(a.(fp.Try[T]), func(a T) U {
-			return f(a)
-		})
-	})
-}
-
-func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
-	return FlatMap(opt, func(v T) fp.Try[U] {
-		return Success(f(v))
-	})
-}
-
-func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
-	if opt.IsSuccess() {
-		return fn(opt.Get())
-	}
-	return Failure[U](opt.Failed().Get())
-}
-
-func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
-	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {
-		return v
-	})
 }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
