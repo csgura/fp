@@ -2,72 +2,18 @@
 package option
 
 import (
-	"fmt"
-
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 )
 
-type option[T any] struct {
-	v *T
-}
-
-func (r option[T]) Foreach(f func(v T)) {
-	if r.v != nil {
-		f(*r.v)
-	}
-}
-
-func (r option[T]) IsDefined() bool {
-	return r.v != nil
-}
-
-func (r option[T]) Get() T {
-	return *r.v
-}
-
-func (r option[T]) String() string {
-	if r.IsDefined() {
-		return fmt.Sprintf("Some(%v)", r.Get())
-	} else {
-		return "None"
-	}
-}
-
-func (r option[T]) Filter(p func(v T) bool) fp.Option[T] {
-	return FlatMap[T](r, func(v T) fp.Option[T] {
-		if p(v) {
-			return r
-		}
-		return None[T]()
+func Some[T any](v T) fp.Option[T] {
+	return fp.None[T]{}.Recover(func() T {
+		return v
 	})
 }
 
-func (r option[T]) OrElse(t T) T {
-	if r.IsDefined() {
-		return r.Get()
-	}
-	return t
-}
-func (r option[T]) OrElseGet(f func() T) T {
-	if r.IsDefined() {
-		return r.Get()
-	}
-	return f()
-}
-func (r option[T]) Or(f func() fp.Option[T]) fp.Option[T] {
-	if r.IsDefined() {
-		return r
-	}
-	return f()
-}
-
-func Some[T any](v T) fp.Option[T] {
-	return &option[T]{&v}
-}
-
 func None[T any]() fp.Option[T] {
-	return &option[T]{}
+	return fp.None[T]{}
 }
 
 func Ap[T, U any](t fp.Option[fp.Func1[T, U]], a fp.Option[T]) fp.Option[U] {

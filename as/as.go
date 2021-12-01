@@ -6,3 +6,7 @@ import "github.com/csgura/fp"
 func Func0[R any](f func() R) fp.Func0[R] {
 	return fp.Func0[R](f)
 }
+
+func Seq[T any](s []T) fp.Seq[T] {
+	return fp.Seq[T](s)
+}

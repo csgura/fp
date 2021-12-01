@@ -5,7 +5,21 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/promise"
+	"github.com/csgura/fp/seq"
 )
+
+type goExecuter struct{}
+
+func (r goExecuter) Execute(runnable fp.Runnable) {
+	go runnable.Run()
+}
+
+func getExecuter(ctx ...fp.ExecContext) fp.ExecContext {
+	if len(ctx) == 0 {
+		return goExecuter{}
+	}
+	return ctx[0]
+}
 
 func Successful[T any](v T) fp.Future[T] {
 	p := promise.New[T]()
@@ -20,6 +34,23 @@ func Failed[T any](err error) fp.Future[T] {
 }
 
 var Unit fp.Future[fp.Unit] = Successful(fp.Unit{})
+
+func Apply[T any](f func() T, ctx ...fp.ExecContext) fp.Future[T] {
+	p := promise.New[T]()
+
+	getExecuter(ctx...).Execute(fp.RunnableFunc(func() {
+		defer func() {
+			if err := recover(); err != nil {
+				p.Failure(fmt.Errorf("panic occurred : %v", err))
+			}
+		}()
+
+		result := f()
+		p.Success(result)
+	}))
+
+	return p.Future()
+}
 
 func FromOption[T any](v fp.Option[T]) fp.Future[T] {
 	if v.IsDefined() {
@@ -93,4 +124,18 @@ func Flatten[T any](opt fp.Future[fp.Future[T]]) fp.Future[T] {
 	return FlatMap(opt, func(v fp.Future[T]) fp.Future[T] {
 		return v
 	})
+}
+
+func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.ExecContext) fp.Future[fp.Seq[T]] {
+	head := futureList.Head()
+	if head.IsDefined() {
+		return FlatMap(head.Get(), func(headResult T) fp.Future[fp.Seq[T]] {
+			last := Sequence(futureList.Tail(), ctx...)
+			return Map(last, func(tail fp.Seq[T]) fp.Seq[T] {
+				return seq.Concact(headResult, tail)
+			}, ctx...)
+
+		}, ctx...)
+	}
+	return Successful(seq.Of[T]())
 }
