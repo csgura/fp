@@ -34,6 +34,7 @@ type Option[T any] interface {
 	Recover(func() T) Option[T]
 	Or(func() Option[T]) Option[T]
 	String() string
+	//ToSeq() Seq[T]
 }
 
 type Try[T any] interface {

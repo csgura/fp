@@ -45,6 +45,10 @@ func (r Some[T]) Recover(f func() T) Option[T] {
 	return r
 }
 
+func (r Some[T]) ToSeq() Seq[T] {
+	return Seq[T]{r.v}
+}
+
 type None[T any] struct{}
 
 func (r None[T]) Foreach(f func(v T)) {
@@ -79,4 +83,8 @@ func (r None[T]) Or(f func() Option[T]) Option[T] {
 
 func (r None[T]) Recover(f func() T) Option[T] {
 	return Some[T]{f()}
+}
+
+func (r None[T]) ToSeq() Seq[T] {
+	return Seq[T]{}
 }
