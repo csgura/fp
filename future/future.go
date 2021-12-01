@@ -1,9 +1,11 @@
+//go:generate go run github.com/csgura/fp/internal/generator/future_gen
 package future
 
 import (
 	"fmt"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/promise"
 	"github.com/csgura/fp/seq"
 )
@@ -138,4 +140,57 @@ func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.ExecContext) fp.
 		}, ctx...)
 	}
 	return Successful(seq.Of[T]())
+}
+
+type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
+	h  fp.Future[H]
+	fn fp.Future[fp.Func1[A, R]]
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A) fp.Future[R] {
+	return r.FlatMap(func(h HT) fp.Future[A] {
+		return Successful(a(h))
+	})
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A) fp.Future[R] {
+	return r.HListFlatMap(func(h H) fp.Future[A] {
+		return Successful(a(h))
+	})
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A]) fp.Future[R] {
+	av := FlatMap(r.h, func(v H) fp.Future[A] {
+		return a(v)
+	})
+
+	return r.ApFuture(av)
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A]) fp.Future[R] {
+	av := FlatMap(r.h, func(v H) fp.Future[A] {
+		return a(v.Head())
+	})
+
+	return r.ApFuture(av)
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Future[R] {
+	return r.ApFuture(FromOption(a))
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) ApTry(a fp.Try[A]) fp.Future[R] {
+	return r.ApFuture(FromTry(a))
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFuture(a fp.Future[A]) fp.Future[R] {
+	return Ap(r.fn, a)
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Future[R] {
+	return r.ApFuture(Successful(a))
+}
+
+func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {
+	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Successful(hlist.Empty()), Successful(fn)}
 }
