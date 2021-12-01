@@ -1,7 +1,11 @@
 //go:generate go run github.com/csgura/fp/internal/generator/fp_gen
 package fp
 
-import "github.com/csgura/fp/hlist"
+import (
+	"fmt"
+
+	"github.com/csgura/fp/hlist"
+)
 
 type Runnable interface {
 	Run()
@@ -40,6 +44,15 @@ type Try[T any] interface {
 	Recover(func(err error) T) Try[T]
 	RecoverWith(func(err error) Try[T]) Try[T]
 	ToOption() Option[T]
+	Unapply() (T, error)
+}
+
+type Promise[T any] interface {
+	Future() Future[T]
+	Success(value T) bool
+	Failure(err error) bool
+	IsCompleted() bool
+	Complete(result Try[T]) bool
 }
 
 type Future[T any] interface {
@@ -48,9 +61,14 @@ type Future[T any] interface {
 	Foreach(f func(v T), ctx ...ExecContext)
 	OnComplete(cb func(try Try[T]), ctx ...ExecContext)
 	IsCompleted() bool
-	Value() Try[T]
+	Value() Option[Try[T]]
+	Failed() Future[error]
 }
 type Unit struct {
+}
+
+func (r Unit) String() string {
+	return "()"
 }
 
 type Tuple1[T1 any] struct {
@@ -67,4 +85,14 @@ func (r Tuple1[T1]) Tail() Unit {
 
 func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
 	return hlist.Concact(r.Head(), hlist.Empty())
+}
+
+type Func0[R any] func() R
+
+func Println[T any](v T) {
+	fmt.Println(v)
+}
+
+func ToString[T any](v T) string {
+	return fmt.Sprintf("%v", v)
 }

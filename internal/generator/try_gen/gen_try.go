@@ -189,6 +189,26 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 		}
 	})
 
+	generate("try", "func_gen.go", func(f io.Writer) {
+		fmt.Fprintln(f, `
+import (
+	"github.com/csgura/fp"
+)`)
+
+		for i := 1; i < 23; i++ {
+			fmt.Fprintf(f, `
+func Func%d[%s,R any]( f func(%s) (R,error)) fp.Func%d[%s,fp.Try[R]] {
+	return func(%s) fp.Try[R] {
+		ret , err := f(%s)
+		return Apply(ret,err)
+	}
+}
+`, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
+
+		}
+
+	})
+
 	// for j := 1; j <= i; j++ {
 	// 	if j != 1 {
 	// 		fmt.Fprintf(f, ",")

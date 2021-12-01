@@ -3,9 +3,14 @@ package product_test
 import (
 	"fmt"
 	"testing"
+	"unsafe"
 
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
+	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/unit"
 )
 
 type clImpl struct {
@@ -23,6 +28,19 @@ func (r clImpl) HasTail() bool {
 	return false
 }
 
+type IceCreame struct {
+	Name  string
+	price int16
+	Maker string
+}
+
+func hello(a string, b int) {
+	fmt.Printf("%s:%d\n", a, b)
+}
+
+func returnError(a string, b int) (string, error) {
+	return fmt.Sprintf("%s:%d", a, b), nil
+}
 func TestGeneric(t *testing.T) {
 
 	tp := product.Tuple3(10, "hello", map[string]any{})
@@ -42,4 +60,20 @@ func TestGeneric(t *testing.T) {
 	h10 := hlist.Concact(10, hlist.Empty())
 	hhello10 := hlist.Concact("hello", h10)
 	fmt.Printf("%s\n", hhello10)
+
+	ice := IceCreame{"hello", 100, "lotte"}
+	iceTup := (*fp.Tuple3[string, int16, string])(unsafe.Pointer(&ice))
+	fmt.Printf("%v\n", iceTup)
+
+	hello(product.Tuple2("hello", 10).Unapply())
+
+	s := try.Func2(returnError)("hello", 20)
+	s.Foreach(fp.Println[string])
+
+	curried.Func2(try.Func2(returnError))("hello")(30).Foreach(fp.Println[string])
+
+	a, b, _ := tp.Unapply()
+	fmt.Printf("a = %d , b = %s\n", a, b)
+
+	unit.Func2(hello).Tupled()(product.Tuple2("a", 20))
 }

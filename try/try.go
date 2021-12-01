@@ -9,6 +9,29 @@ import (
 	"github.com/csgura/fp/option"
 )
 
+func Success[T any](t T) fp.Try[T] {
+	return success[T]{t}
+}
+
+func Failure[T any](err error) fp.Try[T] {
+	return failure[T]{err}
+}
+
+func FromOption[T any](v fp.Option[T]) fp.Try[T] {
+	if v.IsDefined() {
+		return Success(v.Get())
+	} else {
+		return Failure[T](fmt.Errorf("Option.empty"))
+	}
+}
+
+func Apply[T any](v T, err error) fp.Try[T] {
+	if err != nil {
+		return Failure[T](err)
+	}
+	return Success(v)
+}
+
 type success[T any] struct {
 	v T
 }
@@ -19,6 +42,11 @@ func (r success[T]) IsSuccess() bool {
 func (r success[T]) Get() T {
 	return r.v
 }
+
+func (r success[T]) Unapply() (T, error) {
+	return r.v, nil
+}
+
 func (r success[T]) Foreach(f func(v T)) {
 	f(r.v)
 }
@@ -55,6 +83,12 @@ func (r failure[T]) IsSuccess() bool {
 func (r failure[T]) Get() T {
 	panic("not possible")
 }
+
+func (r failure[T]) Unapply() (T, error) {
+	var zero T
+	return zero, r.err
+}
+
 func (r failure[T]) Foreach(f func(v T)) {
 
 }
@@ -79,14 +113,6 @@ func (r failure[T]) RecoverWith(f func(err error) fp.Try[T]) fp.Try[T] {
 }
 func (r failure[T]) ToOption() fp.Option[T] {
 	return option.None[T]()
-}
-
-func Success[T any](t T) fp.Try[T] {
-	return success[T]{t}
-}
-
-func Failure[T any](err error) fp.Try[T] {
-	return failure[T]{err}
 }
 
 func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
@@ -149,14 +175,6 @@ func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Try[A]) fp.Try[R
 	return r.ApTry(av)
 }
 
-func FromOption[T any](v fp.Option[T]) fp.Try[T] {
-	if v.IsDefined() {
-		return Success(v.Get())
-	} else {
-		return Failure[T](fmt.Errorf("Option.empty"))
-	}
-}
-
 func (r ApplicativeFunctor1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Try[R] {
 	return r.ApTry(FromOption(a))
 }
@@ -171,4 +189,11 @@ func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Try[R] {
 
 func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {
 	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Success(hlist.Empty()), Success(fn)}
+}
+
+func Func0[R any](f func() (R, error)) fp.Func0[fp.Try[R]] {
+	return func() fp.Try[R] {
+		ret, err := f()
+		return Apply(ret, err)
+	}
 }
