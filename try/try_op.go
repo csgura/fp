@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/product"
 )
 
 func Success[T any](t T) fp.Try[T] {
@@ -58,6 +59,14 @@ func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
 func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
 	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {
 		return v
+	})
+}
+
+func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
+	return FlatMap(c1, func(v1 A) fp.Try[fp.Tuple2[A, B]] {
+		return Map(c2, func(v2 B) fp.Tuple2[A, B] {
+			return product.Tuple2(v1, v2)
+		})
 	})
 }
 

@@ -23,16 +23,12 @@ func TestSome(t *testing.T) {
 		return option.Some(20)
 	})
 
-	opt2.Foreach(func(v int) {
-		println(v)
-	})
+	opt2.Foreach(fp.Println[int])
 
 	ap := option.Applicative2(Sum)
 	result := ap.Ap("hello").Ap(20)
 
-	result.Foreach(func(v string) {
-		println(v)
-	})
+	result.Foreach(fp.Println[string])
 
 	result = ap.Ap("hello").ApOption(option.None[int]())
 
@@ -56,9 +52,7 @@ func TestSome(t *testing.T) {
 		return option.Some(10)
 	})
 
-	r2.Foreach(func(v string) {
-		println(v)
-	})
+	r2.Foreach(fp.Println[string])
 	fmt.Printf("result is defined = %t\n", r2.IsDefined())
 
 	option.Applicative3(func(addr string, port int, scheme string) string {
@@ -74,9 +68,7 @@ func TestSome(t *testing.T) {
 			}
 			return "https"
 		})).
-		Foreach(func(v string) {
-			println(v)
-		})
+		Foreach(fp.Println[string])
 
 	// hl := hlist.Concact(true, hlist.Concact("hello", hlist.Concact(10, hlist.Empty())))
 	// hlist.Case2(hl, func(a bool, b string) string {

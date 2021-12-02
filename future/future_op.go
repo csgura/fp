@@ -6,6 +6,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/promise"
 	"github.com/csgura/fp/seq"
 )
@@ -125,6 +126,14 @@ func TransformWith[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Future[U]
 func Flatten[T any](opt fp.Future[fp.Future[T]]) fp.Future[T] {
 	return FlatMap(opt, func(v fp.Future[T]) fp.Future[T] {
 		return v
+	})
+}
+
+func Zip[A, B any](c1 fp.Future[A], c2 fp.Future[B]) fp.Future[fp.Tuple2[A, B]] {
+	return FlatMap(c1, func(v1 A) fp.Future[fp.Tuple2[A, B]] {
+		return Map(c2, func(v2 B) fp.Tuple2[A, B] {
+			return product.Tuple2(v1, v2)
+		})
 	})
 }
 

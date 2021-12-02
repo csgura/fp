@@ -4,6 +4,7 @@ package option
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/product"
 )
 
 func Some[T any](v T) fp.Option[T] {
@@ -40,6 +41,14 @@ func FlatMap[T, U any](opt fp.Option[T], fn func(v T) fp.Option[U]) fp.Option[U]
 func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
 	return FlatMap(opt, func(v fp.Option[T]) fp.Option[T] {
 		return v
+	})
+}
+
+func Zip[A, B any](c1 fp.Option[A], c2 fp.Option[B]) fp.Option[fp.Tuple2[A, B]] {
+	return FlatMap(c1, func(v1 A) fp.Option[fp.Tuple2[A, B]] {
+		return Map(c2, func(v2 B) fp.Tuple2[A, B] {
+			return product.Tuple2(v1, v2)
+		})
 	})
 }
 

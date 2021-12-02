@@ -45,3 +45,21 @@ func TypeName[T any]() string {
 	var zero *T
 	return reflect.TypeOf(zero).Elem().String()
 }
+
+type Ordered interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
+		~float32 | ~float64 |
+		~string
+}
+
+func Less[T Ordered](a1 T, a2 T) bool {
+	return a1 < a2
+}
+
+func Min[T Ordered](a1 T, a2 T) T {
+	if a1 < a2 {
+		return a1
+	}
+	return a2
+}
