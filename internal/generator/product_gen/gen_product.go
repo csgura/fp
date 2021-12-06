@@ -42,6 +42,17 @@ func funcDeclArgs(start, until int) string {
 	return f.String()
 }
 
+func funcDeclTypeClassArgs(start, until int, typeClass string) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "a%d %s[A%d]", j, typeClass, j)
+	}
+	return f.String()
+}
+
 func funcCallArgs(start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {

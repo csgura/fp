@@ -14,7 +14,7 @@ type Option[T any] interface {
 	String() string
 	Exists(p func(v T) bool) bool
 	ForAll(p func(v T) bool) bool
-	//ToSeq() Seq[T]
+	ToSeq() Seq[T]
 }
 
 type Some[T any] struct {

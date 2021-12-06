@@ -120,19 +120,14 @@ func (r Seq[T]) Concact(tail Seq[T]) Seq[T] {
 	return ret
 }
 
-func (r Seq[T]) Reduce(f func(a1 T, a2 T) T) T {
+func (r Seq[T]) Reduce(m Monoid[T]) T {
 	if r.Size() == 0 {
-		var zero T
-		return zero
+		return m.Empty()
 	}
 
-	if r.Size() == 1 {
-		return r[0]
-	}
-
-	reduce := r[0]
-	for i := 1; i < len(r); i++ {
-		reduce = f(reduce, r[i])
+	reduce := m.Empty()
+	for i := 0; i < len(r); i++ {
+		reduce = m.Combine(reduce, r[i])
 	}
 	return reduce
 }
@@ -149,15 +144,15 @@ func (r Seq[T]) Reverse() Seq[T] {
 
 type seqSorter[T any] struct {
 	seq Seq[T]
-	lt  func(a1 T, a2 T) bool
+	ord Ord[T]
 }
 
 func (p *seqSorter[T]) Len() int           { return len(p.seq) }
-func (p *seqSorter[T]) Less(i, j int) bool { return p.lt(p.seq[i], p.seq[j]) }
+func (p *seqSorter[T]) Less(i, j int) bool { return p.ord.Less(p.seq[i], p.seq[j]) }
 func (p *seqSorter[T]) Swap(i, j int)      { p.seq[i], p.seq[j] = p.seq[j], p.seq[i] }
 
-func (r Seq[T]) Sort(lt func(a1 T, a2 T) bool) Seq[T] {
+func (r Seq[T]) Sort(ord Ord[T]) Seq[T] {
 	ns := r.Concact(nil)
-	sort.Sort(&seqSorter[T]{ns, lt})
+	sort.Sort(&seqSorter[T]{ns, ord})
 	return ns
 }

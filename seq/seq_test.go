@@ -5,15 +5,21 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/seq"
 )
 
 func TestSeq(t *testing.T) {
 	s := seq.Of(10, 2, 23, 15, 9, 99)
-	s = s.Sort(fp.Less[int])
+	s = s.Sort(fp.Less[int]())
 
 	s.Foreach(fp.Println[int])
+
+	sum := s.Reduce(fp.Sum[int]())
+	println("sum = ", sum)
+	println("product = ", s.Reduce(fp.Product[int]()))
 
 	s2 := seq.Of("A", "B", "C", "D", "E")
 
@@ -27,5 +33,11 @@ func TestSeq(t *testing.T) {
 	for k, v := range m {
 		fmt.Printf("key = %s, v = %v\n", k, v)
 	}
+
+	matrix := seq.Of(product.Tuple2(1, 2), product.Tuple2(2, 3))
+	fp.Println(matrix.Reduce(monoid.Tuple2(fp.Sum[int](), fp.Sum[int]())))
+
+	opts := seq.Of(option.Some(1), option.Some(2))
+	fp.Println(opts.Reduce(monoid.Option(fp.Sum[int]())))
 
 }
