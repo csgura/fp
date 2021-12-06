@@ -1,6 +1,6 @@
+//go:generate go run github.com/csgura/fp/internal/generator/monoid_gen
 package monoid
 
-//go:generate go run github.com/csgura/fp/internal/generator/monoid_gen
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/future"
@@ -9,23 +9,27 @@ import (
 	"github.com/csgura/fp/try"
 )
 
-type monoid[T any] struct {
-	zero    fp.EmptyFunc[T]
-	combine fp.SemigroupFunc[T]
-}
-
-func (r monoid[T]) Empty() T {
-	return r.zero()
-}
-
-func (r monoid[T]) Combine(a, b T) T {
-	return r.combine(a, b)
-}
-
 func New[T any](zero fp.EmptyFunc[T], combine fp.SemigroupFunc[T]) fp.Monoid[T] {
 	return monoid[T]{
 		zero, combine,
 	}
+}
+
+func Sum[T fp.ImplicitOrd]() fp.Monoid[T] {
+	return fp.SemigroupFunc[T](func(a, b T) T {
+		return a + b
+	})
+}
+
+func Product[T fp.ImplicitNum]() fp.Monoid[T] {
+	return New(
+		func() T {
+			return 1
+		},
+		func(a, b T) T {
+			return a * b
+		},
+	)
 }
 
 func Option[T any](m fp.Monoid[T]) fp.Monoid[fp.Option[T]] {
@@ -70,4 +74,17 @@ func Seq[T any]() fp.Monoid[fp.Seq[T]] {
 			return a.Concact(b)
 		},
 	)
+}
+
+type monoid[T any] struct {
+	zero    fp.EmptyFunc[T]
+	combine fp.SemigroupFunc[T]
+}
+
+func (r monoid[T]) Empty() T {
+	return r.zero()
+}
+
+func (r monoid[T]) Combine(a, b T) T {
+	return r.combine(a, b)
 }

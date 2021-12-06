@@ -28,7 +28,7 @@ func (r clImpl) HasTail() bool {
 	return false
 }
 
-type IceCreame struct {
+type IceCream struct {
 	Name  string
 	price int16
 	Maker string
@@ -44,6 +44,12 @@ func returnError(a string, b int) (string, error) {
 func TestGeneric(t *testing.T) {
 
 	tp := product.Tuple3(10, "hello", map[string]any{})
+
+	tp = fp.Tuple3[int, string, map[string]any]{10, "hello", map[string]any{}}
+
+	age, name, attr := tp.Unapply()
+	fmt.Printf("age = %d, name = %s, attr = %v", age, name, attr)
+
 	hl := tp.ToHList()
 	tp2 := hlist.Case2(hl, product.Tuple2[int, string])
 	fmt.Printf("%v\n", tp2)
@@ -61,9 +67,11 @@ func TestGeneric(t *testing.T) {
 	hhello10 := hlist.Concact("hello", h10)
 	fmt.Printf("%s\n", hhello10)
 
-	ice := IceCreame{"hello", 100, "lotte"}
-	iceTup := (*fp.Tuple3[string, int16, string])(unsafe.Pointer(&ice))
+	ice := IceCream{"hello", 100, "lotte"}
+	iceTup := *(*fp.Tuple3[string, int16, string])(unsafe.Pointer(&ice))
 	fmt.Printf("%v\n", iceTup)
+
+	ice = *(*IceCream)(unsafe.Pointer(&iceTup))
 
 	hello(product.Tuple2("hello", 10).Unapply())
 
