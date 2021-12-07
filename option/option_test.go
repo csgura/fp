@@ -1,7 +1,9 @@
 package option_test
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/csgura/fp"
@@ -75,5 +77,21 @@ func TestSome(t *testing.T) {
 	// 	fmt.Printf("a = %v , b = %v\n", a, b)
 	// 	return "good"
 	// })
+
+	var ptr *string = nil
+	ptrOpt := option.Of(ptr)
+	println(ptrOpt.IsDefined())
+
+	var close io.Writer = nil
+	intfOpt := option.Of(close)
+	println(intfOpt.IsDefined())
+
+	close = &bytes.Buffer{}
+	intfOpt = option.Of(close)
+	println(intfOpt.IsDefined())
+
+	var buf *bytes.Buffer
+	bufOpt := option.Of(buf)
+	println(bufOpt.IsDefined())
 
 }

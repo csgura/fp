@@ -2,6 +2,8 @@
 package option
 
 import (
+	"reflect"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
@@ -15,6 +17,19 @@ func Some[T any](v T) fp.Option[T] {
 
 func None[T any]() fp.Option[T] {
 	return fp.None[T]{}
+}
+
+func Of[T any](v T) fp.Option[T] {
+	var i any = v
+	if i == nil {
+		return None[T]()
+	}
+
+	rv := reflect.ValueOf(i)
+	if rv.Kind() == reflect.Ptr && rv.IsNil() {
+		return None[T]()
+	}
+	return Some(v)
 }
 
 func Ap[T, U any](t fp.Option[fp.Func1[T, U]], a fp.Option[T]) fp.Option[U] {
