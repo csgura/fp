@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 )
@@ -81,6 +82,9 @@ func TestSome(t *testing.T) {
 	var ptr *string = nil
 	ptrOpt := option.Of(ptr)
 	println(ptrOpt.IsDefined())
+
+	println("option.Ptr(ptr)", option.Ptr(ptr).IsDefined())
+	option.Ptr(as.Ptr("hello")).Foreach(fp.Println[string])
 
 	var close io.Writer = nil
 	intfOpt := option.Of(close)

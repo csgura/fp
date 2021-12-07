@@ -32,6 +32,13 @@ func Of[T any](v T) fp.Option[T] {
 	return Some(v)
 }
 
+func Ptr[T any](v *T) fp.Option[T] {
+	if v == nil {
+		return None[T]()
+	}
+	return Some(*v)
+}
+
 func Ap[T, U any](t fp.Option[fp.Func1[T, U]], a fp.Option[T]) fp.Option[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Option[U] {
 		return Map(a.(fp.Option[T]), func(a T) U {

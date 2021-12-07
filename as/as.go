@@ -10,3 +10,7 @@ func Func0[R any](f func() R) fp.Func0[R] {
 func Seq[T any](s []T) fp.Seq[T] {
 	return fp.Seq[T](s)
 }
+
+func Ptr[T any](v T) *T {
+	return &v
+}
