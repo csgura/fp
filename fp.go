@@ -35,6 +35,12 @@ func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
 
 type Func0[R any] func() R
 
+type Func1[A1, R any] func(a1 A1) R
+
+func (r Func1[A1, R]) Curried() Func1[A1, R] {
+	return r
+}
+
 func Println[T any](v T) {
 	fmt.Println(v)
 }

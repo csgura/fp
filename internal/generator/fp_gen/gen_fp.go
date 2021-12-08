@@ -9,7 +9,30 @@ import (
 	"log"
 )
 
-func typeArgs(start, until int) string {
+func curriedType(start, until int) string {
+	f := &bytes.Buffer{}
+	endBracket := ""
+	for j := start; j <= until; j++ {
+		fmt.Fprintf(f, "Func1[A%d, ", j)
+		endBracket = endBracket + "]"
+	}
+	fmt.Fprintf(f, "R%s", endBracket)
+
+	return f.String()
+}
+
+func funcTypeArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "A%d", j)
+	}
+	return f.String()
+}
+
+func tupleTypeArgs(start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
 		if j != start {
@@ -50,6 +73,17 @@ func consType(start, until int) string {
 	return ret
 }
 
+func funcDeclArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "a%d A%d", j, j)
+	}
+	return f.String()
+}
+
 func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 	f := &bytes.Buffer{}
 
@@ -70,9 +104,20 @@ func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 	}
 }
 
+func funcCallArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "a%d", j)
+	}
+	return f.String()
+}
+
 func main() {
 	generate("fp", "func_gen.go", func(f io.Writer) {
-		for i := 1; i < 23; i++ {
+		for i := 2; i < 23; i++ {
 			fmt.Fprintf(f, "type Func%d", i)
 			fmt.Fprintf(f, "[")
 
@@ -96,13 +141,25 @@ func main() {
 
 		}
 		for i := 2; i < 23; i++ {
+
 			fmt.Fprintf(f, `
 func(r Func%d[%s,R]) Tupled() Func1[Tuple%d[%s],R] {
 	return func(t Tuple%d[%s]) R {
 		return r(t.Unapply())
 	}
 }
-`, i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
+`, i, funcTypeArgs(1, i), i, funcTypeArgs(1, i), i, funcTypeArgs(1, i))
+
+			fmt.Fprintf(f, `
+func(r Func%d[%s,R]) Curried() %s {
+	return func(a1 A1) %s {
+		return Func%d[%s,R](func(%s) R {
+			return r(%s)
+		}).Curried()
+	}	
+}
+`, i, funcTypeArgs(1, i), curriedType(1, i), curriedType(2, i), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
+
 		}
 	})
 
@@ -136,31 +193,31 @@ import (
 func (r Tuple%d[%s]) Head() T1 {
 	return r.I1;
 }
-`, i, typeArgs(1, i))
+`, i, tupleTypeArgs(1, i))
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
 	return Tuple%d[%s]{%s};
 }
-`, i, typeArgs(1, i), i-1, typeArgs(2, i), i-1, typeArgs(2, i), tupleArgs(2, i))
+`, i, tupleTypeArgs(1, i), i-1, tupleTypeArgs(2, i), i-1, tupleTypeArgs(2, i), tupleArgs(2, i))
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) ToHList() %s {
 	return hlist.Concact( r.Head(), r.Tail().ToHList())
 }
-`, i, typeArgs(1, i), consType(1, i))
+`, i, tupleTypeArgs(1, i), consType(1, i))
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) String() string {
 	return fmt.Sprintf("(%s)", %s)
 }
-`, i, typeArgs(1, i), formatStr(1, i), tupleArgs(1, i))
+`, i, tupleTypeArgs(1, i), formatStr(1, i), tupleArgs(1, i))
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) Unapply() (%s) {
 	return %s
 }
-`, i, typeArgs(1, i), typeArgs(1, i), tupleArgs(1, i))
+`, i, tupleTypeArgs(1, i), tupleTypeArgs(1, i), tupleArgs(1, i))
 
 		}
 

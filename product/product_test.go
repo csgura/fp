@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
@@ -36,6 +37,10 @@ type IceCream struct {
 
 func hello(a string, b int) {
 	fmt.Printf("%s:%d\n", a, b)
+}
+
+func format(a string, b int) string {
+	return fmt.Sprintf("%s:%d\n", a, b)
 }
 
 func returnError(a string, b int) (string, error) {
@@ -84,4 +89,9 @@ func TestGeneric(t *testing.T) {
 	fmt.Printf("a = %d , b = %s\n", a, b)
 
 	unit.Func2(hello).Tupled()(product.Tuple2("a", 20))
+
+	fn := as.Func2(format).Tupled()
+
+	println(fn(product.Tuple2("hello", 10)))
+
 }
