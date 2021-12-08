@@ -23,4 +23,10 @@ func TestCurried(t *testing.T) {
 	})
 
 	Map("world", curried.Func2(Concat)(prefix))
+
+	fn := curried.Func3(func(a string, b int, c string) string {
+		return fmt.Sprint(a, b, c)
+	})("hello")
+
+	println(curried.Revert2(fn)(10, "world"))
 }

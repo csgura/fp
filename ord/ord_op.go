@@ -1,21 +1,22 @@
+//go:generate go run github.com/csgura/fp/internal/generator/ord_gen
 package ord
 
-import "github.com/csgura/fp"
+import (
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/option"
+)
 
-func Tuple2[A, B any](a fp.Ord[A], b fp.Ord[B]) fp.Ord[fp.Tuple2[A, B]] {
-	return fp.LessFunc[fp.Tuple2[A, B]](func(t1 fp.Tuple2[A, B], t2 fp.Tuple2[A, B]) bool {
+func Tuple1[A any](a fp.Ord[A]) fp.Ord[fp.Tuple1[A]] {
+	return fp.LessFunc[fp.Tuple1[A]](func(t1 fp.Tuple1[A], t2 fp.Tuple1[A]) bool {
 		if a.Less(t1.I1, t2.I1) {
 			return true
 		}
-		return b.Less(t1.I2, t2.I2)
+		return false
 	})
 }
 
-func Tuple3[A, B, C any](a fp.Ord[A], b fp.Ord[B], c fp.Ord[C]) fp.Ord[fp.Tuple3[A, B, C]] {
-	return fp.LessFunc[fp.Tuple3[A, B, C]](func(t1 fp.Tuple3[A, B, C], t2 fp.Tuple3[A, B, C]) bool {
-		if a.Less(t1.I1, t2.I1) {
-			return true
-		}
-		return Tuple2(b, c).Less(t1.Tail(), t2.Tail())
+func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
+	return fp.LessFunc[fp.Option[T]](func(t1 fp.Option[T], t2 fp.Option[T]) bool {
+		return option.Applicative2(m.Less).ApOption(t1).ApOption(t2).OrElse(false)
 	})
 }
