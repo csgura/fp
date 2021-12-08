@@ -22,7 +22,7 @@ func FromOption[T any](v fp.Option[T]) fp.Try[T] {
 	if v.IsDefined() {
 		return Success(v.Get())
 	} else {
-		return Failure[T](fmt.Errorf("Option.empty"))
+		return Failure[T](fp.ErrOptionEmpty)
 	}
 }
 
@@ -89,7 +89,7 @@ func (r success[T]) Foreach(f func(v T)) {
 	f(r.v)
 }
 func (r success[T]) Failed() fp.Try[error] {
-	return failure[error]{fmt.Errorf("Success.failed not supported")}
+	return failure[error]{fp.ErrTryNotFailed}
 }
 func (r success[T]) OrElse(t T) T {
 	return r.v

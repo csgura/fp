@@ -3,7 +3,9 @@ package fp
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
+	"runtime/debug"
 
 	"github.com/csgura/fp/hlist"
 )
@@ -96,4 +98,71 @@ func Less[T ImplicitOrd]() Ord[T] {
 	return LessFunc[T](func(a, b T) bool {
 		return a < b
 	})
+}
+
+var ErrOptionEmpty = Error(http.StatusNotFound, "Option.empty")
+var ErrTryNotFailed = Error(http.StatusBadRequest, "Success.failed not supported")
+var ErrFutureNotFailed = Error(http.StatusBadRequest, "Future.Failed not completed with a error")
+
+type errorCode struct {
+	code    int
+	message string
+	cause   error
+}
+
+func (r *errorCode) Error() string {
+	return r.message
+}
+
+func (r *errorCode) Unwrap() error {
+	return r.cause
+}
+
+func (e *errorCode) StatusCode() int {
+	return e.code
+}
+
+func Error(code int, fmtStr string, args ...any) error {
+
+	var cause error = nil
+
+	for _, v := range args {
+		if e, ok := v.(error); ok {
+			cause = e
+		}
+	}
+
+	return &errorCode{
+		code:    code,
+		message: fmt.Sprintf(fmtStr, args...),
+		cause:   cause,
+	}
+}
+
+type panicError struct {
+	panicMessage any
+	stack        []byte
+}
+
+func (r *panicError) Error() string {
+	return fmt.Sprintf("%v %v", r.panicMessage, string(r.stack))
+}
+
+func (r *panicError) Panic() any {
+	return r.panicMessage
+}
+
+func (r *panicError) Stack() []byte {
+	return r.stack
+}
+
+func (e *panicError) StatusCode() int {
+	return http.StatusInternalServerError
+}
+
+func PanicError(message any) error {
+	return &panicError{
+		panicMessage: message,
+		stack:        debug.Stack(),
+	}
 }

@@ -2,8 +2,6 @@
 package future
 
 import (
-	"fmt"
-
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
@@ -44,7 +42,7 @@ func Apply[T any](f func() T, ctx ...fp.ExecContext) fp.Future[T] {
 	getExecuter(ctx...).Execute(fp.RunnableFunc(func() {
 		defer func() {
 			if err := recover(); err != nil {
-				p.Failure(fmt.Errorf("panic occurred : %v", err))
+				p.Failure(fp.PanicError(err))
 			}
 		}()
 
@@ -59,7 +57,7 @@ func FromOption[T any](v fp.Option[T]) fp.Future[T] {
 	if v.IsDefined() {
 		return Successful(v.Get())
 	} else {
-		return Failed[T](fmt.Errorf("Option.empty"))
+		return Failed[T](fp.ErrOptionEmpty)
 	}
 }
 

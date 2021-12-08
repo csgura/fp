@@ -73,7 +73,7 @@ func (r future[T]) Failed() fp.Future[error] {
 
 	r.OnComplete(func(t fp.Try[T]) {
 		if t.IsSuccess() {
-			np.Failure(fmt.Errorf("future.Failed not completed with a error"))
+			np.Failure(fp.ErrFutureNotFailed)
 		} else {
 			np.Success(t.Failed().Get())
 		}
