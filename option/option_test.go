@@ -73,7 +73,7 @@ func TestSome(t *testing.T) {
 		})).
 		Foreach(fp.Println[string])
 
-	// hl := hlist.Concact(true, hlist.Concact("hello", hlist.Concact(10, hlist.Empty())))
+	// hl := hlist.Concat(true, hlist.Concat("hello", hlist.Concat(10, hlist.Empty())))
 	// hlist.Case2(hl, func(a bool, b string) string {
 	// 	fmt.Printf("a = %v , b = %v\n", a, b)
 	// 	return "good"

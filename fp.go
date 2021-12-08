@@ -30,7 +30,7 @@ func (r Tuple1[T1]) Tail() Unit {
 }
 
 func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
-	return hlist.Concact(r.Head(), hlist.Empty())
+	return hlist.Concat(r.Head(), hlist.Empty())
 }
 
 type Func0[R any] func() R

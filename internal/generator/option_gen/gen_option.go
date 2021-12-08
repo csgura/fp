@@ -87,7 +87,7 @@ import (
 		fmt.Fprintf(f, `
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 

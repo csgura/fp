@@ -155,7 +155,7 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 // func (r ApplicativeFunctor2[H, HT, A, B, R]) ApOption(a fp.Option[A]) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
 // 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
 // 		return Map(a, func(av A) hlist.Cons[A, H] {
-// 			return hlist.Concact(av, hv)
+// 			return hlist.Concat(av, hv)
 // 		})
 // 	})
 
@@ -179,7 +179,7 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 
 // 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
 // 		return Map(a, func(av A) hlist.Cons[A, H] {
-// 			return hlist.Concact(av, hv)
+// 			return hlist.Concat(av, hv)
 // 		})
 // 	})
 
@@ -231,7 +231,7 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 
 // 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
 // 		return Map(a, func(av A) hlist.Cons[A, H] {
-// 			return hlist.Concact(av, hv)
+// 			return hlist.Concat(av, hv)
 // 		})
 // 	})
 

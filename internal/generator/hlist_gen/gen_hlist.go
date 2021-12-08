@@ -166,7 +166,7 @@ func main() {
 			fmt.Fprintf(f, "func Of%d [%s any](%s) %s { ", i, typeArgs(1, i), funcDeclArgs(1, i), consType(1, i, "Nil"))
 
 			fmt.Fprintf(f, `
-	return Concact(a1, Of%d(%s))
+	return Concat(a1, Of%d(%s))
 }	
 `, i-1, funcCallArgs(2, i))
 

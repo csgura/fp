@@ -68,8 +68,8 @@ func TestGeneric(t *testing.T) {
 	hl = hlist.Of3(11, "hello", map[string]any{})
 	fmt.Printf("%s\n", hlist.Reverse3(hl))
 
-	h10 := hlist.Concact(10, hlist.Empty())
-	hhello10 := hlist.Concact("hello", h10)
+	h10 := hlist.Concat(10, hlist.Empty())
+	hhello10 := hlist.Concat("hello", h10)
 	fmt.Printf("%s\n", hhello10)
 
 	ice := IceCream{"hello", 100, "lotte"}

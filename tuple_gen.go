@@ -19,7 +19,7 @@ func (r Tuple2[T1, T2]) Tail() Tuple1[T2] {
 }
 
 func (r Tuple2[T1, T2]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Nil]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple2[T1, T2]) String() string {
@@ -45,7 +45,7 @@ func (r Tuple3[T1, T2, T3]) Tail() Tuple2[T2, T3] {
 }
 
 func (r Tuple3[T1, T2, T3]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Nil]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple3[T1, T2, T3]) String() string {
@@ -72,7 +72,7 @@ func (r Tuple4[T1, T2, T3, T4]) Tail() Tuple3[T2, T3, T4] {
 }
 
 func (r Tuple4[T1, T2, T3, T4]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Nil]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple4[T1, T2, T3, T4]) String() string {
@@ -100,7 +100,7 @@ func (r Tuple5[T1, T2, T3, T4, T5]) Tail() Tuple4[T2, T3, T4, T5] {
 }
 
 func (r Tuple5[T1, T2, T3, T4, T5]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Nil]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple5[T1, T2, T3, T4, T5]) String() string {
@@ -129,7 +129,7 @@ func (r Tuple6[T1, T2, T3, T4, T5, T6]) Tail() Tuple5[T2, T3, T4, T5, T6] {
 }
 
 func (r Tuple6[T1, T2, T3, T4, T5, T6]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Nil]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple6[T1, T2, T3, T4, T5, T6]) String() string {
@@ -159,7 +159,7 @@ func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) Tail() Tuple6[T2, T3, T4, T5, T6, T7
 }
 
 func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Nil]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) String() string {
@@ -190,7 +190,7 @@ func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) Tail() Tuple7[T2, T3, T4, T5, T6
 }
 
 func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Nil]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) String() string {
@@ -222,7 +222,7 @@ func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Tail() Tuple8[T2, T3, T4, T5
 }
 
 func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Nil]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) String() string {
@@ -255,7 +255,7 @@ func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Tail() Tuple9[T2, T3, 
 }
 
 func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Nil]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) String() string {
@@ -289,7 +289,7 @@ func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Tail() Tuple10[T2
 }
 
 func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Nil]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) String() string {
@@ -324,7 +324,7 @@ func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Tail() Tuple
 }
 
 func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Nil]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) String() string {
@@ -360,7 +360,7 @@ func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Tail() 
 }
 
 func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Nil]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) String() string {
@@ -397,7 +397,7 @@ func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Ta
 }
 
 func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Nil]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) String() string {
@@ -435,7 +435,7 @@ func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Nil]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) String() string {
@@ -474,7 +474,7 @@ func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Nil]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) String() string {
@@ -514,7 +514,7 @@ func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Cons[T17, hlist.Nil]]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) String() string {
@@ -555,7 +555,7 @@ func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Cons[T17, hlist.Cons[T18, hlist.Nil]]]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) String() string {
@@ -597,7 +597,7 @@ func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Cons[T17, hlist.Cons[T18, hlist.Cons[T19, hlist.Nil]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) String() string {
@@ -640,7 +640,7 @@ func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Cons[T17, hlist.Cons[T18, hlist.Cons[T19, hlist.Cons[T20, hlist.Nil]]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) String() string {
@@ -684,7 +684,7 @@ func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Cons[T17, hlist.Cons[T18, hlist.Cons[T19, hlist.Cons[T20, hlist.Cons[T21, hlist.Nil]]]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) String() string {
@@ -729,7 +729,7 @@ func (r Tuple22[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 }
 
 func (r Tuple22[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Cons[T7, hlist.Cons[T8, hlist.Cons[T9, hlist.Cons[T10, hlist.Cons[T11, hlist.Cons[T12, hlist.Cons[T13, hlist.Cons[T14, hlist.Cons[T15, hlist.Cons[T16, hlist.Cons[T17, hlist.Cons[T18, hlist.Cons[T19, hlist.Cons[T20, hlist.Cons[T21, hlist.Cons[T22, hlist.Nil]]]]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concact(r.Head(), r.Tail().ToHList())
+	return hlist.Concat(r.Head(), r.Tail().ToHList())
 }
 
 func (r Tuple22[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22]) String() string {

@@ -42,7 +42,7 @@ func (r ApplicativeFunctor2[H, HT, A1, A2, R]) ApOption(a fp.Option[A1]) Applica
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -93,7 +93,7 @@ func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) ApOption(a fp.Option[A1]) App
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -144,7 +144,7 @@ func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) ApOption(a fp.Option[A1])
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -195,7 +195,7 @@ func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) ApOption(a fp.Option[
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -246,7 +246,7 @@ func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) ApOption(a fp.Opt
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -297,7 +297,7 @@ func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) ApOption(a fp
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -348,7 +348,7 @@ func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOption(
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -399,7 +399,7 @@ func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOpt
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -450,7 +450,7 @@ func (r ApplicativeFunctor10[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R])
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -501,7 +501,7 @@ func (r ApplicativeFunctor11[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -552,7 +552,7 @@ func (r ApplicativeFunctor12[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -603,7 +603,7 @@ func (r ApplicativeFunctor13[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -654,7 +654,7 @@ func (r ApplicativeFunctor14[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -705,7 +705,7 @@ func (r ApplicativeFunctor15[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -756,7 +756,7 @@ func (r ApplicativeFunctor16[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -807,7 +807,7 @@ func (r ApplicativeFunctor17[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -858,7 +858,7 @@ func (r ApplicativeFunctor18[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -909,7 +909,7 @@ func (r ApplicativeFunctor19[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -960,7 +960,7 @@ func (r ApplicativeFunctor20[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -1011,7 +1011,7 @@ func (r ApplicativeFunctor21[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 
@@ -1062,7 +1062,7 @@ func (r ApplicativeFunctor22[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11
 
 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 

@@ -163,7 +163,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 			fmt.Fprintf(f, `
 	nh := FlatMap(r.h, func(hv H) fp.Future[hlist.Cons[A1, H]] {
 		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concact(av, hv)
+			return hlist.Concat(av, hv)
 		})
 	})
 

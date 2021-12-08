@@ -106,7 +106,7 @@ func (r Seq[T]) Append(items ...T) Seq[T] {
 	return ret
 }
 
-func (r Seq[T]) Concact(tail Seq[T]) Seq[T] {
+func (r Seq[T]) Concat(tail Seq[T]) Seq[T] {
 	ret := make(Seq[T], r.Size()+tail.Size())
 
 	for i := range r {
@@ -152,7 +152,7 @@ func (p *seqSorter[T]) Less(i, j int) bool { return p.ord.Less(p.seq[i], p.seq[j
 func (p *seqSorter[T]) Swap(i, j int)      { p.seq[i], p.seq[j] = p.seq[j], p.seq[i] }
 
 func (r Seq[T]) Sort(ord Ord[T]) Seq[T] {
-	ns := r.Concact(nil)
+	ns := r.Concat(nil)
 	sort.Sort(&seqSorter[T]{ns, ord})
 	return ns
 }

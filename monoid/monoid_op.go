@@ -71,7 +71,7 @@ func Seq[T any]() fp.Monoid[fp.Seq[T]] {
 			return seq.Of[T]()
 		},
 		func(a fp.Seq[T], b fp.Seq[T]) fp.Seq[T] {
-			return a.Concact(b)
+			return a.Concat(b)
 		},
 	)
 }

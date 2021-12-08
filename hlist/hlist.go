@@ -78,7 +78,7 @@ func hlist[H any, T Sealed](h H, t T) Cons[H, T] {
 	return hlistImpl[H, T]{h, t}
 }
 
-func Concact[H any, T Sealed](h H, t T) Cons[H, T] {
+func Concat[H any, T Sealed](h H, t T) Cons[H, T] {
 	return hlist(h, t)
 }
 
@@ -106,7 +106,7 @@ func Case1[A1, T, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 
 // func Reverse2[A1, A2 any](hl Cons[A1, Cons[A2, Nil]]) Cons[A2, Cons[A1, Nil]] {
 // 	panic("")
-// 	//return Concact(Reverse1(hl.Tail()), hl.Head())
+// 	//return Concat(Reverse1(hl.Tail()), hl.Head())
 // }
 
 // func Reverse3[A1, A2, A3 any](hl Cons[A1, Cons[A2, Cons[A3, Nil]]]) Cons[A3, Cons[A2, Cons[A1, Nil]]] {

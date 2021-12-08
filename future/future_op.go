@@ -141,7 +141,7 @@ func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.ExecContext) fp.
 		return FlatMap(head.Get(), func(headResult T) fp.Future[fp.Seq[T]] {
 			last := Sequence(futureList.Tail(), ctx...)
 			return Map(last, func(tail fp.Seq[T]) fp.Seq[T] {
-				return seq.Concact(headResult, tail)
+				return seq.Concat(headResult, tail)
 			}, ctx...)
 
 		}, ctx...)

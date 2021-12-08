@@ -203,7 +203,7 @@ func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) ToHList() %s {
-	return hlist.Concact( r.Head(), r.Tail().ToHList())
+	return hlist.Concat( r.Head(), r.Tail().ToHList())
 }
 `, i, tupleTypeArgs(1, i), consType(1, i))
 

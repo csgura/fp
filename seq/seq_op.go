@@ -35,8 +35,8 @@ func Flatten[T any](opt fp.Seq[fp.Seq[T]]) fp.Seq[T] {
 	})
 }
 
-func Concact[T any](head T, tail fp.Seq[T]) fp.Seq[T] {
-	return Of(head).Concact(tail)
+func Concat[T any](head T, tail fp.Seq[T]) fp.Seq[T] {
+	return Of(head).Concat(tail)
 }
 
 func Zip[A, B any](s1 fp.Seq[A], s2 fp.Seq[B]) fp.Seq[fp.Tuple2[A, B]] {
