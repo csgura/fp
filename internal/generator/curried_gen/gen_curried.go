@@ -20,6 +20,26 @@ func curriedType(start, until int) string {
 	return f.String()
 }
 
+func funcDeclArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "a%d A%d", j, j)
+	}
+	return f.String()
+}
+
+func curriedCallArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+
+		fmt.Fprintf(f, "(a%d)", j)
+	}
+	return f.String()
+}
+
 func callFunc(nargs int) string {
 	f := &bytes.Buffer{}
 
@@ -71,6 +91,15 @@ import (
 	}	
 }	
 `, curriedType(2, i), i-1, callFunc(i))
+
+		fmt.Fprintf(f, "func Revert%d [%s, R any]( f %s ) fp.Func%d[%s,R] { ", i, args, curriedType(1, i), i, args)
+
+		fmt.Fprintf(f, `
+	return func(%s) R {
+		return f%s
+	}	
+}	
+`, funcDeclArgs(1, i), curriedCallArgs(1, i))
 
 	}
 
