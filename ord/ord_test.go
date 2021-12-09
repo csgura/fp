@@ -33,7 +33,9 @@ func TestOrd(t *testing.T) {
 
 	assertTrue(ic.Less(option.Some(10), option.Some(20)))
 	assertFalse(ic.Less(option.Some(30), option.Some(20)))
-	assertFalse(ic.Less(option.None[int](), option.Some(20)))
+	assertFalse(ic.Less(option.Some(30), option.Some(30)))
+
+	assertTrue(ic.Less(option.None[int](), option.Some(20)))
 	assertFalse(ic.Less(option.Some(20), option.None[int]()))
 	assertFalse(ic.Less(option.None[int](), option.None[int]()))
 

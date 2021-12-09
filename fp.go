@@ -85,6 +85,12 @@ type Eq[T any] interface {
 	Eqv(a T, b T) bool
 }
 
+type EqFunc[T any] func(a, b T) bool
+
+func (r EqFunc[T]) Eqv(a, b T) bool {
+	return r(a, b)
+}
+
 type Ord[T any] interface {
 	Eq[T]
 	Less(a T, b T) bool

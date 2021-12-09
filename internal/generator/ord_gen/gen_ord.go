@@ -146,18 +146,25 @@ import (
 
 			tuple := tupleNType(i)
 
+			tail := strings.ReplaceAll(funcCallArgs(2, i), "a", "tins")
 			fmt.Fprintf(f, `
-	return fp.LessFunc[%s](func(t1 %s, t2 %s) bool {
-		if tins1.Less(t1.I1, t2.I1) {
-			return true
-		}
-		if tins1.Less(t2.I1, t1.I1) {
-			return false
-		}
-		return Tuple%d(%s).Less(t1.Tail(), t2.Tail())
-	})
+		return New[%s](
+				fp.EqFunc[%s](func(t1 %s, t2 %s) bool {
+					return tins1.Eqv(t1.I1, t2.I1) && Tuple%d(%s).Eqv(t1.Tail(), t2.Tail())
+				}),
+			fp.LessFunc[%s](func(t1 %s, t2 %s) bool {
+				if tins1.Less(t1.I1, t2.I1) {
+					return true
+				}
+				if tins1.Less(t2.I1, t1.I1) {
+					return false
+				}
+				return Tuple%d(%s).Less(t1.Tail(), t2.Tail())
+			}),
+		)
 }
-			`, tuple, tuple, tuple, i-1, strings.ReplaceAll(funcCallArgs(2, i), "a", "tins"),
+			`, tuple, tuple, tuple, tuple, i-1, tail,
+				tuple, tuple, tuple, i-1, tail,
 			)
 		}
 	})
