@@ -65,7 +65,7 @@ func TestSome(t *testing.T) {
 		FlatMap(func(addr string) fp.Option[int] {
 			return option.Some(80)
 		}).
-		HListMap(hlist.Ap2(func(addr string, port int) string {
+		HListMap(hlist.Rift2(func(addr string, port int) string {
 			if port == 80 {
 				return "http"
 			}

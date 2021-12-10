@@ -127,13 +127,27 @@ func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 func main() {
 
 	generate("hlist", "ap_gen.go", func(f io.Writer) {
+
 		for i := 2; i < 23; i++ {
 
-			fmt.Fprintf(f, "func Ap%d [%s, R any]( f func(%s) R ) func(%s) R { ", i, typeArgs(1, i), funcDeclArgs(1, i), reversConsType(1, i))
+			fmt.Fprintf(f, "func Lift%d [%s, R any]( f func(%s) R ) func(%s) R { ", i, typeArgs(1, i), funcDeclArgs(1, i), consType(1, i, "Nil"))
 
 			fmt.Fprintf(f, `
 	return func(v %s) R {
-		rf := Ap%d(func(%s) R {
+		rf := Lift%d(func(%s) R {
+			return f(v.Head(), %s)
+		})
+
+		return rf(v.Tail())
+	}
+}	
+`, consType(1, i, "Nil"), i-1, funcDeclArgs(1+1, i), funcCallArgs(1+1, i))
+
+			fmt.Fprintf(f, "func Rift%d [%s, R any]( f func(%s) R ) func(%s) R { ", i, typeArgs(1, i), funcDeclArgs(1, i), reversConsType(1, i))
+
+			fmt.Fprintf(f, `
+	return func(v %s) R {
+		rf := Rift%d(func(%s) R {
 			return f(%s, v.Head())
 		})
 
@@ -148,7 +162,7 @@ func main() {
 	generate("hlist", "case_gen.go", func(f io.Writer) {
 		for i := 2; i < 23; i++ {
 
-			fmt.Fprintf(f, "func Case%d [%s, T, R any](hl %s,  f func(%s) R ) R { ", i, typeArgs(1, i), consType(1, i, "T"), funcDeclArgs(1, i))
+			fmt.Fprintf(f, "func Case%d [%s any, T Sealed, R any](hl %s,  f func(%s) R ) R { ", i, typeArgs(1, i), consType(1, i, "T"), funcDeclArgs(1, i))
 
 			fmt.Fprintf(f, `
 	return Case%d(hl.Tail(), func(%s) R {

@@ -21,9 +21,9 @@ type Header[HT any] interface {
 // Cons means H :: T
 // zero value of Cons[H,T] is not allowed.
 // so Cons defined as interface type
-type Cons[H, T any] interface {
+type Cons[H any, T Sealed] interface {
 	Sealed
-	Header[H]
+	Head() H
 	Tail() T
 }
 
@@ -83,20 +83,26 @@ func Concat[H any, T Sealed](h H, t T) Cons[H, T] {
 }
 
 func Of1[H any](h H) Cons[H, Nil] {
-	return hlist(h, Nil{})
+	return Concat(h, Nil{})
 }
 
 func Empty() Nil {
 	return Nil{}
 }
 
-func Ap1[A, R any](f func(a A) R) func(v Cons[A, Nil]) R {
+func Lift1[A, R any](f func(a A) R) func(v Cons[A, Nil]) R {
 	return func(v Cons[A, Nil]) R {
 		return f(v.Head())
 	}
 }
 
-func Case1[A1, T, R any](hl Cons[A1, T], f func(a1 A1) R) R {
+func Rift1[A, R any](f func(a A) R) func(v Cons[A, Nil]) R {
+	return func(v Cons[A, Nil]) R {
+		return f(v.Head())
+	}
+}
+
+func Case1[A1 any, T Sealed, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 	return f(hl.Head())
 }
 
