@@ -1,33 +1,39 @@
 //go:generate go run github.com/csgura/fp/internal/generator/hlist_gen
 package hlist
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Sealed is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
 // but go does not support existential type
-// since it has non public method isNil(),  nothing can implement this interface except Cons and Nil
-type Sealed interface {
-	isNil() bool
+// since it has non public method sealed(),  nothing can implement this interface except Cons and Nil
+type HList interface {
+	sealed()
+	IsNil() bool
 	HasTail() bool
+	Unapply() (any, HList)
+	Foreach(func(v any))
 	// Cons[_,_] | Nil
 }
 
 // Header is constrains interface type,  enforce Head type of Cons is HT
 type Header[HT any] interface {
-	Sealed
+	HList
 	Head() HT
 }
 
 // Cons means H :: T
 // zero value of Cons[H,T] is not allowed.
 // so Cons defined as interface type
-type Cons[H any, T Sealed] interface {
-	Sealed
+type Cons[H any, T HList] interface {
+	HList
 	Head() H
 	Tail() T
 }
 
-type Nil struct{}
+type Nil struct {
+}
 
 func (r Nil) Head() Nil {
 	return r
@@ -37,7 +43,7 @@ func (r Nil) Tail() Nil {
 	return r
 }
 
-func (r Nil) isNil() bool {
+func (r Nil) IsNil() bool {
 	return true
 }
 
@@ -49,7 +55,19 @@ func (r Nil) HasTail() bool {
 	return false
 }
 
-type hlistImpl[H, T any] struct {
+func (r Nil) Unapply() (any, HList) {
+	return nil, Nil{}
+}
+
+func (r Nil) Foreach(func(v any)) {
+
+}
+
+func (r Nil) sealed() {
+
+}
+
+type hlistImpl[H any, T HList] struct {
 	head H
 	tail T
 }
@@ -62,7 +80,7 @@ func (r hlistImpl[H, T]) Tail() T {
 	return r.tail
 }
 
-func (r hlistImpl[H, T]) isNil() bool {
+func (r hlistImpl[H, T]) IsNil() bool {
 	return false
 }
 
@@ -70,20 +88,33 @@ func (r hlistImpl[H, T]) HasTail() bool {
 	return Nil{} != any(r.tail)
 }
 
+func (r hlistImpl[H, T]) Unapply() (any, HList) {
+	return r.head, r.tail
+}
+
 func (r hlistImpl[H, T]) String() string {
 	return fmt.Sprintf("%v :: %v", r.head, r.tail)
 }
 
-func hlist[H any, T Sealed](h H, t T) Cons[H, T] {
+func (r hlistImpl[H, T]) Foreach(f func(v any)) {
+	f(r.head)
+	r.tail.Foreach(f)
+}
+
+func (r hlistImpl[H, T]) sealed() {
+
+}
+
+func hlist[H any, T HList](h H, t T) Cons[H, T] {
 	return hlistImpl[H, T]{h, t}
 }
 
-func Concat[H any, T Sealed](h H, t T) Cons[H, T] {
+func Concat[H any, T HList](h H, t T) Cons[H, T] {
 	return hlist(h, t)
 }
 
 func Of1[H any](h H) Cons[H, Nil] {
-	return Concat(h, Nil{})
+	return Concat(h, Nil(Nil{}))
 }
 
 func Empty() Nil {
@@ -102,7 +133,7 @@ func Rift1[A, R any](f func(a A) R) func(v Cons[A, Nil]) R {
 	}
 }
 
-func Case1[A1 any, T Sealed, R any](hl Cons[A1, T], f func(a1 A1) R) R {
+func Case1[A1 any, T HList, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 	return f(hl.Head())
 }
 
@@ -119,3 +150,21 @@ func Case1[A1 any, T Sealed, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 // 	//panic("")
 
 // }
+
+func Unapply[H any, T HList](list Cons[H, T]) (H, T) {
+	return list.Head(), list.Tail()
+}
+
+func Fold[B any](list HList, zero B, f func(B, any) B) B {
+
+	if list.IsNil() {
+		return zero
+	}
+
+	h, t := list.Unapply()
+	sum := f(zero, h)
+	if list.HasTail() {
+		return Fold(t, sum, f)
+	}
+	return sum
+}
