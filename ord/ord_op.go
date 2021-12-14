@@ -14,7 +14,7 @@ type ord[T any] struct {
 }
 
 func (r ord[T]) Eqv(a, b T) bool {
-	return r.Eqv(a, b)
+	return r.eqv.Eqv(a, b)
 }
 
 func (r ord[T]) Less(a, b T) bool {
@@ -56,11 +56,31 @@ func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
 	})
 }
 
+func Seq[T any](ord fp.Ord[T]) fp.Ord[fp.Seq[T]] {
+	return eq.Seq[T](ord).ToOrd(func(a, b fp.Seq[T]) bool {
+		last := fp.Min(a.Size(), b.Size())
+		for i := 0; i < last; i++ {
+			if ord.Less(a[i], b[i]) {
+				return true
+			}
+		}
+		return a.Size() < b.Size()
+	})
+}
+
 var HNil fp.Ord[hlist.Nil] = New(fp.EqGiven[hlist.Nil](), func(a, b hlist.Nil) bool { return false })
 
 func HCons[H any, T hlist.HList](heq fp.Ord[H], teq fp.Ord[T]) fp.Ord[hlist.Cons[H, T]] {
 	return New(eq.HCons[H, T](heq, teq), func(a, b hlist.Cons[H, T]) bool {
-		return heq.Less(a.Head(), b.Head()) && teq.Less(a.Tail(), b.Tail())
+		if heq.Less(a.Head(), b.Head()) {
+			return true
+		}
+
+		if heq.Less(b.Head(), a.Head()) {
+			return false
+		}
+
+		return teq.Less(a.Tail(), b.Tail())
 	})
 }
 

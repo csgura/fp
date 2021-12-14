@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/seq"
 )
@@ -114,18 +115,12 @@ func ShowCons[H any, T hlist.HList](headShow Show[H], tailShow Show[T]) Show[hli
 	})
 }
 
-func assertTrue(b bool) {
-	if !b {
-		panic("assert fail")
-	}
-}
-
 func TestHListEq(t *testing.T) {
 	list := product.Tuple3("hello", "world", 10).ToHList()
 	list2 := product.Tuple3("hello", "world", 10).ToHList()
 	list3 := product.Tuple3("hello", "world", 11).ToHList()
 
-	assertTrue(eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list2))
-	assertTrue(!eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list3))
+	assert.True(eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list2))
+	assert.True(!eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list3))
 
 }
