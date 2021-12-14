@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/seq"
@@ -65,6 +66,7 @@ func TestHList(t *testing.T) {
 		return s + " :: " + fmt.Sprint(v)
 	}))
 
+	println(ShowCons(Sprint[string](), ShowCons(Sprint[string](), ShowCons(Sprint[int](), ShowNil))).Show(list))
 }
 
 // func String(list hlist.HList) string {
@@ -84,4 +86,46 @@ func String(list hlist.HList) string {
 
 	h, t := list.Unapply()
 	return fmt.Sprint(h) + " :: " + String(t)
+}
+
+type Show[T any] interface {
+	Show(t T) string
+}
+
+type ShowFunc[T any] func(T) string
+
+func Sprint[T any]() Show[T] {
+	return ShowFunc[T](func(v T) string {
+		return fmt.Sprint(v)
+	})
+}
+
+var ShowNil Show[hlist.Nil] = ShowFunc[hlist.Nil](func(v hlist.Nil) string {
+	return "Nil"
+})
+
+func (r ShowFunc[T]) Show(t T) string {
+	return r(t)
+}
+
+func ShowCons[H any, T hlist.HList](headShow Show[H], tailShow Show[T]) Show[hlist.Cons[H, T]] {
+	return ShowFunc[hlist.Cons[H, T]](func(list hlist.Cons[H, T]) string {
+		return headShow.Show(list.Head()) + " :: " + tailShow.Show(list.Tail())
+	})
+}
+
+func assertTrue(b bool) {
+	if !b {
+		panic("assert fail")
+	}
+}
+
+func TestHListEq(t *testing.T) {
+	list := product.Tuple3("hello", "world", 10).ToHList()
+	list2 := product.Tuple3("hello", "world", 10).ToHList()
+	list3 := product.Tuple3("hello", "world", 11).ToHList()
+
+	assertTrue(eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list2))
+	assertTrue(!eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list3))
+
 }

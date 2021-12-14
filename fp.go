@@ -81,37 +81,6 @@ func Max[T ImplicitOrd](a1 T, a2 T) T {
 	return a2
 }
 
-type Eq[T any] interface {
-	Eqv(a T, b T) bool
-}
-
-type EqFunc[T any] func(a, b T) bool
-
-func (r EqFunc[T]) Eqv(a, b T) bool {
-	return r(a, b)
-}
-
-type Ord[T any] interface {
-	Eq[T]
-	Less(a T, b T) bool
-}
-
-type LessFunc[T any] func(a, b T) bool
-
-func (r LessFunc[T]) Eqv(a, b T) bool {
-	return r(a, b) == false && r(b, a) == false
-}
-
-func (r LessFunc[T]) Less(a, b T) bool {
-	return r(a, b)
-}
-
-func Less[T ImplicitOrd]() Ord[T] {
-	return LessFunc[T](func(a, b T) bool {
-		return a < b
-	})
-}
-
 var ErrOptionEmpty = Error(http.StatusNotFound, "Option.empty")
 var ErrTryNotFailed = Error(http.StatusBadRequest, "Success.failed not supported")
 var ErrFutureNotFailed = Error(http.StatusBadRequest, "Future.Failed not completed with a error")

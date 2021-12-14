@@ -3,6 +3,7 @@ package fp
 import "fmt"
 
 type Option[T any] interface {
+	IsEmpty() bool
 	IsDefined() bool
 	Get() T
 	Foreach(f func(v T))
@@ -28,6 +29,11 @@ func (r Some[T]) Foreach(f func(v T)) {
 func (r Some[T]) IsDefined() bool {
 	return true
 }
+
+func (r Some[T]) IsEmpty() bool {
+	return false
+}
+
 
 func (r Some[T]) Get() T {
 	return r.v
@@ -79,6 +85,10 @@ func (r None[T]) Foreach(f func(v T)) {
 
 func (r None[T]) IsDefined() bool {
 	return false
+}
+
+func (r None[T]) IsEmpty() bool {
+	return true
 }
 
 func (r None[T]) Get() T {

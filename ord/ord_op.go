@@ -3,6 +3,8 @@ package ord
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 )
 
@@ -17,6 +19,12 @@ func (r ord[T]) Eqv(a, b T) bool {
 
 func (r ord[T]) Less(a, b T) bool {
 	return r.less(a, b)
+}
+
+func (r ord[T]) ToOrd(less fp.LessFunc[T]) fp.Ord[T] {
+	return ord[T]{
+		r.eqv, less,
+	}
 }
 
 func New[T any](eqv fp.Eq[T], less fp.LessFunc[T]) fp.Ord[T] {
@@ -46,4 +54,16 @@ func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
 		}
 		return option.Applicative2(m.Less).ApOption(t1).ApOption(t2).OrElse(!t1.IsDefined())
 	})
+}
+
+var HNil fp.Ord[hlist.Nil] = New(fp.EqGiven[hlist.Nil](), func(a, b hlist.Nil) bool { return false })
+
+func HCons[H any, T hlist.HList](heq fp.Ord[H], teq fp.Ord[T]) fp.Ord[hlist.Cons[H, T]] {
+	return New(eq.HCons[H, T](heq, teq), func(a, b hlist.Cons[H, T]) bool {
+		return heq.Less(a.Head(), b.Head()) && teq.Less(a.Tail(), b.Tail())
+	})
+}
+
+func Given[T fp.ImplicitOrd]() fp.Ord[T] {
+	return fp.LessGiven[T]()
 }

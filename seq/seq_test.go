@@ -7,13 +7,14 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/seq"
 )
 
 func TestSeq(t *testing.T) {
 	s := seq.Of(10, 2, 23, 15, 9, 99)
-	s = s.Sort(fp.Less[int]())
+	s = s.Sort(ord.Given[int]())
 
 	s.Foreach(fp.Println[int])
 
