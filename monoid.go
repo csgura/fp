@@ -2,6 +2,7 @@ package fp
 
 type Semigroup[T any] interface {
 	Combine(a T, b T) T
+	ToMonoid(emptyFunc EmptyFunc[T]) Monoid[T]
 }
 
 type SemigroupFunc[T any] func(a T, b T) T
@@ -15,7 +16,7 @@ func (r SemigroupFunc[T]) Combine(a T, b T) T {
 	return r(a, b)
 }
 
-func (r SemigroupFunc[T]) AsMonoid(emptyFunc EmptyFunc[T]) Monoid[T] {
+func (r SemigroupFunc[T]) ToMonoid(emptyFunc EmptyFunc[T]) Monoid[T] {
 	return monoid[T]{
 		emptyFunc, r,
 	}
@@ -51,11 +52,15 @@ func (r monoid[T]) Combine(a, b T) T {
 	return r.combine(a, b)
 }
 
+func (r monoid[T]) ToMonoid(emptyFunc EmptyFunc[T]) Monoid[T] {
+	return monoid[T]{emptyFunc, r.combine}
+}
+
 func Product[T ImplicitNum]() Monoid[T] {
 
 	return SemigroupFunc[T](func(a, b T) T {
 		return a * b
-	}).AsMonoid(func() T {
+	}).ToMonoid(func() T {
 		return 1
 	})
 

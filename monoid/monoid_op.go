@@ -4,6 +4,7 @@ package monoid
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/future"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
@@ -76,6 +77,21 @@ func Seq[T any]() fp.Monoid[fp.Seq[T]] {
 	)
 }
 
+var HNil fp.Monoid[hlist.Nil] = fp.SemigroupFunc[hlist.Nil](func(a, b hlist.Nil) hlist.Nil {
+	return hlist.Nil{}
+})
+
+func HCons[H any, T hlist.HList](hm fp.Monoid[H], tm fp.Monoid[T]) fp.Monoid[hlist.Cons[H, T]] {
+	return New(
+		func() hlist.Cons[H, T] {
+			return hlist.Concat(hm.Empty(), tm.Empty())
+		},
+		func(a, b hlist.Cons[H, T]) hlist.Cons[H, T] {
+			return hlist.Concat(hm.Combine(a.Head(), b.Head()), tm.Combine(a.Tail(), b.Tail()))
+		},
+	)
+}
+
 type monoid[T any] struct {
 	zero    fp.EmptyFunc[T]
 	combine fp.SemigroupFunc[T]
@@ -87,4 +103,8 @@ func (r monoid[T]) Empty() T {
 
 func (r monoid[T]) Combine(a, b T) T {
 	return r.combine(a, b)
+}
+
+func (r monoid[T]) ToMonoid(emptyFunc fp.EmptyFunc[T]) fp.Monoid[T] {
+	return monoid[T]{emptyFunc, r.combine}
 }

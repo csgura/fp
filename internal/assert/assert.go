@@ -1,5 +1,7 @@
 package assert
 
+import "fmt"
+
 func True(b bool) {
 	if !b {
 		panic("assert fail")
@@ -14,6 +16,6 @@ func False(b bool) {
 
 func Equal[T comparable](a, b T) {
 	if a != b {
-		panic("assert fail")
+		panic(fmt.Sprintf("expected %v , actual %v", b, a))
 	}
 }

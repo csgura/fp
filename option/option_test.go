@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 	"testing"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 )
@@ -97,5 +99,16 @@ func TestSome(t *testing.T) {
 	var buf *bytes.Buffer
 	bufOpt := option.Of(buf)
 	println(bufOpt.IsDefined())
+
+	intOpt := option.Some(10)
+	strOpt := option.Map(intOpt, strconv.Itoa)
+	fmt.Println(strOpt)
+
+	intNone := option.None[int]()
+	strOpt = option.Map(intNone, strconv.Itoa)
+	fmt.Println(strOpt)
+
+	intFunctor := option.Map[int, string]
+	curried.Func2(intFunctor)(intOpt)(strconv.Itoa)
 
 }

@@ -3,6 +3,7 @@ package ord_test
 import (
 	"testing"
 
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
@@ -47,5 +48,21 @@ func TestOrd(t *testing.T) {
 	assert.True(hlistc.Eqv(list1, list1))
 
 	assert.True(hlistc.Less(list2, list1))
+
+	type Pair struct {
+		A int
+		B string
+	}
+
+	eq.Given[Pair]().ToOrd(func(a, b Pair) bool {
+		if a.A < b.A {
+			return true
+		}
+		if a.A == b.A {
+			return false
+		}
+
+		return a.B < b.B
+	})
 
 }
