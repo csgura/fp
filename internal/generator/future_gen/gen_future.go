@@ -112,7 +112,7 @@ import (
 	"github.com/csgura/fp/hlist"
 )`)
 
-		for i := 2; i < 23; i++ {
+		for i := 2; i < 22; i++ {
 
 			fmt.Fprintf(f, `
 type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
@@ -127,6 +127,17 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 
 			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[H,HT,%s,R])", i, typeArgs(1, i))
 			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", typeArgs(1, i))
+
+			// 			fmt.Fprintf(f, "%s Shift() ApplicativeFunctor%d[H,HT,%s,A1,R] {\n", receiver, i, typeArgs(2, i))
+			// 			fmt.Fprintf(f, `
+			// 	nf := fp.Compose(curried.Revert%d[%s, R], fp.Compose(fp.Func%d[%s, R].Shift, fp.Func%d[%s, A1, R].Curried))
+			// 	return ApplicativeFunctor%d[H, HT, %s, A1, R]{
+			// 		r.h,
+			// 		Map(r.fn, nf),
+			// 	}
+
+			// }
+			// `, i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(2, i), i, typeArgs(2, i))
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Future[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
@@ -193,6 +204,27 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 			fmt.Fprintf(f, "    return ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s,R]{Successful(hlist.Empty()), Successful(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")
 		}
+	})
+
+	generate("future", "func_gen.go", func(f io.Writer) {
+		fmt.Fprintln(f, `
+import (
+	"github.com/csgura/fp"
+)`)
+
+		for i := 1; i < 23; i++ {
+			fmt.Fprintf(f, `
+func Func%d[%s,R any]( f func(%s) (R,error) , exec ... fp.ExecContext) fp.Func%d[%s,fp.Future[R]] {
+	return func(%s) fp.Future[R] {
+		return Apply2(func() (R, error) {
+			return f(%s)
+		})
+	}
+}
+`, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
+
+		}
+
 	})
 
 	// for j := 1; j <= i; j++ {

@@ -49,7 +49,7 @@ func (r future[T]) OnSuccess(cb func(success T), ctx ...fp.ExecContext) {
 }
 
 func (r future[T]) Foreach(f func(v T), ctx ...fp.ExecContext) {
-
+	r.OnSuccess(f, ctx...)
 }
 
 func (r future[T]) OnComplete(cb func(try fp.Try[T]), ctx ...fp.ExecContext) {

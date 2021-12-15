@@ -8,6 +8,17 @@ import (
 	"log"
 )
 
+func typeArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "A%d", j)
+	}
+	return f.String()
+}
+
 func main() {
 	f := &bytes.Buffer{}
 
@@ -51,6 +62,17 @@ import (
 		nexttp = nexttp + ", R]"
 
 		receiver := fmt.Sprintf("func (r ApplicativeFunctor%d%s)", i, typeparams)
+
+		fmt.Fprintf(f, "%s Shift() ApplicativeFunctor%d[H,HT,%s,A1,R] {\n", receiver, i, typeArgs(2, i))
+		fmt.Fprintf(f, `
+	nf := fp.Compose(curried.Revert%d[%s, R], fp.Compose(fp.Func%d[%s, R].Shift, fp.Func%d[%s, A1, R].Curried))
+	return ApplicativeFunctor%d[H, HT, %s, A1, R]{
+		r.h,
+		Map(r.fn, nf),
+	}
+
+}
+`, i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(2, i), i, typeArgs(2, i))
 
 		fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 		fmt.Fprintln(f, `

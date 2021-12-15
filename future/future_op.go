@@ -2,11 +2,14 @@
 package future
 
 import (
+	"time"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/promise"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 )
 
 type goExecuter struct{}
@@ -48,6 +51,27 @@ func Apply[T any](f func() T, ctx ...fp.ExecContext) fp.Future[T] {
 
 		result := f()
 		p.Success(result)
+	}))
+
+	return p.Future()
+}
+
+func Apply2[T any](f func() (T, error), ctx ...fp.ExecContext) fp.Future[T] {
+	p := promise.New[T]()
+
+	getExecuter(ctx...).Execute(fp.RunnableFunc(func() {
+		defer func() {
+			if err := recover(); err != nil {
+				p.Failure(fp.PanicError(err))
+			}
+		}()
+
+		result, err := f()
+		if err != nil {
+			p.Failure(err)
+		} else {
+			p.Success(result)
+		}
 	}))
 
 	return p.Future()
@@ -212,4 +236,19 @@ func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Future[R] {
 
 func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {
 	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Successful(hlist.Empty()), Successful(fn)}
+}
+
+func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {
+	ch := make(chan fp.Try[T], 1)
+
+	timer := time.AfterFunc(timeout, func() {
+		ch <- try.Failure[T](fp.Error(408, "future not completed within %s", timeout))
+	})
+
+	future.OnComplete(func(r fp.Try[T]) {
+		timer.Stop()
+		ch <- r
+	})
+
+	return <-ch
 }
