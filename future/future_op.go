@@ -89,6 +89,12 @@ func Lift[T, U any](f func(v T) U, ctx ...fp.ExecContext) fp.Func1[fp.Future[T],
 	}
 }
 
+func Compose[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+	return func(a A) fp.Future[C] {
+		return FlatMap(f1(a), f2, ctx...)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.ExecContext) fp.Future[U] {
 	np := promise.New[U]()
 

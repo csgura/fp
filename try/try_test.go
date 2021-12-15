@@ -2,9 +2,12 @@ package try_test
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/try"
 )
 
@@ -33,4 +36,68 @@ func TestTry(t *testing.T) {
 	}).Foreach(print[string])
 
 	v.ToOption().Foreach(print[int])
+
+	// fp.Try[*url.URL]
+	var u fp.Try[*url.URL] = try.Func1(url.Parse)("http://[abc")
+	fmt.Println(u)
+
+	var p fp.Try[string] = try.Map(u, (*url.URL).Port)
+
+	var intPort fp.Try[int] = try.Flatten(try.Map(p, try.Func1(strconv.Atoi)))
+	fmt.Println(intPort)
+
+	try.FlatMap(p, try.Func1(strconv.Atoi)).Foreach(fp.Println[int])
+
+}
+
+func TestFlatMap(t *testing.T) {
+
+	// fp.Try[*url.URL]
+	var u fp.Try[*url.URL] = try.Func1(url.Parse)("http://localhost:8080/abcd")
+	fmt.Println(u)
+
+	var p fp.Try[string] = try.Map(u, (*url.URL).Port)
+
+	var intPort fp.Try[int] = try.FlatMap(p, try.Func1(strconv.Atoi))
+	fmt.Println(intPort)
+
+}
+
+func TestApplicative(t *testing.T) {
+
+	cf := curried.Concat[*url.URL](curried.Concat[string](fp.Id[int]))
+
+	var intPort fp.Try[int] = try.Applicative3(curried.Revert3(cf)).
+		ApTry(try.Func1(url.Parse)("http://localhost:8080/abcd")).
+		Map((*url.URL).Port).
+		FlatMap(try.Func1(strconv.Atoi))
+	fmt.Println(intPort)
+
+}
+
+func TestCompose(t *testing.T) {
+
+	var intPort fp.Try[int] = try.Compose(
+		try.Func1(url.Parse),
+		fp.Compose((*url.URL).Port, try.Func1(strconv.Atoi)),
+	)("http://localhost:8080/abcd")
+
+	fmt.Println(intPort)
+
+}
+
+func ParsePort() (int, error) {
+	u, err := url.Parse("http://localhost:8080/abcd")
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(u.Port())
+}
+
+func ParsePortFn() fp.Try[int] {
+	return try.Compose(
+		try.Func1(url.Parse),
+		fp.Compose((*url.URL).Port, try.Func1(strconv.Atoi)),
+	)("http://localhost:8080/abcd")
 }

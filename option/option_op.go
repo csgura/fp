@@ -59,6 +59,12 @@ func Lift[T, U any](f func(v T) U) fp.Func1[fp.Option[T], fp.Option[U]] {
 	}
 }
 
+func Compose[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
+	return func(a A) fp.Option[C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Option[T], fn func(v T) fp.Option[U]) fp.Option[U] {
 	if opt.IsDefined() {
 		return fn(opt.Get())

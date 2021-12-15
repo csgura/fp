@@ -27,6 +27,12 @@ func Map[L, R, R1 any](opt fp.Either[L, R], f func(v R) R1) fp.Either[L, R1] {
 	})
 }
 
+func Compose[L, A, B, C any](f1 fp.Func1[A, fp.Either[L, B]], f2 fp.Func1[B, fp.Either[L, C]]) fp.Func1[A, fp.Either[L, C]] {
+	return func(a A) fp.Either[L, C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
 func FlatMap[L, R, R1 any](opt fp.Either[L, R], fn func(v R) fp.Either[L, R1]) fp.Either[L, R1] {
 	if opt.IsRight() {
 		return fn(opt.Get())

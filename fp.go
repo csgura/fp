@@ -147,3 +147,13 @@ func PanicError(message any) error {
 		stack:        debug.Stack(),
 	}
 }
+
+func Compose[A, B, C any](f1 Func1[A, B], f2 Func1[B, C]) Func1[A, C] {
+	return func(a A) C {
+		return f2(f1(a))
+	}
+}
+
+func Id[T any](t T) T {
+	return t
+}
