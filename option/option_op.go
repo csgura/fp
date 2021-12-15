@@ -53,6 +53,12 @@ func Map[T, U any](opt fp.Option[T], f func(v T) U) fp.Option[U] {
 	})
 }
 
+func Lift[T, U any](f func(v T) U) fp.Func1[fp.Option[T], fp.Option[U]] {
+	return func(opt fp.Option[T]) fp.Option[U] {
+		return Map(opt, f)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Option[T], fn func(v T) fp.Option[U]) fp.Option[U] {
 	if opt.IsDefined() {
 		return fn(opt.Get())

@@ -26,7 +26,10 @@ func TestCurried(t *testing.T) {
 
 	fn := curried.Func3(func(a string, b int, c string) string {
 		return fmt.Sprint(a, b, c)
-	})("hello")
+	})
 
-	println(curried.Revert2(fn)(10, "world"))
+	println(curried.Revert2(fn(("hello")))(10, "world"))
+
+	fn2 := curried.Revert2(fn)("hello", 10)
+	println(fn2("world"))
 }

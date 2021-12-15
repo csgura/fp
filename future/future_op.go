@@ -83,6 +83,12 @@ func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.ExecContext) fp.Fu
 	}, ctx...)
 }
 
+func Lift[T, U any](f func(v T) U, ctx ...fp.ExecContext) fp.Func1[fp.Future[T], fp.Future[U]] {
+	return func(opt fp.Future[T]) fp.Future[U] {
+		return Map(opt, f, ctx...)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.ExecContext) fp.Future[U] {
 	np := promise.New[U]()
 

@@ -19,6 +19,12 @@ func Map[T, U any](opt fp.Seq[T], fn func(v T) U) fp.Seq[U] {
 	return ret
 }
 
+func Lift[T, U any](f func(v T) U) fp.Func1[fp.Seq[T], fp.Seq[U]] {
+	return func(opt fp.Seq[T]) fp.Seq[U] {
+		return Map(opt, f)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Seq[T], fn func(v T) fp.Seq[U]) fp.Seq[U] {
 	ret := make(fp.Seq[U], 0, len(opt))
 

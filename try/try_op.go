@@ -49,6 +49,12 @@ func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
 	})
 }
 
+func Lift[T, U any](f func(v T) U) fp.Func1[fp.Try[T], fp.Try[U]] {
+	return func(opt fp.Try[T]) fp.Try[U] {
+		return Map(opt, f)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
 	if opt.IsSuccess() {
 		return fn(opt.Get())

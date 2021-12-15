@@ -160,6 +160,14 @@ func(r Func%d[%s,R]) Curried() %s {
 }
 `, i, funcTypeArgs(1, i), curriedType(1, i), curriedType(2, i), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
 
+			fmt.Fprintf(f, `
+func(r Func%d[%s,R]) Shift() Func%d[%s,A1,R] {
+	return func(%s , a1 A1) R {
+		return r(%s)
+	}	
+}
+`, i, funcTypeArgs(1, i), i, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
+
 		}
 	})
 
