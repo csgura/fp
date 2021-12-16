@@ -9,6 +9,12 @@ func Of[T any](list ...T) fp.Seq[T] {
 	return list
 }
 
+func Ap[T, U any](t fp.Seq[fp.Func1[T, U]], a fp.Seq[T]) fp.Seq[U] {
+	return FlatMap(t, func(f fp.Func1[T, U]) fp.Seq[U] {
+		return Map(a, f)
+	})
+}
+
 func Map[T, U any](opt fp.Seq[T], fn func(v T) U) fp.Seq[U] {
 	ret := make(fp.Seq[U], len(opt))
 

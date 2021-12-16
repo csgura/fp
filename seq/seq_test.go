@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
@@ -41,4 +42,12 @@ func TestSeq(t *testing.T) {
 	opts := seq.Of(option.Some(1), option.Some(2))
 	fp.Println(opts.Reduce(monoid.Option(fp.Sum[int]())))
 
+	seqf := seq.Of(as.Func1(func(v int) int {
+		return v + 2
+	}), as.Func1(func(v int) int {
+		return v * 3
+	}))
+
+	apres := seq.Ap(seqf, seq.Of(1, 2, 3))
+	fmt.Println(apres)
 }
