@@ -227,3 +227,13 @@ func TestAp(t *testing.T) {
 	fmt.Println(future.Await(res, time.Second))
 
 }
+
+func TestApFail(t *testing.T) {
+	host := GetHost()
+
+	futureFunc2 := future.Successful(curried.Func2(MakeURL))
+	futureFunc1 := future.Ap(futureFunc2, future.Failed[string](fp.Error(500, "internal server error")))
+	res := future.Ap(futureFunc1, host)
+
+	fmt.Println(future.Await(res, time.Second))
+}

@@ -39,6 +39,18 @@ func Compose[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, fp.Try[C]]) 
 	}
 }
 
+func ComposeOption[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Try[C]]) fp.Func1[A, fp.Try[C]] {
+	return func(a A) fp.Try[C] {
+		return FlatMap(FromOption(f1(a)), f2)
+	}
+}
+
+func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.Try[C]] {
+	return func(a A) fp.Try[C] {
+		return Map(f1(a), f2)
+	}
+}
+
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
 func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
