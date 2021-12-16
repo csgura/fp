@@ -6,6 +6,8 @@ import (
 	"go/format"
 	"io/ioutil"
 	"log"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func curriedType(start, until int) string {
@@ -73,7 +75,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-	for i := 2; i < 23; i++ {
+	for i := 2; i < max.Product; i++ {
 
 		args := ""
 

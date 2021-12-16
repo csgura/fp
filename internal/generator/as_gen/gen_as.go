@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func generate(packname string, filename string, writeFunc func(w io.Writer)) {
@@ -109,7 +111,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 1; i < 23; i++ {
+		for i := 1; i < max.Product; i++ {
 			fmt.Fprintf(f, `
 func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
 	return fp.Func%d[%s,R](f)

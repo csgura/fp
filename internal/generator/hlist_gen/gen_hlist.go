@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func curriedType(start, until int) string {
@@ -128,7 +130,7 @@ func main() {
 
 	generate("hlist", "lift_gen.go", func(f io.Writer) {
 
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Lift%d [%s, R any]( f func(%s) R ) func(%s) R { ", i, typeArgs(1, i), funcDeclArgs(1, i), consType(1, i, "Nil"))
 
@@ -160,7 +162,7 @@ func main() {
 	})
 
 	generate("hlist", "case_gen.go", func(f io.Writer) {
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Case%d [%s any, T HList, R any](hl %s,  f func(%s) R ) R { ", i, typeArgs(1, i), consType(1, i, "T"), funcDeclArgs(1, i))
 
@@ -175,7 +177,7 @@ func main() {
 	})
 
 	generate("hlist", "of_gen.go", func(f io.Writer) {
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Of%d [%s any](%s) %s { ", i, typeArgs(1, i), funcDeclArgs(1, i), consType(1, i, "Nil"))
 
@@ -188,7 +190,7 @@ func main() {
 	})
 
 	generate("hlist", "reverse_gen.go", func(f io.Writer) {
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Reverse%d [%s any](hl %s ) %s { ", i, typeArgs(1, i), consType(1, i, "Nil"), reversConsType(1, i))
 

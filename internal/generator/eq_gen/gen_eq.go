@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func generate(packname string, filename string, writeFunc func(w io.Writer)) {
@@ -140,7 +142,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Eq[fp.Tuple%d[%s]] { ", i, typeArgs(1, i), funcDeclTypeClassArgs(1, i, "fp.Eq"), i, typeArgs(1, i))
 

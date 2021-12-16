@@ -6,6 +6,8 @@ import (
 	"go/format"
 	"io/ioutil"
 	"log"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func curriedType(start, until int) string {
@@ -105,7 +107,7 @@ func main() {
 		"github.com/csgura/fp"
 	)`)
 
-	for i := 2; i < 23; i++ {
+	for i := 2; i < max.Product; i++ {
 
 		fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Tuple%d[%s] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
 

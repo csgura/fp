@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func curriedType(start, until int) string {
@@ -117,7 +119,7 @@ func funcCallArgs(start, until int) string {
 
 func main() {
 	generate("fp", "func_gen.go", func(f io.Writer) {
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 			fmt.Fprintf(f, "type Func%d", i)
 			fmt.Fprintf(f, "[")
 
@@ -140,7 +142,7 @@ func main() {
 			fmt.Fprintf(f, ") R\n\n")
 
 		}
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, `
 func(r Func%d[%s,R]) Tupled() Func1[Tuple%d[%s],R] {
@@ -178,7 +180,7 @@ import (
 	"fmt"
 )`)
 
-		for i := 2; i < 23; i++ {
+		for i := 2; i < max.Product; i++ {
 			fmt.Fprintf(f, "type Tuple%d", i)
 			fmt.Fprintf(f, "[")
 

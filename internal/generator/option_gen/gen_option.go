@@ -6,6 +6,8 @@ import (
 	"go/format"
 	"io/ioutil"
 	"log"
+
+	"github.com/csgura/fp/internal/max"
 )
 
 func typeArgs(start, until int) string {
@@ -31,7 +33,7 @@ import (
 	"github.com/csgura/fp/hlist"
 )`)
 
-	for i := 2; i < 23; i++ {
+	for i := 2; i < max.Product; i++ {
 		fmt.Fprintf(f, "type ApplicativeFunctor%d [H hlist.Header[HT], HT ", i)
 
 		for j := 1; j <= i; j++ {
