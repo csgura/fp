@@ -12,6 +12,8 @@ import (
 	"github.com/csgura/fp/promise"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/hlist"
+
 )
 
 func TestFuture(t *testing.T) {
@@ -125,15 +127,15 @@ func TestApChain(t *testing.T) {
 
 	fmt.Println(future.Await(res, time.Second))
 
-	resOpt := option.Applicative3(MakeURLWithPort).
+	res = future.Applicative3(MakeURLWithPort).
 		ApOption(option.Some("http")).
 		Shift().
 		Ap(8080).
 		Ap("localhost")
 
-	fmt.Println(resOpt)
+	fmt.Println(future.Await(res, time.Second))
 
-	resOpt = option.Applicative3(MakeURLWithPort).
+	res = future.Applicative3(MakeURLWithPort).
 		ApOption(option.Some("https")).
 		Shift().
 		Map(func(scheme string) int {
@@ -145,7 +147,54 @@ func TestApChain(t *testing.T) {
 			}
 		}).
 		Ap("localhost")
-	fmt.Println(resOpt)
+	fmt.Println(future.Await(res, time.Second))
+
+	res = future.Applicative3(MakeURLWithPort).
+		ApOption(option.Some("https")).
+		Shift().
+		Map(func(scheme string) int {
+			switch scheme {
+			case "https":
+				return 8443
+			default:
+				return 8080
+			}
+		}).
+		HListMap(hlist.Rift2( func( scheme string, port int ) string {
+			switch port {
+			case 8443:
+				return "localhost.uangel.com"
+			}
+			return "localhost"
+		}))
+		
+	fmt.Println(future.Await(res, time.Second))
+
+	
+	calcPort := func(scheme string) int {
+		switch scheme {
+		case "https":
+			return 8443
+		default:
+			return 8080
+		}
+	}
+
+	calcHost := func( scheme string, port int ) string {
+		switch port {
+		case 8443:
+			return "localhost.uangel.com"
+		}
+		return "localhost"
+	}
+
+	res = future.Applicative3(MakeURLWithPort).
+		ApFuture(GetScheme()).
+		Shift().
+		Map(calcPort).
+		HListMap(hlist.Rift2(calcHost))
+		
+	fmt.Println(future.Await(res, time.Second))
 
 }
 

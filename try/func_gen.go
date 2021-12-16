@@ -38,10 +38,3 @@ func Func5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) (R, error)) fp.
 		return Apply(ret, err)
 	}
 }
-
-func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) (R, error)) fp.Func6[A1, A2, A3, A4, A5, A6, fp.Try[R]] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[R] {
-		ret, err := f(a1, a2, a3, a4, a5, a6)
-		return Apply(ret, err)
-	}
-}

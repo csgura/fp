@@ -43,9 +43,7 @@ var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
 func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Try[U] {
-		return Map(a.(fp.Try[T]), func(a T) U {
-			return f(a)
-		})
+		return Map(a, f)
 	})
 }
 
@@ -55,11 +53,22 @@ func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
 	})
 }
 
+// func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
+// 	return Ap(Success(as.Func1(f)), opt)
+// }
+
 func Lift[T, U any](f func(v T) U) fp.Func1[fp.Try[T], fp.Try[U]] {
 	return func(opt fp.Try[T]) fp.Try[U] {
 		return Map(opt, f)
 	}
 }
+
+func LiftA2[A1,A2,R any](f fp.Func2[A1,A2,R]) fp.Func2[fp.Try[A1], fp.Try[A2], fp.Try[R]] {
+	return func( a1 fp.Try[A1], a2 fp.Try[A2]) fp.Try[R] {
+		return Ap(Ap(Success(f.Curried()), a1), a2)
+	}
+}
+
 
 func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
 	if opt.IsSuccess() {
@@ -67,6 +76,7 @@ func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
 	}
 	return Failure[U](opt.Failed().Get())
 }
+
 
 func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
 	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {

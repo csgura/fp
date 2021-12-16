@@ -110,32 +110,3 @@ func (r Tuple5[T1, T2, T3, T4, T5]) String() string {
 func (r Tuple5[T1, T2, T3, T4, T5]) Unapply() (T1, T2, T3, T4, T5) {
 	return r.I1, r.I2, r.I3, r.I4, r.I5
 }
-
-type Tuple6[T1, T2, T3, T4, T5, T6 any] struct {
-	I1 T1
-	I2 T2
-	I3 T3
-	I4 T4
-	I5 T5
-	I6 T6
-}
-
-func (r Tuple6[T1, T2, T3, T4, T5, T6]) Head() T1 {
-	return r.I1
-}
-
-func (r Tuple6[T1, T2, T3, T4, T5, T6]) Tail() Tuple5[T2, T3, T4, T5, T6] {
-	return Tuple5[T2, T3, T4, T5, T6]{r.I2, r.I3, r.I4, r.I5, r.I6}
-}
-
-func (r Tuple6[T1, T2, T3, T4, T5, T6]) ToHList() hlist.Cons[T1, hlist.Cons[T2, hlist.Cons[T3, hlist.Cons[T4, hlist.Cons[T5, hlist.Cons[T6, hlist.Nil]]]]]] {
-	return hlist.Concat(r.Head(), r.Tail().ToHList())
-}
-
-func (r Tuple6[T1, T2, T3, T4, T5, T6]) String() string {
-	return fmt.Sprintf("(%v,%v,%v,%v,%v,%v)", r.I1, r.I2, r.I3, r.I4, r.I5, r.I6)
-}
-
-func (r Tuple6[T1, T2, T3, T4, T5, T6]) Unapply() (T1, T2, T3, T4, T5, T6) {
-	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6
-}

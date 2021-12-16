@@ -95,9 +95,7 @@ func FromTry[T any](v fp.Try[T]) fp.Future[T] {
 
 func Ap[T, U any](t fp.Future[fp.Func1[T, U]], a fp.Future[T], ctx ...fp.ExecContext) fp.Future[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Future[U] {
-		return Map(a.(fp.Future[T]), func(a T) U {
-			return f(a)
-		})
+		return Map(a, f)
 	}, ctx...)
 }
 

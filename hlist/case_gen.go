@@ -20,8 +20,3 @@ func Case5[A1, A2, A3, A4, A5 any, T HList, R any](hl Cons[A1, Cons[A2, Cons[A3,
 		return f(hl.Head(), a2, a3, a4, a5)
 	})
 }
-func Case6[A1, A2, A3, A4, A5, A6 any, T HList, R any](hl Cons[A1, Cons[A2, Cons[A3, Cons[A4, Cons[A5, Cons[A6, T]]]]]], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) R {
-	return Case5(hl.Tail(), func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
-		return f(hl.Head(), a2, a3, a4, a5, a6)
-	})
-}

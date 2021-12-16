@@ -68,19 +68,3 @@ func Tuple5[A1, A2, A3, A4, A5 any](tins1 fp.Ord[A1], tins2 fp.Ord[A2], tins3 fp
 		}),
 	)
 }
-func Tuple6[A1, A2, A3, A4, A5, A6 any](tins1 fp.Ord[A1], tins2 fp.Ord[A2], tins3 fp.Ord[A3], tins4 fp.Ord[A4], tins5 fp.Ord[A5], tins6 fp.Ord[A6]) fp.Ord[fp.Tuple6[A1, A2, A3, A4, A5, A6]] {
-	return New[fp.Tuple6[A1, A2, A3, A4, A5, A6]](
-		fp.EqFunc[fp.Tuple6[A1, A2, A3, A4, A5, A6]](func(t1 fp.Tuple6[A1, A2, A3, A4, A5, A6], t2 fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
-			return tins1.Eqv(t1.I1, t2.I1) && Tuple5(tins2, tins3, tins4, tins5, tins6).Eqv(t1.Tail(), t2.Tail())
-		}),
-		fp.LessFunc[fp.Tuple6[A1, A2, A3, A4, A5, A6]](func(t1 fp.Tuple6[A1, A2, A3, A4, A5, A6], t2 fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
-			if tins1.Less(t1.I1, t2.I1) {
-				return true
-			}
-			if tins1.Less(t2.I1, t1.I1) {
-				return false
-			}
-			return Tuple5(tins2, tins3, tins4, tins5, tins6).Less(t1.Tail(), t2.Tail())
-		}),
-	)
-}

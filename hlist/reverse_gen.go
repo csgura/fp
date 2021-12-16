@@ -20,8 +20,3 @@ func Reverse5[A1, A2, A3, A4, A5 any](hl Cons[A1, Cons[A2, Cons[A3, Cons[A4, Con
 		return Of5(a5, a4, a3, a2, a1)
 	})
 }
-func Reverse6[A1, A2, A3, A4, A5, A6 any](hl Cons[A1, Cons[A2, Cons[A3, Cons[A4, Cons[A5, Cons[A6, Nil]]]]]]) Cons[A6, Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]] {
-	return Case6(hl, func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) Cons[A6, Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]] {
-		return Of6(a6, a5, a4, a3, a2, a1)
-	})
-}

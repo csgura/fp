@@ -41,9 +41,7 @@ func Ptr[T any](v *T) fp.Option[T] {
 
 func Ap[T, U any](t fp.Option[fp.Func1[T, U]], a fp.Option[T]) fp.Option[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Option[U] {
-		return Map(a.(fp.Option[T]), func(a T) U {
-			return f(a)
-		})
+		return Map(a, f)
 	})
 }
 
@@ -58,6 +56,13 @@ func Lift[T, U any](f func(v T) U) fp.Func1[fp.Option[T], fp.Option[U]] {
 		return Map(opt, f)
 	}
 }
+
+func LiftA2[A1,A2,R any](f fp.Func2[A1,A2,R]) fp.Func2[fp.Option[A1], fp.Option[A2], fp.Option[R]] {
+	return func( a1 fp.Option[A1], a2 fp.Option[A2]) fp.Option[R] {
+		return Ap(Ap(Some(f.Curried()), a1), a2)
+	}
+}
+
 
 func Compose[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
 	return func(a A) fp.Option[C] {

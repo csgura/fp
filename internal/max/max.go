@@ -1,3 +1,3 @@
 package max
 
-const Product = 7
+const Product = 6

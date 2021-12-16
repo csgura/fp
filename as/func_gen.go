@@ -23,7 +23,3 @@ func Func4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) fp.Func4[A1, A2, A3,
 func Func5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) fp.Func5[A1, A2, A3, A4, A5, R] {
 	return fp.Func5[A1, A2, A3, A4, A5, R](f)
 }
-
-func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func6[A1, A2, A3, A4, A5, A6, R] {
-	return fp.Func6[A1, A2, A3, A4, A5, A6, R](f)
-}

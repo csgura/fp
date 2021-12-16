@@ -12,6 +12,3 @@ func Of4[A1, A2, A3, A4 any](a1 A1, a2 A2, a3 A3, a4 A4) Cons[A1, Cons[A2, Cons[
 func Of5[A1, A2, A3, A4, A5 any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) Cons[A1, Cons[A2, Cons[A3, Cons[A4, Cons[A5, Nil]]]]] {
 	return Concat(a1, Of4(a2, a3, a4, a5))
 }
-func Of6[A1, A2, A3, A4, A5, A6 any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) Cons[A1, Cons[A2, Cons[A3, Cons[A4, Cons[A5, Cons[A6, Nil]]]]]] {
-	return Concat(a1, Of5(a2, a3, a4, a5, a6))
-}

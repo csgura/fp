@@ -32,10 +32,3 @@ func Tuple5[A1, A2, A3, A4, A5 any](tins1 fp.Eq[A1], tins2 fp.Eq[A2], tins3 fp.E
 		},
 	)
 }
-func Tuple6[A1, A2, A3, A4, A5, A6 any](tins1 fp.Eq[A1], tins2 fp.Eq[A2], tins3 fp.Eq[A3], tins4 fp.Eq[A4], tins5 fp.Eq[A5], tins6 fp.Eq[A6]) fp.Eq[fp.Tuple6[A1, A2, A3, A4, A5, A6]] {
-	return New(
-		func(t1 fp.Tuple6[A1, A2, A3, A4, A5, A6], t2 fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
-			return tins1.Eqv(t1.I1, t2.I1) && Tuple5(tins2, tins3, tins4, tins5, tins6).Eqv(t1.Tail(), t2.Tail())
-		},
-	)
-}

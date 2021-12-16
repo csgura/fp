@@ -45,13 +45,3 @@ func Tuple5[A1, A2, A3, A4, A5 any](tins1 fp.Monoid[A1], tins2 fp.Monoid[A2], ti
 		},
 	)
 }
-func Tuple6[A1, A2, A3, A4, A5, A6 any](tins1 fp.Monoid[A1], tins2 fp.Monoid[A2], tins3 fp.Monoid[A3], tins4 fp.Monoid[A4], tins5 fp.Monoid[A5], tins6 fp.Monoid[A6]) fp.Monoid[fp.Tuple6[A1, A2, A3, A4, A5, A6]] {
-	return New(
-		func() fp.Tuple6[A1, A2, A3, A4, A5, A6] {
-			return product.Tuple6(tins1.Empty(), tins2.Empty(), tins3.Empty(), tins4.Empty(), tins5.Empty(), tins6.Empty())
-		},
-		func(t1 fp.Tuple6[A1, A2, A3, A4, A5, A6], t2 fp.Tuple6[A1, A2, A3, A4, A5, A6]) fp.Tuple6[A1, A2, A3, A4, A5, A6] {
-			return product.Tuple6(tins1.Combine(t1.I1, t2.I1), tins2.Combine(t1.I2, t2.I2), tins3.Combine(t1.I3, t2.I3), tins4.Combine(t1.I4, t2.I4), tins5.Combine(t1.I5, t2.I5), tins6.Combine(t1.I6, t2.I6))
-		},
-	)
-}

@@ -52,15 +52,3 @@ func Revert5[A1, A2, A3, A4, A5, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3,
 		return f(a1)(a2)(a3)(a4)(a5)
 	}
 }
-func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]] {
-		return Func5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
-			return f(a1, a2, a3, a4, a5, a6)
-		})
-	}
-}
-func Revert6[A1, A2, A3, A4, A5, A6, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]) fp.Func6[A1, A2, A3, A4, A5, A6, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
-		return f(a1)(a2)(a3)(a4)(a5)(a6)
-	}
-}

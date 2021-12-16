@@ -34,13 +34,3 @@ func Tuple5[A1, A2, A3, A4, A5 any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Tuple5
 		I5: a5,
 	}
 }
-func Tuple6[A1, A2, A3, A4, A5, A6 any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Tuple6[A1, A2, A3, A4, A5, A6] {
-	return fp.Tuple6[A1, A2, A3, A4, A5, A6]{
-		I1: a1,
-		I2: a2,
-		I3: a3,
-		I4: a4,
-		I5: a5,
-		I6: a6,
-	}
-}
