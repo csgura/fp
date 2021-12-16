@@ -185,6 +185,30 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 
 }`)
 
+			fmt.Fprintf(f, "%s ApTryFunc( a func() fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}`)
+
+			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}`)
+
+			fmt.Fprintf(f, "%s ApFunc( a func() A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
+}`)
+
 			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
 			fmt.Fprintf(f, "    return ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s,R]{Success(hlist.Empty()), Success(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")

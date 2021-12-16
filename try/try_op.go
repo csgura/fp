@@ -63,12 +63,11 @@ func Lift[T, U any](f func(v T) U) fp.Func1[fp.Try[T], fp.Try[U]] {
 	}
 }
 
-func LiftA2[A1,A2,R any](f fp.Func2[A1,A2,R]) fp.Func2[fp.Try[A1], fp.Try[A2], fp.Try[R]] {
-	return func( a1 fp.Try[A1], a2 fp.Try[A2]) fp.Try[R] {
+func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Try[A1], fp.Try[A2], fp.Try[R]] {
+	return func(a1 fp.Try[A1], a2 fp.Try[A2]) fp.Try[R] {
 		return Ap(Ap(Success(f.Curried()), a1), a2)
 	}
 }
-
 
 func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
 	if opt.IsSuccess() {
@@ -76,7 +75,6 @@ func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
 	}
 	return Failure[U](opt.Failed().Get())
 }
-
 
 func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
 	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {
@@ -226,6 +224,28 @@ func (r ApplicativeFunctor1[H, HT, A, R]) ApTry(a fp.Try[A]) fp.Try[R] {
 
 func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Try[R] {
 	return r.ApTry(Success(a))
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A]) fp.Try[R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A] {
+		return a()
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Try[R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A) fp.Try[R] {
+
+	av := Map(r.h, func(v H) A {
+		return a()
+	})
+	return r.ApTry(av)
 }
 
 func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {

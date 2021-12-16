@@ -57,6 +57,27 @@ func (r ApplicativeFunctor2[H, HT, A1, A2, R]) Ap(a A1) ApplicativeFunctor1[hlis
 	return r.ApTry(Success(a))
 
 }
+func (r ApplicativeFunctor2[H, HT, A1, A2, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor1[hlist.Cons[A1, H], A1, A2, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor2[H, HT, A1, A2, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor1[hlist.Cons[A1, H], A1, A2, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor2[H, HT, A1, A2, R]) ApFunc(a func() A1) ApplicativeFunctor1[hlist.Cons[A1, H], A1, A2, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
+}
 func Applicative2[A1, A2, R any](fn fp.Func2[A1, A2, R]) ApplicativeFunctor2[hlist.Nil, hlist.Nil, A1, A2, R] {
 	return ApplicativeFunctor2[hlist.Nil, hlist.Nil, A1, A2, R]{Success(hlist.Empty()), Success(curried.Func2(fn))}
 }
@@ -111,6 +132,27 @@ func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) Ap(a A1) ApplicativeFunctor2[
 
 	return r.ApTry(Success(a))
 
+}
+func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor2[hlist.Cons[A1, H], A1, A2, A3, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor2[hlist.Cons[A1, H], A1, A2, A3, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) ApFunc(a func() A1) ApplicativeFunctor2[hlist.Cons[A1, H], A1, A2, A3, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
 }
 func Applicative3[A1, A2, A3, R any](fn fp.Func3[A1, A2, A3, R]) ApplicativeFunctor3[hlist.Nil, hlist.Nil, A1, A2, A3, R] {
 	return ApplicativeFunctor3[hlist.Nil, hlist.Nil, A1, A2, A3, R]{Success(hlist.Empty()), Success(curried.Func3(fn))}
@@ -167,6 +209,27 @@ func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) Ap(a A1) ApplicativeFunct
 	return r.ApTry(Success(a))
 
 }
+func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor3[hlist.Cons[A1, H], A1, A2, A3, A4, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor3[hlist.Cons[A1, H], A1, A2, A3, A4, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) ApFunc(a func() A1) ApplicativeFunctor3[hlist.Cons[A1, H], A1, A2, A3, A4, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
+}
 func Applicative4[A1, A2, A3, A4, R any](fn fp.Func4[A1, A2, A3, A4, R]) ApplicativeFunctor4[hlist.Nil, hlist.Nil, A1, A2, A3, A4, R] {
 	return ApplicativeFunctor4[hlist.Nil, hlist.Nil, A1, A2, A3, A4, R]{Success(hlist.Empty()), Success(curried.Func4(fn))}
 }
@@ -221,6 +284,27 @@ func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) Ap(a A1) ApplicativeF
 
 	return r.ApTry(Success(a))
 
+}
+func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor4[hlist.Cons[A1, H], A1, A2, A3, A4, A5, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor4[hlist.Cons[A1, H], A1, A2, A3, A4, A5, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}
+func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) ApFunc(a func() A1) ApplicativeFunctor4[hlist.Cons[A1, H], A1, A2, A3, A4, A5, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
 }
 func Applicative5[A1, A2, A3, A4, A5, R any](fn fp.Func5[A1, A2, A3, A4, A5, R]) ApplicativeFunctor5[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, R] {
 	return ApplicativeFunctor5[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, R]{Success(hlist.Empty()), Success(curried.Func5(fn))}

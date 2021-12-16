@@ -125,6 +125,22 @@ import (
 
 }`)
 
+		fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+		fmt.Fprintln(f, `
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a()
+	})
+	return r.ApOption(av)
+}`)
+
+		fmt.Fprintf(f, "%s ApFunc( a func() A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+		fmt.Fprintln(f, `
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApOption(av)
+}`)
+
 		tpr := ""
 		for j := 1; j <= i; j++ {
 			if j != 1 {

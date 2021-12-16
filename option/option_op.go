@@ -57,12 +57,11 @@ func Lift[T, U any](f func(v T) U) fp.Func1[fp.Option[T], fp.Option[U]] {
 	}
 }
 
-func LiftA2[A1,A2,R any](f fp.Func2[A1,A2,R]) fp.Func2[fp.Option[A1], fp.Option[A2], fp.Option[R]] {
-	return func( a1 fp.Option[A1], a2 fp.Option[A2]) fp.Option[R] {
+func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Option[A1], fp.Option[A2], fp.Option[R]] {
+	return func(a1 fp.Option[A1], a2 fp.Option[A2]) fp.Option[R] {
 		return Ap(Ap(Some(f.Curried()), a1), a2)
 	}
 }
-
 
 func Compose[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
 	return func(a A) fp.Option[C] {
@@ -130,6 +129,21 @@ func (r ApplicativeFunctor1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Option[R] 
 
 func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Option[R] {
 	return r.ApOption(Some(a))
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Option[R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A] {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A) fp.Option[R] {
+
+	av := Map(r.h, func(v H) A {
+		return a()
+	})
+	return r.ApOption(av)
 }
 
 func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {

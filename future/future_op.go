@@ -111,6 +111,12 @@ func Lift[T, U any](f func(v T) U, ctx ...fp.ExecContext) fp.Func1[fp.Future[T],
 	}
 }
 
+func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.ExecContext) fp.Func2[fp.Future[A1], fp.Future[A2], fp.Future[R]] {
+	return func(a1 fp.Future[A1], a2 fp.Future[A2]) fp.Future[R] {
+		return Ap(Ap(Successful(f.Curried()), a1, ctx...), a2, ctx...)
+	}
+}
+
 func Compose[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(f1(a), f2, ctx...)
@@ -188,30 +194,30 @@ type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	fn fp.Future[fp.Func1[A, R]]
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A, ctx ...fp.ExecContext) fp.Future[R] {
 	return r.FlatMap(func(h HT) fp.Future[A] {
 		return Successful(a(h))
-	})
+	}, ctx...)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A, ctx ...fp.ExecContext) fp.Future[R] {
 	return r.HListFlatMap(func(h H) fp.Future[A] {
 		return Successful(a(h))
-	})
+	}, ctx...)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A]) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], ctx ...fp.ExecContext) fp.Future[R] {
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a(v)
-	})
+	}, ctx...)
 
 	return r.ApFuture(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A]) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A], ctx ...fp.ExecContext) fp.Future[R] {
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a(v.Head())
-	})
+	}, ctx...)
 
 	return r.ApFuture(av)
 }
@@ -230,6 +236,35 @@ func (r ApplicativeFunctor1[H, HT, A, R]) ApFuture(a fp.Future[A]) fp.Future[R] 
 
 func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Future[R] {
 	return r.ApFuture(Successful(a))
+}
+
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFutureFunc(a func() fp.Future[A], ctx ...fp.ExecContext) fp.Future[R] {
+
+	av := FlatMap(r.h, func(v H) fp.Future[A] {
+		return a()
+	}, ctx...)
+	return r.ApFuture(av)
+}
+func (r ApplicativeFunctor1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A], ctx ...fp.ExecContext) fp.Future[R] {
+
+	av := FlatMap(r.h, func(v H) fp.Future[A] {
+		return FromTry(a())
+	}, ctx...)
+	return r.ApFuture(av)
+}
+func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A], ctx ...fp.ExecContext) fp.Future[R] {
+
+	av := FlatMap(r.h, func(v H) fp.Future[A] {
+		return FromOption(a())
+	}, ctx...)
+	return r.ApFuture(av)
+}
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A, ctx ...fp.ExecContext) fp.Future[R] {
+
+	av := Map(r.h, func(v H) A {
+		return a()
+	}, ctx...)
+	return r.ApFuture(av)
 }
 
 func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {

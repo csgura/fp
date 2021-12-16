@@ -8,12 +8,11 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/future"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/promise"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
-	"github.com/csgura/fp/hlist"
-
 )
 
 func TestFuture(t *testing.T) {
@@ -111,6 +110,14 @@ func TestAp2(t *testing.T) {
 
 }
 
+func TestApCircuitBreaking(t *testing.T) {
+	res := future.Applicative3(MakeURLWithPort).
+		ApFutureFunc(GetScheme).
+		ApFutureFunc(GetHost).
+		ApFutureFunc(GetPort)
+
+	fmt.Println(future.Await(res, time.Second))
+}
 func TestApChain(t *testing.T) {
 
 	res := future.Applicative3(MakeURLWithPort).
@@ -160,17 +167,16 @@ func TestApChain(t *testing.T) {
 				return 8080
 			}
 		}).
-		HListMap(hlist.Rift2( func( scheme string, port int ) string {
+		HListMap(hlist.Rift2(func(scheme string, port int) string {
 			switch port {
 			case 8443:
 				return "localhost.uangel.com"
 			}
 			return "localhost"
 		}))
-		
+
 	fmt.Println(future.Await(res, time.Second))
 
-	
 	calcPort := func(scheme string) int {
 		switch scheme {
 		case "https":
@@ -180,7 +186,7 @@ func TestApChain(t *testing.T) {
 		}
 	}
 
-	calcHost := func( scheme string, port int ) string {
+	calcHost := func(scheme string, port int) string {
 		switch port {
 		case 8443:
 			return "localhost.uangel.com"
@@ -193,7 +199,7 @@ func TestApChain(t *testing.T) {
 		Shift().
 		Map(calcPort).
 		HListMap(hlist.Rift2(calcHost))
-		
+
 	fmt.Println(future.Await(res, time.Second))
 
 }
