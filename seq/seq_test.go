@@ -51,3 +51,14 @@ func TestSeq(t *testing.T) {
 	apres := seq.Ap(seqf, seq.Of(1, 2, 3))
 	fmt.Println(apres)
 }
+
+func TestCompileError(t *testing.T) {
+	res := option.Applicative2(func(a int, b int) int {
+		println(a, b)
+		return 10
+	}).
+		Ap(1).
+		Ap(20)
+	println(res)
+
+}

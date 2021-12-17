@@ -120,6 +120,47 @@ func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
 
 		}
 
+		for i := 1; i < max.Product; i++ {
+			fmt.Fprintf(f, `
+func Curried%d[%s,R any]( f func(%s) R) %s {
+	return fp.Func%d[%s,R](f).Curried()
+}
+`, i, typeArgs(1, i), typeArgs(1, i), curriedType(1, i), i, typeArgs(1, i))
+
+		}
+
+		for i := 2; i < max.Product; i++ {
+			fmt.Fprintf(f, `
+func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
+	return func(%s) R {
+		return f(Tuple%d(%s))
+	}
+}
+`, i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), i, funcCallArgs(1, i))
+
+		}
+
+	})
+
+	generate("as", "tuple_gen.go", func(f io.Writer) {
+		fmt.Fprintln(f, `
+import (
+	"github.com/csgura/fp"
+)`)
+
+		for i := 2; i < max.Product; i++ {
+
+			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Tuple%d[%s] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
+
+			fmt.Fprintf(f, "  return fp.Tuple%d[%s] {\n", i, typeArgs(1, i))
+			for j := 1; j <= i; j++ {
+				fmt.Fprintf(f, "    I%d: a%d,\n", j, j)
+			}
+			fmt.Fprintf(f, `}
+		}
+`)
+
+		}
 	})
 
 	// for j := 1; j <= i; j++ {

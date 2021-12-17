@@ -115,3 +115,14 @@ func TestSome(t *testing.T) {
 	fmt.Println(optFn(option.Some(42)))
 
 }
+
+func TestCompileError(t *testing.T) {
+	res := option.Applicative2(func(a int, b int) int {
+		println(a, b)
+		return 10
+	}).
+		Ap(1).
+		Ap(20)
+	println(res)
+
+}

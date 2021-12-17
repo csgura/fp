@@ -5,16 +5,18 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/seq"
 )
 
+func plus(a int, b int) int {
+	return a + b
+}
+
 func TestIterator(t *testing.T) {
 	s := seq.Of(1, 2, 3, 4, 5, 6, 7)
-	fmt.Println(iterator.Map(s.Iterator(), func(v int) int {
-		println("v = ", v)
-		return v + 2
-	}).TakeWhile(func(v int) bool {
+	fmt.Println(iterator.Map(s.Iterator(), curried.Func2(plus)(2)).TakeWhile(func(v int) bool {
 		return v < 7
 	}).ToSeq())
 

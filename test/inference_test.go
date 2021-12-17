@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
 )
 
@@ -24,12 +22,29 @@ func ToStringer[F any]() func(v F) fmt.Stringer {
 }
 
 func TestInference(t *testing.T) {
-	v := option.Some(hello{})
+	// v := option.Some(hello{})
+	// _ = v
+	//fmt.Println(v)
+	// 	v2 := option.Map(v, as.Ptr[hello])
+	// 	v3 := option.Map(v2, as.Interface[*hello, fmt.Stringer])
 
-	v2 := option.Map(v, as.Ptr[hello])
-	v3 := option.Map(v2, as.Interface[*hello, fmt.Stringer])
+	// 	v4 := option.Map(v3, option.Some[fmt.Stringer])
+	// 	v5 := option.Map(v4, fp.Option[fmt.Stringer].ToSeq)
+	// 	fmt.Println(v5)
 
-	v4 := option.Map(v3, option.Some[fmt.Stringer])
-	v5 := option.Map(v4, fp.Option[fmt.Stringer].ToSeq)
-	fmt.Println(v5)
+	// 	// option.Applicative3(as.UnTupled3(fp.Println[fp.Tuple3[int, string, int]])).
+	// 	// 	Ap(1).
+	// 	// 	Ap("hello").
+	// 	// 	Ap(10)
+}
+
+func TestCompileError(t *testing.T) {
+	res := option.Applicative2(func(a int, b int) int {
+		fmt.Println(a, b)
+		return 10
+	}).
+		Ap(1).
+		Ap(20)
+	fmt.Println(res)
+
 }
