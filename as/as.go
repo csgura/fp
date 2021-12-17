@@ -14,3 +14,16 @@ func Seq[T any](s []T) fp.Seq[T] {
 func Ptr[T any](v T) *T {
 	return &v
 }
+
+func Interface[T, I any](v T) I {
+	var a any = v
+	return a.(I)
+}
+
+func InstanceOf[T any](v any) T {
+	return v.(T)
+}
+
+func Tuple[K, V any](k K, v V) fp.Tuple2[K, V] {
+	return fp.Tuple2[K, V]{k, v}
+}

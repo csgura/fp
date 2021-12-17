@@ -37,6 +37,12 @@ func Compose[A, B, C any](f1 fp.Func1[A, fp.Seq[B]], f2 fp.Func1[B, fp.Seq[C]]) 
 	}
 }
 
+func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Seq[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.Seq[C]] {
+	return func(a A) fp.Seq[C] {
+		return Map(f1(a), f2)
+	}
+}
+
 func FlatMap[T, U any](opt fp.Seq[T], fn func(v T) fp.Seq[U]) fp.Seq[U] {
 	ret := make(fp.Seq[U], 0, len(opt))
 

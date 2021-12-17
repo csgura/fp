@@ -109,6 +109,11 @@ type success[T any] struct {
 func (r success[T]) IsSuccess() bool {
 	return true
 }
+
+func (r success[T]) IsFailure() bool {
+	return false
+}
+
 func (r success[T]) Get() T {
 	return r.v
 }
@@ -139,6 +144,11 @@ func (r success[T]) Recover(func(err error) T) fp.Try[T] {
 func (r success[T]) RecoverWith(func(err error) fp.Try[T]) fp.Try[T] {
 	return r
 }
+
+func (r success[T]) ToSeq() fp.Seq[T] {
+	return []T{r.v}
+}
+
 func (r success[T]) ToOption() fp.Option[T] {
 	return option.Some(r.v)
 }
@@ -153,6 +163,10 @@ type failure[T any] struct {
 
 func (r failure[T]) IsSuccess() bool {
 	return false
+}
+
+func (r failure[T]) IsFailure() bool {
+	return true
 }
 func (r failure[T]) Get() T {
 	panic("not possible")
@@ -187,6 +201,10 @@ func (r failure[T]) RecoverWith(f func(err error) fp.Try[T]) fp.Try[T] {
 }
 func (r failure[T]) ToOption() fp.Option[T] {
 	return option.None[T]()
+}
+
+func (r failure[T]) ToSeq() fp.Seq[T] {
+	return nil
 }
 
 func (r failure[T]) String() string {

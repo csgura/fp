@@ -33,19 +33,11 @@ func (r Seq[T]) Tail() Seq[T] {
 }
 
 func (r Seq[T]) Take(n int) Seq[T] {
-	if r.Size() > n {
-		return r[0:n]
-	} else {
-		return r
-	}
+	return r.Iterator().Take(n).ToSeq()
 }
 
 func (r Seq[T]) Drop(n int) Seq[T] {
-	if r.Size() > n {
-		return r[r.Size()-n : r.Size()]
-	} else {
-		return nil
-	}
+	return r.Iterator().Drop(n).ToSeq()
 }
 
 func (r Seq[T]) Foreach(f func(v T)) {
@@ -55,40 +47,19 @@ func (r Seq[T]) Foreach(f func(v T)) {
 }
 
 func (r Seq[T]) Filter(p func(v T) bool) Seq[T] {
-	ret := make(Seq[T], 0, r.Size())
-	for _, v := range r {
-		if p(v) {
-			ret = append(ret, v)
-		}
-	}
-	return ret
+	return r.Iterator().Filter(p).ToSeq()
 }
 
 func (r Seq[T]) Exists(p func(v T) bool) bool {
-	for _, v := range r {
-		if p(v) {
-			return true
-		}
-	}
-	return false
+	return r.Iterator().Exists(p)
 }
 
 func (r Seq[T]) ForAll(p func(v T) bool) bool {
-	for _, v := range r {
-		if !p(v) {
-			return false
-		}
-	}
-	return true
+	return r.Iterator().ForAll(p)
 }
 
 func (r Seq[T]) Find(p func(v T) bool) Option[T] {
-	for _, v := range r {
-		if p(v) {
-			return Some[T]{v}
-		}
-	}
-	return None[T]{}
+	return r.Iterator().Find(p)
 }
 
 func (r Seq[T]) Append(items ...T) Seq[T] {
@@ -140,6 +111,21 @@ func (r Seq[T]) Reverse() Seq[T] {
 	}
 
 	return ret
+}
+
+func (r Seq[T]) Iterator() Iterator[T] {
+	idx := 0
+
+	return IteratorAdaptor[T]{
+		IsHasNext: func() bool {
+			return idx < r.Size()
+		},
+		GetNext: func() T {
+			ret := r[idx]
+			idx++
+			return ret
+		},
+	}
 }
 
 type seqSorter[T any] struct {
