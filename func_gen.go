@@ -87,3 +87,15 @@ func (r Func5[A1, A2, A3, A4, A5, R]) Shift() Func5[A2, A3, A4, A5, A1, R] {
 		return r(a1, a2, a3, a4, a5)
 	}
 }
+
+func Compose3[A1, A2, A3, R any](f1 Func1[A1, A2], f2 Func1[A2, A3], f3 Func1[A3, R]) Func1[A1, R] {
+	return Compose2(f1, Compose2(f2, f3))
+}
+
+func Compose4[A1, A2, A3, A4, R any](f1 Func1[A1, A2], f2 Func1[A2, A3], f3 Func1[A3, A4], f4 Func1[A4, R]) Func1[A1, R] {
+	return Compose2(f1, Compose3(f2, f3, f4))
+}
+
+func Compose5[A1, A2, A3, A4, A5, R any](f1 Func1[A1, A2], f2 Func1[A2, A3], f3 Func1[A3, A4], f4 Func1[A4, A5], f5 Func1[A5, R]) Func1[A1, R] {
+	return Compose2(f1, Compose4(f2, f3, f4, f5))
+}

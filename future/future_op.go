@@ -123,6 +123,12 @@ func Compose[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future
 	}
 }
 
+func Compose2[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+	return func(a A) fp.Future[C] {
+		return FlatMap(f1(a), f2, ctx...)
+	}
+}
+
 func ComposeOption[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(FromOption(f1(a)), f2, ctx...)
@@ -302,4 +308,10 @@ func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {
 	})
 
 	return <-ch
+}
+
+func Func0[R any](f func() (R, error), ctx ...fp.ExecContext) fp.Func0[fp.Future[R]] {
+	return func(fp.Unit) fp.Future[R] {
+		return Apply2(f, ctx...)
+	}
 }

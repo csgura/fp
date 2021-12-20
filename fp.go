@@ -33,7 +33,7 @@ func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
 	return hlist.Concat(r.Head(), hlist.Empty())
 }
 
-type Func0[R any] func() R
+type Func0[R any] Func1[Unit, R]
 
 type Func1[A1, R any] func(a1 A1) R
 
@@ -149,6 +149,12 @@ func PanicError(message any) error {
 }
 
 func Compose[A, B, C any](f1 Func1[A, B], f2 Func1[B, C]) Func1[A, C] {
+	return func(a A) C {
+		return f2(f1(a))
+	}
+}
+
+func Compose2[A, B, C any](f1 Func1[A, B], f2 Func1[B, C]) Func1[A, C] {
 	return func(a A) C {
 		return f2(f1(a))
 	}

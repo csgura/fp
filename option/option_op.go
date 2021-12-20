@@ -69,6 +69,12 @@ func Compose[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option
 	}
 }
 
+func Compose2[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
+	return func(a A) fp.Option[C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
 func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.Option[C]] {
 	return func(a A) fp.Option[C] {
 		return Map(f1(a), f2)

@@ -39,6 +39,12 @@ func Compose[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, fp.Try[C]]) 
 	}
 }
 
+func Compose2[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, fp.Try[C]]) fp.Func1[A, fp.Try[C]] {
+	return func(a A) fp.Try[C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
 func ComposeOption[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Try[C]]) fp.Func1[A, fp.Try[C]] {
 	return func(a A) fp.Try[C] {
 		return FlatMap(FromOption(f1(a)), f2)
@@ -283,7 +289,7 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 }
 
 func Func0[R any](f func() (R, error)) fp.Func0[fp.Try[R]] {
-	return func() fp.Try[R] {
+	return func(fp.Unit) fp.Try[R] {
 		ret, err := f()
 		return Apply(ret, err)
 	}

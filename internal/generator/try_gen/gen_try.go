@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 )
 
@@ -231,6 +232,23 @@ func Func%d[%s,R any]( f func(%s) (R,error)) fp.Func%d[%s,fp.Try[R]] {
 }
 `, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
 
+			fmt.Fprintf(f, `
+func Unit%d[%s any]( f func(%s) error) fp.Func%d[%s,fp.Try[fp.Unit]] {
+	return func(%s) fp.Try[fp.Unit] {
+		err := f(%s)
+		return Apply(fp.Unit{},err)
+	}
+}
+`, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
+
+		}
+
+		for i := 3; i < max.Compose; i++ {
+			fmt.Fprintf(f, `
+func Compose%d[%s,R any] ( %s ) fp.Func1[A1,fp.Try[R]] {
+	return Compose2(f1, Compose%d(%s))
+}
+			`, i, common.FuncTypeArgs(1, i), common.Monad("fp.Try").FuncChain(1, i), i-1, common.Args("f").Call(2, i))
 		}
 
 	})

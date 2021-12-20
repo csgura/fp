@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/csgura/fp/internal/max"
 )
@@ -86,6 +87,21 @@ func funcDeclArgs(start, until int) string {
 	return f.String()
 }
 
+func funcChain(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		if j == until {
+			fmt.Fprintf(f, "f%d Func1[A%d,R]", j, j)
+		} else {
+			fmt.Fprintf(f, "f%d Func1[A%d,A%d]", j, j, j+1)
+		}
+	}
+	return f.String()
+}
+
 func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 	f := &bytes.Buffer{}
 
@@ -94,7 +110,11 @@ func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 
 	formatted, err := format.Source(f.Bytes())
 	if err != nil {
-		log.Print(f.String())
+		lines := strings.Split(f.String(), "\n")
+		for i := range lines {
+			lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
+		}
+		log.Print(strings.Join(lines, "\n"))
 		log.Fatal("format error ", err)
 
 		return
@@ -170,6 +190,14 @@ func(r Func%d[%s,R]) Shift() Func%d[%s,A1,R] {
 }
 `, i, funcTypeArgs(1, i), i, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
 
+		}
+
+		for i := 3; i < max.Compose; i++ {
+			fmt.Fprintf(f, `
+func Compose%d[%s,R any] ( %s ) Func1[A1,R] {
+	return Compose2(f1, Compose%d(%s))
+}
+			`, i, funcTypeArgs(1, i), funcChain(1, i), i-1, strings.ReplaceAll(funcCallArgs(2, i), "a", "f"))
 		}
 	})
 

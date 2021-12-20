@@ -62,3 +62,26 @@ func TestCompileError(t *testing.T) {
 	println(res)
 
 }
+
+func TestAp(t *testing.T) {
+
+	plus := func(a int, b int) int {
+		return a + b
+	}
+	s := seq.Of(1, 2, 3, 4)
+
+	s2 := seq.Map(s, as.Func2(plus).Curried()(2))
+
+	s3 := seq.Map(s2, as.Func2(plus).Curried()(3))
+	s3.Foreach(fp.Println[int])
+
+	plus3 := func(a, b, c int) int {
+		return a + b + c
+	}
+
+	f1 := seq.Of(as.Func3(plus3).Curried())
+	f2 := seq.Ap(f1, seq.Of(1, 2))
+	f3 := seq.Ap(f2, seq.Of(2, 3))
+	f4 := seq.Ap(f3, seq.Of(3, 4))
+	f4.Foreach(fp.Println[int])
+}
