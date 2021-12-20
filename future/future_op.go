@@ -310,7 +310,7 @@ func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {
 	return <-ch
 }
 
-func Func0[R any](f func() (R, error), ctx ...fp.ExecContext) fp.Func0[fp.Future[R]] {
+func Func0[R any](f func() (R, error), ctx ...fp.ExecContext) fp.Func1[fp.Unit, fp.Future[R]] {
 	return func(fp.Unit) fp.Future[R] {
 		return Apply2(f, ctx...)
 	}

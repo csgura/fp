@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
 )
 
@@ -125,4 +127,32 @@ func TestCompileError(t *testing.T) {
 		Ap(20)
 	println(res)
 
+}
+
+func TestFunc(t *testing.T) {
+	o1 := option.Some(1)
+	o2 := option.Some(2)
+
+	os := option.Applicative2(monoid.Sum[int]().Combine).
+		ApOption(o1).
+		ApOption(o2)
+
+	fmt.Println(os)
+
+	oint := option.Some(2)
+	plus := func(a, b int) int {
+		return a * b
+	}
+	option.Applicative2(plus).
+		ApOption(oint).
+		Ap(2)
+
+	otuple := option.Some(as.Tuple(1, 2))
+	option.Applicative1(as.Func2(plus).Tupled()).
+		ApOption(otuple)
+
+	oreader := option.Applicative3(fp.Nop2[int, string](strings.NewReader)).
+		ApOption(oint).
+		Map(strconv.Itoa)
+	fmt.Println(oreader)
 }

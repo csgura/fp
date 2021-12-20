@@ -99,3 +99,27 @@ func Compose4[A1, A2, A3, A4, R any](f1 Func1[A1, A2], f2 Func1[A2, A3], f3 Func
 func Compose5[A1, A2, A3, A4, A5, R any](f1 Func1[A1, A2], f2 Func1[A2, A3], f3 Func1[A3, A4], f4 Func1[A4, A5], f5 Func1[A5, R]) Func1[A1, R] {
 	return Compose2(f1, Compose4(f2, f3, f4, f5))
 }
+
+func Nop1[A1, A2, R any](f func(A2) R) Func2[A1, A2, R] {
+	return func(a1 A1, a2 A2) R {
+		return f(a2)
+	}
+}
+
+func Nop2[A1, A2, A3, R any](f func(A3) R) Func3[A1, A2, A3, R] {
+	return func(a1 A1, a2 A2, a3 A3) R {
+		return f(a3)
+	}
+}
+
+func Nop3[A1, A2, A3, A4, R any](f func(A4) R) Func4[A1, A2, A3, A4, R] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4) R {
+		return f(a4)
+	}
+}
+
+func Nop4[A1, A2, A3, A4, A5, R any](f func(A5) R) Func5[A1, A2, A3, A4, A5, R] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R {
+		return f(a5)
+	}
+}

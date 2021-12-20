@@ -3,10 +3,10 @@ package as
 
 import "github.com/csgura/fp"
 
-func Func0[R any](f func() R) fp.Func0[R] {
-	return fp.Func0[R](func(u fp.Unit) R {
+func Func0[R any](f func() R) fp.Func1[fp.Unit, R] {
+	return func(u fp.Unit) R {
 		return f()
-	})
+	}
 }
 
 func Seq[T any](s []T) fp.Seq[T] {

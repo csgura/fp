@@ -199,6 +199,16 @@ func Compose%d[%s,R any] ( %s ) Func1[A1,R] {
 }
 			`, i, funcTypeArgs(1, i), funcChain(1, i), i-1, strings.ReplaceAll(funcCallArgs(2, i), "a", "f"))
 		}
+
+		for i := 2; i < max.Compose; i++ {
+			fmt.Fprintf(f, `
+func Nop%d[%s,R any] ( f func(A%d) R ) Func%d[%s,R] {
+	return func(%s) R {
+		return f(a%d)
+	}
+}
+			`, i-1, funcTypeArgs(1, i), i, i, funcTypeArgs(1, i), funcDeclArgs(1, i), i)
+		}
 	})
 
 	generate("fp", "tuple_gen.go", func(f io.Writer) {

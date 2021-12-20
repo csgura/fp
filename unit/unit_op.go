@@ -3,7 +3,7 @@ package unit
 
 import "github.com/csgura/fp"
 
-func Func0(f func()) fp.Func0[fp.Unit] {
+func Func0(f func()) fp.Func1[fp.Unit, fp.Unit] {
 	return func(fp.Unit) fp.Unit {
 		f()
 		return fp.Unit{}

@@ -163,3 +163,7 @@ func Compose2[A, B, C any](f1 Func1[A, B], f2 Func1[B, C]) Func1[A, C] {
 func Id[T any](t T) T {
 	return t
 }
+
+func ConvertNumber[From, To ImplicitNum](f From) To {
+	return To(f)
+}

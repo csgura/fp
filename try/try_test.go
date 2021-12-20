@@ -3,6 +3,7 @@ package try_test
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"testing"
 
@@ -100,4 +101,13 @@ func ParsePortFn() fp.Try[int] {
 		try.Func1(url.Parse),
 		fp.Compose((*url.URL).Port, try.Func1(strconv.Atoi)),
 	)("http://localhost:8080/abcd")
+}
+
+func TestProcessAp(t *testing.T) {
+	tstr := try.Success("25380")
+	killResult := try.Applicative3(fp.Nop2[string, int](try.Unit1((*os.Process).Kill))).
+		ApTry(tstr).
+		FlatMap(try.Func1(strconv.Atoi))
+	fmt.Println(killResult)
+
 }

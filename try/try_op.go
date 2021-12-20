@@ -288,7 +288,7 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Success(hlist.Empty()), Success(fn)}
 }
 
-func Func0[R any](f func() (R, error)) fp.Func0[fp.Try[R]] {
+func Func0[R any](f func() (R, error)) fp.Func1[fp.Unit, fp.Try[R]] {
 	return func(fp.Unit) fp.Try[R] {
 		ret, err := f()
 		return Apply(ret, err)

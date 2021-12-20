@@ -3,16 +3,7 @@ package main_test
 import (
 	"fmt"
 	"testing"
-
-	"github.com/csgura/fp/option"
 )
-
-type hello struct {
-}
-
-func (r hello) String() string {
-	return "hello"
-}
 
 func ToStringer[F any]() func(v F) fmt.Stringer {
 	return func(v F) fmt.Stringer {
@@ -39,12 +30,12 @@ func TestInference(t *testing.T) {
 }
 
 func TestCompileError(t *testing.T) {
-	res := option.Applicative2(func(a int, b int) int {
-		fmt.Println(a, b)
-		return 10
-	}).
-		Ap(1).
-		Ap(20)
-	fmt.Println(res)
+	// res := option.Applicative2(func(a int, b int) int {
+	// 	fmt.Println(a, b)
+	// 	return 10
+	// }).
+	// 	Ap(1).
+	// 	Ap(20)
+	// fmt.Println(res)
 
 }
