@@ -11,6 +11,7 @@ type Iterator[T any] interface {
 	Next() T
 	NextOption() Option[T]
 	ToSeq() Seq[T]
+	ToList() List[T]
 	Take(n int) Iterator[T]
 	TakeWhile(p func(T) bool) Iterator[T]
 	Drop(n int) Iterator[T]
@@ -59,6 +60,10 @@ func (r IteratorAdaptor[T]) ToSeq() Seq[T] {
 		ret = append(ret, r.Next())
 	}
 	return ret
+}
+
+func (r IteratorAdaptor[T]) ToList() List[T] {
+	return iteratorList[T]{r.NextOption(), r}
 }
 
 func (r IteratorAdaptor[T]) Take(n int) Iterator[T] {
@@ -321,9 +326,9 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 			}
 
 			// leftAhead == false means queue not empty
-			ret := queue.Head()
-			queue = queue.Tail()
-			return ret.Get()
+			head, tail := queue.UnSeq()
+			queue = tail
+			return head.Get()
 		},
 	}
 
@@ -352,9 +357,9 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 				return ret
 			}
 			// rightAhead means queue not empty
-			ret := queue.Head()
-			queue = queue.Tail()
-			return ret.Get()
+			head, tail := queue.UnSeq()
+			queue = tail
+			return head.Get()
 		},
 	}
 
@@ -373,4 +378,26 @@ func (r IteratorAdaptor[T]) Partition(p func(T) bool) Tuple2[Iterator[T], Iterat
 
 	return Tuple2[Iterator[T], Iterator[T]]{left.Filter(p), right.FilterNot(p)}
 
+}
+
+type iteratorList[T any] struct {
+	head     Option[T]
+	iterator Iterator[T]
+}
+
+func (r iteratorList[T]) IsEmpty() bool {
+	return r.head.IsEmpty()
+}
+func (r iteratorList[T]) NonEmpty() bool {
+	return r.head.IsDefined()
+}
+func (r iteratorList[T]) Head() Option[T] {
+	return r.head
+}
+func (r iteratorList[T]) Tail() List[T] {
+	return iteratorList[T]{r.iterator.NextOption(), r.iterator}
+}
+
+func (r iteratorList[T]) Iterator() Iterator[T] {
+	return r.iterator
 }

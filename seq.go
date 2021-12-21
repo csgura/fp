@@ -24,11 +24,19 @@ func (r Seq[T]) Head() Option[T] {
 	}
 }
 
-func (r Seq[T]) Tail() Seq[T] {
+func (r Seq[T]) Tail() List[T] {
 	if r.Size() > 0 {
 		return r[1:]
 	} else {
 		return nil
+	}
+}
+
+func (r Seq[T]) UnSeq() (Option[T], Seq[T]) {
+	if r.Size() > 0 {
+		return r.Head(), r[1:]
+	} else {
+		return r.Head(), nil
 	}
 }
 

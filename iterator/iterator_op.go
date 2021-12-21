@@ -6,6 +6,21 @@ import (
 	"github.com/csgura/fp/option"
 )
 
+func List[T any](list fp.List[T]) fp.Iterator[T] {
+	current := list
+
+	return fp.IteratorAdaptor[T]{
+		IsHasNext: func() bool {
+			return current.Head().IsDefined()
+		},
+		GetNext: func() T {
+			ret := current.Head().Get()
+			current = current.Tail()
+			return ret
+		},
+	}
+}
+
 func Of[T any](list ...T) fp.Iterator[T] {
 	return fp.Seq[T](list).Iterator()
 }

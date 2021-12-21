@@ -2,12 +2,13 @@ package promise
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/internal/atomic"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/try"
 )
 
 type promise[T any] struct {
-	status atomicValue
+	status atomic.Value
 }
 
 func (r *promise[T]) Future() fp.Future[T] {

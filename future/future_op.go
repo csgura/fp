@@ -200,10 +200,10 @@ func Zip[A, B any](c1 fp.Future[A], c2 fp.Future[B]) fp.Future[fp.Tuple2[A, B]] 
 }
 
 func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.ExecContext) fp.Future[fp.Seq[T]] {
-	head := futureList.Head()
+	head, tail := futureList.UnSeq()
 	if head.IsDefined() {
 		return FlatMap(head.Get(), func(headResult T) fp.Future[fp.Seq[T]] {
-			last := Sequence(futureList.Tail(), ctx...)
+			last := Sequence(tail, ctx...)
 			return Map(last, func(tail fp.Seq[T]) fp.Seq[T] {
 				return seq.Concat(headResult, tail)
 			}, ctx...)
