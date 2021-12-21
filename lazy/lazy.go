@@ -1,10 +1,7 @@
 package lazy
 
 import (
-	"sync"
-
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 )
 
 type Val[T any] interface {
@@ -18,16 +15,11 @@ func (r ValFunc[T]) Get() T {
 }
 
 func Eval[T any](f func() T) Val[T] {
-	return Func0(as.Func0(f))
+	return fp.LazyFunc(f)
 }
 
 func Func0[T any](f fp.Func1[fp.Unit, T]) Val[T] {
-	once := sync.Once{}
-	var ret T
-	return ValFunc[T](func() T {
-		once.Do(func() {
-			ret = f(fp.Unit{})
-		})
-		return ret
+	return Eval(func() T {
+		return f(fp.Unit{})
 	})
 }

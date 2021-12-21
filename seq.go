@@ -40,6 +40,14 @@ func (r Seq[T]) UnSeq() (Option[T], Seq[T]) {
 	}
 }
 
+func (r Seq[T]) Unapply() (Option[T], List[T]) {
+	if r.Size() > 0 {
+		return r.Head(), r[1:]
+	} else {
+		return r.Head(), nil
+	}
+}
+
 func (r Seq[T]) Take(n int) Seq[T] {
 	return r.Iterator().Take(n).ToSeq()
 }

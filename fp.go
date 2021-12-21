@@ -35,6 +35,10 @@ func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
 
 type Func0[R any] Func1[Unit, R]
 
+func (r Func0[R]) Apply() R {
+	return r(Unit{})
+}
+
 type Func1[A1, R any] func(a1 A1) R
 
 func (r Func1[A1, R]) Curried() Func1[A1, R] {

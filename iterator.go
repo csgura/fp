@@ -398,6 +398,10 @@ func (r iteratorList[T]) Tail() List[T] {
 	return iteratorList[T]{r.iterator.NextOption(), r.iterator}
 }
 
+func (r iteratorList[T]) Unapply() (Option[T], List[T]) {
+	return r.Head(), r.Tail()
+}
+
 func (r iteratorList[T]) Iterator() Iterator[T] {
 	return r.iterator
 }
