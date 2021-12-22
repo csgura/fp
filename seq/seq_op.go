@@ -2,6 +2,7 @@ package seq
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 )
 
@@ -79,6 +80,36 @@ func Fold[A, B any](s fp.Seq[A], zero B, f func(B, A) B) B {
 		sum = f(sum, v)
 	}
 	return sum
+}
+
+func FoldRight[A, B any](s fp.Seq[A], zero B, f func(A, fp.Lazy[B]) B) B {
+	if s.IsEmpty() {
+		return zero
+	}
+
+	head, tail := s.UnSeq()
+	v := lazy.Eval(func() B {
+		return FoldRight(tail, zero, f)
+	})
+
+	return f(head.Get(), v)
+}
+
+func Scan[A, B any](s fp.Seq[A], zero B, f func(B, A) B) fp.Seq[B] {
+
+	if s.IsEmpty() {
+		return Of(zero)
+	}
+
+	ret := make(fp.Seq[B], s.Size()+1)
+	sum := zero
+	ret[0] = sum
+	for i, v := range s {
+		sum = f(sum, v)
+		ret[i+1] = sum
+	}
+	return ret
+
 }
 
 func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) map[K]fp.Seq[A] {

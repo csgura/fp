@@ -3,6 +3,7 @@ package iterator
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 )
 
@@ -129,6 +130,44 @@ func Fold[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) B {
 		sum = f(sum, s.Next())
 	}
 	return sum
+}
+
+func FoldRight[A, B any](s fp.Iterator[A], zero B, f func(A, fp.Lazy[B]) B) B {
+	if s.IsEmpty() {
+		return zero
+	}
+
+	head := s.Next()
+	v := lazy.Eval(func() B {
+		return FoldRight(s, zero, f)
+	})
+	return f(head, v)
+}
+
+func Scan[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) fp.Iterator[B] {
+
+	first := true
+	sum := zero
+	hasNext := func() bool {
+		if first {
+			return true
+		}
+		return s.HasNext()
+	}
+	return fp.MakeIterator(
+		hasNext,
+		func() B {
+			if hasNext() {
+				if first {
+					first = false
+					return sum
+				}
+				sum = f(sum, s.Next())
+				return sum
+			}
+			panic("next on empty iterator")
+		},
+	)
 }
 
 func Range(from, exclusive int) fp.Iterator[int] {

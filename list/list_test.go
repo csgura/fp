@@ -2,10 +2,12 @@ package list_test
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/list"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
@@ -73,4 +75,52 @@ func TestFibonacci(t *testing.T) {
 	fmt.Println(f)
 
 	fmt.Println(l.Iterator().Take(20).ToSeq())
+
+	count := list.FoldRight(l, 0, func(v int, sum fp.Lazy[int]) int {
+		if v < 100 {
+			return sum.Get() + 1
+		}
+		return 0
+	})
+
+	println(count)
+
+}
+
+func TestSum(t *testing.T) {
+	l := list.GenerateFrom(func(i int) float64 {
+		return 1.0 / (float64(i) * float64(i))
+	}, 1)
+
+	printFirst10(l)
+
+	fmt.Println("print list scan")
+	l2 := list.Scan(l, 0.0, monoid.Sum[float64]().Combine)
+	printFirst10(l2)
+
+	sum := list.FoldRight(l, 0, func(v float64, sum fp.Lazy[float64]) float64 {
+
+		if v < 0.0000000001 {
+			return 0
+		}
+		return v + sum.Get()
+
+	})
+
+	println(sum)
+	println(math.Pi * math.Pi / 6)
+
+	iterator.Scan(l.Iterator(), 0.0, monoid.Sum[float64]().Combine).Take(10).Foreach(fp.Println[float64])
+
+}
+
+func TestScan(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+	l2 := list.Scan(l, 0, monoid.Sum[int]().Combine)
+	printFirst10(l2)
+
+	s := seq.Of(1, 2, 3, 4, 5)
+	fmt.Println(seq.Scan(s, 0, monoid.Sum[int]().Combine))
+
+	iterator.Scan(l.Iterator(), 0, monoid.Sum[int]().Combine).Foreach(fp.Println[int])
 }

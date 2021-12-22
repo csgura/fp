@@ -4,21 +4,17 @@ import (
 	"github.com/csgura/fp"
 )
 
-type Val[T any] interface {
-	Get() T
+func Value[T any](v T) fp.Lazy[T] {
+	return fp.LazyFunc(func() T {
+		return v
+	})
 }
 
-type ValFunc[T any] func() T
-
-func (r ValFunc[T]) Get() T {
-	return r()
-}
-
-func Eval[T any](f func() T) Val[T] {
+func Eval[T any](f func() T) fp.Lazy[T] {
 	return fp.LazyFunc(f)
 }
 
-func Func0[T any](f fp.Func1[fp.Unit, T]) Val[T] {
+func Func0[T any](f fp.Func1[fp.Unit, T]) fp.Lazy[T] {
 	return Eval(func() T {
 		return f(fp.Unit{})
 	})

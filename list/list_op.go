@@ -174,3 +174,34 @@ func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 // 	}
 // 	return sum
 // }
+
+func FoldRight[A, B any](s fp.List[A], zero B, f func(A, fp.Lazy[B]) B) B {
+	if s.IsEmpty() {
+		return zero
+	}
+
+	v := lazy.Eval(func() B {
+		return FoldRight(s.Tail(), zero, f)
+	})
+	return f(s.Head().Get(), v)
+}
+
+func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
+
+	c := lazy.Eval(func() fp.Option[B] {
+		return option.Map(s.Head(), as.Curried2(f)(zero))
+	})
+
+	return fp.MakeList(
+		func() fp.Option[B] {
+			return option.Some(zero)
+		},
+		func() fp.List[B] {
+			z := c.Get()
+			if z.IsDefined() {
+				return Scan(s.Tail(), z.Get(), f)
+			}
+			return Of[B]()
+		},
+	)
+}
