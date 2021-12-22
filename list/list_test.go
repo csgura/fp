@@ -88,15 +88,11 @@ func TestFibonacci(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	l := list.GenerateFrom(func(i int) float64 {
+	l := list.GenerateFrom(1, func(i int) float64 {
 		return 1.0 / (float64(i) * float64(i))
-	}, 1)
+	})
 
 	printFirst10(l)
-
-	fmt.Println("print list scan")
-	l2 := list.Scan(l, 0.0, monoid.Sum[float64]().Combine)
-	printFirst10(l2)
 
 	sum := list.FoldRight(l, 0, func(v float64, sum fp.Lazy[float64]) float64 {
 
@@ -110,12 +106,48 @@ func TestSum(t *testing.T) {
 	println(sum)
 	println(math.Pi * math.Pi / 6)
 
+	fmt.Println("print list scan")
+	l2 := list.Scan(l, 0.0, monoid.Sum[float64]().Combine)
+
+	zip := list.Zip(l2.Iterator().Drop(100).ToList(), l2)
+	printFirst10(zip)
+
+	sumOpt := zip.Iterator().Find(as.Func2(func(a float64, b float64) bool {
+		return a-b < 0.0000000001
+	}).Tupled())
+
+	fmt.Println("sum 1/n^2 = ", sumOpt)
+
+	l = list.GenerateFrom(1, func(i int) float64 {
+		return 1.0 / float64(i)
+	})
+
+	printFirst10(l)
+
+	fmt.Println("print list scan")
+	l2 = list.Scan(l, 0.0, monoid.Sum[float64]().Combine)
+
+	zip = list.Zip(l2.Tail(), l2)
+	printFirst10(zip)
+	fmt.Println("print list at 100000")
+
+	sumOpt = zip.Iterator().Take(100000).Find(as.Func2(func(a float64, b float64) bool {
+		return a-b < 0.0000000001
+	}).Tupled())
+
+	fmt.Println("sum 1/n = ", sumOpt)
+
 	iterator.Scan(l.Iterator(), 0.0, monoid.Sum[float64]().Combine).Take(10).Foreach(fp.Println[float64])
 
 }
 
 func TestScan(t *testing.T) {
-	l := list.Of(1, 2, 3, 4, 5)
+
+	l := list.GenerateFrom(1, fp.Id[int])
+	list.Scan(l, 0, monoid.Sum[int]().Combine).
+		Iterator().Take(10).Foreach(fp.Println[int])
+
+	l = list.Of(1, 2, 3, 4, 5)
 	l2 := list.Scan(l, 0, monoid.Sum[int]().Combine)
 	printFirst10(l2)
 

@@ -9,16 +9,16 @@ import (
 )
 
 func Generate[T any](generator func(index int) T) fp.List[T] {
-	return GenerateFrom(generator, 0)
+	return GenerateFrom(0, generator)
 }
 
-func GenerateFrom[T any](generator func(index int) T, startIndex int) fp.List[T] {
+func GenerateFrom[T any](startIndex int, generator func(index int) T) fp.List[T] {
 	return fp.MakeList(
 		func() fp.Option[T] {
 			return option.Some(generator(startIndex))
 		},
 		func() fp.List[T] {
-			return GenerateFrom(generator, startIndex+1)
+			return GenerateFrom(startIndex+1, generator)
 		},
 	)
 }
@@ -167,13 +167,19 @@ func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 	)
 }
 
-// func Fold[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
-// 	sum := zero
-// 	for s.HasNext() {
-// 		sum = f(sum, s.Next())
-// 	}
-// 	return sum
-// }
+func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tuple3[A, B, C]] {
+	return fp.MakeList(
+		func() fp.Option[fp.Tuple3[A, B, C]] {
+			return option.Applicative3(as.Tuple3[A, B, C]).
+				ApOption(a.Head()).
+				ApOption(b.Head()).
+				ApOption(c.Head())
+		},
+		func() fp.List[fp.Tuple3[A, B, C]] {
+			return Zip3(a.Tail(), b.Tail(), c.Tail())
+		},
+	)
+}
 
 func FoldRight[A, B any](s fp.List[A], zero B, f func(A, fp.Lazy[B]) B) B {
 	if s.IsEmpty() {
@@ -188,16 +194,12 @@ func FoldRight[A, B any](s fp.List[A], zero B, f func(A, fp.Lazy[B]) B) B {
 
 func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 
-	c := lazy.Eval(func() fp.Option[B] {
-		return option.Map(s.Head(), as.Curried2(f)(zero))
-	})
-
 	return fp.MakeList(
 		func() fp.Option[B] {
 			return option.Some(zero)
 		},
 		func() fp.List[B] {
-			z := c.Get()
+			z := option.Map(s.Head(), as.Curried2(f)(zero))
 			if z.IsDefined() {
 				return Scan(s.Tail(), z.Get(), f)
 			}
