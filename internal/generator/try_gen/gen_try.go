@@ -115,7 +115,7 @@ import (
 	"github.com/csgura/fp/hlist"
 )`)
 
-		for i := 2; i < max.Product; i++ {
+		for i := 2; i < max.Func; i++ {
 
 			fmt.Fprintf(f, `
 type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
@@ -222,7 +222,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 1; i < max.Product; i++ {
+		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Func%d[%s,R any]( f func(%s) (R,error)) fp.Func%d[%s,fp.Try[R]] {
 	return func(%s) fp.Try[R] {

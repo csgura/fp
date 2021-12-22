@@ -139,7 +139,7 @@ func funcCallArgs(start, until int) string {
 
 func main() {
 	generate("fp", "func_gen.go", func(f io.Writer) {
-		for i := 2; i < max.Product; i++ {
+		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, "type Func%d", i)
 			fmt.Fprintf(f, "[")
 
@@ -162,7 +162,7 @@ func main() {
 			fmt.Fprintf(f, ") R\n\n")
 
 		}
-		for i := 2; i < max.Product; i++ {
+		for i := 2; i < max.Func; i++ {
 
 			fmt.Fprintf(f, `
 func(r Func%d[%s,R]) Tupled() Func1[Tuple%d[%s],R] {
@@ -200,7 +200,7 @@ func Compose%d[%s,R any] ( %s ) Func1[A1,R] {
 			`, i, funcTypeArgs(1, i), funcChain(1, i), i-1, strings.ReplaceAll(funcCallArgs(2, i), "a", "f"))
 		}
 
-		for i := 2; i < max.Compose; i++ {
+		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Nop%d[%s,R any] ( f func(A%d) R ) Func%d[%s,R] {
 	return func(%s) R {

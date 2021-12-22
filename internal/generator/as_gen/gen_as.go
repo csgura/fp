@@ -111,7 +111,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 1; i < max.Product; i++ {
+		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
 	return fp.Func%d[%s,R](f)
@@ -120,7 +120,7 @@ func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
 
 		}
 
-		for i := 1; i < max.Product; i++ {
+		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Curried%d[%s,R any]( f func(%s) R) %s {
 	return fp.Func%d[%s,R](f).Curried()
@@ -129,7 +129,7 @@ func Curried%d[%s,R any]( f func(%s) R) %s {
 
 		}
 
-		for i := 2; i < max.Product; i++ {
+		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 	return func(%s) R {

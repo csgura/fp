@@ -111,7 +111,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 1; i < max.Product; i++ {
+		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Func%d[%s any]( f func(%s) ) fp.Func%d[%s,fp.Unit] {
 	return func(%s) fp.Unit {

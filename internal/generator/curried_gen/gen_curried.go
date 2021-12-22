@@ -75,7 +75,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-	for i := 2; i < max.Product; i++ {
+	for i := 2; i < max.Func; i++ {
 
 		args := ""
 

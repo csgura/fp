@@ -57,7 +57,7 @@ import (
 	"github.com/csgura/fp/hlist"
 )`)
 
-		for i := 2; i < max.Product; i++ {
+		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, "type ApplicativeFunctor%d [H hlist.Header[HT], HT ", i)
 
 			for j := 1; j <= i; j++ {
