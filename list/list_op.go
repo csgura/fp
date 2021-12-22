@@ -123,3 +123,54 @@ func Concat[T any](l1 fp.List[T], l2 fp.List[T]) fp.List[T] {
 		},
 	)
 }
+
+func Ap[T, U any](t fp.List[fp.Func1[T, U]], a fp.List[T]) fp.List[U] {
+	return FlatMap(t, func(f fp.Func1[T, U]) fp.List[U] {
+		return Map(a, f)
+	})
+}
+
+func Lift[T, U any](f func(v T) U) fp.Func1[fp.List[T], fp.List[U]] {
+	return func(opt fp.List[T]) fp.List[U] {
+		return Map(opt, f)
+	}
+}
+
+func Compose[A, B, C any](f1 fp.Func1[A, fp.List[B]], f2 fp.Func1[B, fp.List[C]]) fp.Func1[A, fp.List[C]] {
+	return func(a A) fp.List[C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
+func ComposePure[A, B, C any](f1 fp.Func1[A, fp.List[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.List[C]] {
+	return func(a A) fp.List[C] {
+		return Map(f1(a), f2)
+	}
+}
+
+func Flatten[T any](opt fp.List[fp.List[T]]) fp.List[T] {
+	return FlatMap(opt, func(v fp.List[T]) fp.List[T] {
+		return v
+	})
+}
+
+func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
+	return fp.MakeList(
+		func() fp.Option[fp.Tuple2[T, U]] {
+			return option.Applicative2(as.Tuple[T, U]).
+				ApOption(a.Head()).
+				ApOption(b.Head())
+		},
+		func() fp.List[fp.Tuple2[T, U]] {
+			return Zip(a.Tail(), b.Tail())
+		},
+	)
+}
+
+// func Fold[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
+// 	sum := zero
+// 	for s.HasNext() {
+// 		sum = f(sum, s.Next())
+// 	}
+// 	return sum
+// }

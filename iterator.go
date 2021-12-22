@@ -69,18 +69,22 @@ func (r IteratorAdaptor[T]) ToList() List[T] {
 func (r IteratorAdaptor[T]) Take(n int) Iterator[T] {
 
 	i := 0
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
-			if i < n {
-				return r.HasNext()
-			}
-			return false
-		},
-		GetNext: func() T {
-			i++
-			return r.Next()
-		},
+	hasNext := func() bool {
+		if i < n {
+			return r.HasNext()
+		}
+		return false
 	}
+	return MakeIterator(
+		hasNext,
+		func() T {
+			if hasNext() {
+				i++
+				return r.Next()
+			}
+			return r.nextOnEmpty()
+		},
+	)
 }
 
 func (r IteratorAdaptor[T]) nextOnEmpty() T {
@@ -112,11 +116,9 @@ func (r IteratorAdaptor[T]) TakeWhile(p func(T) bool) Iterator[T] {
 		return false
 	}
 
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
-			return hasNext()
-		},
-		GetNext: func() T {
+	return MakeIterator(
+		hasNext,
+		func() T {
 
 			if hasNext() {
 				ret := fv.Get()
@@ -125,7 +127,7 @@ func (r IteratorAdaptor[T]) TakeWhile(p func(T) bool) Iterator[T] {
 			}
 			return r.nextOnEmpty()
 		},
-	}
+	)
 }
 
 func (r IteratorAdaptor[T]) Drop(n int) Iterator[T] {
@@ -159,9 +161,9 @@ func (r IteratorAdaptor[T]) DropWhile(p func(T) bool) Iterator[T] {
 		return false
 	}
 
-	return IteratorAdaptor[T]{
-		IsHasNext: hasNext,
-		GetNext: func() T {
+	return MakeIterator(
+		hasNext,
+		func() T {
 			if hasNext() {
 				if first.IsDefined() {
 					ret := first.Get()
@@ -176,7 +178,7 @@ func (r IteratorAdaptor[T]) DropWhile(p func(T) bool) Iterator[T] {
 			}
 			return r.nextOnEmpty()
 		},
-	}
+	)
 }
 
 func (r IteratorAdaptor[T]) Filter(p func(T) bool) Iterator[T] {
@@ -191,11 +193,10 @@ func (r IteratorAdaptor[T]) Filter(p func(T) bool) Iterator[T] {
 		}
 		return fv.IsDefined()
 	}
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
-			return hasNext()
-		},
-		GetNext: func() T {
+
+	return MakeIterator(
+		hasNext,
+		func() T {
 			if hasNext() {
 
 				ret := fv.Get()
@@ -204,7 +205,7 @@ func (r IteratorAdaptor[T]) Filter(p func(T) bool) Iterator[T] {
 			}
 			return r.nextOnEmpty()
 		},
-	}
+	)
 }
 
 func (r IteratorAdaptor[T]) FilterNot(p func(T) bool) Iterator[T] {
@@ -231,31 +232,31 @@ func (r IteratorAdaptor[T]) Foreach(p func(T)) {
 }
 
 func (r IteratorAdaptor[T]) TapEach(p func(T)) Iterator[T] {
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	return MakeIterator(
+		func() bool {
 			return r.IsHasNext()
 		},
-		GetNext: func() T {
+		func() T {
 			ret := r.GetNext()
 			p(ret)
 			return ret
 		},
-	}
+	)
 }
 
 func (r IteratorAdaptor[T]) Concat(tail Iterator[T]) Iterator[T] {
 
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	return MakeIterator(
+		func() bool {
 			return r.HasNext() || tail.HasNext()
 		},
-		GetNext: func() T {
+		func() T {
 			if r.HasNext() {
 				return r.Next()
 			}
 			return tail.Next()
 		},
-	}
+	)
 }
 
 func (r IteratorAdaptor[T]) Reduce(m Monoid[T]) T {
@@ -301,8 +302,8 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 
 	leftAhead := true
 
-	left := IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	left := MakeIterator(
+		func() bool {
 			lock.Lock()
 			defer lock.Unlock()
 
@@ -312,7 +313,7 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 			// queue not empty
 			return true
 		},
-		GetNext: func() T {
+		func() T {
 			lock.Lock()
 			defer lock.Unlock()
 
@@ -330,10 +331,10 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 			queue = tail
 			return head.Get()
 		},
-	}
+	)
 
-	right := IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	right := MakeIterator(
+		func() bool {
 			lock.Lock()
 			defer lock.Unlock()
 
@@ -343,7 +344,7 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 			// queue not empty
 			return true
 		},
-		GetNext: func() T {
+		func() T {
 			lock.Lock()
 			defer lock.Unlock()
 
@@ -361,7 +362,7 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 			queue = tail
 			return head.Get()
 		},
-	}
+	)
 
 	return Tuple2[Iterator[T], Iterator[T]]{left, right}
 }
@@ -378,6 +379,13 @@ func (r IteratorAdaptor[T]) Partition(p func(T) bool) Tuple2[Iterator[T], Iterat
 
 	return Tuple2[Iterator[T], Iterator[T]]{left.Filter(p), right.FilterNot(p)}
 
+}
+
+func MakeIterator[T any](has func() bool, next func() T) Iterator[T] {
+	return IteratorAdaptor[T]{
+		IsHasNext: has,
+		GetNext:   next,
+	}
 }
 
 type iteratorList[T any] struct {

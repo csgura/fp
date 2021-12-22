@@ -58,3 +58,7 @@ func TestIterator(t *testing.T) {
 	fmt.Println(p2.ToSeq())
 
 }
+
+func TestRange(t *testing.T) {
+	iterator.Range(0, 10).Foreach(fp.Println[int])
+}

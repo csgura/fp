@@ -9,16 +9,16 @@ import (
 func List[T any](list fp.List[T]) fp.Iterator[T] {
 	current := list
 
-	return fp.IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	return fp.MakeIterator(
+		func() bool {
 			return current.Head().IsDefined()
 		},
-		GetNext: func() T {
+		func() T {
 			ret := current.Head().Get()
 			current = current.Tail()
 			return ret
 		},
-	}
+	)
 }
 
 func Of[T any](list ...T) fp.Iterator[T] {
@@ -60,14 +60,14 @@ func Concat[T any](head T, tail fp.Iterator[T]) fp.Iterator[T] {
 }
 
 func Map[T, U any](opt fp.Iterator[T], fn func(v T) U) fp.Iterator[U] {
-	return fp.IteratorAdaptor[U]{
-		IsHasNext: func() bool {
+	return fp.MakeIterator(
+		func() bool {
 			return opt.HasNext()
 		},
-		GetNext: func() U {
+		func() U {
 			return fn(opt.Next())
 		},
-	}
+	)
 }
 
 func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Iterator[U] {
@@ -90,17 +90,15 @@ func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Itera
 		return false
 	}
 
-	return fp.IteratorAdaptor[U]{
-		IsHasNext: func() bool {
-			return hasNext()
-		},
-		GetNext: func() U {
+	return fp.MakeIterator(
+		hasNext,
+		func() U {
 			if hasNext() {
 				return current.Get().Next()
 			}
 			panic("next on empty iterator")
 		},
-	}
+	)
 }
 
 func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]]) fp.Map[K, V] {
@@ -115,14 +113,14 @@ func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]]) fp.Map[K, V] {
 }
 
 func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, U]] {
-	return fp.IteratorAdaptor[fp.Tuple2[T, U]]{
-		IsHasNext: func() bool {
+	return fp.MakeIterator(
+		func() bool {
 			return a.HasNext() && b.HasNext()
 		},
-		GetNext: func() fp.Tuple2[T, U] {
+		func() fp.Tuple2[T, U] {
 			return as.Tuple(a.Next(), b.Next())
 		},
-	}
+	)
 }
 
 func Fold[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) B {
@@ -131,4 +129,38 @@ func Fold[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) B {
 		sum = f(sum, s.Next())
 	}
 	return sum
+}
+
+func Range(from, exclusive int) fp.Iterator[int] {
+	i := from
+	return fp.MakeIterator(
+		func() bool {
+			return i < exclusive
+		},
+		func() int {
+			if i < exclusive {
+				ret := i
+				i++
+				return ret
+			}
+			panic("next on empty iterator")
+		},
+	)
+}
+
+func RangeClosed(from, inclusive int) fp.Iterator[int] {
+	i := from
+	return fp.MakeIterator(
+		func() bool {
+			return i <= inclusive
+		},
+		func() int {
+			if i <= inclusive {
+				ret := i
+				i++
+				return ret
+			}
+			panic("next on empty iterator")
+		},
+	)
 }
