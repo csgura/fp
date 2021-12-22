@@ -16,6 +16,7 @@ type Option[T any] interface {
 	Exists(p func(v T) bool) bool
 	ForAll(p func(v T) bool) bool
 	ToSeq() Seq[T]
+	Iterator() Iterator[T]
 }
 
 type Some[T any] struct {
@@ -33,7 +34,6 @@ func (r Some[T]) IsDefined() bool {
 func (r Some[T]) IsEmpty() bool {
 	return false
 }
-
 
 func (r Some[T]) Get() T {
 	return r.v
@@ -75,6 +75,13 @@ func (r Some[T]) Exists(p func(v T) bool) bool {
 }
 func (r Some[T]) ForAll(p func(v T) bool) bool {
 	return p(r.v)
+}
+
+func (r Some[T]) Iterator() Iterator[T] {
+	return MakeIterator(
+		r.IsDefined,
+		r.Get,
+	)
 }
 
 type None[T any] struct{}
@@ -126,4 +133,11 @@ func (r None[T]) Exists(p func(v T) bool) bool {
 }
 func (r None[T]) ForAll(p func(v T) bool) bool {
 	return true
+}
+
+func (r None[T]) Iterator() Iterator[T] {
+	return MakeIterator(
+		r.IsDefined,
+		r.Get,
+	)
 }

@@ -15,4 +15,5 @@ type Try[T any] interface {
 	ToSeq() Seq[T]
 	Unapply() (T, error)
 	String() string
+	Iterator() Iterator[T]
 }
