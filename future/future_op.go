@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/promise"
@@ -197,6 +198,13 @@ func Zip[A, B any](c1 fp.Future[A], c2 fp.Future[B]) fp.Future[fp.Tuple2[A, B]] 
 			return product.Tuple2(v1, v2)
 		})
 	})
+}
+
+func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Future[fp.Tuple3[A, B, C]] {
+	return Applicative3(as.Tuple3[A, B, C]).
+		ApFuture(c1).
+		ApFuture(c2).
+		ApFuture(c3)
 }
 
 func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.ExecContext) fp.Future[fp.Seq[T]] {

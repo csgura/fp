@@ -3,10 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"go/format"
-	"io/ioutil"
-	"log"
+	"io"
 
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 )
 
@@ -98,39 +97,39 @@ func callFunc(nargs int) string {
 }
 
 func main() {
-	f := &bytes.Buffer{}
+	common.Generate("product", "tuple_gen.go", func(f io.Writer) {
 
-	fmt.Fprintf(f, "package product\n\n")
-
-	fmt.Fprintln(f, `
+		fmt.Fprintln(f, `
 	import (
 		"github.com/csgura/fp"
 	)`)
 
-	for i := 2; i < max.Product; i++ {
+		for i := 2; i < max.Product; i++ {
 
-		fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Tuple%d[%s] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
+			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Tuple%d[%s] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
 
-		fmt.Fprintf(f, "  return fp.Tuple%d[%s] {\n", i, typeArgs(1, i))
-		for j := 1; j <= i; j++ {
-			fmt.Fprintf(f, "    I%d: a%d,\n", j, j)
+			fmt.Fprintf(f, "  return fp.Tuple%d[%s] {\n", i, typeArgs(1, i))
+			for j := 1; j <= i; j++ {
+				fmt.Fprintf(f, "    I%d: a%d,\n", j, j)
+			}
+			fmt.Fprintf(f, `}
 		}
-		fmt.Fprintf(f, `}
-		}
+
 `)
 
-	}
+		}
 
-	formatted, err := format.Source(f.Bytes())
-	if err != nil {
-		log.Print(f.String())
-		log.Fatal("format error ", err)
+		for i := 2; i < max.Func; i++ {
 
-		return
-	}
+			fmt.Fprintf(f, "func Lift%d [%s , R any](f func(%s) R) fp.Func1[fp.Tuple%d[%s],R] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
 
-	err = ioutil.WriteFile("tuple_gen.go", formatted, 0666)
-	if err != nil {
-		return
-	}
+			fmt.Fprintf(f, `
+	return fp.Func%d[%s,R](f).Tupled()
+}
+
+`, i, typeArgs(1, i))
+
+		}
+	})
+
 }

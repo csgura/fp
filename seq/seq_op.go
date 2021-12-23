@@ -82,6 +82,12 @@ func Fold[A, B any](s fp.Seq[A], zero B, f func(B, A) B) B {
 	return sum
 }
 
+func FoldMap[A, M any](s fp.Seq[A], m fp.Monoid[M], f func(A) M) M {
+	return Fold(s, m.Empty(), func(b M, a A) M {
+		return m.Combine(b, f(a))
+	})
+}
+
 func FoldRight[A, B any](s fp.Seq[A], zero B, f func(A, fp.Lazy[B]) B) B {
 	if s.IsEmpty() {
 		return zero
@@ -94,6 +100,19 @@ func FoldRight[A, B any](s fp.Seq[A], zero B, f func(A, fp.Lazy[B]) B) B {
 
 	return f(head.Get(), v)
 }
+
+// func FoldRightImplementUsingFoldMap[A, B any](s fp.Seq[A], zero B, f func(A, B) B) B {
+
+// 	m := monoid.Endo[B]()
+
+// 	c := as.Curried2(f)
+
+// 	ret := FoldMap(s, m, func(a A) fp.Endo[B] {
+// 		return fp.Endo[B](c(a))
+// 	})
+
+// 	return ret(zero)
+// }
 
 func Scan[A, B any](s fp.Seq[A], zero B, f func(B, A) B) fp.Seq[B] {
 

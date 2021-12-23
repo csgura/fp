@@ -5,7 +5,9 @@ import (
 	"reflect"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 )
 
@@ -100,6 +102,21 @@ func Zip[A, B any](c1 fp.Option[A], c2 fp.Option[B]) fp.Option[fp.Tuple2[A, B]] 
 			return product.Tuple2(v1, v2)
 		})
 	})
+}
+
+func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Option[fp.Tuple3[A, B, C]] {
+	return Applicative3(as.Tuple3[A, B, C]).
+		ApOption(c1).
+		ApOption(c2).
+		ApOption(c3)
+}
+
+func FoldRight[A, B any](s fp.Option[A], zero B, f func(A, fp.Lazy[B]) B) B {
+	if s.IsEmpty() {
+		return zero
+	}
+
+	return f(s.Get(), lazy.Value(zero))
 }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {

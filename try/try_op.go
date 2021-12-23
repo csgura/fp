@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/product"
 )
@@ -106,6 +108,21 @@ func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
 			return product.Tuple2(v1, v2)
 		})
 	})
+}
+
+func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
+	return Applicative3(as.Tuple3[A, B, C]).
+		ApTry(c1).
+		ApTry(c2).
+		ApTry(c3)
+}
+
+func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, fp.Lazy[B]) B) B {
+	if s.IsFailure() {
+		return zero
+	}
+
+	return f(s.Get(), lazy.Value(zero))
 }
 
 type success[T any] struct {

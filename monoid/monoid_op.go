@@ -108,3 +108,15 @@ func (r monoid[T]) Combine(a, b T) T {
 func (r monoid[T]) ToMonoid(emptyFunc fp.EmptyFunc[T]) fp.Monoid[T] {
 	return monoid[T]{emptyFunc, r.combine}
 }
+
+func Endo[T any]() fp.Monoid[fp.Endo[T]] {
+	return New(
+		func() fp.Endo[T] {
+			return fp.Id[T]
+		},
+		func(a, b fp.Endo[T]) fp.Endo[T] {
+			f := fp.Compose(a.AsFunc(), b.AsFunc())
+			return fp.Endo[T](f)
+		},
+	)
+}
