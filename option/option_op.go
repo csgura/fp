@@ -111,6 +111,14 @@ func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Opt
 		ApOption(c3)
 }
 
+func Fold[A, B any](s fp.Option[A], zero B, f func(B, A) B) B {
+	if s.IsEmpty() {
+		return zero
+	}
+
+	return f(zero, s.Get())
+}
+
 func FoldRight[A, B any](s fp.Option[A], zero B, f func(A, fp.Lazy[B]) B) B {
 	if s.IsEmpty() {
 		return zero

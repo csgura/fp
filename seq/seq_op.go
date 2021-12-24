@@ -94,7 +94,7 @@ func FoldRight[A, B any](s fp.Seq[A], zero B, f func(A, fp.Lazy[B]) B) B {
 	}
 
 	head, tail := s.UnSeq()
-	v := lazy.Eval(func() B {
+	v := lazy.Call(func() B {
 		return FoldRight(tail, zero, f)
 	})
 

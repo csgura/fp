@@ -1,6 +1,6 @@
 package fp
 
-import "sync"
+import "github.com/csgura/fp/lazy"
 
 type List[T any] interface {
 	IsEmpty() bool
@@ -23,11 +23,11 @@ func (r ListAdaptor[T]) NonEmpty() bool {
 	return r.Head().IsDefined()
 }
 func (r ListAdaptor[T]) Head() Option[T] {
-	return r.GetHead.Apply()
+	return r.GetHead.Get()
 }
 
 func (r ListAdaptor[T]) Tail() List[T] {
-	return r.GetTail.Apply()
+	return r.GetTail.Get()
 }
 
 func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
@@ -50,26 +50,26 @@ func (r ListAdaptor[T]) Iterator() Iterator[T] {
 }
 
 func MakeList[T any](head func() Option[T], tail func() List[T]) List[T] {
-	return ListAdaptor[T]{LazyFunc(head), LazyFunc(tail)}
+	return ListAdaptor[T]{lazy.Call(head), lazy.Call(tail)}
 }
 
-type Lazy[T any] Func0[T]
+type Lazy[T any] lazy.Eval[T]
 
-func (r Lazy[T]) Apply() T {
-	return r(Unit{})
-}
+// func (r Lazy[T]) Apply() T {
+// 	return r(Unit{})
+// }
 
-func (r Lazy[T]) Get() T {
-	return r(Unit{})
-}
+// func (r Lazy[T]) Get() T {
+// 	return r(Unit{})
+// }
 
-func LazyFunc[T any](f func() T) Lazy[T] {
-	once := sync.Once{}
-	var ret T
-	return func(Unit) T {
-		once.Do(func() {
-			ret = f()
-		})
-		return ret
-	}
-}
+// func LazyFunc[T any](f func() T) Lazy[T] {
+// 	once := sync.Once{}
+// 	var ret T
+// 	return func(Unit) T {
+// 		once.Do(func() {
+// 			ret = f()
+// 		})
+// 		return ret
+// 	}
+// }

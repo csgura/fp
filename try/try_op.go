@@ -117,6 +117,14 @@ func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple
 		ApTry(c3)
 }
 
+func Fold[A, B any](s fp.Try[A], zero B, f func(B, A) B) B {
+	if s.IsFailure() {
+		return zero
+	}
+
+	return f(zero, s.Get())
+}
+
 func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, fp.Lazy[B]) B) B {
 	if s.IsFailure() {
 		return zero

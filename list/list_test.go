@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/list"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
@@ -155,4 +156,26 @@ func TestScan(t *testing.T) {
 	fmt.Println(seq.Scan(s, 0, monoid.Sum[int]().Combine))
 
 	iterator.Scan(l.Iterator(), 0, monoid.Sum[int]().Combine).Foreach(fp.Println[int])
+}
+
+func TestInfinity(t *testing.T) {
+	l := list.GenerateFrom(1, func(i int) float64 {
+		fmt.Println("generate : ", i)
+		return 1.0 / (float64(i))
+	})
+
+	printFirst10(l)
+
+	sum := list.FoldRightLazy(l, 0, func(v float64, sum lazy.Eval[float64]) lazy.Eval[float64] {
+
+		if v < 0.0000000001 {
+			return lazy.Value(0.0)
+		}
+		return lazy.Map(sum, func(sv float64) float64 {
+			return sv + v
+		})
+
+	})
+
+	fmt.Println(sum.Get())
 }
