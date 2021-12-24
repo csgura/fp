@@ -2,6 +2,8 @@ package lazy
 
 import "sync"
 
+// https://github.com/onflow/cadence/blob/v0.5.0-beta2/runtime/trampoline/trampoline.go
+
 type Eval[T any] interface {
 	Get() T
 	Resume() (T, func() Eval[T])
