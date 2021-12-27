@@ -136,7 +136,7 @@ func Done[T any](t T) Eval[T] {
 	return done[T]{t}
 }
 
-func Defer[T any](f func() Eval[T]) Eval[T] {
+func TailCall[T any](f func() Eval[T]) Eval[T] {
 	mf := Memoize(f)
 	return call[T](mf)
 }

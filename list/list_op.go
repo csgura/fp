@@ -8,6 +8,83 @@ import (
 	"github.com/csgura/fp/seq"
 )
 
+type Nil[T any] struct {
+}
+
+func (r Nil[T]) IsEmpty() bool {
+	return true
+}
+
+func (r Nil[T]) NonEmpty() bool {
+	return false
+}
+
+func (r Nil[T]) Head() fp.Option[T] {
+	return option.None[T]()
+}
+
+func (r Nil[T]) Tail() fp.List[T] {
+	return r
+}
+
+func (r Nil[T]) Unapply() (fp.Option[T], fp.List[T]) {
+	return r.Head(), r
+}
+
+func (r Nil[T]) Iterator() fp.Iterator[T] {
+	return fp.MakeIterator(func() bool {
+		return false
+	}, func() T {
+		panic("next on empty iterator")
+	})
+}
+
+type Cons[T any] struct {
+	head T
+	tail fp.List[T]
+}
+
+func (r Cons[T]) IsEmpty() bool {
+	return false
+}
+
+func (r Cons[T]) NonEmpty() bool {
+	return true
+}
+
+func (r Cons[T]) Head() fp.Option[T] {
+	return option.Some(r.head)
+}
+
+func (r Cons[T]) Tail() fp.List[T] {
+	return r.tail
+}
+
+func (r Cons[T]) Unapply() (fp.Option[T], fp.List[T]) {
+	return r.Head(), r.Tail()
+}
+
+func (r Cons[T]) Iterator() fp.Iterator[T] {
+	var cursor fp.List[T] = r
+
+	hasNext := func() bool {
+		return cursor.NonEmpty()
+	}
+
+	return fp.MakeIterator(hasNext, func() T {
+		if hasNext() {
+			ret := cursor.Head().Get()
+			cursor = r.Tail()
+			return ret
+		}
+		panic("next on empty iterator")
+	})
+}
+
+func Empty[T any]() fp.List[T] {
+	return Nil[T]{}
+}
+
 func Generate[T any](generator func(index int) T) fp.List[T] {
 	return GenerateFrom(0, generator)
 }
@@ -59,7 +136,7 @@ func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
 func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 
 	if opt.IsEmpty() {
-		return Of[U]()
+		return Empty[U]()
 	}
 
 	mappedHeadLazy := lazy.Call(func() fp.List[U] {
@@ -85,28 +162,25 @@ func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 				return FlatMap(tail, fn).Tail()
 			}
 
-			return Concat(headList.Tail(), FlatMap(tail, fn))
+			return Combine(headList.Tail(), FlatMap(tail, fn))
 		},
 	)
 
 }
 
 func Apply[T any](head T, tail fp.List[T]) fp.List[T] {
-	return fp.MakeList(
-		func() fp.Option[T] {
-			return option.Some(head)
-		},
-		func() fp.List[T] {
-			return tail
-		},
-	)
+	return Cons[T]{head, tail}
 }
 
 func Of[T any](e ...T) fp.List[T] {
 	return seq.Of(e...)
 }
 
-func Concat[T any](l1 fp.List[T], l2 fp.List[T]) fp.List[T] {
+func Concat[T any](head T, tail fp.List[T]) fp.List[T] {
+	return Apply(head, tail)
+}
+
+func Combine[T any](l1 fp.List[T], l2 fp.List[T]) fp.List[T] {
 
 	if l1.IsEmpty() {
 		return l2
@@ -119,7 +193,7 @@ func Concat[T any](l1 fp.List[T], l2 fp.List[T]) fp.List[T] {
 		func() fp.List[T] {
 			l1Tail := l1.Tail()
 			if l1Tail.NonEmpty() {
-				return Concat(l1Tail, l2)
+				return Combine(l1Tail, l2)
 			}
 			return l2
 		},
@@ -188,7 +262,7 @@ func FoldRight[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval
 		return lazy.Done(zero)
 	}
 
-	v := lazy.Defer(func() lazy.Eval[B] {
+	v := lazy.TailCall(func() lazy.Eval[B] {
 		return FoldRight(s.Tail(), zero, f)
 	})
 	return f(s.Head().Get(), v)
@@ -205,7 +279,7 @@ func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 			if z.IsDefined() {
 				return Scan(s.Tail(), z.Get(), f)
 			}
-			return Of[B]()
+			return Empty[B]()
 		},
 	)
 }

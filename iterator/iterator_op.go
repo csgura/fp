@@ -139,7 +139,7 @@ func FoldRight[A, B any](s fp.Iterator[A], zero B, f func(A, lazy.Eval[B]) lazy.
 
 	head := s.Next()
 
-	v := lazy.Defer(func() lazy.Eval[B] {
+	v := lazy.TailCall(func() lazy.Eval[B] {
 		return FoldRight(s, zero, f)
 	})
 
