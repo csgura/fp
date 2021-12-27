@@ -1,6 +1,8 @@
 package lazy
 
-import "sync"
+import (
+	"sync"
+)
 
 // https://github.com/onflow/cadence/blob/v0.5.0-beta2/runtime/trampoline/trampoline.go
 
