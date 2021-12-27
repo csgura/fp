@@ -1,7 +1,5 @@
 package fp
 
-import "github.com/csgura/fp/lazy"
-
 type List[T any] interface {
 	IsEmpty() bool
 	NonEmpty() bool
@@ -12,8 +10,8 @@ type List[T any] interface {
 }
 
 type ListAdaptor[T any] struct {
-	GetHead Lazy[Option[T]]
-	GetTail Lazy[List[T]]
+	GetHead Func0[Option[T]]
+	GetTail Func0[List[T]]
 }
 
 func (r ListAdaptor[T]) IsEmpty() bool {
@@ -23,11 +21,11 @@ func (r ListAdaptor[T]) NonEmpty() bool {
 	return r.Head().IsDefined()
 }
 func (r ListAdaptor[T]) Head() Option[T] {
-	return r.GetHead.Get()
+	return r.GetHead.Apply()
 }
 
 func (r ListAdaptor[T]) Tail() List[T] {
-	return r.GetTail.Get()
+	return r.GetTail.Apply()
 }
 
 func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
@@ -50,26 +48,5 @@ func (r ListAdaptor[T]) Iterator() Iterator[T] {
 }
 
 func MakeList[T any](head func() Option[T], tail func() List[T]) List[T] {
-	return ListAdaptor[T]{lazy.Call(head), lazy.Call(tail)}
+	return ListAdaptor[T]{Memoize(head), Memoize(tail)}
 }
-
-type Lazy[T any] lazy.Eval[T]
-
-// func (r Lazy[T]) Apply() T {
-// 	return r(Unit{})
-// }
-
-// func (r Lazy[T]) Get() T {
-// 	return r(Unit{})
-// }
-
-// func LazyFunc[T any](f func() T) Lazy[T] {
-// 	once := sync.Once{}
-// 	var ret T
-// 	return func(Unit) T {
-// 		once.Do(func() {
-// 			ret = f()
-// 		})
-// 		return ret
-// 	}
-// }

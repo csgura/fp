@@ -183,42 +183,15 @@ func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tupl
 	)
 }
 
-func foldRight[A, B any](s fp.List[A], zero B, f func(A, fp.Lazy[B]) B) fp.Lazy[B] {
-	// if s.IsEmpty() {
-	// 	return lazy.Value(zero)
-	// }
-
-	// v := lazy.Defer(func() lazy.Eval[B] {
-	// 	return foldRight(s.Tail(), zero, f)
-	// })
-
-	panic("not implemented")
-	//	return lazy.Then(v, as.Curried2(f)(s.Head().Get()))
-
-	// return lazy.FlatMap(v, func(lz lazy.Eval[B]) lazy.Eval[B] {
-	// 	return lazy.Call(func() B {
-	// 		return f(s.Head().Get(), lz)
-	// 	})
-	// })
-}
-
-func FoldRight[A, B any](s fp.List[A], zero B, f func(A, fp.Lazy[B]) B) B {
-	return foldRight(s, zero, f).Get()
-}
-
-func FoldRightLazy[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
+func FoldRight[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
 	if s.IsEmpty() {
-		return lazy.Value(zero)
+		return lazy.Done(zero)
 	}
 
 	v := lazy.Defer(func() lazy.Eval[B] {
-		return FoldRightLazy(s.Tail(), zero, f)
+		return FoldRight(s.Tail(), zero, f)
 	})
-
-	return v.FlatMap(func(b B) lazy.Eval[B] {
-		return f(s.Head().Get(), v)
-	})
-
+	return f(s.Head().Get(), v)
 }
 
 func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {

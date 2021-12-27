@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime/debug"
+	"sync"
 
 	"github.com/csgura/fp/hlist"
 )
@@ -170,4 +171,15 @@ func Id[T any](t T) T {
 
 func ConvertNumber[From, To ImplicitNum](f From) To {
 	return To(f)
+}
+
+func Memoize[T any](f func() T) Func0[T] {
+	once := sync.Once{}
+	var ret T
+	return func(Unit) T {
+		once.Do(func() {
+			ret = f()
+		})
+		return ret
+	}
 }

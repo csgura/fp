@@ -132,16 +132,19 @@ func Fold[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) B {
 	return sum
 }
 
-func FoldRight[A, B any](s fp.Iterator[A], zero B, f func(A, fp.Lazy[B]) B) B {
+func FoldRight[A, B any](s fp.Iterator[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
 	if s.IsEmpty() {
-		return zero
+		return lazy.Done(zero)
 	}
 
 	head := s.Next()
-	v := lazy.Call(func() B {
+
+	v := lazy.Defer(func() lazy.Eval[B] {
 		return FoldRight(s, zero, f)
 	})
+
 	return f(head, v)
+
 }
 
 func Scan[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) fp.Iterator[B] {

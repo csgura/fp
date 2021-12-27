@@ -88,13 +88,13 @@ func FoldMap[A, M any](s fp.Seq[A], m fp.Monoid[M], f func(A) M) M {
 	})
 }
 
-func FoldRight[A, B any](s fp.Seq[A], zero B, f func(A, fp.Lazy[B]) B) B {
+func FoldRight[A, B any](s fp.Seq[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
 	if s.IsEmpty() {
-		return zero
+		return lazy.Done(zero)
 	}
 
 	head, tail := s.UnSeq()
-	v := lazy.Call(func() B {
+	v := lazy.Defer(func() lazy.Eval[B] {
 		return FoldRight(tail, zero, f)
 	})
 

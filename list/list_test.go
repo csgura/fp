@@ -77,11 +77,11 @@ func TestFibonacci(t *testing.T) {
 
 	fmt.Println(l.Iterator().Take(20).ToSeq())
 
-	count := list.FoldRight(l, 0, func(v int, sum fp.Lazy[int]) int {
+	count := list.FoldRight(l, 0, func(v int, sum lazy.Eval[int]) lazy.Eval[int] {
 		if v < 100 {
-			return sum.Get() + 1
+			return sum.Map(monoid.Sum[int]().Curried()(1))
 		}
-		return 0
+		return lazy.Done(0)
 	})
 
 	println(count)
@@ -95,12 +95,12 @@ func TestSum(t *testing.T) {
 
 	printFirst10(l)
 
-	sum := list.FoldRight(l, 0, func(v float64, sum fp.Lazy[float64]) float64 {
+	sum := list.FoldRight(l, 0, func(v float64, sum lazy.Eval[float64]) lazy.Eval[float64] {
 
 		if v < 0.0000000001 {
-			return 0
+			return lazy.Done(0.0)
 		}
-		return v + sum.Get()
+		return sum.Map(monoid.Sum[float64]().Curried()(v))
 
 	})
 
@@ -158,22 +158,21 @@ func TestScan(t *testing.T) {
 	iterator.Scan(l.Iterator(), 0, monoid.Sum[int]().Combine).Foreach(fp.Println[int])
 }
 
-func TestInfinity(t *testing.T) {
+func NotTestInfinity(t *testing.T) {
 	l := list.GenerateFrom(1, func(i int) float64 {
 		fmt.Println("generate : ", i)
 		return 1.0 / (float64(i))
 	})
 
-	printFirst10(l)
+	//printFirst10(l)
 
-	sum := list.FoldRightLazy(l, 0, func(v float64, sum lazy.Eval[float64]) lazy.Eval[float64] {
+	sum := list.FoldRight(l, 0, func(v float64, sum lazy.Eval[float64]) lazy.Eval[float64] {
 
 		if v < 0.0000000001 {
-			return lazy.Value(0.0)
+			return lazy.Done(0.0)
 		}
-		return lazy.Map(sum, func(sv float64) float64 {
-			return sv + v
-		})
+		//return lazy.Done(sum.Get() + v)
+		return sum.Map(monoid.Sum[float64]().Curried()(v))
 
 	})
 

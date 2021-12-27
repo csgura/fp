@@ -125,12 +125,12 @@ func Fold[A, B any](s fp.Try[A], zero B, f func(B, A) B) B {
 	return f(zero, s.Get())
 }
 
-func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, fp.Lazy[B]) B) B {
+func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
 	if s.IsFailure() {
-		return zero
+		return lazy.Done(zero)
 	}
 
-	return f(s.Get(), lazy.Value(zero))
+	return f(s.Get(), lazy.Done(zero))
 }
 
 type success[T any] struct {
