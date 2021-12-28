@@ -89,8 +89,10 @@ import (
 
 			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d%s)", i, typeparams)
 
-			fmt.Fprintf(f, "%s Shift() ApplicativeFunctor%d[H,HT,%s,A1,R] {\n", receiver, i, typeArgs(2, i))
-			fmt.Fprintf(f, `
+			if i < max.Shift {
+
+				fmt.Fprintf(f, "%s Shift() ApplicativeFunctor%d[H,HT,%s,A1,R] {\n", receiver, i, typeArgs(2, i))
+				fmt.Fprintf(f, `
 	nf := fp.Compose(curried.Revert%d[%s, R], fp.Compose(fp.Func%d[%s, R].Shift, fp.Func%d[%s, A1, R].Curried))
 	return ApplicativeFunctor%d[H, HT, %s, A1, R]{
 		r.h,
@@ -99,6 +101,7 @@ import (
 
 }
 `, i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(2, i), i, typeArgs(2, i))
+			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `

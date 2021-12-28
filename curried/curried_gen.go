@@ -52,3 +52,51 @@ func Revert5[A1, A2, A3, A4, A5, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3,
 		return f(a1)(a2)(a3)(a4)(a5)
 	}
 }
+func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]] {
+		return Func5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
+			return f(a1, a2, a3, a4, a5, a6)
+		})
+	}
+}
+func Revert6[A1, A2, A3, A4, A5, A6, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]) fp.Func6[A1, A2, A3, A4, A5, A6, R] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)
+	}
+}
+func Func7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]] {
+		return Func6(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
+			return f(a1, a2, a3, a4, a5, a6, a7)
+		})
+	}
+}
+func Revert7[A1, A2, A3, A4, A5, A6, A7, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]) fp.Func7[A1, A2, A3, A4, A5, A6, A7, R] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)
+	}
+}
+func Func8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]] {
+		return Func7(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
+			return f(a1, a2, a3, a4, a5, a6, a7, a8)
+		})
+	}
+}
+func Revert8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]) fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)
+	}
+}
+func Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]] {
+		return Func8(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
+			return f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+		})
+	}
+}
+func Revert9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]]) fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)(a9)
+	}
+}

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 
 	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
@@ -97,7 +96,7 @@ func callFunc(nargs int) string {
 }
 
 func main() {
-	common.Generate("product", "tuple_gen.go", func(f io.Writer) {
+	common.Generate("product", "tuple_gen.go", func(f common.Writer) {
 
 		fmt.Fprintln(f, `
 	import (

@@ -15,13 +15,21 @@ func Right[L, R any](r R) fp.Either[L, R] {
 
 func Ap[L, R, R1 any](t fp.Either[L, fp.Func1[R, R1]], a fp.Either[L, R]) fp.Either[L, R1] {
 	return FlatMap(t, func(f fp.Func1[R, R1]) fp.Either[L, R1] {
-		return Map(a,f)
+		return Map(a, f)
 	})
 }
 
 func Map[L, R, R1 any](opt fp.Either[L, R], f func(v R) R1) fp.Either[L, R1] {
 	return FlatMap(opt, func(v R) fp.Either[L, R1] {
 		return Right[L](f(v))
+	})
+}
+
+func Map2[L, R, R1 any](a, b fp.Either[L, R], f func(R, R) R1) fp.Either[L, R1] {
+	return FlatMap(a, func(v1 R) fp.Either[L, R1] {
+		return Map(b, func(v2 R) R1 {
+			return f(v1, v2)
+		})
 	})
 }
 

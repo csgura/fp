@@ -1,3 +1,4 @@
+//go:generate go run github.com/csgura/fp/internal/generator/lazy_gen
 package lazy
 
 import (
@@ -25,6 +26,14 @@ func Run[T any](t Eval[T]) T {
 
 		return result
 	}
+}
+
+func Map2[T any](a, b Eval[T], f func(T, T) T) Eval[T] {
+	return a.FlatMap(func(v1 T) Eval[T] {
+		return b.Map(func(v2 T) T {
+			return f(v1, v2)
+		})
+	})
 }
 
 func Map[T any](t Eval[T], f func(T) T) Eval[T] {

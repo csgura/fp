@@ -85,15 +85,6 @@ type ApplicativeFunctor3[H hlist.Header[HT], HT, A1, A2, A3, R any] struct {
 	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]
 }
 
-func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) Shift() ApplicativeFunctor3[H, HT, A2, A3, A1, R] {
-
-	nf := fp.Compose(curried.Revert3[A1, A2, A3, R], fp.Compose(fp.Func3[A1, A2, A3, R].Shift, fp.Func3[A2, A3, A1, R].Curried))
-	return ApplicativeFunctor3[H, HT, A2, A3, A1, R]{
-		r.h,
-		Map(r.fn, nf),
-	}
-
-}
 func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor2[hlist.Cons[A1, H], A1, A2, A3, R] {
 
 	av := FlatMap(r.h, func(v H) fp.Option[A1] {
@@ -159,15 +150,6 @@ type ApplicativeFunctor4[H hlist.Header[HT], HT, A1, A2, A3, A4, R any] struct {
 	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]]]
 }
 
-func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) Shift() ApplicativeFunctor4[H, HT, A2, A3, A4, A1, R] {
-
-	nf := fp.Compose(curried.Revert4[A1, A2, A3, A4, R], fp.Compose(fp.Func4[A1, A2, A3, A4, R].Shift, fp.Func4[A2, A3, A4, A1, R].Curried))
-	return ApplicativeFunctor4[H, HT, A2, A3, A4, A1, R]{
-		r.h,
-		Map(r.fn, nf),
-	}
-
-}
 func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor3[hlist.Cons[A1, H], A1, A2, A3, A4, R] {
 
 	av := FlatMap(r.h, func(v H) fp.Option[A1] {
@@ -233,15 +215,6 @@ type ApplicativeFunctor5[H hlist.Header[HT], HT, A1, A2, A3, A4, A5, R any] stru
 	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]]]
 }
 
-func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) Shift() ApplicativeFunctor5[H, HT, A2, A3, A4, A5, A1, R] {
-
-	nf := fp.Compose(curried.Revert5[A1, A2, A3, A4, A5, R], fp.Compose(fp.Func5[A1, A2, A3, A4, A5, R].Shift, fp.Func5[A2, A3, A4, A5, A1, R].Curried))
-	return ApplicativeFunctor5[H, HT, A2, A3, A4, A5, A1, R]{
-		r.h,
-		Map(r.fn, nf),
-	}
-
-}
 func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor4[hlist.Cons[A1, H], A1, A2, A3, A4, A5, R] {
 
 	av := FlatMap(r.h, func(v H) fp.Option[A1] {
@@ -300,4 +273,264 @@ func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) ApFunc(a func() A1) A
 }
 func Applicative5[A1, A2, A3, A4, A5, R any](fn fp.Func5[A1, A2, A3, A4, A5, R]) ApplicativeFunctor5[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, R] {
 	return ApplicativeFunctor5[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, R]{Some(hlist.Empty()), Some(curried.Func5(fn))}
+}
+
+type ApplicativeFunctor6[H hlist.Header[HT], HT, A1, A2, A3, A4, A5, A6, R any] struct {
+	h  fp.Option[H]
+	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]]
+}
+
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v.Head())
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) Map(a func(HT) A1) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	return r.FlatMap(func(h HT) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) HListMap(a func(H) A1) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	return r.HListFlatMap(func(h H) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) HListFlatMap(a func(H) fp.Option[A1]) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v)
+	})
+
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
+		return Map(a, func(av A1) hlist.Cons[A1, H] {
+			return hlist.Concat(av, hv)
+		})
+	})
+
+	return ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R]{nh, Ap(r.fn, a)}
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) Ap(a A1) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	return r.ApOption(Some(a))
+
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) ApFunc(a func() A1) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func Applicative6[A1, A2, A3, A4, A5, A6, R any](fn fp.Func6[A1, A2, A3, A4, A5, A6, R]) ApplicativeFunctor6[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, R] {
+	return ApplicativeFunctor6[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, R]{Some(hlist.Empty()), Some(curried.Func6(fn))}
+}
+
+type ApplicativeFunctor7[H hlist.Header[HT], HT, A1, A2, A3, A4, A5, A6, A7, R any] struct {
+	h  fp.Option[H]
+	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]]
+}
+
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v.Head())
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) Map(a func(HT) A1) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	return r.FlatMap(func(h HT) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) HListMap(a func(H) A1) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	return r.HListFlatMap(func(h H) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) HListFlatMap(a func(H) fp.Option[A1]) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v)
+	})
+
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
+		return Map(a, func(av A1) hlist.Cons[A1, H] {
+			return hlist.Concat(av, hv)
+		})
+	})
+
+	return ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R]{nh, Ap(r.fn, a)}
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) Ap(a A1) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	return r.ApOption(Some(a))
+
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) ApFunc(a func() A1) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func Applicative7[A1, A2, A3, A4, A5, A6, A7, R any](fn fp.Func7[A1, A2, A3, A4, A5, A6, A7, R]) ApplicativeFunctor7[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, A7, R] {
+	return ApplicativeFunctor7[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, A7, R]{Some(hlist.Empty()), Some(curried.Func7(fn))}
+}
+
+type ApplicativeFunctor8[H hlist.Header[HT], HT, A1, A2, A3, A4, A5, A6, A7, A8, R any] struct {
+	h  fp.Option[H]
+	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]]
+}
+
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v.Head())
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) Map(a func(HT) A1) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	return r.FlatMap(func(h HT) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) HListMap(a func(H) A1) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	return r.HListFlatMap(func(h H) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) HListFlatMap(a func(H) fp.Option[A1]) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v)
+	})
+
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
+		return Map(a, func(av A1) hlist.Cons[A1, H] {
+			return hlist.Concat(av, hv)
+		})
+	})
+
+	return ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R]{nh, Ap(r.fn, a)}
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) Ap(a A1) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	return r.ApOption(Some(a))
+
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) ApFunc(a func() A1) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func Applicative8[A1, A2, A3, A4, A5, A6, A7, A8, R any](fn fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApplicativeFunctor8[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, A7, A8, R] {
+	return ApplicativeFunctor8[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, A7, A8, R]{Some(hlist.Empty()), Some(curried.Func8(fn))}
+}
+
+type ApplicativeFunctor9[H hlist.Header[HT], HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R any] struct {
+	h  fp.Option[H]
+	fn fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]]]
+}
+
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) FlatMap(a func(HT) fp.Option[A1]) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v.Head())
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) Map(a func(HT) A1) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	return r.FlatMap(func(h HT) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) HListMap(a func(H) A1) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	return r.HListFlatMap(func(h H) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) HListFlatMap(a func(H) fp.Option[A1]) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v)
+	})
+
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
+		return Map(a, func(av A1) hlist.Cons[A1, H] {
+			return hlist.Concat(av, hv)
+		})
+	})
+
+	return ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R]{nh, Ap(r.fn, a)}
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) Ap(a A1) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	return r.ApOption(Some(a))
+
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApFunc(a func() A1) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApOption(av)
+}
+func Applicative9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](fn fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApplicativeFunctor9[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
+	return ApplicativeFunctor9[hlist.Nil, hlist.Nil, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]{Some(hlist.Empty()), Some(curried.Func9(fn))}
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
@@ -123,4 +124,33 @@ func TestHListEq(t *testing.T) {
 	assert.True(eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list2))
 	assert.True(!eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list3))
 
+}
+
+type Table[H hlist.HList] struct {
+	records []H
+}
+
+func (r *Table[H]) Insert(record H) {
+	r.records = append(r.records, record)
+}
+
+func (r *Table[H]) Find(p func(H) bool) *H {
+	for _, v := range r.records {
+		if p(v) {
+			return &v
+		}
+	}
+	return nil
+}
+
+func TestTable(t *testing.T) {
+	tbl := Table[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{}
+	tbl.Insert(as.Tuple2("hello", 10).ToHList())
+
+	tbl.Find(hlist.Lift2(func(a string, b int) bool {
+		if a == "hello" {
+			return true
+		}
+		return false
+	}))
 }

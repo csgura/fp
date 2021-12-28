@@ -133,6 +133,14 @@ func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
 	)
 }
 
+func Map2[T, U any](a, b fp.List[T], f func(T, T) U) fp.List[U] {
+	return FlatMap(a, func(v1 T) fp.List[U] {
+		return Map(b, func(v2 T) U {
+			return f(v1, v2)
+		})
+	})
+}
+
 func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 
 	if opt.IsEmpty() {

@@ -45,9 +45,7 @@ func fiboEval(n int, prev int, curr int) lazy.Eval[int] {
 		return lazy.Done(curr)
 	}
 
-	return lazy.TailCall(func() lazy.Eval[int] {
-		return fiboEval(n-1, curr, curr+prev)
-	})
+	return lazy.TailCall3(fiboEval, n-1, curr, curr+prev)
 }
 
 func fiboNoOpt(n int) lazy.Eval[int] {
@@ -55,17 +53,12 @@ func fiboNoOpt(n int) lazy.Eval[int] {
 		return lazy.Done(n)
 	}
 
-	x := lazy.TailCall(func() lazy.Eval[int] {
-		return fiboNoOpt(n - 1)
-	})
+	x := lazy.TailCall1(fiboNoOpt, (n - 1))
 
-	y := lazy.TailCall(func() lazy.Eval[int] {
-		return fiboNoOpt(n - 2)
-	})
+	y := lazy.TailCall1(fiboNoOpt, (n - 2))
 
-	return x.FlatMap(func(v1 int) lazy.Eval[int] {
-		return y.Map(monoid.Sum[int]().Curried()(v1))
-	})
+	return lazy.Map2(x, y, monoid.Sum[int]().Combine)
+
 }
 func TestFibo(t *testing.T) {
 	fmt.Println(fibo(20, 0, 1))

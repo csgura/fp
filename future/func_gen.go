@@ -89,6 +89,74 @@ func Unit5[A1, A2, A3, A4, A5 any](f func(A1, A2, A3, A4, A5) error, exec ...fp.
 	}
 }
 
+func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) (R, error), exec ...fp.ExecContext) fp.Func6[A1, A2, A3, A4, A5, A6, fp.Future[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Future[R] {
+		return Apply2(func() (R, error) {
+			return f(a1, a2, a3, a4, a5, a6)
+		})
+	}
+}
+
+func Unit6[A1, A2, A3, A4, A5, A6 any](f func(A1, A2, A3, A4, A5, A6) error, exec ...fp.ExecContext) fp.Func6[A1, A2, A3, A4, A5, A6, fp.Future[fp.Unit]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Future[fp.Unit] {
+		return Apply2(func() (fp.Unit, error) {
+			err := f(a1, a2, a3, a4, a5, a6)
+			return fp.Unit{}, err
+		})
+	}
+}
+
+func Func7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) (R, error), exec ...fp.ExecContext) fp.Func7[A1, A2, A3, A4, A5, A6, A7, fp.Future[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Future[R] {
+		return Apply2(func() (R, error) {
+			return f(a1, a2, a3, a4, a5, a6, a7)
+		})
+	}
+}
+
+func Unit7[A1, A2, A3, A4, A5, A6, A7 any](f func(A1, A2, A3, A4, A5, A6, A7) error, exec ...fp.ExecContext) fp.Func7[A1, A2, A3, A4, A5, A6, A7, fp.Future[fp.Unit]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Future[fp.Unit] {
+		return Apply2(func() (fp.Unit, error) {
+			err := f(a1, a2, a3, a4, a5, a6, a7)
+			return fp.Unit{}, err
+		})
+	}
+}
+
+func Func8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) (R, error), exec ...fp.ExecContext) fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, fp.Future[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Future[R] {
+		return Apply2(func() (R, error) {
+			return f(a1, a2, a3, a4, a5, a6, a7, a8)
+		})
+	}
+}
+
+func Unit8[A1, A2, A3, A4, A5, A6, A7, A8 any](f func(A1, A2, A3, A4, A5, A6, A7, A8) error, exec ...fp.ExecContext) fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, fp.Future[fp.Unit]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Future[fp.Unit] {
+		return Apply2(func() (fp.Unit, error) {
+			err := f(a1, a2, a3, a4, a5, a6, a7, a8)
+			return fp.Unit{}, err
+		})
+	}
+}
+
+func Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) (R, error), exec ...fp.ExecContext) fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, fp.Future[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Future[R] {
+		return Apply2(func() (R, error) {
+			return f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+		})
+	}
+}
+
+func Unit9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) error, exec ...fp.ExecContext) fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, fp.Future[fp.Unit]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Future[fp.Unit] {
+		return Apply2(func() (fp.Unit, error) {
+			err := f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+			return fp.Unit{}, err
+		})
+	}
+}
+
 func Compose3[A1, A2, A3, R any](f1 fp.Func1[A1, fp.Future[A2]], f2 fp.Func1[A2, fp.Future[A3]], f3 fp.Func1[A3, fp.Future[R]], exec ...fp.ExecContext) fp.Func1[A1, fp.Future[R]] {
 	return Compose2(f1, Compose2(f2, f3, exec...), exec...)
 }
