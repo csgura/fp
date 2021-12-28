@@ -20,7 +20,6 @@ func (r ShowFunc[T]) Show(t T) string {
 
 type Eq[T any] interface {
 	Eqv(a T, b T) bool
-	ToOrd(LessFunc[T]) Ord[T]
 }
 
 type EqFunc[T any] func(a, b T) bool
@@ -39,6 +38,11 @@ func EqGiven[T comparable]() Eq[T] {
 	return EqFunc[T](func(a, b T) bool {
 		return a == b
 	})
+}
+
+type Hashable[T any] interface {
+	Eq[T]
+	Hash(T) uint32
 }
 
 type Ord[T any] interface {

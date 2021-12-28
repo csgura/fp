@@ -2,6 +2,8 @@
 package eq
 
 import (
+	"bytes"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 )
@@ -9,6 +11,8 @@ import (
 func New[T any](f func(a, b T) bool) fp.Eq[T] {
 	return fp.EqFunc[T](f)
 }
+
+var Bytes fp.Eq[[]byte] = New(bytes.Equal)
 
 func Tuple1[A any](a fp.Eq[A]) fp.Eq[fp.Tuple1[A]] {
 	return New(

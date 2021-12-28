@@ -54,7 +54,7 @@ func TestOrd(t *testing.T) {
 		B string
 	}
 
-	eq.Given[Pair]().ToOrd(func(a, b Pair) bool {
+	ord.New(eq.Given[Pair](), func(a, b Pair) bool {
 		if a.A < b.A {
 			return true
 		}

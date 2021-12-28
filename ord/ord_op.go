@@ -57,7 +57,7 @@ func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
 }
 
 func Seq[T any](ord fp.Ord[T]) fp.Ord[fp.Seq[T]] {
-	return eq.Seq[T](ord).ToOrd(func(a, b fp.Seq[T]) bool {
+	return New(eq.Seq[T](ord), func(a, b fp.Seq[T]) bool {
 		last := fp.Min(a.Size(), b.Size())
 		for i := 0; i < last; i++ {
 			if ord.Less(a[i], b[i]) {
