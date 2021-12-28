@@ -6,6 +6,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/seq"
 )
@@ -38,7 +39,7 @@ func TestIterator(t *testing.T) {
 	k := seq.Of("a", "b", "c")
 	v := seq.Of(10, 20, 30, 40, 50)
 
-	fmt.Println(iterator.ToMap(iterator.Zip(k.Iterator(), v.Iterator())))
+	fmt.Println(iterator.ToMap(iterator.Zip(k.Iterator(), v.Iterator()), hash.String))
 
 	p1, p2 := s.Iterator().Partition(func(v int) bool {
 		return v%2 == 0

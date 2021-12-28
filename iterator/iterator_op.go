@@ -3,6 +3,7 @@ package iterator
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 )
@@ -110,12 +111,12 @@ func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Itera
 	)
 }
 
-func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]]) fp.Map[K, V] {
-	ret := fp.Map[K, V]{}
+func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
+	ret := immutable.Map[K, V](hasher)
 
 	for itr.HasNext() {
 		k, v := itr.Next().Unapply()
-		ret[k] = v
+		ret = ret.Updated(k, v)
 	}
 
 	return ret

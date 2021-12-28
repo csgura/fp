@@ -4,6 +4,7 @@ import (
 	"math/bits"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
 )
 
@@ -30,11 +31,11 @@ const (
 	mapNodeMask = mapNodeSize - 1
 )
 
-// Map represents an immutable hash map implementation. The map uses a Hasher
+// hamt represents an immutable hash map implementation. The map uses a Hasher
 // to generate hashes and check for equality of key values.
 //
 // It is implemented as an Hash Array Mapped Trie.
-type Map[K, V any] struct {
+type hamt[K, V any] struct {
 	size   int            // total number of key/value pairs
 	root   mapNode[K, V]  // root node of trie
 	hasher fp.Hashable[K] // hasher implementation
@@ -43,19 +44,28 @@ type Map[K, V any] struct {
 // NewMap returns a new instance of Map. If hasher is nil, a default hasher
 // implementation will automatically be chosen based on the first key added.
 // Default hasher implementations only exist for int, string, and byte slice types.
-func NewMap[K, V any](hasher fp.Hashable[K]) *Map[K, V] {
-	return &Map[K, V]{
-		hasher: hasher,
+func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
+	if len(t) > 0 {
+		b := NewMapBuilder[K, V](hasher)
+
+		for _, v := range t {
+			b.Set(v.I1, v.I2)
+		}
+		return b.Map()
+	} else {
+		return &hamt[K, V]{
+			hasher: hasher,
+		}
 	}
 }
 
 // Len returns the number of elements in the map.
-func (m *Map[K, V]) Len() int {
+func (m *hamt[K, V]) Len() int {
 	return m.size
 }
 
 // clone returns a shallow copy of m.
-func (m *Map[K, V]) clone() *Map[K, V] {
+func (m *hamt[K, V]) clone() *hamt[K, V] {
 	other := *m
 	return &other
 }
@@ -63,7 +73,7 @@ func (m *Map[K, V]) clone() *Map[K, V] {
 // Get returns the value for a given key and a flag indicating whether the
 // key exists. This flag distinguishes a nil value set on a key versus a
 // non-existent key in the map.
-func (m *Map[K, V]) Get(key K) fp.Option[V] {
+func (m *hamt[K, V]) Get(key K) fp.Option[V] {
 	if m.root == nil {
 		return option.None[V]()
 	}
@@ -75,11 +85,11 @@ func (m *Map[K, V]) Get(key K) fp.Option[V] {
 //
 // This function will return a new map even if the updated value is the same as
 // the existing value because Map does not track value equality.
-func (m *Map[K, V]) Set(key K, value V) *Map[K, V] {
+func (m *hamt[K, V]) Updated(key K, value V) fp.Map[K, V] {
 	return m.set(key, value, false)
 }
 
-func (m *Map[K, V]) set(key K, value V, mutable bool) *Map[K, V] {
+func (m *hamt[K, V]) set(key K, value V, mutable bool) *hamt[K, V] {
 	// Set a hasher on the first value if one does not already exist.
 	hasher := m.hasher
 	// if hasher == nil {
@@ -112,11 +122,15 @@ func (m *Map[K, V]) set(key K, value V, mutable bool) *Map[K, V] {
 
 // Delete returns a map with the given key removed.
 // Removing a non-existent key will cause this method to return the same map.
-func (m *Map[K, V]) Delete(key K) *Map[K, V] {
-	return m.delete(key, false)
+func (m *hamt[K, V]) Removed(key ...K) fp.Map[K, V] {
+	ret := m
+	for _, k := range key {
+		ret = ret.delete(k, false)
+	}
+	return ret
 }
 
-func (m *Map[K, V]) delete(key K, mutable bool) *Map[K, V] {
+func (m *hamt[K, V]) delete(key K, mutable bool) *hamt[K, V] {
 	// Return original map if no keys exist.
 	if m.root == nil {
 		return m
@@ -142,20 +156,21 @@ func (m *Map[K, V]) delete(key K, mutable bool) *Map[K, V] {
 }
 
 // Iterator returns a new iterator for the map.
-func (m *Map[K, V]) Iterator() *MapIterator[K, V] {
-	itr := &MapIterator[K, V]{m: m}
-	itr.First()
+func (m *hamt[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
+	itr := MapIterator(m)
 	return itr
 }
 
 // MapBuilder represents an efficient builder for creating Maps.
 type MapBuilder[K, V any] struct {
-	m *Map[K, V] // current state
+	m *hamt[K, V] // current state
 }
 
 // NewMapBuilder returns a new instance of MapBuilder.
 func NewMapBuilder[K, V any](hasher fp.Hashable[K]) *MapBuilder[K, V] {
-	return &MapBuilder[K, V]{m: NewMap[K, V](hasher)}
+	return &MapBuilder[K, V]{m: &hamt[K, V]{
+		hasher: hasher,
+	}}
 }
 
 func assert(condition bool, message string) {
@@ -166,7 +181,7 @@ func assert(condition bool, message string) {
 
 // Map returns the underlying map. Only call once.
 // Builder is invalid after call. Will panic on second invocation.
-func (b *MapBuilder[K, V]) Map() *Map[K, V] {
+func (b *MapBuilder[K, V]) Map() *hamt[K, V] {
 	assert(b.m != nil, "immutable.SortedMapBuilder.Map(): duplicate call to fetch map")
 	m := b.m
 	b.m = nil
@@ -198,7 +213,7 @@ func (b *MapBuilder[K, V]) Delete(key K) {
 }
 
 // Iterator returns a new iterator for the underlying map.
-func (b *MapBuilder[K, V]) Iterator() *MapIterator[K, V] {
+func (b *MapBuilder[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
 	return b.m.Iterator()
 }
@@ -776,127 +791,120 @@ type mapEntry[K, V any] struct {
 
 // MapIterator represents an iterator over a map's key/value pairs. Although
 // map keys are not sorted, the iterator's order is deterministic.
-type MapIterator[K, V any] struct {
-	m *Map[K, V] // source map
+func MapIterator[K, V any](m *hamt[K, V]) fp.Iterator[fp.Tuple2[K, V]] {
+	// source map
 
-	stack [32]mapIteratorElem[K, V] // search stack
-	depth int                       // stack depth
-}
+	var stack [32]mapIteratorElem[K, V] // search stack
+	var depth int                       // stack depth
 
-// Done returns true if no more elements remain in the iterator.
-func (itr *MapIterator[K, V]) Done() bool {
-	return itr.depth == -1
-}
-
-// First resets the iterator to the first key/value pair.
-func (itr *MapIterator[K, V]) First() {
-	// Exit immediately if the map is empty.
-	if itr.m.root == nil {
-		itr.depth = -1
-		return
+	hasNext := func() bool {
+		return depth != -1
 	}
 
-	// Initialize the stack to the left most element.
-	itr.stack[0] = mapIteratorElem[K, V]{node: itr.m.root}
-	itr.depth = 0
-	itr.first()
-}
+	first := func() {
+		for ; ; depth++ {
+			elem := &stack[depth]
 
-// Next returns the next key/value pair. Returns a nil key when no elements remain.
-func (itr *MapIterator[K, V]) Next() (key K, value V) {
-	// Return nil key if iteration is done.
-	if itr.Done() {
-		panic("next on empty")
-	}
+			switch node := elem.node.(type) {
+			case *mapBitmapIndexedNode[K, V]:
+				elem.index = 0
+				stack[depth+1].node = node.nodes[0]
 
-	// Retrieve current index & value. Current node is always a leaf.
-	elem := &itr.stack[itr.depth]
-	switch node := elem.node.(type) {
-	case *mapArrayNode[K, V]:
-		entry := &node.entries[elem.index]
-		key, value = entry.key, entry.value
-	case *mapValueNode[K, V]:
-		key, value = node.key, node.value
-	case *mapHashCollisionNode[K, V]:
-		entry := &node.entries[elem.index]
-		key, value = entry.key, entry.value
-	}
+			case *mapHashArrayNode[K, V]:
+				for i := 0; i < len(node.nodes); i++ {
+					if node.nodes[i] != nil { // find first node
+						elem.index = i
+						stack[depth+1].node = node.nodes[i]
+						break
+					}
+				}
 
-	// Move up stack until we find a node that has remaining position ahead
-	// and move that element forward by one.
-	itr.next()
-	return key, value
-}
-
-// next moves to the next available key.
-func (itr *MapIterator[K, V]) next() {
-	for ; itr.depth >= 0; itr.depth-- {
-		elem := &itr.stack[itr.depth]
-
-		switch node := elem.node.(type) {
-		case *mapArrayNode[K, V]:
-			if elem.index < len(node.entries)-1 {
-				elem.index++
+			default: // *mapArrayNode, mapLeafNode
+				elem.index = 0
 				return
 			}
+		}
+	}
 
-		case *mapBitmapIndexedNode[K, V]:
-			if elem.index < len(node.nodes)-1 {
-				elem.index++
-				itr.stack[itr.depth+1].node = node.nodes[elem.index]
-				itr.depth++
-				itr.first()
-				return
-			}
+	moveStack := func() {
+		for ; depth >= 0; depth-- {
+			elem := &stack[depth]
 
-		case *mapHashArrayNode[K, V]:
-			for i := elem.index + 1; i < len(node.nodes); i++ {
-				if node.nodes[i] != nil {
-					elem.index = i
-					itr.stack[itr.depth+1].node = node.nodes[elem.index]
-					itr.depth++
-					itr.first()
+			switch node := elem.node.(type) {
+			case *mapArrayNode[K, V]:
+				if elem.index < len(node.entries)-1 {
+					elem.index++
+					return
+				}
+
+			case *mapBitmapIndexedNode[K, V]:
+				if elem.index < len(node.nodes)-1 {
+					elem.index++
+					stack[depth+1].node = node.nodes[elem.index]
+					depth++
+					first()
+					return
+				}
+
+			case *mapHashArrayNode[K, V]:
+				for i := elem.index + 1; i < len(node.nodes); i++ {
+					if node.nodes[i] != nil {
+						elem.index = i
+						stack[depth+1].node = node.nodes[elem.index]
+						depth++
+						first()
+						return
+					}
+				}
+
+			case *mapValueNode[K, V]:
+				continue // always the last value, traverse up
+
+			case *mapHashCollisionNode[K, V]:
+				if elem.index < len(node.entries)-1 {
+					elem.index++
 					return
 				}
 			}
-
-		case *mapValueNode[K, V]:
-			continue // always the last value, traverse up
-
-		case *mapHashCollisionNode[K, V]:
-			if elem.index < len(node.entries)-1 {
-				elem.index++
-				return
-			}
 		}
 	}
-}
 
-// first positions the stack left most index.
-// Elements and indexes at and below the current depth are assumed to be correct.
-func (itr *MapIterator[K, V]) first() {
-	for ; ; itr.depth++ {
-		elem := &itr.stack[itr.depth]
+	next := func() fp.Tuple2[K, V] {
+		if !hasNext() {
+			panic("next on empty")
+		}
 
+		var key K
+		var value V
+		// Retrieve current index & value. Current node is always a leaf.
+		elem := &stack[depth]
 		switch node := elem.node.(type) {
-		case *mapBitmapIndexedNode[K, V]:
-			elem.index = 0
-			itr.stack[itr.depth+1].node = node.nodes[0]
-
-		case *mapHashArrayNode[K, V]:
-			for i := 0; i < len(node.nodes); i++ {
-				if node.nodes[i] != nil { // find first node
-					elem.index = i
-					itr.stack[itr.depth+1].node = node.nodes[i]
-					break
-				}
-			}
-
-		default: // *mapArrayNode, mapLeafNode
-			elem.index = 0
-			return
+		case *mapArrayNode[K, V]:
+			entry := &node.entries[elem.index]
+			key, value = entry.key, entry.value
+		case *mapValueNode[K, V]:
+			key, value = node.key, node.value
+		case *mapHashCollisionNode[K, V]:
+			entry := &node.entries[elem.index]
+			key, value = entry.key, entry.value
 		}
+
+		// Move up stack until we find a node that has remaining position ahead
+		// and move that element forward by one.
+		moveStack()
+		return as.Tuple(key, value)
 	}
+
+	if m.root == nil {
+		depth = -1
+	} else {
+
+		// Initialize the stack to the left most element.
+		stack[0] = mapIteratorElem[K, V]{node: m.root}
+		depth = 0
+		first()
+	}
+	return fp.MakeIterator(hasNext, next)
 }
 
 // mapIteratorElem represents a node/index pair in the MapIterator stack.
