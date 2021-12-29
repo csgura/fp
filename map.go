@@ -2,7 +2,10 @@ package fp
 
 type Set[V any] interface {
 	Contains(v V) bool
+	Size() int
 	Iterator() Iterator[V]
+	Incl(v V) Set[V]
+	Excl(v V) Set[V]
 }
 
 // type Set[V comparable] map[V]bool
@@ -28,6 +31,7 @@ type Set[V any] interface {
 // }
 
 type Map[K, V any] interface {
+	Size() int
 	Get(k K) Option[V]
 	Removed(k ...K) Map[K, V]
 	Updated(k K, v V) Map[K, V]

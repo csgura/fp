@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/seq"
 )
 
 // hashUint64 returns a 32-bit hash for a 64-bit value.
@@ -60,7 +61,7 @@ func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
 }
 
 // Len returns the number of elements in the map.
-func (m *hamt[K, V]) Len() int {
+func (m *hamt[K, V]) Size() int {
 	return m.size
 }
 
@@ -189,9 +190,9 @@ func (b *MapBuilder[K, V]) Map() *hamt[K, V] {
 }
 
 // Len returns the number of elements in the underlying map.
-func (b *MapBuilder[K, V]) Len() int {
+func (b *MapBuilder[K, V]) Size() int {
 	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
-	return b.m.Len()
+	return b.m.Size()
 }
 
 // Get returns the value for the given key.
@@ -911,4 +912,39 @@ func MapIterator[K, V any](m *hamt[K, V]) fp.Iterator[fp.Tuple2[K, V]] {
 type mapIteratorElem[K, V any] struct {
 	node  mapNode[K, V]
 	index int
+}
+
+type set[T any] struct {
+	m fp.Map[T, bool]
+}
+
+func (r set[T]) Contains(v T) bool {
+	return r.m.Get(v).IsDefined()
+}
+func (r set[T]) Size() int {
+	return r.m.Size()
+}
+func (r set[T]) Iterator() fp.Iterator[T] {
+	//return iterator.Map(r.m.Iterator(), fp.Tuple2[T, bool].Head)
+
+	itr := r.m.Iterator()
+	return fp.MakeIterator(
+		func() bool {
+			return itr.HasNext()
+		},
+		func() T {
+			return itr.Next().I1
+		},
+	)
+}
+func (r set[T]) Incl(v T) fp.Set[T] {
+	return set[T]{r.m.Updated(v, true)}
+}
+func (r set[T]) Excl(v T) fp.Set[T] {
+	return set[T]{r.m.Removed(v)}
+}
+
+func Set[T any](hasher fp.Hashable[T], v ...T) fp.Set[T] {
+	tp := seq.Map(fp.Seq[T](v), as.Func2(as.Tuple2[T, bool]).Shift().Curried()(true))
+	return set[T]{Map(hasher, tp...)}
 }

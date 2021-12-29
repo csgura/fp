@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/immutable"
+	"github.com/csgura/fp/mutable"
 )
 
 func TestMap(t *testing.T) {
@@ -21,4 +22,13 @@ func TestMap(t *testing.T) {
 
 	m.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
 
+	s := immutable.Set(hash.String, "hello", "world")
+	s2 := s.Incl("kkk")
+	s.Iterator().Foreach(fp.Println[string])
+	s2.Iterator().Foreach(fp.Println[string])
+
+	m2 := mutable.Map[string, int]{"gura": 100, "hello": 200}
+	m2["world"] = 200
+
+	m2.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
 }
