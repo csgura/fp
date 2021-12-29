@@ -18,8 +18,13 @@ import (
 
 		f.Iteration(2, max.Product).Write(`
 func Tuple{{.N}}[{{TypeArgs 1 .N}} any]( {{DeclTypeClassArgs 1 .N "fp.Hashable"}} ) fp.Hashable[fp.{{TupleType .N}}] {
-	return New( eq.{{TupleType .N}}( {{CallArgs 1 .N "ins"}} ), func(t fp.{{TupleType .N}} ) uint32 {
-		return ins1.Hash(t.Head()) * 31 + Tuple{{dec .N}}({{CallArgs 2 .N "ins"}}).Hash(t.Tail())
+
+	pt := Tuple{{dec .N}}({{CallArgs 2 .N "ins"}})
+
+	return New( eq.New( func( a, b fp.{{TupleType .N}} ) bool {
+		return ins1.Eqv(a.Head(),b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+	}), func(t fp.{{TupleType .N}} ) uint32 {
+		return ins1.Hash(t.Head()) * 31 + pt.Hash(t.Tail())
 	})
 }
 		`, map[string]any{})

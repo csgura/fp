@@ -7,8 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"strings"
 
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 )
 
@@ -135,39 +135,34 @@ func noTypeclassArgs(n int) string {
 }
 func main() {
 
-	generate("ord", "tuple_gen.go", func(f io.Writer) {
+	common.Generate("ord", "tuple_gen.go", func(f common.Writer) {
 
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/eq"
+
 )`)
 
-		for i := 2; i < max.Product; i++ {
+		f.Iteration(2, max.Product).Write(`
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]( {{DeclTypeClassArgs 1 .N "fp.Ord"}} ) fp.Ord[fp.{{TupleType .N}}] {
 
-			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Ord[fp.Tuple%d[%s]] { ", i, typeArgs(1, i), funcDeclTypeClassArgs(1, i, "fp.Ord"), i, typeArgs(1, i))
+	pt := Tuple{{dec .N}}({{CallArgs 2 .N "ins"}})
 
-			tuple := tupleNType(i)
-
-			tail := strings.ReplaceAll(funcCallArgs(2, i), "a", "tins")
-			fmt.Fprintf(f, `
-		return New[%s](
-				fp.EqFunc[%s](func(t1 %s, t2 %s) bool {
-					return tins1.Eqv(t1.I1, t2.I1) && Tuple%d(%s).Eqv(t1.Tail(), t2.Tail())
-				}),
-			fp.LessFunc[%s](func(t1 %s, t2 %s) bool {
-				if tins1.Less(t1.I1, t2.I1) {
-					return true
-				}
-				if tins1.Less(t2.I1, t1.I1) {
-					return false
-				}
-				return Tuple%d(%s).Less(t1.Tail(), t2.Tail())
-			}),
-		)
-}
-			`, tuple, tuple, tuple, tuple, i-1, tail,
-				tuple, tuple, tuple, i-1, tail,
-			)
+	return New( eq.New( func( a, b fp.{{TupleType .N}} ) bool {
+		return ins1.Eqv(a.Head(),b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+	}), fp.LessFunc[fp.{{TupleType .N}}](func(t1 , t2 fp.{{TupleType .N}}) bool {
+		if ins1.Less(t1.I1, t2.I1) {
+			return true
 		}
+		if ins1.Less(t2.I1, t1.I1) {
+			return false
+		}
+		return pt.Less(t1.Tail(), t2.Tail())
+	}))
+}
+		`, map[string]any{})
+
 	})
+
 }

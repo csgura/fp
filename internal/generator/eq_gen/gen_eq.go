@@ -7,8 +7,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"strings"
 
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 )
 
@@ -135,29 +135,25 @@ func noTypeclassArgs(n int) string {
 }
 func main() {
 
-	generate("eq", "tuple_gen.go", func(f io.Writer) {
+	common.Generate("eq", "tuple_gen.go", func(f common.Writer) {
 
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 2; i < max.Product; i++ {
+		f.Iteration(2, max.Product).Write(`
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]( {{DeclTypeClassArgs 1 .N "fp.Eq"}} ) fp.Eq[fp.{{TupleType .N}}] {
 
-			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Eq[fp.Tuple%d[%s]] { ", i, typeArgs(1, i), funcDeclTypeClassArgs(1, i, "fp.Eq"), i, typeArgs(1, i))
+	pt := Tuple{{dec .N}}({{CallArgs 2 .N "ins"}})
 
-			tuple := tupleNType(i)
-
-			tail := strings.ReplaceAll(funcCallArgs(2, i), "a", "tins")
-			fmt.Fprintf(f, `
-		return New(
-				func(t1 %s, t2 %s) bool {
-					return tins1.Eqv(t1.I1, t2.I1) && Tuple%d(%s).Eqv(t1.Tail(), t2.Tail())
-				},
-		)
+	return New(
+		func(t1 , t2 fp.{{TupleType .N}}) bool {
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+		},
+	)
 }
-			`, tuple, tuple, i-1, tail,
-			)
-		}
+		`, map[string]any{})
+
 	})
 }
