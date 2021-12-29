@@ -31,4 +31,8 @@ func TestMap(t *testing.T) {
 	m2["world"] = 200
 
 	m2.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
+
+	m3 := immutable.MapBuilder[string, int](hash.String).Add("hello", 10).Add("world", 20).Build()
+	m3.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
+
 }

@@ -47,12 +47,12 @@ type hamt[K, V any] struct {
 // Default hasher implementations only exist for int, string, and byte slice types.
 func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
 	if len(t) > 0 {
-		b := NewMapBuilder[K, V](hasher)
+		b := MapBuilder[K, V](hasher)
 
 		for _, v := range t {
-			b.Set(v.I1, v.I2)
+			b.Add(v.I1, v.I2)
 		}
-		return b.Map()
+		return b.Build()
 	} else {
 		return &hamt[K, V]{
 			hasher: hasher,
@@ -163,13 +163,13 @@ func (m *hamt[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 }
 
 // MapBuilder represents an efficient builder for creating Maps.
-type MapBuilder[K, V any] struct {
+type mapBuilder[K, V any] struct {
 	m *hamt[K, V] // current state
 }
 
 // NewMapBuilder returns a new instance of MapBuilder.
-func NewMapBuilder[K, V any](hasher fp.Hashable[K]) *MapBuilder[K, V] {
-	return &MapBuilder[K, V]{m: &hamt[K, V]{
+func MapBuilder[K, V any](hasher fp.Hashable[K]) *mapBuilder[K, V] {
+	return &mapBuilder[K, V]{m: &hamt[K, V]{
 		hasher: hasher,
 	}}
 }
@@ -182,42 +182,43 @@ func assert(condition bool, message string) {
 
 // Map returns the underlying map. Only call once.
 // Builder is invalid after call. Will panic on second invocation.
-func (b *MapBuilder[K, V]) Map() *hamt[K, V] {
-	assert(b.m != nil, "immutable.SortedMapBuilder.Map(): duplicate call to fetch map")
+func (b *mapBuilder[K, V]) Build() fp.Map[K, V] {
+	assert(b.m != nil, "immutable.SortedMapBuilder.Build(): duplicate call to fetch map")
 	m := b.m
 	b.m = nil
 	return m
 }
 
 // Len returns the number of elements in the underlying map.
-func (b *MapBuilder[K, V]) Size() int {
-	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
-	return b.m.Size()
-}
+// func (b *mapBuilder[K, V]) Size() int {
+// 	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
+// 	return b.m.Size()
+// }
 
 // Get returns the value for the given key.
-func (b *MapBuilder[K, V]) Get(key K) fp.Option[V] {
-	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
-	return b.m.Get(key)
-}
+// func (b *mapBuilder[K, V]) Get(key K) fp.Option[V] {
+// 	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
+// 	return b.m.Get(key)
+// }
 
 // Set sets the value of the given key. See Map.Set() for additional details.
-func (b *MapBuilder[K, V]) Set(key K, value V) {
-	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
+func (b *mapBuilder[K, V]) Add(key K, value V) *mapBuilder[K, V] {
+	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Build() invocation")
 	b.m = b.m.set(key, value, true)
+	return b
 }
 
-// Delete removes the given key. See Map.Delete() for additional details.
-func (b *MapBuilder[K, V]) Delete(key K) {
-	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
-	b.m = b.m.delete(key, true)
-}
+// // Delete removes the given key. See Map.Delete() for additional details.
+// func (b *mapBuilder[K, V]) Delete(key K) {
+// 	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
+// 	b.m = b.m.delete(key, true)
+// }
 
-// Iterator returns a new iterator for the underlying map.
-func (b *MapBuilder[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
-	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
-	return b.m.Iterator()
-}
+// // Iterator returns a new iterator for the underlying map.
+// func (b *mapBuilder[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
+// 	assert(b.m != nil, "immutable.MapBuilder: builder invalid after Map() invocation")
+// 	return b.m.Iterator()
+// }
 
 // mapNode represents any node in the map tree.
 type mapNode[K, V any] interface {
