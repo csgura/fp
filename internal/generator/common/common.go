@@ -105,13 +105,29 @@ func FuncDeclArgs(start, until int) string {
 	return f.String()
 }
 
-func FuncCallArgs(start, until int) string {
+func FuncCallArgs(start, until int, prefixOpt ...string) string {
+
+	prefix := "a"
+	if len(prefixOpt) > 0 {
+		prefix = prefixOpt[0]
+	}
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
 		if j != start {
 			fmt.Fprintf(f, ", ")
 		}
-		fmt.Fprintf(f, "a%d", j)
+		fmt.Fprintf(f, "%s%d", prefix, j)
+	}
+	return f.String()
+}
+
+func FuncDeclTypeClassArgs(start, until int, typeClass string) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "ins%d %s[A%d]", j, typeClass, j)
 	}
 	return f.String()
 }
@@ -123,9 +139,16 @@ type Range struct {
 }
 
 var defaultFunc = map[string]any{
-	"FuncTypeArgs": FuncTypeArgs,
-	"FuncDeclArgs": FuncDeclArgs,
-	"FuncCallArgs": FuncCallArgs,
+	"TypeArgs":          FuncTypeArgs,
+	"DeclArgs":          FuncDeclArgs,
+	"CallArgs":          FuncCallArgs,
+	"DeclTypeClassArgs": FuncDeclTypeClassArgs,
+	"TupleType": func(n int) string {
+		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
+	},
+	"dec": func(n int) int {
+		return n - 1
+	},
 }
 
 func (r Range) Write(txt string, param map[string]any) {
@@ -133,11 +156,8 @@ func (r Range) Write(txt string, param map[string]any) {
 	if param == nil {
 		param = map[string]any{}
 	}
-	for k, v := range defaultFunc {
-		param[k] = v
-	}
 
-	tpl, err := template.New("write").Parse(txt)
+	tpl, err := template.New("write").Funcs(defaultFunc).Parse(txt)
 	if err == nil {
 		for i := r.start; i < r.end; i++ {
 			param["N"] = i

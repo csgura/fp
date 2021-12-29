@@ -1,3 +1,4 @@
+//go:generate go run github.com/csgura/fp/internal/generator/hash_gen
 package hash
 
 import (
@@ -27,7 +28,6 @@ func New[T any](eq fp.Eq[T], f func(T) uint32) fp.Hashable[T] {
 	return hasher[T]{eq, f}
 }
 
-// intHasher implements Hasher for int keys.
 func Number[T fp.ImplicitNum]() fp.Hashable[T] {
 	return New(eq.Given[T](), func(key T) uint32 {
 		return hashUint64(uint64(key))
@@ -49,3 +49,9 @@ var Bytes fp.Hashable[[]byte] = New(eq.Bytes, func(value []byte) uint32 {
 	}
 	return hash
 })
+
+func Tuple1[A1 any](ins1 fp.Hashable[A1]) fp.Hashable[fp.Tuple1[A1]] {
+	return New(eq.Tuple1[A1](ins1), func(t fp.Tuple1[A1]) uint32 {
+		return ins1.Hash(t.Head())
+	})
+}

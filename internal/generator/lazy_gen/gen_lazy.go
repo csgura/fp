@@ -16,9 +16,9 @@ import (
 )`)
 
 		f.Iteration(1, max.Func).Write(`
-func TailCall{{.N}}[{{call .FuncTypeArgs 1 .N}}, R any]( f fp.Func{{.N}}[{{call .FuncTypeArgs 1 .N}} , Eval[R]], {{call .FuncDeclArgs 1 .N}} ) Eval[R] {
+func TailCall{{.N}}[{{TypeArgs 1 .N}}, R any]( f fp.Func{{.N}}[{{TypeArgs 1 .N}} , Eval[R]], {{DeclArgs 1 .N}} ) Eval[R] {
 	return TailCall( func() Eval[R] {
-		return f({{call .FuncCallArgs 1 .N}})
+		return f({{CallArgs 1 .N}})
 	})
 }
 		`, map[string]any{})
