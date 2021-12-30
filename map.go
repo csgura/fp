@@ -42,6 +42,7 @@ type Map[K, V any] interface {
 	MapMinimal[K, V]
 	Contains(K) bool
 	Keys() Iterator[K]
+	Foreach(func(Tuple2[K, V]))
 }
 
 type MapAdaptor[K, V any] struct {
@@ -64,4 +65,8 @@ func (r MapAdaptor[K, V]) Values() Iterator[V] {
 	return MakeIterator(itr.HasNext, func() V {
 		return itr.Next().I2
 	})
+}
+
+func (r MapAdaptor[K, V]) Foreach(f func(Tuple2[K, V])) {
+	r.Iterator().Foreach(f)
 }
