@@ -54,9 +54,9 @@ func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
 		}
 		return b.Build()
 	} else {
-		return &hamt[K, V]{
+		return fp.MapAdaptor[K, V]{&hamt[K, V]{
 			hasher: hasher,
-		}
+		}}
 	}
 }
 
@@ -87,7 +87,7 @@ func (m *hamt[K, V]) Get(key K) fp.Option[V] {
 // This function will return a new map even if the updated value is the same as
 // the existing value because Map does not track value equality.
 func (m *hamt[K, V]) Updated(key K, value V) fp.Map[K, V] {
-	return m.set(key, value, false)
+	return fp.MapAdaptor[K, V]{m.set(key, value, false)}
 }
 
 func (m *hamt[K, V]) set(key K, value V, mutable bool) *hamt[K, V] {
@@ -128,7 +128,7 @@ func (m *hamt[K, V]) Removed(key ...K) fp.Map[K, V] {
 	for _, k := range key {
 		ret = ret.delete(k, false)
 	}
-	return ret
+	return fp.MapAdaptor[K, V]{ret}
 }
 
 func (m *hamt[K, V]) delete(key K, mutable bool) *hamt[K, V] {
@@ -186,7 +186,7 @@ func (b *mapBuilder[K, V]) Build() fp.Map[K, V] {
 	assert(b.m != nil, "immutable.SortedMapBuilder.Build(): duplicate call to fetch map")
 	m := b.m
 	b.m = nil
-	return m
+	return fp.MapAdaptor[K, V]{m}
 }
 
 // Len returns the number of elements in the underlying map.

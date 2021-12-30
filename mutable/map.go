@@ -54,7 +54,7 @@ func SetOf[V comparable](v ...V) Set[V] {
 
 type Map[K comparable, V any] map[K]V
 
-var _ fp.Map[string, int] = Map[string, int]{}
+var _ fp.MapMinimal[string, int] = Map[string, int]{}
 
 func (r Map[K, V]) Get(k K) fp.Option[V] {
 	if v, ok := r[k]; ok {
@@ -76,7 +76,7 @@ func (r Map[K, V]) Removed(k ...K) fp.Map[K, V] {
 			nm[k] = v
 		}
 	}
-	return nm
+	return fp.MapAdaptor[K, V]{nm}
 }
 
 func (r Map[K, V]) Updated(k K, v V) fp.Map[K, V] {
@@ -86,7 +86,7 @@ func (r Map[K, V]) Updated(k K, v V) fp.Map[K, V] {
 		nm[k] = v
 	}
 	nm[k] = v
-	return nm
+	return fp.MapAdaptor[K, V]{nm}
 }
 
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {

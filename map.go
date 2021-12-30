@@ -30,7 +30,7 @@ type Set[V any] interface {
 // 	return ret
 // }
 
-type Map[K, V any] interface {
+type MapMinimal[K, V any] interface {
 	Size() int
 	Get(k K) Option[V]
 	Removed(k ...K) Map[K, V]
@@ -38,41 +38,30 @@ type Map[K, V any] interface {
 	Iterator() Iterator[Tuple2[K, V]]
 }
 
-//type Map[K comparable, V any] map[K]V
+type Map[K, V any] interface {
+	MapMinimal[K, V]
+	Contains(K) bool
+	Keys() Iterator[K]
+}
 
-// func (r Map[K, V]) Get(k K) Option[V] {
-// 	if v, ok := r[k]; ok {
-// 		return Some[V]{v}
-// 	}
-// 	return None[V]{}
-// }
+type MapAdaptor[K, V any] struct {
+	MapMinimal[K, V]
+}
 
-// func (r Map[K, V]) Removed(k ...K) Map[K, V] {
-// 	s := SetOf(k...)
+func (r MapAdaptor[K, V]) Contains(k K) bool {
+	return r.Get(k).IsDefined()
+}
 
-// 	nm := Map[K, V]{}
-// 	for k, v := range r {
-// 		if !s.Contains(k) {
-// 			nm[k] = v
-// 		}
-// 	}
-// 	return nm
-// }
+func (r MapAdaptor[K, V]) Keys() Iterator[K] {
+	itr := r.Iterator()
+	return MakeIterator(itr.HasNext, func() K {
+		return itr.Next().I1
+	})
+}
 
-// func (r Map[K, V]) Updated(k K, v V) Map[K, V] {
-
-// 	nm := Map[K, V]{}
-// 	for k, v := range r {
-// 		nm[k] = v
-// 	}
-// 	nm[k] = v
-// 	return nm
-// }
-
-// func (r Map[K, V]) Iterator() Iterator[Tuple2[K, V]] {
-// 	seq := Seq[Tuple2[K, V]]{}
-// 	for k, v := range r {
-// 		seq = append(seq, Tuple2[K, V]{k, v})
-// 	}
-// 	return seq.Iterator()
-// }
+func (r MapAdaptor[K, V]) Values() Iterator[V] {
+	itr := r.Iterator()
+	return MakeIterator(itr.HasNext, func() V {
+		return itr.Next().I2
+	})
+}
