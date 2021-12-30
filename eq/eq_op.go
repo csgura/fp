@@ -62,3 +62,17 @@ func HCons[H any, T hlist.HList](heq fp.Eq[H], teq fp.Eq[T]) fp.Eq[hlist.Cons[H,
 func Given[T comparable]() fp.Eq[T] {
 	return fp.EqGiven[T]()
 }
+
+func Ptr[T any](eq fp.Eq[T]) fp.Eq[*T] {
+	return New(func(a, b *T) bool {
+		if a == nil && b == nil {
+			return true
+		}
+
+		if a != nil && b != nil {
+			return eq.Eqv(*a, *b)
+		}
+
+		return false
+	})
+}
