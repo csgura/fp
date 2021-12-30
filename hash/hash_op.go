@@ -2,6 +2,8 @@
 package hash
 
 import (
+	"hash/fnv"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
@@ -35,20 +37,29 @@ func Number[T fp.ImplicitNum]() fp.Hashable[T] {
 	})
 }
 
+const prime32 = 16777619
+const offset32 = 2166136261
+
 var String fp.Hashable[string] = New(eq.Given[string](), func(value string) uint32 {
-	var hash uint32
+
+	var hash uint32 = offset32
 	for i, value := 0, value; i < len(value); i++ {
-		hash = 31*hash + uint32(value[i])
+		hash *= prime32
+		hash ^= uint32(value[i])
 	}
 	return hash
 })
 
 var Bytes fp.Hashable[[]byte] = New(eq.Bytes, func(value []byte) uint32 {
-	var hash uint32
-	for i, value := 0, value; i < len(value); i++ {
-		hash = 31*hash + uint32(value[i])
-	}
-	return hash
+	w := fnv.New32()
+	w.Write(value)
+	return w.Sum32()
+
+	// var hash uint32
+	// for i, value := 0, value; i < len(value); i++ {
+	// 	hash = 31*hash + uint32(value[i])
+	// }
+	// return hash
 })
 
 func Tuple1[A1 any](ins1 fp.Hashable[A1]) fp.Hashable[fp.Tuple1[A1]] {
