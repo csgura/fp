@@ -11,6 +11,8 @@ type MapMinimal[K, V any] interface {
 }
 
 type Map[K, V any] interface {
+	IsEmpty() bool
+	NonEmpty() bool
 	Size() int
 	Get(k K) Option[V]
 	Removed(k ...K) Map[K, V]
@@ -31,6 +33,15 @@ type MapOps[K, V any] struct {
 func (r MapOps[K, V]) Size() int {
 	return r.Map.Size()
 }
+
+func (r MapOps[K, V]) IsEmpty() bool {
+	return r.Map.Size() == 0
+}
+
+func (r MapOps[K, V]) NonEmpty() bool {
+	return r.Map.Size() != 0
+}
+
 func (r MapOps[K, V]) Get(k K) Option[V] {
 	return r.Map.Get(k)
 }

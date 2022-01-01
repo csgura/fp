@@ -16,6 +16,14 @@ func (r Seq[T]) NonEmpty() bool {
 	return r.Size() > 0
 }
 
+func (r Seq[T]) Get(idx int) Option[T] {
+	if r.Size() > idx {
+		return Some[T]{r[idx]}
+	} else {
+		return None[T]{}
+	}
+}
+
 func (r Seq[T]) Head() Option[T] {
 	if r.Size() > 0 {
 		return Some[T]{r[0]}

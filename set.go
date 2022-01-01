@@ -11,6 +11,8 @@ type SetMinimal[V any] interface {
 }
 
 type Set[V any] interface {
+	IsEmpty() bool
+	NonEmpty() bool
 	Contains(v V) bool
 	Size() int
 	Iterator() Iterator[V]
@@ -88,6 +90,14 @@ func (r SetOps[V]) Intersect(other Set[V]) Set[V] {
 
 func (r SetOps[V]) String() string {
 	return fmt.Sprint(r.Set)
+}
+
+func (r SetOps[V]) IsEmpty() bool {
+	return r.Set.Size() == 0
+}
+
+func (r SetOps[V]) NonEmpty() bool {
+	return r.Set.Size() != 0
 }
 
 func MakeSet[V any](empty func() SetMinimal[V], s SetMinimal[V]) Set[V] {
