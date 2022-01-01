@@ -112,14 +112,14 @@ func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Itera
 }
 
 func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
-	ret := immutable.Map[K, V](hasher)
+	ret := immutable.MapBuilder[K, V](hasher)
 
 	for itr.HasNext() {
 		k, v := itr.Next().Unapply()
-		ret = ret.Updated(k, v)
+		ret = ret.Add(k, v)
 	}
 
-	return ret
+	return fp.MakeMap(ret.Build())
 }
 
 func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, U]] {

@@ -1,6 +1,7 @@
 package immutable
 
 import (
+	"fmt"
 	"math/bits"
 
 	"github.com/csgura/fp"
@@ -45,7 +46,7 @@ type hamt[K, V any] struct {
 // NewMap returns a new instance of Map. If hasher is nil, a default hasher
 // implementation will automatically be chosen based on the first key added.
 // Default hasher implementations only exist for int, string, and byte slice types.
-func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
+func MapMinimal[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.MapMinimal[K, V] {
 	if len(t) > 0 {
 		b := MapBuilder[K, V](hasher)
 
@@ -54,10 +55,14 @@ func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
 		}
 		return b.Build()
 	} else {
-		return fp.MapAdaptor[K, V]{&hamt[K, V]{
+		return &hamt[K, V]{
 			hasher: hasher,
-		}}
+		}
 	}
+}
+
+func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
+	return fp.MakeMap(MapMinimal(hasher, t...))
 }
 
 // Len returns the number of elements in the map.
@@ -86,8 +91,8 @@ func (m *hamt[K, V]) Get(key K) fp.Option[V] {
 //
 // This function will return a new map even if the updated value is the same as
 // the existing value because Map does not track value equality.
-func (m *hamt[K, V]) Updated(key K, value V) fp.Map[K, V] {
-	return fp.MapAdaptor[K, V]{m.set(key, value, false)}
+func (m *hamt[K, V]) Updated(key K, value V) fp.MapMinimal[K, V] {
+	return m.set(key, value, false)
 }
 
 func (m *hamt[K, V]) set(key K, value V, mutable bool) *hamt[K, V] {
@@ -123,12 +128,12 @@ func (m *hamt[K, V]) set(key K, value V, mutable bool) *hamt[K, V] {
 
 // Delete returns a map with the given key removed.
 // Removing a non-existent key will cause this method to return the same map.
-func (m *hamt[K, V]) Removed(key ...K) fp.Map[K, V] {
+func (m *hamt[K, V]) Removed(key ...K) fp.MapMinimal[K, V] {
 	ret := m
 	for _, k := range key {
 		ret = ret.delete(k, false)
 	}
-	return fp.MapAdaptor[K, V]{ret}
+	return ret
 }
 
 func (m *hamt[K, V]) delete(key K, mutable bool) *hamt[K, V] {
@@ -162,6 +167,12 @@ func (m *hamt[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	return itr
 }
 
+func (m *hamt[K, V]) String() string {
+	return fmt.Sprintf("Map(%s)", m.Iterator().Map(func(t fp.Tuple2[K, V]) any {
+		return fmt.Sprintf("%v: %v", t.I1, t.I2)
+	}).MakeString(","))
+}
+
 // MapBuilder represents an efficient builder for creating Maps.
 type mapBuilder[K, V any] struct {
 	m *hamt[K, V] // current state
@@ -182,11 +193,11 @@ func assert(condition bool, message string) {
 
 // Map returns the underlying map. Only call once.
 // Builder is invalid after call. Will panic on second invocation.
-func (b *mapBuilder[K, V]) Build() fp.Map[K, V] {
+func (b *mapBuilder[K, V]) Build() fp.MapMinimal[K, V] {
 	assert(b.m != nil, "immutable.SortedMapBuilder.Build(): duplicate call to fetch map")
 	m := b.m
 	b.m = nil
-	return fp.MapAdaptor[K, V]{m}
+	return m
 }
 
 // Len returns the number of elements in the underlying map.
@@ -916,7 +927,7 @@ type mapIteratorElem[K, V any] struct {
 }
 
 type set[T any] struct {
-	m fp.Map[T, bool]
+	m fp.MapMinimal[T, bool]
 }
 
 func (r set[T]) Contains(v T) bool {
@@ -938,14 +949,25 @@ func (r set[T]) Iterator() fp.Iterator[T] {
 		},
 	)
 }
-func (r set[T]) Incl(v T) fp.Set[T] {
+func (r set[T]) Incl(v T) fp.SetMinimal[T] {
 	return set[T]{r.m.Updated(v, true)}
 }
-func (r set[T]) Excl(v T) fp.Set[T] {
+func (r set[T]) Excl(v T) fp.SetMinimal[T] {
 	return set[T]{r.m.Removed(v)}
 }
 
-func Set[T any](hasher fp.Hashable[T], v ...T) fp.Set[T] {
+func (r set[T]) String() string {
+	return fmt.Sprintf("Set(%s)", r.Iterator().MakeString(","))
+}
+
+func SetMinimal[T any](hasher fp.Hashable[T], v ...T) fp.SetMinimal[T] {
 	tp := seq.Map(fp.Seq[T](v), as.Func2(as.Tuple2[T, bool]).Shift().Curried()(true))
-	return set[T]{Map(hasher, tp...)}
+
+	return set[T]{MapMinimal(hasher, tp...)}
+}
+
+func Set[T any](hasher fp.Hashable[T], v ...T) fp.Set[T] {
+	return fp.MakeSet(func() fp.SetMinimal[T] {
+		return SetMinimal(hasher)
+	}, SetMinimal(hasher, v...))
 }

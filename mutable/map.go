@@ -8,7 +8,7 @@ import (
 
 type Set[V comparable] map[V]bool
 
-var _ fp.Set[string] = Set[string]{}
+var _ fp.SetMinimal[string] = Set[string]{}
 
 func (r Set[V]) Contains(v V) bool {
 	return r[v]
@@ -26,7 +26,7 @@ func (r Set[V]) Iterator() fp.Iterator[V] {
 	return seq.Iterator()
 }
 
-func (r Set[V]) Incl(v V) fp.Set[V] {
+func (r Set[V]) Incl(v V) fp.SetMinimal[V] {
 	ret := Set[V]{}
 	for k, v := range r {
 		ret[k] = v
@@ -35,7 +35,7 @@ func (r Set[V]) Incl(v V) fp.Set[V] {
 	return ret
 }
 
-func (r Set[V]) Excl(v V) fp.Set[V] {
+func (r Set[V]) Excl(v V) fp.SetMinimal[V] {
 	ret := Set[V]{}
 	for k, v := range r {
 		ret[k] = v
@@ -67,7 +67,7 @@ func (r Map[K, V]) Size() int {
 	return len(r)
 }
 
-func (r Map[K, V]) Removed(k ...K) fp.Map[K, V] {
+func (r Map[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
 	s := SetOf(k...)
 
 	nm := Map[K, V]{}
@@ -76,17 +76,17 @@ func (r Map[K, V]) Removed(k ...K) fp.Map[K, V] {
 			nm[k] = v
 		}
 	}
-	return fp.MapAdaptor[K, V]{nm}
+	return nm
 }
 
-func (r Map[K, V]) Updated(k K, v V) fp.Map[K, V] {
+func (r Map[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 
 	nm := Map[K, V]{}
 	for k, v := range r {
 		nm[k] = v
 	}
 	nm[k] = v
-	return fp.MapAdaptor[K, V]{nm}
+	return nm
 }
 
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {

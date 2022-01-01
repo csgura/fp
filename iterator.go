@@ -1,6 +1,10 @@
 package fp
 
-import "sync"
+import (
+	"bytes"
+	"fmt"
+	"sync"
+)
 
 type Iterable[T any] interface {
 	Iterator() Iterator[T]
@@ -30,6 +34,8 @@ type Iterator[T any] interface {
 	Span(p func(T) bool) Tuple2[Iterator[T], Iterator[T]]
 	Partition(p func(T) bool) Tuple2[Iterator[T], Iterator[T]]
 	Duplicate() Tuple2[Iterator[T], Iterator[T]]
+	MakeString(sep string) string
+	Map(func(v T) any) Iterator[any]
 }
 
 var _ Iterator[int] = IteratorAdaptor[int]{}
@@ -37,6 +43,31 @@ var _ Iterator[int] = IteratorAdaptor[int]{}
 type IteratorAdaptor[T any] struct {
 	IsHasNext func() bool
 	GetNext   func() T
+}
+
+func (r IteratorAdaptor[T]) MakeString(sep string) string {
+	buf := &bytes.Buffer{}
+
+	first := true
+	for r.HasNext() {
+		if !first {
+			buf.WriteString(sep)
+		} else {
+			first = false
+		}
+
+		v := r.Next()
+		buf.WriteString(fmt.Sprint(v))
+
+	}
+
+	return buf.String()
+}
+
+func (r IteratorAdaptor[T]) Map(f func(T) any) Iterator[any] {
+	return MakeIterator(r.HasNext, func() any {
+		return f(r.Next())
+	})
 }
 
 func (r IteratorAdaptor[T]) HasNext() bool {
