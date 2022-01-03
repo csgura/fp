@@ -182,12 +182,18 @@ func NotTestInfinity(t *testing.T) {
 func TestLeftFold(t *testing.T) {
 	l := list.Of(1, 2, 3, 4, 5)
 
-	sum := list.FoldLeft(l, 0, func(b int, a int) int {
+	sum := list.Fold(l, 0, func(b int, a int) int {
 		fmt.Printf("%d + %d\n", b, a)
 		return a + b
 	})
 
 	fmt.Printf("sum = %d\n", sum)
+	sum = list.FoldLeft(l, 0, func(b int, a int) int {
+		fmt.Printf("%d + %d\n", b, a)
+		return a + b
+	})
+	fmt.Printf("sum = %d\n", sum)
+
 }
 
 func TestFoldRight(t *testing.T) {
@@ -223,6 +229,13 @@ func TestFoldLeftUsingMap(t *testing.T) {
 	})
 
 	fmt.Printf("sum = %f\n", sum)
+}
+
+func TestReduce(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+
+	sum := list.Reduce(l, monoid.Sum[int]())
+	fmt.Printf("sum = %d\n", sum)
 }
 
 func TestFoldRightUsingMap(t *testing.T) {

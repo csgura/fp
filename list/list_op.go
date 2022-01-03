@@ -266,10 +266,31 @@ func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tupl
 	)
 }
 
+func Reduce[A any](s fp.List[A], m fp.Monoid[A]) A {
+	return FoldRight(s, m.Empty(), func(a A, b lazy.Eval[A]) lazy.Eval[A] {
+		return b.Map(func(v A) A {
+			return m.Combine(a, v)
+		})
+	}).Get()
+}
+
+func Fold[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
+	sum := zero
+
+	cursor := s
+
+	for !cursor.IsEmpty() {
+		sum = f(sum, cursor.Head().Get())
+		cursor = cursor.Tail()
+	}
+	return sum
+}
+
 func FoldLeft[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
+	cf := as.Func2(f).Shift().Curried()
 	ret := FoldRight[A, fp.Endo[B]](s, fp.Id[B], func(a A, endo lazy.Eval[fp.Endo[B]]) lazy.Eval[fp.Endo[B]] {
 		ef := endo.Get().AsFunc()
-		return lazy.Done(fp.Endo[B](fp.Compose(as.Func2(f).Shift().Curried()(a), ef)))
+		return lazy.Done(fp.Endo[B](fp.Compose(cf(a), ef)))
 	})
 	return ret.Get()(zero)
 }
