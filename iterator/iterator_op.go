@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 )
 
@@ -111,7 +112,7 @@ func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Itera
 	)
 }
 
-func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
+func ToMap[K, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
 	ret := immutable.MapBuilder[K, V](hasher)
 
 	for itr.HasNext() {
@@ -120,6 +121,17 @@ func ToMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hash
 	}
 
 	return fp.MakeMap(ret.Build())
+}
+
+func ToSet[V any](itr fp.Iterator[V], hasher fp.Hashable[V]) fp.Set[V] {
+	ret := immutable.SetBuilder(hasher)
+
+	for itr.HasNext() {
+		v := itr.Next()
+		ret = ret.Add(v)
+	}
+
+	return ret.Build()
 }
 
 func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, U]] {
@@ -154,6 +166,17 @@ func FoldRight[A, B any](s fp.Iterator[A], zero B, f func(A, lazy.Eval[B]) lazy.
 
 	return f(head, v)
 
+}
+
+func GroupBy[A any, K comparable](s fp.Iterator[A], keyFunc func(A) K) mutable.Map[K, fp.Seq[A]] {
+
+	ret := map[K]fp.Seq[A]{}
+
+	return Fold(s, ret, func(b map[K]fp.Seq[A], a A) map[K]fp.Seq[A] {
+		k := keyFunc(a)
+		b[k] = b[k].Append(a)
+		return b
+	})
 }
 
 func Scan[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) fp.Iterator[B] {

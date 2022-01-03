@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/seq"
 )
 
 // hashUint64 returns a 32-bit hash for a 64-bit value.
@@ -961,7 +960,11 @@ func (r set[T]) String() string {
 }
 
 func SetMinimal[T any](hasher fp.Hashable[T], v ...T) fp.SetMinimal[T] {
-	tp := seq.Map(fp.Seq[T](v), as.Func2(as.Tuple2[T, bool]).Shift().Curried()(true))
+
+	tp := make(fp.Seq[fp.Tuple2[T, bool]], len(v))
+	for i, v := range v {
+		tp[i] = as.Tuple2(v, true)
+	}
 
 	return set[T]{MapMinimal(hasher, tp...)}
 }
@@ -970,4 +973,25 @@ func Set[T any](hasher fp.Hashable[T], v ...T) fp.Set[T] {
 	return fp.MakeSet(func() fp.SetMinimal[T] {
 		return SetMinimal(hasher)
 	}, SetMinimal(hasher, v...))
+}
+
+type setBuilder[V any] struct {
+	m *hamt[V, bool]
+}
+
+func (r *setBuilder[V]) Add(v V) *setBuilder[V] {
+	r.m.set(v, true, true)
+	return r
+}
+
+func (r *setBuilder[V]) Build() fp.Set[V] {
+	return fp.MakeSet[V](func() fp.SetMinimal[V] {
+		return SetMinimal(r.m.hasher)
+	}, set[V]{r.m})
+}
+
+func SetBuilder[V any](hasher fp.Hashable[V]) *setBuilder[V] {
+	return &setBuilder[V]{m: &hamt[V, bool]{
+		hasher: hasher,
+	}}
 }

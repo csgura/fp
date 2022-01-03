@@ -63,3 +63,7 @@ func TestIterator(t *testing.T) {
 func TestRange(t *testing.T) {
 	iterator.Range(0, 10).Foreach(fp.Println[int])
 }
+
+func TestToSet(t *testing.T) {
+	iterator.ToSet(iterator.Of("hello", "world", "hello", "merong"), hash.String).Foreach(fp.Println[string])
+}

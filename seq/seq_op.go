@@ -2,7 +2,9 @@ package seq
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/product"
 )
 
@@ -139,7 +141,7 @@ func Scan[A, B any](s fp.Seq[A], zero B, f func(B, A) B) fp.Seq[B] {
 
 }
 
-func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) map[K]fp.Seq[A] {
+func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) mutable.Map[K, fp.Seq[A]] {
 
 	ret := map[K]fp.Seq[A]{}
 
@@ -148,4 +150,25 @@ func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) map[K]fp.Seq[A
 		b[k] = b[k].Append(a)
 		return b
 	})
+}
+
+func ToMap[K, V any](s fp.Seq[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
+	ret := immutable.MapBuilder[K, V](hasher)
+
+	for _, e := range s {
+		k, v := e.Unapply()
+		ret = ret.Add(k, v)
+	}
+
+	return fp.MakeMap(ret.Build())
+}
+
+func ToSet[V any](s fp.Seq[V], hasher fp.Hashable[V]) fp.Set[V] {
+	ret := immutable.SetBuilder(hasher)
+
+	for _, e := range s {
+		ret = ret.Add(e)
+	}
+
+	return ret.Build()
 }
