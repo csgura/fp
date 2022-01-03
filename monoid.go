@@ -80,3 +80,7 @@ type Endo[T any] Func1[T, T]
 func (r Endo[T]) AsFunc() Func1[T, T] {
 	return Func1[T, T](r)
 }
+
+type Dual[T any] struct {
+	GetDual T
+}

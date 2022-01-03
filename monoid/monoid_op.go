@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/future"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/semigroup"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
@@ -118,9 +119,15 @@ func Endo[T any]() fp.Monoid[fp.Endo[T]] {
 		func() fp.Endo[T] {
 			return fp.Id[T]
 		},
-		func(a, b fp.Endo[T]) fp.Endo[T] {
-			f := fp.Compose(a.AsFunc(), b.AsFunc())
-			return fp.Endo[T](f)
+		semigroup.Endo[T](),
+	)
+}
+
+func Dual[T any](m fp.Monoid[T]) fp.Monoid[fp.Dual[T]] {
+	return New(
+		func() fp.Dual[T] {
+			return fp.Dual[T]{m.Empty()}
 		},
+		semigroup.Dual[T](m),
 	)
 }

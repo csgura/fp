@@ -178,3 +178,75 @@ func NotTestInfinity(t *testing.T) {
 
 	fmt.Println(sum.Get())
 }
+
+func TestLeftFold(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+
+	sum := list.FoldLeft(l, 0, func(b int, a int) int {
+		fmt.Printf("%d + %d\n", b, a)
+		return a + b
+	})
+
+	fmt.Printf("sum = %d\n", sum)
+}
+
+func TestFoldRight(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+
+	sum := list.FoldRight(l, 0, func(a int, b lazy.Eval[int]) lazy.Eval[int] {
+		fmt.Printf("%d + %d\n", a, b.Get())
+		return lazy.Done(a + b.Get())
+	})
+
+	fmt.Printf("sum = %d\n", sum)
+}
+
+func TestFoldMap(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+
+	sum := list.FoldMap(l, fp.Id[int], monoid.New(func() int {
+		return 0
+	}, func(a, b int) int {
+		fmt.Printf("%d + %d\n", a, b)
+		return a + b
+	}))
+
+	fmt.Printf("sum = %d\n", sum)
+}
+
+func TestFoldLeftUsingMap(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+
+	sum := list.FoldLeftUsingMap(l, 0.0, func(b float64, a int) float64 {
+		fmt.Printf("%f + %d\n", b, a)
+		return float64(a) + b
+	})
+
+	fmt.Printf("sum = %f\n", sum)
+}
+
+func TestFoldRightUsingMap(t *testing.T) {
+	l := list.Of(1, 2, 3, 4, 5)
+
+	sum := list.FoldRightUsingMap(l, 0.0, func(a int, b float64) float64 {
+		fmt.Printf("%d + %f\n", a, b)
+		return float64(a) + b
+	})
+
+	fmt.Printf("sum = %f\n", sum)
+}
+
+func TestEndoOrder(t *testing.T) {
+
+	e1 := as.Endo(func(y int) int {
+		fmt.Printf("y : %d, plus : %d\n", y, 1)
+		return 1 + y
+	})
+
+	e2 := as.Endo(func(y int) int {
+		fmt.Printf("y : %d, plus : %d\n", y, 2)
+		return 2 + y
+	})
+
+	fmt.Println(monoid.Endo[int]().Combine(e1, e2)(1))
+}

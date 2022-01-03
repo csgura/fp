@@ -4,6 +4,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 )
@@ -265,6 +266,27 @@ func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tupl
 	)
 }
 
+func FoldLeft[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
+	ret := FoldRight[A, fp.Endo[B]](s, fp.Id[B], func(a A, endo lazy.Eval[fp.Endo[B]]) lazy.Eval[fp.Endo[B]] {
+		ef := endo.Get().AsFunc()
+		return lazy.Done(fp.Endo[B](fp.Compose(as.Func2(f).Shift().Curried()(a), ef)))
+	})
+	return ret.Get()(zero)
+}
+
+func FoldMap[A, B any](s fp.List[A], f func(A) B, m fp.Monoid[B]) B {
+	ret := FoldRight(s, m.Empty(), func(a A, b lazy.Eval[B]) lazy.Eval[B] {
+		ab := f(a)
+
+		return b.Map(func(t B) B {
+			return m.Combine(ab, t)
+		})
+
+	})
+
+	return ret.Get()
+}
+
 func FoldRight[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
 	if s.IsEmpty() {
 		return lazy.Done(zero)
@@ -274,6 +296,30 @@ func FoldRight[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval
 		return FoldRight(s.Tail(), zero, f)
 	})
 	return f(s.Head().Get(), v)
+}
+
+func FoldLeftUsingMap[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
+	cf := as.Func2(f).Shift().Curried()
+	m := monoid.Dual(monoid.Endo[B]())
+
+	f2 := func(a A) fp.Dual[fp.Endo[B]] {
+		return as.Dual(as.Endo(cf(a)))
+	}
+
+	ret := FoldMap(s, f2, m)
+	return ret.GetDual(zero)
+}
+
+func FoldRightUsingMap[A, B any](s fp.List[A], zero B, f func(A, B) B) B {
+	cf := as.Func2(f).Curried()
+	m := monoid.Endo[B]()
+
+	f2 := func(a A) fp.Endo[B] {
+		return as.Endo(cf(a))
+	}
+
+	ret := FoldMap(s, f2, m)
+	return ret(zero)
 }
 
 func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
