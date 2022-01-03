@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/future"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/semigroup"
 	"github.com/csgura/fp/seq"
@@ -131,3 +132,26 @@ func Dual[T any](m fp.Monoid[T]) fp.Monoid[fp.Dual[T]] {
 		semigroup.Dual[T](m),
 	)
 }
+
+func Eval[T any](m fp.Monoid[T]) fp.Monoid[lazy.Eval[T]] {
+	return New(
+		func() lazy.Eval[T] {
+			return lazy.Done(m.Empty())
+		},
+		semigroup.Eval[T](m),
+	)
+}
+
+var Any fp.Monoid[bool] = New(
+	func() bool {
+		return false
+	},
+	semigroup.Any,
+)
+
+var All fp.Monoid[bool] = New(
+	func() bool {
+		return true
+	},
+	semigroup.All,
+)

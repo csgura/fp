@@ -3,7 +3,6 @@ package fp
 type Semigroup[T any] interface {
 	Combine(a T, b T) T
 	Curried() Func1[T, Func1[T, T]]
-	ToMonoid(emptyFunc EmptyFunc[T]) Monoid[T]
 }
 
 type SemigroupFunc[T any] func(a T, b T) T

@@ -220,6 +220,19 @@ func TestFoldMap(t *testing.T) {
 	fmt.Printf("sum = %d\n", sum)
 }
 
+func NotTestFoldMapInfinity(t *testing.T) {
+	l := list.GenerateFrom(1, func(i int) bool {
+		fmt.Printf("idx : %d\n", i)
+		return false
+	})
+
+	sum := list.FoldMap(l, fp.Id[bool], monoid.All)
+
+	println(sum)
+
+	fmt.Printf("sum = %t\n", sum)
+}
+
 func TestFoldLeftUsingMap(t *testing.T) {
 	l := list.Of(1, 2, 3, 4, 5)
 
