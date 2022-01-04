@@ -1,6 +1,8 @@
 package seq
 
 import (
+	"sort"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
@@ -179,4 +181,19 @@ func ToSet[V any](s fp.Seq[V], hasher fp.Hashable[V]) fp.Set[V] {
 	}
 
 	return ret.Build()
+}
+
+type seqSorter[T any] struct {
+	seq fp.Seq[T]
+	ord fp.Ord[T]
+}
+
+func (p *seqSorter[T]) Len() int           { return len(p.seq) }
+func (p *seqSorter[T]) Less(i, j int) bool { return p.ord.Less(p.seq[i], p.seq[j]) }
+func (p *seqSorter[T]) Swap(i, j int)      { p.seq[i], p.seq[j] = p.seq[j], p.seq[i] }
+
+func Sort[T any](r fp.Seq[T], ord fp.Ord[T]) fp.Seq[T] {
+	ns := r.Concat(nil)
+	sort.Sort(&seqSorter[T]{ns, ord})
+	return ns
 }

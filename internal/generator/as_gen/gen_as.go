@@ -120,7 +120,7 @@ func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
 
 		}
 
-		for i := 1; i < max.Func; i++ {
+		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Curried%d[%s,R any]( f func(%s) R) %s {
 	return fp.Func%d[%s,R](f).Curried()

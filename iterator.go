@@ -29,11 +29,10 @@ type Iterator[T any] interface {
 	IsEmpty() bool
 	NonEmpty() bool
 	TapEach(p func(T)) Iterator[T]
-	Span(p func(T) bool) Tuple2[Iterator[T], Iterator[T]]
-	Partition(p func(T) bool) Tuple2[Iterator[T], Iterator[T]]
-	Duplicate() Tuple2[Iterator[T], Iterator[T]]
+	Span(p func(T) bool) (Iterator[T], Iterator[T])
+	Partition(p func(T) bool) (Iterator[T], Iterator[T])
+	Duplicate() (Iterator[T], Iterator[T])
 	MakeString(sep string) string
-	Map(func(v T) any) Iterator[any]
 }
 
 var _ Iterator[int] = IteratorAdaptor[int]{}
@@ -62,11 +61,11 @@ func (r IteratorAdaptor[T]) MakeString(sep string) string {
 	return buf.String()
 }
 
-func (r IteratorAdaptor[T]) Map(f func(T) any) Iterator[any] {
-	return MakeIterator(r.HasNext, func() any {
-		return f(r.Next())
-	})
-}
+// func (r IteratorAdaptor[T]) Map(f func(T) any) Iterator[any] {
+// 	return MakeIterator(r.HasNext, func() any {
+// 		return f(r.Next())
+// 	})
+// }
 
 func (r IteratorAdaptor[T]) HasNext() bool {
 	return r.IsHasNext()
@@ -324,7 +323,7 @@ func (r IteratorAdaptor[T]) NonEmpty() bool {
 	return r.HasNext()
 }
 
-func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
+func (r IteratorAdaptor[T]) Duplicate() (Iterator[T], Iterator[T]) {
 	lock := sync.Mutex{}
 
 	queue := Seq[T]{}
@@ -393,20 +392,20 @@ func (r IteratorAdaptor[T]) Duplicate() Tuple2[Iterator[T], Iterator[T]] {
 		},
 	)
 
-	return Tuple2[Iterator[T], Iterator[T]]{left, right}
+	return left, right
 }
 
-func (r IteratorAdaptor[T]) Span(p func(T) bool) Tuple2[Iterator[T], Iterator[T]] {
-	left, right := r.Duplicate().Unapply()
+func (r IteratorAdaptor[T]) Span(p func(T) bool) (Iterator[T], Iterator[T]) {
+	left, right := r.Duplicate()
 
-	return Tuple2[Iterator[T], Iterator[T]]{left.TakeWhile(p), right.DropWhile(p)}
+	return left.TakeWhile(p), right.DropWhile(p)
 
 }
 
-func (r IteratorAdaptor[T]) Partition(p func(T) bool) Tuple2[Iterator[T], Iterator[T]] {
-	left, right := r.Duplicate().Unapply()
+func (r IteratorAdaptor[T]) Partition(p func(T) bool) (Iterator[T], Iterator[T]) {
+	left, right := r.Duplicate()
 
-	return Tuple2[Iterator[T], Iterator[T]]{left.Filter(p), right.FilterNot(p)}
+	return left.Filter(p), right.FilterNot(p)
 
 }
 

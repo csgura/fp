@@ -1,7 +1,5 @@
 package fp
 
-type Func2[A1, A2, R any] func(a1 A1, a2 A2) R
-
 type Func3[A1, A2, A3, R any] func(a1 A1, a2 A2, a3 A3) R
 
 type Func4[A1, A2, A3, A4, R any] func(a1 A1, a2 A2, a3 A3, a4 A4) R
@@ -15,20 +13,6 @@ type Func7[A1, A2, A3, A4, A5, A6, A7, R any] func(a1 A1, a2 A2, a3 A3, a4 A4, a
 type Func8[A1, A2, A3, A4, A5, A6, A7, A8, R any] func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R
 
 type Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any] func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R
-
-func (r Func2[A1, A2, R]) Tupled() Func1[Tuple2[A1, A2], R] {
-	return func(t Tuple2[A1, A2]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func2[A1, A2, R]) Curried() Func1[A1, Func1[A2, R]] {
-	return func(a1 A1) Func1[A2, R] {
-		return Func1[A2, R](func(a2 A2) R {
-			return r(a1, a2)
-		}).Curried()
-	}
-}
 
 func (r Func3[A1, A2, A3, R]) Tupled() Func1[Tuple3[A1, A2, A3], R] {
 	return func(t Tuple3[A1, A2, A3]) R {

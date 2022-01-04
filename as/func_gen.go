@@ -40,10 +40,6 @@ func Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5,
 	return fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](f)
 }
 
-func Curried1[A1, R any](f func(A1) R) fp.Func1[A1, R] {
-	return fp.Func1[A1, R](f).Curried()
-}
-
 func Curried2[A1, A2, R any](f func(A1, A2) R) fp.Func1[A1, fp.Func1[A2, R]] {
 	return fp.Func2[A1, A2, R](f).Curried()
 }

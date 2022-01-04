@@ -40,8 +40,20 @@ func (r Func0[R]) Apply() R {
 
 type Func1[A1, R any] func(a1 A1) R
 
-func (r Func1[A1, R]) Curried() Func1[A1, R] {
-	return r
+type Func2[A1, A2, R any] func(a1 A1, a2 A2) R
+
+func (r Func2[A1, A2, R]) Tupled() Func1[Tuple2[A1, A2], R] {
+	return func(t Tuple2[A1, A2]) R {
+		return r(t.Unapply())
+	}
+}
+
+func (r Func2[A1, A2, R]) Curried() Func1[A1, Func1[A2, R]] {
+	return func(a1 A1) Func1[A2, R] {
+		return Func1[A2, R](func(a2 A2) R {
+			return r(a1, a2)
+		})
+	}
 }
 
 func Println[T any](v T) {

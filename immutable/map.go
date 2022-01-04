@@ -166,8 +166,19 @@ func (m *hamt[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	return itr
 }
 
+func iteratorMap[T, U any](opt fp.Iterator[T], fn func(v T) U) fp.Iterator[U] {
+	return fp.MakeIterator(
+		func() bool {
+			return opt.HasNext()
+		},
+		func() U {
+			return fn(opt.Next())
+		},
+	)
+}
+
 func (m *hamt[K, V]) String() string {
-	return fmt.Sprintf("Map(%s)", m.Iterator().Map(func(t fp.Tuple2[K, V]) any {
+	return fmt.Sprintf("Map(%s)", iteratorMap(m.Iterator(), func(t fp.Tuple2[K, V]) any {
 		return fmt.Sprintf("%v: %v", t.I1, t.I2)
 	}).MakeString(","))
 }

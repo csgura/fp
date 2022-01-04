@@ -15,7 +15,7 @@ import (
 
 func TestSeq(t *testing.T) {
 	s := seq.Of(10, 2, 23, 15, 9, 99)
-	s = s.Sort(ord.Given[int]())
+	s = seq.Sort(s, ord.Given[int]())
 
 	s.Foreach(fp.Println[int])
 

@@ -43,7 +43,7 @@ func TestIterator(t *testing.T) {
 
 	p1, p2 := s.Iterator().Partition(func(v int) bool {
 		return v%2 == 0
-	}).Unapply()
+	})
 
 	fmt.Println(seq.Collect(p1))
 	fmt.Println(seq.Collect(p2))
@@ -53,7 +53,7 @@ func TestIterator(t *testing.T) {
 		return v
 	}).Span(func(v int) bool {
 		return v < 4
-	}).Unapply()
+	})
 
 	fmt.Println(seq.Collect(p1))
 	fmt.Println(seq.Collect(p2))

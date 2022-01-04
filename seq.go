@@ -1,7 +1,5 @@
 package fp
 
-import "sort"
-
 type Seq[T any] []T
 
 func (r Seq[T]) Size() int {
@@ -150,19 +148,4 @@ func (r Seq[T]) Iterator() Iterator[T] {
 			return ret
 		},
 	}
-}
-
-type seqSorter[T any] struct {
-	seq Seq[T]
-	ord Ord[T]
-}
-
-func (p *seqSorter[T]) Len() int           { return len(p.seq) }
-func (p *seqSorter[T]) Less(i, j int) bool { return p.ord.Less(p.seq[i], p.seq[j]) }
-func (p *seqSorter[T]) Swap(i, j int)      { p.seq[i], p.seq[j] = p.seq[j], p.seq[i] }
-
-func (r Seq[T]) Sort(ord Ord[T]) Seq[T] {
-	ns := r.Concat(nil)
-	sort.Sort(&seqSorter[T]{ns, ord})
-	return ns
 }

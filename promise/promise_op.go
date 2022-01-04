@@ -1,9 +1,10 @@
 package promise
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/internal/atomic"
-	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/try"
 )
 
@@ -23,12 +24,21 @@ func (r *promise[T]) Failure(err error) bool {
 	return r.Complete(try.Failure[T](err))
 }
 
-func (r promise[T]) Value() fp.Option[fp.Try[T]] {
+// func (r promise[T]) Value() fp.Option[fp.Try[T]] {
+// 	switch v := r.status.Load().(type) {
+// 	case fp.Try[T]:
+// 		return option.Some(v)
+// 	}
+// 	return option.None[fp.Try[T]]()
+// }
+
+func (r promise[T]) futreString() string {
 	switch v := r.status.Load().(type) {
 	case fp.Try[T]:
-		return option.Some(v)
+		return fmt.Sprintf("fp.Future(%v)", v)
 	}
-	return option.None[fp.Try[T]]()
+
+	return fmt.Sprintf("fp.Future[%s](not completed)", fp.TypeName[T]())
 }
 
 func (r *promise[T]) IsCompleted() bool {
