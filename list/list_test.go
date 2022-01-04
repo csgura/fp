@@ -210,12 +210,12 @@ func TestFoldRight(t *testing.T) {
 func TestFoldMap(t *testing.T) {
 	l := list.Of(1, 2, 3, 4, 5)
 
-	sum := list.FoldMap(l, fp.Id[int], monoid.New(func() int {
+	sum := list.FoldMap(l, monoid.New(func() int {
 		return 0
 	}, func(a, b int) int {
 		fmt.Printf("%d + %d\n", a, b)
 		return a + b
-	}))
+	}), fp.Id[int])
 
 	fmt.Printf("sum = %d\n", sum)
 }
@@ -226,7 +226,7 @@ func NotTestFoldMapInfinity(t *testing.T) {
 		return false
 	})
 
-	sum := list.FoldMap(l, fp.Id[bool], monoid.All)
+	sum := list.FoldMap(l, monoid.All, fp.Id[bool])
 
 	println(sum)
 

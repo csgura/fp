@@ -296,7 +296,7 @@ func FoldLeft[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 	return ret.Get()(zero)
 }
 
-func FoldMap[A, B any](s fp.List[A], f func(A) B, m fp.Monoid[B]) B {
+func FoldMap[A, B any](s fp.List[A], m fp.Monoid[B], f func(A) B) B {
 	ret := FoldRight(s, m.Empty(), func(a A, b lazy.Eval[B]) lazy.Eval[B] {
 		ab := f(a)
 
@@ -328,7 +328,7 @@ func FoldLeftUsingMap[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 		return as.Dual(as.Endo(cf(a)))
 	}
 
-	ret := FoldMap(s, f2, m)
+	ret := FoldMap(s, m, f2)
 	return ret.GetDual(zero)
 }
 
@@ -340,7 +340,7 @@ func FoldRightUsingMap[A, B any](s fp.List[A], zero B, f func(A, B) B) B {
 		return as.Endo(cf(a))
 	}
 
-	ret := FoldMap(s, f2, m)
+	ret := FoldMap(s, m, f2)
 	return ret(zero)
 }
 
