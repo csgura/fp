@@ -346,12 +346,13 @@ func FoldRightUsingMap[A, B any](s fp.List[A], zero B, f func(A, B) B) B {
 
 func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 
+	cf := as.Curried2(f)
 	return fp.MakeList(
 		func() fp.Option[B] {
 			return option.Some(zero)
 		},
 		func() fp.List[B] {
-			z := option.Map(s.Head(), as.Curried2(f)(zero))
+			z := option.Map(s.Head(), cf(zero))
 			if z.IsDefined() {
 				return Scan(s.Tail(), z.Get(), f)
 			}

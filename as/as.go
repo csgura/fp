@@ -34,6 +34,6 @@ func Dual[T any](t T) fp.Dual[T] {
 	return fp.Dual[T]{GetDual: t}
 }
 
-func Endo[T any](f func(T) T) fp.Endo[T] {
-	return f
+func Endo[T any](f fp.Func1[T, T]) fp.Endo[T] {
+	return fp.Endo[T](f)
 }
