@@ -3,6 +3,7 @@ package list
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
@@ -287,7 +288,7 @@ func Fold[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 }
 
 func FoldLeft[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
-	cf := as.Func2(f).Shift().Curried()
+	cf := curried.Flip(as.Curried2(f))
 	ret := FoldRight[A, fp.Endo[B]](s, fp.Id[B], func(a A, endo lazy.Eval[fp.Endo[B]]) lazy.Eval[fp.Endo[B]] {
 		ef := endo.Get().AsFunc()
 		return lazy.Done(fp.Endo[B](fp.Compose(cf(a), ef)))
@@ -320,7 +321,7 @@ func FoldRight[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval
 }
 
 func FoldLeftUsingMap[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
-	cf := as.Func2(f).Shift().Curried()
+	cf := curried.Flip(as.Curried2(f))
 	m := monoid.Dual(monoid.Endo[B]())
 
 	f2 := func(a A) fp.Dual[fp.Endo[B]] {

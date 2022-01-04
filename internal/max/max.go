@@ -6,4 +6,5 @@ const Func = 10
 
 const Compose = 6
 
-const Shift = 3
+const Shift = 4
+const Flip = 3

@@ -30,12 +30,6 @@ func (r Func2[A1, A2, R]) Curried() Func1[A1, Func1[A2, R]] {
 	}
 }
 
-func (r Func2[A1, A2, R]) Shift() Func2[A2, A1, R] {
-	return func(a2 A2, a1 A1) R {
-		return r(a1, a2)
-	}
-}
-
 func (r Func3[A1, A2, A3, R]) Tupled() Func1[Tuple3[A1, A2, A3], R] {
 	return func(t Tuple3[A1, A2, A3]) R {
 		return r(t.Unapply())

@@ -99,7 +99,7 @@ func TestFunc(t *testing.T) {
 	f2 := curried.Revert2(as.Func3(f3).Curried()(1))
 	f2(2, 3)
 
-	format16 := as.Func2(strconv.FormatInt).Shift().Curried()(16)
+	format16 := curried.Flip(as.Curried2(strconv.FormatInt))(16)
 	format16(123456)
 
 	f := fp.Compose(strconv.Itoa, option.Some[string])

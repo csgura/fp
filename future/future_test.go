@@ -136,7 +136,7 @@ func TestApChain(t *testing.T) {
 
 	res = future.Applicative3(MakeURLWithPort).
 		ApOption(option.Some("http")).
-		Shift().
+		Flip().
 		Ap(8080).
 		Ap("localhost")
 
@@ -144,7 +144,7 @@ func TestApChain(t *testing.T) {
 
 	res = future.Applicative3(MakeURLWithPort).
 		ApOption(option.Some("https")).
-		Shift().
+		Flip().
 		Map(func(scheme string) int {
 			switch scheme {
 			case "https":
@@ -158,7 +158,7 @@ func TestApChain(t *testing.T) {
 
 	res = future.Applicative3(MakeURLWithPort).
 		ApOption(option.Some("https")).
-		Shift().
+		Flip().
 		Map(func(scheme string) int {
 			switch scheme {
 			case "https":
@@ -196,7 +196,7 @@ func TestApChain(t *testing.T) {
 
 	res = future.Applicative3(MakeURLWithPort).
 		ApFuture(GetScheme()).
-		Shift().
+		Flip().
 		Map(calcPort).
 		HListMap(hlist.Rift2(calcHost))
 

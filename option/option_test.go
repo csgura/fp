@@ -113,7 +113,7 @@ func TestSome(t *testing.T) {
 	intFunctor := option.Map[int, string]
 	curried.Func2(intFunctor)(intOpt)(strconv.Itoa)
 
-	optFn := as.Func2(intFunctor).Shift().Curried()(strconv.Itoa)
+	optFn := curried.Flip(as.Curried2(intFunctor))(strconv.Itoa)
 	fmt.Println(optFn(option.Some(42)))
 
 }

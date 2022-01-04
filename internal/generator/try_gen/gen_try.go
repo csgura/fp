@@ -32,6 +32,24 @@ func generate(packname string, filename string, writeFunc func(w io.Writer)) {
 	}
 }
 
+func flipTypeArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+
+		if j == start {
+			fmt.Fprintf(f, "A%d", j+1)
+		} else if j == start+1 {
+			fmt.Fprintf(f, "A%d", j-1)
+		} else {
+			fmt.Fprintf(f, "A%d", j)
+		}
+	}
+	return f.String()
+}
+
 func curriedType(start, until int) string {
 	f := &bytes.Buffer{}
 	endBracket := ""
@@ -130,6 +148,19 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 
 			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[H,HT,%s,R])", i, typeArgs(1, i))
 			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", typeArgs(1, i))
+
+			if i < max.Flip {
+
+				fmt.Fprintf(f, "%s Flip() ApplicativeFunctor%d[H,HT,%s,R] {\n", receiver, i, flipTypeArgs(1, i))
+				fmt.Fprintf(f, `
+	return ApplicativeFunctor%d[H, HT, %s, R]{
+		r.h,
+		Map(r.fn, curried.Flip[A1,A2,%s]),
+	}
+
+}
+`, i, flipTypeArgs(1, i), curriedType(3, i))
+			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `

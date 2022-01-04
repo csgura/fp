@@ -14,3 +14,11 @@ func Concat[A, B, R any](f fp.Func1[B, R]) fp.Func1[A, fp.Func1[B, R]] {
 		return f
 	}
 }
+
+func Flip[A, B, R any](f fp.Func1[A, fp.Func1[B, R]]) fp.Func1[B, fp.Func1[A, R]] {
+	return func(b B) fp.Func1[A, R] {
+		return func(a A) R {
+			return f(a)(b)
+		}
+	}
+}

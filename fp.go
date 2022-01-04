@@ -183,3 +183,11 @@ func Memoize[T any](f func() T) Func0[T] {
 		return ret
 	}
 }
+
+func Flip[A, B, R any](f Func1[A, Func1[B, R]]) Func1[B, Func1[A, R]] {
+	return func(b B) Func1[A, R] {
+		return func(a A) R {
+			return f(a)(b)
+		}
+	}
+}

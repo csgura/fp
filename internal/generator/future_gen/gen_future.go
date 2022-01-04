@@ -44,6 +44,24 @@ func curriedType(start, until int) string {
 	return f.String()
 }
 
+func flipTypeArgs(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+
+		if j == start {
+			fmt.Fprintf(f, "A%d", j+1)
+		} else if j == start+1 {
+			fmt.Fprintf(f, "A%d", j-1)
+		} else {
+			fmt.Fprintf(f, "A%d", j)
+		}
+	}
+	return f.String()
+}
+
 func typeArgs(start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
@@ -131,18 +149,17 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[H,HT,%s,R])", i, typeArgs(1, i))
 			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", typeArgs(1, i))
 
-			if i < max.Shift {
+			if i < max.Flip {
 
-				fmt.Fprintf(f, "%s Shift() ApplicativeFunctor%d[H,HT,%s,A1,R] {\n", receiver, i, typeArgs(2, i))
+				fmt.Fprintf(f, "%s Flip() ApplicativeFunctor%d[H,HT,%s,R] {\n", receiver, i, flipTypeArgs(1, i))
 				fmt.Fprintf(f, `
-				nf := fp.Compose(curried.Revert%d[%s, R], fp.Compose(fp.Func%d[%s, R].Shift, fp.Func%d[%s, A1, R].Curried))
-				return ApplicativeFunctor%d[H, HT, %s, A1, R]{
-					r.h,
-					Map(r.fn, nf),
-				}
+	return ApplicativeFunctor%d[H, HT, %s, R]{
+		r.h,
+		Map(r.fn, curried.Flip[A1,A2,%s]),
+	}
 
-			}
-			`, i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(2, i), i, typeArgs(2, i))
+}
+`, i, flipTypeArgs(1, i), curriedType(3, i))
 			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Future[A1], ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)

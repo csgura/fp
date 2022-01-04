@@ -11,12 +11,11 @@ type ApplicativeFunctor2[H hlist.Header[HT], HT, A1, A2, R any] struct {
 	fn fp.Option[fp.Func1[A1, fp.Func1[A2, R]]]
 }
 
-func (r ApplicativeFunctor2[H, HT, A1, A2, R]) Shift() ApplicativeFunctor2[H, HT, A2, A1, R] {
+func (r ApplicativeFunctor2[H, HT, A1, A2, R]) Flip() ApplicativeFunctor2[H, HT, A2, A1, R] {
 
-	nf := fp.Compose(curried.Revert2[A1, A2, R], fp.Compose(fp.Func2[A1, A2, R].Shift, fp.Func2[A2, A1, R].Curried))
 	return ApplicativeFunctor2[H, HT, A2, A1, R]{
 		r.h,
-		Map(r.fn, nf),
+		Map(r.fn, curried.Flip[A1, A2, R]),
 	}
 
 }

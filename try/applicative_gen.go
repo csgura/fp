@@ -11,6 +11,14 @@ type ApplicativeFunctor2[H hlist.Header[HT], HT, A1, A2, R any] struct {
 	fn fp.Try[fp.Func1[A1, fp.Func1[A2, R]]]
 }
 
+func (r ApplicativeFunctor2[H, HT, A1, A2, R]) Flip() ApplicativeFunctor2[H, HT, A2, A1, R] {
+
+	return ApplicativeFunctor2[H, HT, A2, A1, R]{
+		r.h,
+		Map(r.fn, curried.Flip[A1, A2, R]),
+	}
+
+}
 func (r ApplicativeFunctor2[H, HT, A1, A2, R]) FlatMap(a func(HT) fp.Try[A1]) ApplicativeFunctor1[hlist.Cons[A1, H], A1, A2, R] {
 
 	av := FlatMap(r.h, func(v H) fp.Try[A1] {
