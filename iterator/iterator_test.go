@@ -17,11 +17,11 @@ func plus(a int, b int) int {
 
 func TestIterator(t *testing.T) {
 	s := seq.Of(1, 2, 3, 4, 5, 6, 7)
-	fmt.Println(iterator.Map(s.Iterator(), curried.Func2(plus)(2)).TakeWhile(func(v int) bool {
+	iterator.Map(s.Iterator(), curried.Func2(plus)(2)).TakeWhile(func(v int) bool {
 		return v < 7
-	}).ToSeq())
+	}).Foreach(fp.Println[int])
 
-	fmt.Println(iterator.FlatMap(s.Iterator(), func(v int) fp.Iterator[int] {
+	iterator.FlatMap(s.Iterator(), func(v int) fp.Iterator[int] {
 		println("v = ", v)
 		switch v % 3 {
 		case 0:
@@ -34,7 +34,7 @@ func TestIterator(t *testing.T) {
 		panic("not possible")
 	}).TakeWhile(func(v int) bool {
 		return v < 8
-	}).ToSeq())
+	}).Foreach(fp.Println[int])
 
 	k := seq.Of("a", "b", "c")
 	v := seq.Of(10, 20, 30, 40, 50)
@@ -45,8 +45,8 @@ func TestIterator(t *testing.T) {
 		return v%2 == 0
 	}).Unapply()
 
-	fmt.Println(p1.ToSeq())
-	fmt.Println(p2.ToSeq())
+	fmt.Println(seq.Collect(p1))
+	fmt.Println(seq.Collect(p2))
 
 	p1, p2 = iterator.Map(s.Iterator(), func(v int) int {
 		println("before span v= ", v)
@@ -55,8 +55,8 @@ func TestIterator(t *testing.T) {
 		return v < 4
 	}).Unapply()
 
-	fmt.Println(p1.ToSeq())
-	fmt.Println(p2.ToSeq())
+	fmt.Println(seq.Collect(p1))
+	fmt.Println(seq.Collect(p2))
 
 }
 

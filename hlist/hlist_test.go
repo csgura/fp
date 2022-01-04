@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
@@ -18,7 +17,7 @@ func plus(a string, b string, c int) string {
 }
 
 func TestHList(t *testing.T) {
-	list := product.Tuple3("hello", "world", 10).ToHList()
+	list := hlist.Of3("hello", "world", 10)
 	tuple3 := hlist.Case3(list, product.Tuple3[string, string, int])
 	fp.Println(tuple3)
 
@@ -117,9 +116,9 @@ func ShowCons[H any, T hlist.HList](headShow Show[H], tailShow Show[T]) Show[hli
 }
 
 func TestHListEq(t *testing.T) {
-	list := product.Tuple3("hello", "world", 10).ToHList()
-	list2 := product.Tuple3("hello", "world", 10).ToHList()
-	list3 := product.Tuple3("hello", "world", 11).ToHList()
+	list := hlist.Of3("hello", "world", 10)
+	list2 := hlist.Of3("hello", "world", 10)
+	list3 := hlist.Of3("hello", "world", 11)
 
 	assert.True(eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list2))
 	assert.True(!eq.HCons(eq.Given[string](), eq.HCons(eq.Given[string](), eq.HCons(eq.Given[int](), eq.HNil))).Eqv(list, list3))
@@ -145,7 +144,7 @@ func (r *Table[H]) Find(p func(H) bool) *H {
 
 func TestTable(t *testing.T) {
 	tbl := Table[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{}
-	tbl.Insert(as.Tuple2("hello", 10).ToHList())
+	tbl.Insert(hlist.Of2("hello", 10))
 
 	tbl.Find(hlist.Lift2(func(a string, b int) bool {
 		if a == "hello" {

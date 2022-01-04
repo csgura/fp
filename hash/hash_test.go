@@ -6,6 +6,7 @@ import (
 
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hash"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
 )
 
@@ -16,7 +17,7 @@ func TestHash(t *testing.T) {
 
 	fmt.Println(hasher.Hash(tup))
 
-	hl := tup.ToHList()
+	hl := hlist.Of3(tup.Unapply())
 
 	hlHasher := hash.HCons(hash.String, hash.HCons(hash.String, hash.HCons(hash.Number[int](), hash.HNil)))
 

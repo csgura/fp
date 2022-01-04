@@ -184,10 +184,6 @@ func (r success[T]) RecoverWith(func(err error) fp.Try[T]) fp.Try[T] {
 	return r
 }
 
-func (r success[T]) ToSeq() fp.Seq[T] {
-	return []T{r.v}
-}
-
 func (r success[T]) ToOption() fp.Option[T] {
 	return option.Some(r.v)
 }
@@ -196,12 +192,12 @@ func (r success[T]) String() string {
 	return fmt.Sprintf("Success(%v)", r.Get())
 }
 
-func (r success[T]) Iterator() fp.Iterator[T] {
-	return fp.MakeIterator(
-		r.IsSuccess,
-		r.Get,
-	)
-}
+// func (r success[T]) Iterator() fp.Iterator[T] {
+// 	return fp.MakeIterator(
+// 		r.IsSuccess,
+// 		r.Get,
+// 	)
+// }
 
 type failure[T any] struct {
 	err error
@@ -249,20 +245,16 @@ func (r failure[T]) ToOption() fp.Option[T] {
 	return option.None[T]()
 }
 
-func (r failure[T]) ToSeq() fp.Seq[T] {
-	return nil
-}
-
 func (r failure[T]) String() string {
 	return fmt.Sprintf("Failure(%v)", r.err)
 }
 
-func (r failure[T]) Iterator() fp.Iterator[T] {
-	return fp.MakeIterator(
-		r.IsSuccess,
-		r.Get,
-	)
-}
+// func (r failure[T]) Iterator() fp.Iterator[T] {
+// 	return fp.MakeIterator(
+// 		r.IsSuccess,
+// 		r.Get,
+// 	)
+// }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Try[H]

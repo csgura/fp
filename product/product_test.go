@@ -55,7 +55,7 @@ func TestGeneric(t *testing.T) {
 	age, name, attr := tp.Unapply()
 	fmt.Printf("age = %d, name = %s, attr = %v", age, name, attr)
 
-	hl := tp.ToHList()
+	hl := hlist.Of3(tp.Unapply())
 	tp2 := hlist.Case2(hl, product.Tuple2[int, string])
 	fmt.Printf("%v\n", tp2)
 	fmt.Printf("%s\n", hl)

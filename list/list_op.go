@@ -186,6 +186,36 @@ func Of[T any](e ...T) fp.List[T] {
 	return seq.Of(e...)
 }
 
+type iteratorList[T any] struct {
+	head     fp.Option[T]
+	iterator fp.Iterator[T]
+}
+
+func (r iteratorList[T]) IsEmpty() bool {
+	return r.head.IsEmpty()
+}
+func (r iteratorList[T]) NonEmpty() bool {
+	return r.head.IsDefined()
+}
+func (r iteratorList[T]) Head() fp.Option[T] {
+	return r.head
+}
+func (r iteratorList[T]) Tail() fp.List[T] {
+	return iteratorList[T]{r.iterator.NextOption(), r.iterator}
+}
+
+func (r iteratorList[T]) Unapply() (fp.Option[T], fp.List[T]) {
+	return r.Head(), r.Tail()
+}
+
+func (r iteratorList[T]) Iterator() fp.Iterator[T] {
+	return r.iterator
+}
+
+func Collect[T any](r fp.Iterator[T]) fp.List[T] {
+	return iteratorList[T]{r.NextOption(), r}
+}
+
 func Concat[T any](head T, tail fp.List[T]) fp.List[T] {
 	return Apply(head, tail)
 }

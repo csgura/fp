@@ -12,8 +12,6 @@ type Try[T any] interface {
 	Recover(func(err error) T) Try[T]
 	RecoverWith(func(err error) Try[T]) Try[T]
 	ToOption() Option[T]
-	ToSeq() Seq[T]
 	Unapply() (T, error)
 	String() string
-	Iterator() Iterator[T]
 }

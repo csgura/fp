@@ -8,6 +8,14 @@ import (
 	"github.com/csgura/fp/product"
 )
 
+func Collect[T any](r fp.Iterator[T]) fp.Seq[T] {
+	ret := fp.Seq[T]{}
+	for r.HasNext() {
+		ret = append(ret, r.Next())
+	}
+	return ret
+}
+
 func Of[T any](list ...T) fp.Seq[T] {
 	return list
 }

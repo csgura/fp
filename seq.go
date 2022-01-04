@@ -57,11 +57,11 @@ func (r Seq[T]) Unapply() (Option[T], List[T]) {
 }
 
 func (r Seq[T]) Take(n int) Seq[T] {
-	return r.Iterator().Take(n).ToSeq()
+	return iteratorToSeq(r.Iterator().Take(n))
 }
 
 func (r Seq[T]) Drop(n int) Seq[T] {
-	return r.Iterator().Drop(n).ToSeq()
+	return iteratorToSeq(r.Iterator().Drop(n))
 }
 
 func (r Seq[T]) Foreach(f func(v T)) {
@@ -71,7 +71,7 @@ func (r Seq[T]) Foreach(f func(v T)) {
 }
 
 func (r Seq[T]) Filter(p func(v T) bool) Seq[T] {
-	return r.Iterator().Filter(p).ToSeq()
+	return iteratorToSeq(r.Iterator().Filter(p))
 }
 
 func (r Seq[T]) Exists(p func(v T) bool) bool {

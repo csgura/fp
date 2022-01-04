@@ -15,8 +15,6 @@ type Option[T any] interface {
 	String() string
 	Exists(p func(v T) bool) bool
 	ForAll(p func(v T) bool) bool
-	ToSeq() Seq[T]
-	Iterator() Iterator[T]
 }
 
 type Some[T any] struct {
@@ -66,22 +64,11 @@ func (r Some[T]) Recover(f func() T) Option[T] {
 	return r
 }
 
-func (r Some[T]) ToSeq() Seq[T] {
-	return Seq[T]{r.v}
-}
-
 func (r Some[T]) Exists(p func(v T) bool) bool {
 	return p(r.v)
 }
 func (r Some[T]) ForAll(p func(v T) bool) bool {
 	return p(r.v)
-}
-
-func (r Some[T]) Iterator() Iterator[T] {
-	return MakeIterator(
-		r.IsDefined,
-		r.Get,
-	)
 }
 
 type None[T any] struct{}
@@ -124,20 +111,9 @@ func (r None[T]) Recover(f func() T) Option[T] {
 	return Some[T]{f()}
 }
 
-func (r None[T]) ToSeq() Seq[T] {
-	return Seq[T]{}
-}
-
 func (r None[T]) Exists(p func(v T) bool) bool {
 	return false
 }
 func (r None[T]) ForAll(p func(v T) bool) bool {
 	return true
-}
-
-func (r None[T]) Iterator() Iterator[T] {
-	return MakeIterator(
-		r.IsDefined,
-		r.Get,
-	)
 }

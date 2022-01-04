@@ -216,7 +216,6 @@ func Nop%d[%s,R any] ( f func(A%d) R ) Func%d[%s,R] {
 	generate("fp", "tuple_gen.go", func(f io.Writer) {
 		fmt.Fprintln(f, `
 import (
-	"github.com/csgura/fp/hlist"
 	"fmt"
 )`)
 
@@ -251,11 +250,11 @@ func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
 }
 `, i, tupleTypeArgs(1, i), i-1, tupleTypeArgs(2, i), i-1, tupleTypeArgs(2, i), tupleArgs(2, i))
 
-			fmt.Fprintf(f, `
-func (r Tuple%d[%s]) ToHList() %s {
-	return hlist.Concat( r.Head(), r.Tail().ToHList())
-}
-`, i, tupleTypeArgs(1, i), consType(1, i))
+			// 			fmt.Fprintf(f, `
+			// func (r Tuple%d[%s]) ToHList() %s {
+			// 	return hlist.Concat( r.Head(), r.Tail().ToHList())
+			// }
+			// `, i, tupleTypeArgs(1, i), consType(1, i))
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) String() string {

@@ -59,9 +59,9 @@ func TestFibonacci(t *testing.T) {
 	printFirst10(l3)
 
 	fmt.Println("Test Drop While")
-	l4 := l.Iterator().DropWhile(func(v int) bool {
+	l4 := list.Collect(l.Iterator().DropWhile(func(v int) bool {
 		return v < 100
-	}).Take(50).ToList()
+	}).Take(50))
 
 	l4 = list.Map(l4, func(v int) int {
 		fmt.Printf("check lazy map v : %d\n", v)
@@ -75,7 +75,7 @@ func TestFibonacci(t *testing.T) {
 	f := s2.Find(as.Curried2(ord.Given[int]().Less)(20))
 	fmt.Println(f)
 
-	fmt.Println(l.Iterator().Take(20).ToSeq())
+	fmt.Println(seq.Collect(l.Iterator().Take(20)))
 
 	count := list.FoldRight(l, 0, func(v int, sum lazy.Eval[int]) lazy.Eval[int] {
 		if v < 100 {
@@ -110,7 +110,7 @@ func NotTestSum(t *testing.T) {
 	fmt.Println("print list scan")
 	l2 := list.Scan(l, 0.0, monoid.Sum[float64]().Combine)
 
-	zip := list.Zip(l2.Iterator().Drop(100).ToList(), l2)
+	zip := list.Zip(list.Collect(l2.Iterator().Drop(100)), l2)
 	printFirst10(zip)
 
 	sumOpt := zip.Iterator().Find(as.Func2(func(a float64, b float64) bool {

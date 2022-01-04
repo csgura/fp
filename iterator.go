@@ -14,8 +14,6 @@ type Iterator[T any] interface {
 	HasNext() bool
 	Next() T
 	NextOption() Option[T]
-	ToSeq() Seq[T]
-	ToList() List[T]
 	Take(n int) Iterator[T]
 	TakeWhile(p func(T) bool) Iterator[T]
 	Drop(n int) Iterator[T]
@@ -85,7 +83,7 @@ func (r IteratorAdaptor[T]) NextOption() Option[T] {
 	return None[T]{}
 }
 
-func (r IteratorAdaptor[T]) ToSeq() Seq[T] {
+func iteratorToSeq[T any](r Iterator[T]) Seq[T] {
 	ret := Seq[T]{}
 	for r.HasNext() {
 		ret = append(ret, r.Next())
@@ -93,7 +91,7 @@ func (r IteratorAdaptor[T]) ToSeq() Seq[T] {
 	return ret
 }
 
-func (r IteratorAdaptor[T]) ToList() List[T] {
+func iteratorToList[T any](r Iterator[T]) List[T] {
 	return iteratorList[T]{r.NextOption(), r}
 }
 

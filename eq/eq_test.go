@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/product"
@@ -27,8 +28,8 @@ func TestEq(t *testing.T) {
 	assert.False(eq.Tuple2(eq.Given[int](), eq.Given[string]()).
 		Eqv(product.Tuple2(1, "hello"), product.Tuple2(1, "world")))
 
-	hlist1 := product.Tuple3(1, "2", 3.0).ToHList()
-	hlist2 := product.Tuple3(1, "2", 3.2).ToHList()
+	hlist1 := hlist.Of3(1, "2", 3.0)
+	hlist2 := hlist.Of3(1, "2", 3.2)
 	//hlist3 := product.Tuple4(1, "2", 3.2, "4").ToHList()
 
 	hlistEq :=
