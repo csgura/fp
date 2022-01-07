@@ -35,16 +35,16 @@ func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
 func (r ListAdaptor[T]) Iterator() Iterator[T] {
 	var current List[T] = r
 
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	return MakeIterator(
+		func() bool {
 			return current.Head().IsDefined()
 		},
-		GetNext: func() T {
+		func() T {
 			ret := current.Head().Get()
 			current = current.Tail()
 			return ret
 		},
-	}
+	)
 }
 
 func MakeList[T any](head func() Option[T], tail func() List[T]) List[T] {

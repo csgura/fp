@@ -16,17 +16,17 @@ func (r Seq[T]) NonEmpty() bool {
 
 func (r Seq[T]) Get(idx int) Option[T] {
 	if r.Size() > idx {
-		return Some[T]{r[idx]}
+		return Some(r[idx])
 	} else {
-		return None[T]{}
+		return Option[T]{}
 	}
 }
 
 func (r Seq[T]) Head() Option[T] {
 	if r.Size() > 0 {
-		return Some[T]{r[0]}
+		return Some(r[0])
 	} else {
-		return None[T]{}
+		return Option[T]{}
 	}
 }
 
@@ -138,14 +138,14 @@ func (r Seq[T]) Reverse() Seq[T] {
 func (r Seq[T]) Iterator() Iterator[T] {
 	idx := 0
 
-	return IteratorAdaptor[T]{
-		IsHasNext: func() bool {
+	return MakeIterator(
+		func() bool {
 			return idx < r.Size()
 		},
-		GetNext: func() T {
+		func() T {
 			ret := r[idx]
 			idx++
 			return ret
 		},
-	}
+	)
 }

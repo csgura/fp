@@ -2,118 +2,100 @@ package fp
 
 import "fmt"
 
-type Option[T any] interface {
-	IsEmpty() bool
-	IsDefined() bool
-	Get() T
-	Foreach(f func(v T))
-	Filter(p func(v T) bool) Option[T]
-	OrElse(t T) T
-	OrElseGet(func() T) T
-	Recover(func() T) Option[T]
-	Or(func() Option[T]) Option[T]
-	String() string
-	Exists(p func(v T) bool) bool
-	ForAll(p func(v T) bool) bool
+type Option[T any] struct {
+	v *T
 }
 
-type Some[T any] struct {
-	v T
-}
-
-func (r Some[T]) Foreach(f func(v T)) {
-	f(r.v)
-}
-
-func (r Some[T]) IsDefined() bool {
-	return true
-}
-
-func (r Some[T]) IsEmpty() bool {
-	return false
-}
-
-func (r Some[T]) Get() T {
-	return r.v
-}
-
-func (r Some[T]) String() string {
-	return fmt.Sprintf("Some(%v)", r.v)
-}
-
-func (r Some[T]) Filter(p func(v T) bool) Option[T] {
-
-	if p(r.v) {
-		return r
+func (r Option[T]) Foreach(f func(v T)) {
+	if r.IsDefined() {
+		f(*r.v)
 	}
-	return None[T]{}
+}
+
+func (r Option[T]) IsDefined() bool {
+	return r.v != nil
+}
+
+func (r Option[T]) IsEmpty() bool {
+	return !r.IsDefined()
+}
+
+func (r Option[T]) Get() T {
+	return *r.v
+}
+
+func (r Option[T]) String() string {
+	if r.IsDefined() {
+		return fmt.Sprintf("Some(%v)", r.v)
+	} else {
+		return "None"
+	}
+}
+
+func (r Option[T]) Filter(p func(v T) bool) Option[T] {
+	if r.IsDefined() {
+		if p(*r.v) {
+			return r
+		}
+	}
+	return Option[T]{}
 
 }
 
-func (r Some[T]) OrElse(t T) T {
-	return r.v
-}
-func (r Some[T]) OrElseGet(f func() T) T {
-	return r.v
-}
-func (r Some[T]) Or(f func() Option[T]) Option[T] {
-	return r
-}
-
-func (r Some[T]) Recover(f func() T) Option[T] {
-	return r
-}
-
-func (r Some[T]) Exists(p func(v T) bool) bool {
-	return p(r.v)
-}
-func (r Some[T]) ForAll(p func(v T) bool) bool {
-	return p(r.v)
-}
-
-type None[T any] struct{}
-
-func (r None[T]) Foreach(f func(v T)) {
-
-}
-
-func (r None[T]) IsDefined() bool {
-	return false
-}
-
-func (r None[T]) IsEmpty() bool {
-	return true
-}
-
-func (r None[T]) Get() T {
-	panic("Option.empty")
-}
-
-func (r None[T]) String() string {
-	return "None"
-}
-
-func (r None[T]) Filter(p func(v T) bool) Option[T] {
-	return r
-}
-
-func (r None[T]) OrElse(t T) T {
+func (r Option[T]) OrElse(t T) T {
+	if r.IsDefined() {
+		return *r.v
+	}
 	return t
 }
-func (r None[T]) OrElseGet(f func() T) T {
+func (r Option[T]) OrElseGet(f func() T) T {
+	if r.IsDefined() {
+		return *r.v
+	}
 	return f()
 }
-func (r None[T]) Or(f func() Option[T]) Option[T] {
+func (r Option[T]) Or(f func() Option[T]) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
 	return f()
 }
 
-func (r None[T]) Recover(f func() T) Option[T] {
-	return Some[T]{f()}
+func (r Option[T]) Recover(f func() T) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	t := f()
+	return Option[T]{&t}
 }
 
-func (r None[T]) Exists(p func(v T) bool) bool {
+func (r Option[T]) Exists(p func(v T) bool) bool {
+	if r.IsDefined() {
+		return p(*r.v)
+	}
 	return false
 }
-func (r None[T]) ForAll(p func(v T) bool) bool {
+func (r Option[T]) ForAll(p func(v T) bool) bool {
+	if r.IsDefined() {
+		return p(*r.v)
+	}
 	return true
+}
+
+func (r Option[T]) ToSeq() Seq[T] {
+	if r.IsDefined() {
+		return Seq[T]{*r.v}
+	}
+	return nil
+}
+
+func (r Option[T]) Iterator() Iterator[T] {
+	return MakeIterator(
+		r.IsDefined,
+		r.Get,
+	)
+}
+
+func Some[T any](v T) Option[T] {
+	return Option[T]{&v}
 }

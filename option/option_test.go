@@ -125,7 +125,7 @@ func TestCompileError(t *testing.T) {
 	}).
 		Ap(1).
 		Ap(20)
-	println(res)
+	fmt.Println(res)
 
 }
 

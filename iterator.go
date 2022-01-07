@@ -10,39 +10,30 @@ type Iterable[T any] interface {
 	Iterator() Iterator[T]
 }
 
-type Iterator[T any] interface {
-	HasNext() bool
-	Next() T
-	NextOption() Option[T]
-	Take(n int) Iterator[T]
-	TakeWhile(p func(T) bool) Iterator[T]
-	Drop(n int) Iterator[T]
-	DropWhile(p func(T) bool) Iterator[T]
-	Filter(p func(T) bool) Iterator[T]
-	FilterNot(p func(T) bool) Iterator[T]
-	Find(p func(T) bool) Option[T]
-	Foreach(p func(T))
-	Concat(tail Iterator[T]) Iterator[T]
-	Reduce(m Monoid[T]) T
-	Exists(p func(v T) bool) bool
-	ForAll(p func(v T) bool) bool
-	IsEmpty() bool
-	NonEmpty() bool
-	TapEach(p func(T)) Iterator[T]
-	Span(p func(T) bool) (Iterator[T], Iterator[T])
-	Partition(p func(T) bool) (Iterator[T], Iterator[T])
-	Duplicate() (Iterator[T], Iterator[T])
-	MakeString(sep string) string
+type Iterator[T any] struct {
+	hasNext func() bool
+	next    func() T
 }
 
-var _ Iterator[int] = IteratorAdaptor[int]{}
-
-type IteratorAdaptor[T any] struct {
-	IsHasNext func() bool
-	GetNext   func() T
+func (r Iterator[T]) ToSeq() Seq[T] {
+	ret := Seq[T]{}
+	for r.HasNext() {
+		ret = append(ret, r.Next())
+	}
+	return ret
 }
 
-func (r IteratorAdaptor[T]) MakeString(sep string) string {
+func (r Iterator[T]) ToList() List[T] {
+	return iteratorList[T]{r.NextOption(), r}
+}
+
+func (r Iterator[T]) Map(f func(T) any) Iterator[any] {
+	return MakeIterator(r.HasNext, func() any {
+		return f(r.Next())
+	})
+}
+
+func (r Iterator[T]) MakeString(sep string) string {
 	buf := &bytes.Buffer{}
 
 	first := true
@@ -61,25 +52,20 @@ func (r IteratorAdaptor[T]) MakeString(sep string) string {
 	return buf.String()
 }
 
-// func (r IteratorAdaptor[T]) Map(f func(T) any) Iterator[any] {
-// 	return MakeIterator(r.HasNext, func() any {
-// 		return f(r.Next())
-// 	})
-// }
-
-func (r IteratorAdaptor[T]) HasNext() bool {
-	return r.IsHasNext()
+func (r Iterator[T]) HasNext() bool {
+	return r.hasNext()
 }
 
-func (r IteratorAdaptor[T]) Next() T {
-	return r.GetNext()
+func (r Iterator[T]) Next() T {
+	return r.next()
 }
 
-func (r IteratorAdaptor[T]) NextOption() Option[T] {
+func (r Iterator[T]) NextOption() Option[T] {
 	if r.HasNext() {
-		return Some[T]{r.GetNext()}
+		v := r.next()
+		return Option[T]{&v}
 	}
-	return None[T]{}
+	return Option[T]{}
 }
 
 func iteratorToSeq[T any](r Iterator[T]) Seq[T] {
@@ -94,7 +80,7 @@ func iteratorToList[T any](r Iterator[T]) List[T] {
 	return iteratorList[T]{r.NextOption(), r}
 }
 
-func (r IteratorAdaptor[T]) Take(n int) Iterator[T] {
+func (r Iterator[T]) Take(n int) Iterator[T] {
 
 	i := 0
 	hasNext := func() bool {
@@ -115,14 +101,14 @@ func (r IteratorAdaptor[T]) Take(n int) Iterator[T] {
 	)
 }
 
-func (r IteratorAdaptor[T]) nextOnEmpty() T {
+func (r Iterator[T]) nextOnEmpty() T {
 	panic("next on empty iterator")
 }
 
-func (r IteratorAdaptor[T]) TakeWhile(p func(T) bool) Iterator[T] {
+func (r Iterator[T]) TakeWhile(p func(T) bool) Iterator[T] {
 
 	breaking := false
-	var fv Option[T] = None[T]{}
+	var fv Option[T] = Option[T]{}
 
 	hasNext := func() bool {
 		if breaking {
@@ -136,7 +122,7 @@ func (r IteratorAdaptor[T]) TakeWhile(p func(T) bool) Iterator[T] {
 		if r.HasNext() {
 			v := r.Next()
 			if p(v) {
-				fv = Some[T]{v}
+				fv = Some(v)
 				return true
 			}
 			breaking = true
@@ -150,7 +136,7 @@ func (r IteratorAdaptor[T]) TakeWhile(p func(T) bool) Iterator[T] {
 
 			if hasNext() {
 				ret := fv.Get()
-				fv = None[T]{}
+				fv = Option[T]{}
 				return ret
 			}
 			return r.nextOnEmpty()
@@ -158,7 +144,7 @@ func (r IteratorAdaptor[T]) TakeWhile(p func(T) bool) Iterator[T] {
 	)
 }
 
-func (r IteratorAdaptor[T]) Drop(n int) Iterator[T] {
+func (r Iterator[T]) Drop(n int) Iterator[T] {
 
 	for i := 0; i < n && r.HasNext(); i++ {
 		r.Next()
@@ -167,10 +153,10 @@ func (r IteratorAdaptor[T]) Drop(n int) Iterator[T] {
 	return r
 }
 
-func (r IteratorAdaptor[T]) DropWhile(p func(T) bool) Iterator[T] {
+func (r Iterator[T]) DropWhile(p func(T) bool) Iterator[T] {
 
 	found := false
-	var first Option[T] = None[T]{}
+	var first Option[T] = Option[T]{}
 	hasNext := func() bool {
 		if found {
 			return r.HasNext()
@@ -181,7 +167,7 @@ func (r IteratorAdaptor[T]) DropWhile(p func(T) bool) Iterator[T] {
 		for r.HasNext() {
 			v := r.Next()
 			if !p(v) {
-				first = Some[T]{v}
+				first = Some(v)
 				found = true
 				return true
 			}
@@ -195,7 +181,7 @@ func (r IteratorAdaptor[T]) DropWhile(p func(T) bool) Iterator[T] {
 			if hasNext() {
 				if first.IsDefined() {
 					ret := first.Get()
-					first = None[T]{}
+					first = Option[T]{}
 					return ret
 				}
 
@@ -209,10 +195,10 @@ func (r IteratorAdaptor[T]) DropWhile(p func(T) bool) Iterator[T] {
 	)
 }
 
-func (r IteratorAdaptor[T]) Filter(p func(T) bool) Iterator[T] {
+func (r Iterator[T]) Filter(p func(T) bool) Iterator[T] {
 
 	first := true
-	var fv Option[T] = None[T]{}
+	var fv Option[T] = Option[T]{}
 
 	hasNext := func() bool {
 		if first {
@@ -236,43 +222,43 @@ func (r IteratorAdaptor[T]) Filter(p func(T) bool) Iterator[T] {
 	)
 }
 
-func (r IteratorAdaptor[T]) FilterNot(p func(T) bool) Iterator[T] {
+func (r Iterator[T]) FilterNot(p func(T) bool) Iterator[T] {
 	return r.Filter(func(t T) bool {
 		return !p(t)
 	})
 }
 
-func (r IteratorAdaptor[T]) Find(p func(T) bool) Option[T] {
+func (r Iterator[T]) Find(p func(T) bool) Option[T] {
 	for r.HasNext() {
 		v := r.Next()
 		if p(v) {
-			return Some[T]{v}
+			return Some(v)
 		}
 	}
-	return None[T]{}
+	return Option[T]{}
 }
 
-func (r IteratorAdaptor[T]) Foreach(p func(T)) {
+func (r Iterator[T]) Foreach(p func(T)) {
 	for r.HasNext() {
 		v := r.Next()
 		p(v)
 	}
 }
 
-func (r IteratorAdaptor[T]) TapEach(p func(T)) Iterator[T] {
+func (r Iterator[T]) TapEach(p func(T)) Iterator[T] {
 	return MakeIterator(
 		func() bool {
-			return r.IsHasNext()
+			return r.hasNext()
 		},
 		func() T {
-			ret := r.GetNext()
+			ret := r.next()
 			p(ret)
 			return ret
 		},
 	)
 }
 
-func (r IteratorAdaptor[T]) Concat(tail Iterator[T]) Iterator[T] {
+func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 
 	return MakeIterator(
 		func() bool {
@@ -287,7 +273,7 @@ func (r IteratorAdaptor[T]) Concat(tail Iterator[T]) Iterator[T] {
 	)
 }
 
-func (r IteratorAdaptor[T]) Reduce(m Monoid[T]) T {
+func (r Iterator[T]) Reduce(m Monoid[T]) T {
 	ret := m.Empty()
 	for r.HasNext() {
 		v := r.Next()
@@ -296,7 +282,7 @@ func (r IteratorAdaptor[T]) Reduce(m Monoid[T]) T {
 	return ret
 }
 
-func (r IteratorAdaptor[T]) Exists(p func(v T) bool) bool {
+func (r Iterator[T]) Exists(p func(v T) bool) bool {
 	for r.HasNext() {
 		if p(r.Next()) {
 			return true
@@ -306,7 +292,7 @@ func (r IteratorAdaptor[T]) Exists(p func(v T) bool) bool {
 	return false
 }
 
-func (r IteratorAdaptor[T]) ForAll(p func(v T) bool) bool {
+func (r Iterator[T]) ForAll(p func(v T) bool) bool {
 	for r.HasNext() {
 		if !p(r.Next()) {
 			return false
@@ -315,15 +301,15 @@ func (r IteratorAdaptor[T]) ForAll(p func(v T) bool) bool {
 	return true
 }
 
-func (r IteratorAdaptor[T]) IsEmpty() bool {
+func (r Iterator[T]) IsEmpty() bool {
 	return !r.HasNext()
 }
 
-func (r IteratorAdaptor[T]) NonEmpty() bool {
+func (r Iterator[T]) NonEmpty() bool {
 	return r.HasNext()
 }
 
-func (r IteratorAdaptor[T]) Duplicate() (Iterator[T], Iterator[T]) {
+func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 	lock := sync.Mutex{}
 
 	queue := Seq[T]{}
@@ -336,7 +322,7 @@ func (r IteratorAdaptor[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			defer lock.Unlock()
 
 			if leftAhead || queue.IsEmpty() {
-				return r.IsHasNext()
+				return r.hasNext()
 			}
 			// queue not empty
 			return true
@@ -367,7 +353,7 @@ func (r IteratorAdaptor[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			defer lock.Unlock()
 
 			if !leftAhead || queue.IsEmpty() {
-				return r.IsHasNext()
+				return r.hasNext()
 			}
 			// queue not empty
 			return true
@@ -395,14 +381,14 @@ func (r IteratorAdaptor[T]) Duplicate() (Iterator[T], Iterator[T]) {
 	return left, right
 }
 
-func (r IteratorAdaptor[T]) Span(p func(T) bool) (Iterator[T], Iterator[T]) {
+func (r Iterator[T]) Span(p func(T) bool) (Iterator[T], Iterator[T]) {
 	left, right := r.Duplicate()
 
 	return left.TakeWhile(p), right.DropWhile(p)
 
 }
 
-func (r IteratorAdaptor[T]) Partition(p func(T) bool) (Iterator[T], Iterator[T]) {
+func (r Iterator[T]) Partition(p func(T) bool) (Iterator[T], Iterator[T]) {
 	left, right := r.Duplicate()
 
 	return left.Filter(p), right.FilterNot(p)
@@ -410,9 +396,9 @@ func (r IteratorAdaptor[T]) Partition(p func(T) bool) (Iterator[T], Iterator[T])
 }
 
 func MakeIterator[T any](has func() bool, next func() T) Iterator[T] {
-	return IteratorAdaptor[T]{
-		IsHasNext: has,
-		GetNext:   next,
+	return Iterator[T]{
+		hasNext: has,
+		next:    next,
 	}
 }
 

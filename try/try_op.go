@@ -2,22 +2,19 @@
 package try
 
 import (
-	"fmt"
-
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/product"
 )
 
 func Success[T any](t T) fp.Try[T] {
-	return success[T]{t}
+	return fp.Success(t)
 }
 
 func Failure[T any](err error) fp.Try[T] {
-	return failure[T]{err}
+	return fp.Failure[T](err)
 }
 
 func FromOption[T any](v fp.Option[T]) fp.Try[T] {
@@ -139,114 +136,6 @@ func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[
 	}
 
 	return f(s.Get(), lazy.Done(zero))
-}
-
-type success[T any] struct {
-	v T
-}
-
-func (r success[T]) IsSuccess() bool {
-	return true
-}
-
-func (r success[T]) IsFailure() bool {
-	return false
-}
-
-func (r success[T]) Get() T {
-	return r.v
-}
-
-func (r success[T]) Unapply() (T, error) {
-	return r.v, nil
-}
-
-func (r success[T]) Foreach(f func(v T)) {
-	f(r.v)
-}
-func (r success[T]) Failed() fp.Try[error] {
-	return failure[error]{fp.ErrTryNotFailed}
-}
-func (r success[T]) OrElse(t T) T {
-	return r.v
-}
-func (r success[T]) OrElseGet(func() T) T {
-	return r.v
-}
-func (r success[T]) Or(func() fp.Try[T]) fp.Try[T] {
-	return r
-}
-func (r success[T]) Recover(func(err error) T) fp.Try[T] {
-	return r
-
-}
-func (r success[T]) RecoverWith(func(err error) fp.Try[T]) fp.Try[T] {
-	return r
-}
-
-func (r success[T]) ToOption() fp.Option[T] {
-	return option.Some(r.v)
-}
-
-func (r success[T]) String() string {
-	return fmt.Sprintf("Success(%v)", r.Get())
-}
-
-// func (r success[T]) Iterator() fp.Iterator[T] {
-// 	return fp.MakeIterator(
-// 		r.IsSuccess,
-// 		r.Get,
-// 	)
-// }
-
-type failure[T any] struct {
-	err error
-}
-
-func (r failure[T]) IsSuccess() bool {
-	return false
-}
-
-func (r failure[T]) IsFailure() bool {
-	return true
-}
-func (r failure[T]) Get() T {
-	panic("not possible")
-}
-
-func (r failure[T]) Unapply() (T, error) {
-	var zero T
-	return zero, r.err
-}
-
-func (r failure[T]) Foreach(f func(v T)) {
-
-}
-func (r failure[T]) Failed() fp.Try[error] {
-	return success[error]{r.err}
-}
-func (r failure[T]) OrElse(t T) T {
-	return t
-}
-func (r failure[T]) OrElseGet(f func() T) T {
-	return f()
-}
-func (r failure[T]) Or(f func() fp.Try[T]) fp.Try[T] {
-	return f()
-}
-func (r failure[T]) Recover(f func(err error) T) fp.Try[T] {
-	return success[T]{f(r.err)}
-
-}
-func (r failure[T]) RecoverWith(f func(err error) fp.Try[T]) fp.Try[T] {
-	return f(r.err)
-}
-func (r failure[T]) ToOption() fp.Option[T] {
-	return option.None[T]()
-}
-
-func (r failure[T]) String() string {
-	return fmt.Sprintf("Failure(%v)", r.err)
 }
 
 // func (r failure[T]) Iterator() fp.Iterator[T] {
