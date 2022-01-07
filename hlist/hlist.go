@@ -23,15 +23,6 @@ type Header[HT any] interface {
 	Head() HT
 }
 
-// Cons means H :: T
-// zero value of Cons[H,T] is not allowed.
-// so Cons defined as interface type
-type Cons[H any, T HList] interface {
-	HList
-	Head() H
-	Tail() T
-}
-
 type Nil struct {
 }
 
@@ -67,50 +58,46 @@ func (r Nil) sealed() {
 
 }
 
-type hlistImpl[H any, T HList] struct {
+type Cons[H any, T HList] struct {
 	head H
 	tail T
 }
 
-func (r hlistImpl[H, T]) Head() H {
+func (r Cons[H, T]) Head() H {
 	return r.head
 }
 
-func (r hlistImpl[H, T]) Tail() T {
+func (r Cons[H, T]) Tail() T {
 	return r.tail
 }
 
-func (r hlistImpl[H, T]) IsNil() bool {
+func (r Cons[H, T]) IsNil() bool {
 	return false
 }
 
-func (r hlistImpl[H, T]) HasTail() bool {
+func (r Cons[H, T]) HasTail() bool {
 	return Nil{} != any(r.tail)
 }
 
-func (r hlistImpl[H, T]) Unapply() (any, HList) {
+func (r Cons[H, T]) Unapply() (any, HList) {
 	return r.head, r.tail
 }
 
-func (r hlistImpl[H, T]) String() string {
+func (r Cons[H, T]) String() string {
 	return fmt.Sprintf("%v :: %v", r.head, r.tail)
 }
 
-func (r hlistImpl[H, T]) Foreach(f func(v any)) {
+func (r Cons[H, T]) Foreach(f func(v any)) {
 	f(r.head)
 	r.tail.Foreach(f)
 }
 
-func (r hlistImpl[H, T]) sealed() {
+func (r Cons[H, T]) sealed() {
 
-}
-
-func hlist[H any, T HList](h H, t T) Cons[H, T] {
-	return hlistImpl[H, T]{h, t}
 }
 
 func Concat[H any, T HList](h H, t T) Cons[H, T] {
-	return hlist(h, t)
+	return Cons[H, T]{h, t}
 }
 
 func Of1[H any](h H) Cons[H, Nil] {
