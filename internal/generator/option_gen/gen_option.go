@@ -165,11 +165,7 @@ import (
 
 			fmt.Fprintf(f, "%s ApOption( a fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintf(f, `
-	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor%d%s{nh, Ap(r.fn, a)}
 }

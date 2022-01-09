@@ -106,9 +106,9 @@ func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.ExecContext) fp.Fu
 	}, ctx...)
 }
 
-func Map2[T, U any](a, b fp.Future[T], f func(T, T) U, ctx ...fp.ExecContext) fp.Future[U] {
-	return FlatMap(a, func(v1 T) fp.Future[U] {
-		return Map(b, func(v2 T) U {
+func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp.ExecContext) fp.Future[U] {
+	return FlatMap(a, func(v1 A) fp.Future[U] {
+		return Map(b, func(v2 B) U {
 			return f(v1, v2)
 		}, ctx...)
 	}, ctx...)

@@ -70,9 +70,9 @@ func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
 	})
 }
 
-func Map2[T, U any](a, b fp.Try[T], f func(T, T) U) fp.Try[U] {
-	return FlatMap(a, func(v1 T) fp.Try[U] {
-		return Map(b, func(v2 T) U {
+func Map2[A, B, U any](a fp.Try[A], b fp.Try[B], f func(A, B) U) fp.Try[U] {
+	return FlatMap(a, func(v1 A) fp.Try[U] {
+		return Map(b, func(v2 B) U {
 			return f(v1, v2)
 		})
 	})

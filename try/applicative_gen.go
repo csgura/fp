@@ -48,11 +48,7 @@ func (r ApplicativeFunctor2[H, HT, A1, A2, R]) HListFlatMap(a func(H) fp.Try[A1]
 }
 func (r ApplicativeFunctor2[H, HT, A1, A2, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor1[hlist.Cons[A1, H], A1, A2, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor1[hlist.Cons[A1, H], A1, A2, R]{nh, Ap(r.fn, a)}
 }
@@ -124,11 +120,7 @@ func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) HListFlatMap(a func(H) fp.Try
 }
 func (r ApplicativeFunctor3[H, HT, A1, A2, A3, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor2[hlist.Cons[A1, H], A1, A2, A3, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor2[hlist.Cons[A1, H], A1, A2, A3, R]{nh, Ap(r.fn, a)}
 }
@@ -200,11 +192,7 @@ func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) HListFlatMap(a func(H) fp
 }
 func (r ApplicativeFunctor4[H, HT, A1, A2, A3, A4, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor3[hlist.Cons[A1, H], A1, A2, A3, A4, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor3[hlist.Cons[A1, H], A1, A2, A3, A4, R]{nh, Ap(r.fn, a)}
 }
@@ -276,11 +264,7 @@ func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) HListFlatMap(a func(H
 }
 func (r ApplicativeFunctor5[H, HT, A1, A2, A3, A4, A5, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor4[hlist.Cons[A1, H], A1, A2, A3, A4, A5, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor4[hlist.Cons[A1, H], A1, A2, A3, A4, A5, R]{nh, Ap(r.fn, a)}
 }
@@ -352,11 +336,7 @@ func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) HListFlatMap(a fu
 }
 func (r ApplicativeFunctor6[H, HT, A1, A2, A3, A4, A5, A6, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor5[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, R]{nh, Ap(r.fn, a)}
 }
@@ -428,11 +408,7 @@ func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) HListFlatMap(
 }
 func (r ApplicativeFunctor7[H, HT, A1, A2, A3, A4, A5, A6, A7, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor6[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, R]{nh, Ap(r.fn, a)}
 }
@@ -504,11 +480,7 @@ func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) HListFlat
 }
 func (r ApplicativeFunctor8[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor7[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, R]{nh, Ap(r.fn, a)}
 }
@@ -580,11 +552,7 @@ func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) HList
 }
 func (r ApplicativeFunctor9[H, HT, A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
 
-	nh := FlatMap(r.h, func(hv H) fp.Try[hlist.Cons[A1, H]] {
-		return Map(a, func(av A1) hlist.Cons[A1, H] {
-			return hlist.Concat(av, hv)
-		})
-	})
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
 	return ApplicativeFunctor8[hlist.Cons[A1, H], A1, A2, A3, A4, A5, A6, A7, A8, A9, R]{nh, Ap(r.fn, a)}
 }
