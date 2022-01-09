@@ -25,9 +25,9 @@ func Map[L, R, R1 any](opt fp.Either[L, R], f func(v R) R1) fp.Either[L, R1] {
 	})
 }
 
-func Map2[L, R, R1 any](a, b fp.Either[L, R], f func(R, R) R1) fp.Either[L, R1] {
-	return FlatMap(a, func(v1 R) fp.Either[L, R1] {
-		return Map(b, func(v2 R) R1 {
+func Map2[L, R1, R2, R3 any](a fp.Either[L, R1], b fp.Either[L, R2], f func(R1, R2) R3) fp.Either[L, R3] {
+	return FlatMap(a, func(v1 R1) fp.Either[L, R3] {
+		return Map(b, func(v2 R2) R3 {
 			return f(v1, v2)
 		})
 	})

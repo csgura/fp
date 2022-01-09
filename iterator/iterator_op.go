@@ -73,9 +73,9 @@ func Map[T, U any](opt fp.Iterator[T], fn func(v T) U) fp.Iterator[U] {
 	)
 }
 
-func Map2[T, U any](a, b fp.Iterator[T], f func(T, T) U) fp.Iterator[U] {
-	return FlatMap(a, func(v1 T) fp.Iterator[U] {
-		return Map(b, func(v2 T) U {
+func Map2[A, B, U any](a fp.Iterator[A], b fp.Iterator[B], f func(A, B) U) fp.Iterator[U] {
+	return FlatMap(a, func(v1 A) fp.Iterator[U] {
+		return Map(b, func(v2 B) U {
 			return f(v1, v2)
 		})
 	})

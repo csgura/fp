@@ -38,9 +38,9 @@ func Map[T, U any](opt fp.Seq[T], fn func(v T) U) fp.Seq[U] {
 	return ret
 }
 
-func Map2[T, U any](a, b fp.Seq[T], f func(T, T) U) fp.Seq[U] {
-	return FlatMap(a, func(v1 T) fp.Seq[U] {
-		return Map(b, func(v2 T) U {
+func Map2[A, B, U any](a fp.Seq[A], b fp.Seq[B], f func(A, B) U) fp.Seq[U] {
+	return FlatMap(a, func(v1 A) fp.Seq[U] {
+		return Map(b, func(v2 B) U {
 			return f(v1, v2)
 		})
 	})
