@@ -1,6 +1,8 @@
 package promise
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 )
 
@@ -22,8 +24,11 @@ type future[T any] struct {
 }
 
 func (r future[T]) String() string {
-	return r.p.futreString()
-
+	v := r.p.Value()
+	if v.IsDefined() {
+		return fmt.Sprintf("fp.Future(%v)", v.Get())
+	}
+	return fmt.Sprintf("fp.Future[%s](not completed)", fp.TypeName[T]())
 }
 func (r future[T]) OnFailure(cb func(err error), ctx ...fp.ExecContext) {
 	r.OnComplete(func(try fp.Try[T]) {
