@@ -27,21 +27,13 @@ func (r Set[V]) Iterator() fp.Iterator[V] {
 }
 
 func (r Set[V]) Incl(v V) fp.SetMinimal[V] {
-	ret := Set[V]{}
-	for k, v := range r {
-		ret[k] = v
-	}
-	ret[v] = true
-	return ret
+	r[v] = true
+	return r
 }
 
 func (r Set[V]) Excl(v V) fp.SetMinimal[V] {
-	ret := Set[V]{}
-	for k, v := range r {
-		ret[k] = v
-	}
-	delete(ret, v)
-	return ret
+	delete(r, v)
+	return r
 }
 
 func SetOf[V comparable](v ...V) Set[V] {
@@ -68,25 +60,17 @@ func (r Map[K, V]) Size() int {
 }
 
 func (r Map[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
-	s := SetOf(k...)
 
-	nm := Map[K, V]{}
-	for k, v := range r {
-		if !s.Contains(k) {
-			nm[k] = v
-		}
+	for _, k := range k {
+		delete(r, k)
 	}
-	return nm
+	return r
 }
 
 func (r Map[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 
-	nm := Map[K, V]{}
-	for k, v := range r {
-		nm[k] = v
-	}
-	nm[k] = v
-	return nm
+	r[k] = v
+	return r
 }
 
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {

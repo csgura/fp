@@ -10,6 +10,10 @@ type MapMinimal[K, V any] interface {
 	Iterator() Iterator[Tuple2[K, V]]
 }
 
+type MapMinimalUpdatedWith[K, V any] interface {
+	UpdatedWith(k K, remap func(Option[V]) Option[V]) MapMinimal[K, V]
+}
+
 type Map[K, V any] interface {
 	IsEmpty() bool
 	NonEmpty() bool
@@ -53,6 +57,10 @@ func (r MapOps[K, V]) Updated(k K, v V) Map[K, V] {
 }
 
 func (r MapOps[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V] {
+	if um, ok := r.Map.(MapMinimalUpdatedWith[K, V]); ok {
+		return MakeMap(um.UpdatedWith(k, remap))
+	}
+
 	v := r.Get(k)
 	nv := remap(v)
 
