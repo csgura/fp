@@ -1,6 +1,9 @@
 package promise
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/internal/atomic"
 	"github.com/csgura/fp/option"
@@ -48,6 +51,15 @@ func (r *promise[T]) Complete(result fp.Try[T]) bool {
 
 func New[T any]() fp.Promise[T] {
 	return &promise[T]{}
+}
+
+func WithTimeout[T any](timeout time.Duration) fp.Promise[T] {
+	ret := &promise[T]{}
+
+	time.AfterFunc(timeout, func() {
+		ret.Failure(fp.Error(http.StatusRequestTimeout, "promise timeout : %s", timeout))
+	})
+	return ret
 }
 
 type onCompleteFunc[T any] func(t fp.Try[T])
