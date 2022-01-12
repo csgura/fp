@@ -12,8 +12,8 @@ func (r RunnableFunc) Run() {
 	r()
 }
 
-type ExecContext interface {
-	Execute(runnable Runnable)
+type Executor interface {
+	ExecuteUnsafe(runnable Runnable)
 }
 
 type Promise[T any] interface {
@@ -25,13 +25,13 @@ type Promise[T any] interface {
 }
 
 type Future[T any] interface {
-	OnFailure(cb func(err error), ctx ...ExecContext)
-	OnSuccess(cb func(success T), ctx ...ExecContext)
-	Foreach(f func(v T), ctx ...ExecContext)
-	OnComplete(cb func(try Try[T]), ctx ...ExecContext)
+	OnFailure(cb func(err error), ctx ...Executor)
+	OnSuccess(cb func(success T), ctx ...Executor)
+	Foreach(f func(v T), ctx ...Executor)
+	OnComplete(cb func(try Try[T]), ctx ...Executor)
 	IsCompleted() bool
 	Value() Option[Try[T]]
 	Failed() Future[error]
-	Recover(f func(err error) T, ctx ...ExecContext) Future[T]
-	RecoverWith(f func(err error) Future[T], ctx ...ExecContext) Future[T]
+	Recover(f func(err error) T, ctx ...Executor) Future[T]
+	RecoverWith(f func(err error) Future[T], ctx ...Executor) Future[T]
 }

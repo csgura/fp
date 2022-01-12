@@ -6,15 +6,15 @@ import (
 	"github.com/csgura/fp"
 )
 
-type goExecuter struct{}
+type goExecutor struct{}
 
-func (r goExecuter) Execute(runnable fp.Runnable) {
+func (r goExecutor) ExecuteUnsafe(runnable fp.Runnable) {
 	go runnable.Run()
 }
 
-func getExecuter(ctx ...fp.ExecContext) fp.ExecContext {
+func getExecuter(ctx ...fp.Executor) fp.Executor {
 	if len(ctx) == 0 {
-		return goExecuter{}
+		return goExecutor{}
 	}
 	return ctx[0]
 }
@@ -30,7 +30,7 @@ func (r future[T]) String() string {
 	}
 	return fmt.Sprintf("fp.Future[%s](not completed)", fp.TypeName[T]())
 }
-func (r future[T]) OnFailure(cb func(err error), ctx ...fp.ExecContext) {
+func (r future[T]) OnFailure(cb func(err error), ctx ...fp.Executor) {
 	r.OnComplete(func(try fp.Try[T]) {
 		if !try.IsSuccess() {
 			cb(try.Failed().Get())
@@ -38,7 +38,7 @@ func (r future[T]) OnFailure(cb func(err error), ctx ...fp.ExecContext) {
 	}, ctx...)
 }
 
-func (r future[T]) OnSuccess(cb func(success T), ctx ...fp.ExecContext) {
+func (r future[T]) OnSuccess(cb func(success T), ctx ...fp.Executor) {
 	r.OnComplete(func(try fp.Try[T]) {
 		if try.IsSuccess() {
 			cb(try.Get())
@@ -47,13 +47,13 @@ func (r future[T]) OnSuccess(cb func(success T), ctx ...fp.ExecContext) {
 
 }
 
-func (r future[T]) Foreach(f func(v T), ctx ...fp.ExecContext) {
+func (r future[T]) Foreach(f func(v T), ctx ...fp.Executor) {
 	r.OnSuccess(f, ctx...)
 }
 
-func (r future[T]) OnComplete(cb func(try fp.Try[T]), ctx ...fp.ExecContext) {
+func (r future[T]) OnComplete(cb func(try fp.Try[T]), ctx ...fp.Executor) {
 	r.p.dispatchOrAddCallback(func(t fp.Try[T]) {
-		getExecuter(ctx...).Execute(fp.RunnableFunc(func() {
+		getExecuter(ctx...).ExecuteUnsafe(fp.RunnableFunc(func() {
 			cb(t)
 		}))
 	})
@@ -81,7 +81,7 @@ func (r future[T]) Failed() fp.Future[error] {
 	return np.Future()
 }
 
-func (r future[T]) Recover(f func(err error) T, ctx ...fp.ExecContext) fp.Future[T] {
+func (r future[T]) Recover(f func(err error) T, ctx ...fp.Executor) fp.Future[T] {
 	np := New[T]()
 
 	r.OnComplete(func(t fp.Try[T]) {
@@ -95,7 +95,7 @@ func (r future[T]) Recover(f func(err error) T, ctx ...fp.ExecContext) fp.Future
 	return np.Future()
 }
 
-func (r future[T]) RecoverWith(f func(err error) fp.Future[T], ctx ...fp.ExecContext) fp.Future[T] {
+func (r future[T]) RecoverWith(f func(err error) fp.Future[T], ctx ...fp.Executor) fp.Future[T] {
 	np := New[T]()
 
 	r.OnComplete(func(t fp.Try[T]) {

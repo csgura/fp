@@ -13,15 +13,15 @@ import (
 	"github.com/csgura/fp/try"
 )
 
-type goExecuter struct{}
+type goExecutor struct{}
 
-func (r goExecuter) Execute(runnable fp.Runnable) {
+func (r goExecutor) ExecuteUnsafe(runnable fp.Runnable) {
 	go runnable.Run()
 }
 
-func getExecuter(ctx ...fp.ExecContext) fp.ExecContext {
+func getExecutor(ctx ...fp.Executor) fp.Executor {
 	if len(ctx) == 0 {
-		return goExecuter{}
+		return goExecutor{}
 	}
 	return ctx[0]
 }
@@ -40,10 +40,10 @@ func Failed[T any](err error) fp.Future[T] {
 
 var Unit fp.Future[fp.Unit] = Successful(fp.Unit{})
 
-func Apply[T any](f func() T, ctx ...fp.ExecContext) fp.Future[T] {
+func Apply[T any](f func() T, ctx ...fp.Executor) fp.Future[T] {
 	p := promise.New[T]()
 
-	getExecuter(ctx...).Execute(fp.RunnableFunc(func() {
+	getExecutor(ctx...).ExecuteUnsafe(fp.RunnableFunc(func() {
 		defer func() {
 			if err := recover(); err != nil {
 				p.Failure(fp.PanicError(err))
@@ -57,10 +57,10 @@ func Apply[T any](f func() T, ctx ...fp.ExecContext) fp.Future[T] {
 	return p.Future()
 }
 
-func Apply2[T any](f func() (T, error), ctx ...fp.ExecContext) fp.Future[T] {
+func Apply2[T any](f func() (T, error), ctx ...fp.Executor) fp.Future[T] {
 	p := promise.New[T]()
 
-	getExecuter(ctx...).Execute(fp.RunnableFunc(func() {
+	getExecutor(ctx...).ExecuteUnsafe(fp.RunnableFunc(func() {
 		defer func() {
 			if err := recover(); err != nil {
 				p.Failure(fp.PanicError(err))
@@ -94,19 +94,19 @@ func FromTry[T any](v fp.Try[T]) fp.Future[T] {
 	}
 }
 
-func Ap[T, U any](t fp.Future[fp.Func1[T, U]], a fp.Future[T], ctx ...fp.ExecContext) fp.Future[U] {
+func Ap[T, U any](t fp.Future[fp.Func1[T, U]], a fp.Future[T], ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Future[U] {
 		return Map(a, f)
 	}, ctx...)
 }
 
-func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.ExecContext) fp.Future[U] {
+func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(opt, func(v T) fp.Future[U] {
 		return Successful(f(v))
 	}, ctx...)
 }
 
-func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp.ExecContext) fp.Future[U] {
+func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(a, func(v1 A) fp.Future[U] {
 		return Map(b, func(v2 B) U {
 			return f(v1, v2)
@@ -114,49 +114,49 @@ func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp
 	}, ctx...)
 }
 
-func Lift[T, U any](f func(v T) U, ctx ...fp.ExecContext) fp.Func1[fp.Future[T], fp.Future[U]] {
+func Lift[T, U any](f func(v T) U, ctx ...fp.Executor) fp.Func1[fp.Future[T], fp.Future[U]] {
 	return func(opt fp.Future[T]) fp.Future[U] {
 		return Map(opt, f, ctx...)
 	}
 }
 
-func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.ExecContext) fp.Func2[fp.Future[A1], fp.Future[A2], fp.Future[R]] {
+func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.Executor) fp.Func2[fp.Future[A1], fp.Future[A2], fp.Future[R]] {
 	return func(a1 fp.Future[A1], a2 fp.Future[A2]) fp.Future[R] {
 		return Ap(Ap(Successful(f.Curried()), a1, ctx...), a2, ctx...)
 	}
 }
 
-func Compose[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+func Compose[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(f1(a), f2, ctx...)
 	}
 }
 
-func Compose2[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+func Compose2[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(f1(a), f2, ctx...)
 	}
 }
 
-func ComposeOption[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+func ComposeOption[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(FromOption(f1(a)), f2, ctx...)
 	}
 }
 
-func ComposeTry[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+func ComposeTry[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(FromTry(f1(a)), f2, ctx...)
 	}
 }
 
-func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, C], ctx ...fp.ExecContext) fp.Func1[A, fp.Future[C]] {
+func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, C], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
 	return func(a A) fp.Future[C] {
 		return Map(f1(a), f2, ctx...)
 	}
 }
 
-func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.ExecContext) fp.Future[U] {
+func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.Executor) fp.Future[U] {
 	np := promise.New[U]()
 
 	opt.OnComplete(func(t fp.Try[T]) {
@@ -172,7 +172,7 @@ func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.Ex
 	return np.Future()
 }
 
-func Transform[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Try[U], ctx ...fp.ExecContext) fp.Future[U] {
+func Transform[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Try[U], ctx ...fp.Executor) fp.Future[U] {
 	np := promise.New[U]()
 
 	opt.OnComplete(func(t fp.Try[T]) {
@@ -182,7 +182,7 @@ func Transform[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Try[U], ctx .
 	return np.Future()
 }
 
-func TransformWith[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Future[U], ctx ...fp.ExecContext) fp.Future[U] {
+func TransformWith[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Future[U], ctx ...fp.Executor) fp.Future[U] {
 	np := promise.New[U]()
 
 	opt.OnComplete(func(t fp.Try[T]) {
@@ -215,7 +215,7 @@ func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Fut
 		ApFuture(c3)
 }
 
-func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.ExecContext) fp.Future[fp.Seq[T]] {
+func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Seq[T]] {
 	head, tail := futureList.UnSeq()
 	if head.IsDefined() {
 		return FlatMap(head.Get(), func(headResult T) fp.Future[fp.Seq[T]] {
@@ -234,19 +234,19 @@ type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	fn fp.Future[fp.Func1[A, R]]
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A, ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A, ctx ...fp.Executor) fp.Future[R] {
 	return r.FlatMap(func(h HT) fp.Future[A] {
 		return Successful(a(h))
 	}, ctx...)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A, ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A, ctx ...fp.Executor) fp.Future[R] {
 	return r.HListFlatMap(func(h H) fp.Future[A] {
 		return Successful(a(h))
 	}, ctx...)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a(v)
 	}, ctx...)
@@ -254,7 +254,7 @@ func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], c
 	return r.ApFuture(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A], ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a(v.Head())
 	}, ctx...)
@@ -278,28 +278,28 @@ func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Future[R] {
 	return r.ApFuture(Successful(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFutureFunc(a func() fp.Future[A], ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFutureFunc(a func() fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a()
 	}, ctx...)
 	return r.ApFuture(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A], ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A], ctx ...fp.Executor) fp.Future[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return FromTry(a())
 	}, ctx...)
 	return r.ApFuture(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A], ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A], ctx ...fp.Executor) fp.Future[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return FromOption(a())
 	}, ctx...)
 	return r.ApFuture(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A, ctx ...fp.ExecContext) fp.Future[R] {
+func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A, ctx ...fp.Executor) fp.Future[R] {
 
 	av := Map(r.h, func(v H) A {
 		return a()
@@ -326,7 +326,7 @@ func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {
 	return <-ch
 }
 
-func Func0[R any](f func() (R, error), ctx ...fp.ExecContext) fp.Func1[fp.Unit, fp.Future[R]] {
+func Func0[R any](f func() (R, error), ctx ...fp.Executor) fp.Func1[fp.Unit, fp.Future[R]] {
 	return func(fp.Unit) fp.Future[R] {
 		return Apply2(f, ctx...)
 	}

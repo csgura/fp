@@ -162,7 +162,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 `, i, flipTypeArgs(1, i), curriedType(3, i))
 			}
 
-			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Future[A1], ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Future[A1] {
 		return a(v.Head())
@@ -170,21 +170,21 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApFuture(av)
 }`)
 
-			fmt.Fprintf(f, "%s Map( a func(HT) A1,ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s Map( a func(HT) A1,ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.FlatMap(func(h HT) fp.Future[A1] {
 		return Successful(a(h))
 	}, ctx...)
 }`)
 
-			fmt.Fprintf(f, "%s HListMap( a func(H) A1, ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s HListMap( a func(H) A1, ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.HListFlatMap(func(h H) fp.Future[A1] {
 		return Successful(a(h))
 	}, ctx...)
 }`)
 
-			fmt.Fprintf(f, "%s HListFlatMap( a func(H) fp.Future[A1], ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s HListFlatMap( a func(H) fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Future[A1] {
 		return a(v)
@@ -219,7 +219,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 
 }`)
 
-			fmt.Fprintf(f, "%s ApFutureFunc( a func() fp.Future[A1], ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApFutureFunc( a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Future[A1] {
 		return a()
@@ -227,7 +227,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApFuture(av)
 }`)
 
-			fmt.Fprintf(f, "%s ApTryFunc( a func() fp.Try[A1], ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApTryFunc( a func() fp.Try[A1], ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Future[A1] {
 		return FromTry(a())
@@ -235,7 +235,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApFuture(av)
 }`)
 
-			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1], ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1], ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Future[A1] {
 		return FromOption(a())
@@ -243,7 +243,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApFuture(av)
 }`)
 
-			fmt.Fprintf(f, "%s ApFunc( a func() A1, ctx ...fp.ExecContext) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApFunc( a func() A1, ctx ...fp.Executor) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := Map(r.h, func(v H) A1 {
 		return a()
@@ -265,7 +265,7 @@ import (
 
 		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
-func Func%d[%s,R any]( f func(%s) (R,error) , exec ... fp.ExecContext) fp.Func%d[%s,fp.Future[R]] {
+func Func%d[%s,R any]( f func(%s) (R,error) , exec ... fp.Executor) fp.Func%d[%s,fp.Future[R]] {
 	return func(%s) fp.Future[R] {
 		return Apply2(func() (R, error) {
 			return f(%s)
@@ -275,7 +275,7 @@ func Func%d[%s,R any]( f func(%s) (R,error) , exec ... fp.ExecContext) fp.Func%d
 `, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
 
 			fmt.Fprintf(f, `
-func Unit%d[%s any]( f func(%s) (error) , exec ... fp.ExecContext) fp.Func%d[%s,fp.Future[fp.Unit]] {
+func Unit%d[%s any]( f func(%s) (error) , exec ... fp.Executor) fp.Func%d[%s,fp.Future[fp.Unit]] {
 	return func(%s) fp.Future[fp.Unit] {
 		return Apply2(func() (fp.Unit, error) {
 			err := f(%s)
@@ -289,7 +289,7 @@ func Unit%d[%s any]( f func(%s) (error) , exec ... fp.ExecContext) fp.Func%d[%s,
 
 		for i := 3; i < max.Compose; i++ {
 			fmt.Fprintf(f, `
-func Compose%d[%s,R any] ( %s , exec ...fp.ExecContext ) fp.Func1[A1,fp.Future[R]] {
+func Compose%d[%s,R any] ( %s , exec ...fp.Executor ) fp.Func1[A1,fp.Future[R]] {
 	return Compose2(f1, Compose%d(%s, exec...), exec...)
 }
 			`, i, common.FuncTypeArgs(1, i), common.Monad("fp.Future").FuncChain(1, i), i-1, common.Args("f").Call(2, i))
