@@ -45,6 +45,10 @@ type Wrapper[B any] interface {
 }
 
 func Unwrap[B any](a Wrapper[B]) B {
+	if a == nil {
+		var zero B
+		return zero
+	}
 	return a.Unwrap()
 }
 
@@ -65,7 +69,7 @@ func (r *wrapperImpl[B]) Unwrap() B {
 }
 
 func TestDependent(t *testing.T) {
-	var a Wrapper[int]
+	var a Wrapper[int] = &wrapperImpl[int]{0}
 
 	Unwrap(a)
 	Unwrap2[int](a)

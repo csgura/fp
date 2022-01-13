@@ -20,7 +20,7 @@ func (r goExecutor) ExecuteUnsafe(runnable fp.Runnable) {
 }
 
 func getExecutor(ctx ...fp.Executor) fp.Executor {
-	if len(ctx) == 0 {
+	if len(ctx) == 0 || ctx[0] == nil {
 		return goExecutor{}
 	}
 	return ctx[0]

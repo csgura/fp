@@ -12,8 +12,8 @@ func (r goExecutor) ExecuteUnsafe(runnable fp.Runnable) {
 	go runnable.Run()
 }
 
-func getExecuter(ctx ...fp.Executor) fp.Executor {
-	if len(ctx) == 0 {
+func getExecutor(ctx ...fp.Executor) fp.Executor {
+	if len(ctx) == 0 || ctx[0] == nil {
 		return goExecutor{}
 	}
 	return ctx[0]
@@ -53,7 +53,7 @@ func (r future[T]) Foreach(f func(v T), ctx ...fp.Executor) {
 
 func (r future[T]) OnComplete(cb func(try fp.Try[T]), ctx ...fp.Executor) {
 	r.p.dispatchOrAddCallback(func(t fp.Try[T]) {
-		getExecuter(ctx...).ExecuteUnsafe(fp.RunnableFunc(func() {
+		getExecutor(ctx...).ExecuteUnsafe(fp.RunnableFunc(func() {
 			cb(t)
 		}))
 	})
