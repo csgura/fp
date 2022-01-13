@@ -72,6 +72,27 @@ func (r *CopyOnWriteMap[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
 	return r
 }
 
+func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
+
+	ret := r.Get(k)
+	if ret.IsDefined() {
+		return ret.Get()
+	}
+
+	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
+		nm := Map[K, V]{}
+
+		for k, v := range om {
+			nm[k] = v
+
+		}
+		nm[k] = f()
+		return nm
+	})
+
+	return r.Get(k).Get()
+}
+
 func (r *CopyOnWriteMap[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 
 	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
