@@ -120,6 +120,10 @@ func (e *errorCode) StatusCode() int {
 	return e.code
 }
 
+func (e *errorCode) ErrorTitle() string {
+	return http.StatusText(e.code)
+}
+
 func Error(code int, fmtStr string, args ...any) error {
 
 	var cause error = nil

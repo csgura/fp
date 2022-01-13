@@ -39,3 +39,40 @@ func TestCompileError(t *testing.T) {
 	// fmt.Println(res)
 
 }
+
+type Wrapper[B any] interface {
+	Unwrap() B
+}
+
+func Unwrap[B any](a Wrapper[B]) B {
+	return a.Unwrap()
+}
+
+func Unwrap2[B any, A Wrapper[B]](a A) B {
+	return a.Unwrap()
+}
+
+func Unwrap3[A Wrapper[B], B any](a A) B {
+	return a.Unwrap()
+}
+
+type wrapperImpl[B any] struct {
+	v B
+}
+
+func (r *wrapperImpl[B]) Unwrap() B {
+	return r.v
+}
+
+func TestDependent(t *testing.T) {
+	var a Wrapper[int]
+
+	Unwrap(a)
+	Unwrap2[int](a)
+
+	b := &wrapperImpl[int]{10}
+
+	Unwrap[int](b)
+	Unwrap2[int](b)
+	// Unwrap3[Wrapper[int]](b)
+}
