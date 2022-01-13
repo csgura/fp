@@ -79,6 +79,7 @@ func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
 		return ret.Get()
 	}
 
+	nv := f()
 	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
 		nm := Map[K, V]{}
 
@@ -86,7 +87,7 @@ func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
 			nm[k] = v
 
 		}
-		nm[k] = f()
+		nm[k] = nv
 		return nm
 	})
 
