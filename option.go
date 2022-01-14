@@ -3,17 +3,18 @@ package fp
 import "fmt"
 
 type Option[T any] struct {
-	v *T
+	present bool
+	v       T
 }
 
 func (r Option[T]) Foreach(f func(v T)) {
 	if r.IsDefined() {
-		f(*r.v)
+		f(r.Get())
 	}
 }
 
 func (r Option[T]) IsDefined() bool {
-	return r.v != nil
+	return r.present
 }
 
 func (r Option[T]) IsEmpty() bool {
@@ -21,7 +22,10 @@ func (r Option[T]) IsEmpty() bool {
 }
 
 func (r Option[T]) Get() T {
-	return *r.v
+	if r.IsDefined() {
+		return r.v
+	}
+	panic("Option.empty")
 }
 
 func (r Option[T]) String() string {
@@ -34,7 +38,7 @@ func (r Option[T]) String() string {
 
 func (r Option[T]) Filter(p func(v T) bool) Option[T] {
 	if r.IsDefined() {
-		if p(*r.v) {
+		if p(r.Get()) {
 			return r
 		}
 	}
@@ -44,13 +48,13 @@ func (r Option[T]) Filter(p func(v T) bool) Option[T] {
 
 func (r Option[T]) OrElse(t T) T {
 	if r.IsDefined() {
-		return *r.v
+		return r.Get()
 	}
 	return t
 }
 func (r Option[T]) OrElseGet(f func() T) T {
 	if r.IsDefined() {
-		return *r.v
+		return r.Get()
 	}
 	return f()
 }
@@ -66,25 +70,25 @@ func (r Option[T]) Recover(f func() T) Option[T] {
 		return r
 	}
 	t := f()
-	return Option[T]{&t}
+	return Option[T]{true, t}
 }
 
 func (r Option[T]) Exists(p func(v T) bool) bool {
 	if r.IsDefined() {
-		return p(*r.v)
+		return p(r.Get())
 	}
 	return false
 }
 func (r Option[T]) ForAll(p func(v T) bool) bool {
 	if r.IsDefined() {
-		return p(*r.v)
+		return p(r.Get())
 	}
 	return true
 }
 
 func (r Option[T]) ToSeq() Seq[T] {
 	if r.IsDefined() {
-		return Seq[T]{*r.v}
+		return Seq[T]{r.Get()}
 	}
 	return nil
 }
@@ -97,7 +101,7 @@ func (r Option[T]) Iterator() Iterator[T] {
 }
 
 func Some[T any](v T) Option[T] {
-	return Option[T]{&v}
+	return Option[T]{true, v}
 }
 
 func None[T any]() Option[T] {

@@ -63,7 +63,7 @@ func (r Iterator[T]) Next() T {
 func (r Iterator[T]) NextOption() Option[T] {
 	if r.HasNext() {
 		v := r.next()
-		return Option[T]{&v}
+		return Some(v)
 	}
 	return None[T]()
 }
