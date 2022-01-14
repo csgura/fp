@@ -38,7 +38,7 @@ func (r Option[T]) Filter(p func(v T) bool) Option[T] {
 			return r
 		}
 	}
-	return Option[T]{}
+	return None[T]()
 
 }
 
@@ -98,4 +98,8 @@ func (r Option[T]) Iterator() Iterator[T] {
 
 func Some[T any](v T) Option[T] {
 	return Option[T]{&v}
+}
+
+func None[T any]() Option[T] {
+	return Option[T]{}
 }

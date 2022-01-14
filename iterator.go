@@ -65,7 +65,7 @@ func (r Iterator[T]) NextOption() Option[T] {
 		v := r.next()
 		return Option[T]{&v}
 	}
-	return Option[T]{}
+	return None[T]()
 }
 
 func iteratorToSeq[T any](r Iterator[T]) Seq[T] {
@@ -108,7 +108,7 @@ func (r Iterator[T]) nextOnEmpty() T {
 func (r Iterator[T]) TakeWhile(p func(T) bool) Iterator[T] {
 
 	breaking := false
-	var fv Option[T] = Option[T]{}
+	var fv Option[T] = None[T]()
 
 	hasNext := func() bool {
 		if breaking {
@@ -136,7 +136,7 @@ func (r Iterator[T]) TakeWhile(p func(T) bool) Iterator[T] {
 
 			if hasNext() {
 				ret := fv.Get()
-				fv = Option[T]{}
+				fv = None[T]()
 				return ret
 			}
 			return r.nextOnEmpty()
@@ -156,7 +156,7 @@ func (r Iterator[T]) Drop(n int) Iterator[T] {
 func (r Iterator[T]) DropWhile(p func(T) bool) Iterator[T] {
 
 	found := false
-	var first Option[T] = Option[T]{}
+	var first Option[T] = None[T]()
 	hasNext := func() bool {
 		if found {
 			return r.HasNext()
@@ -181,7 +181,7 @@ func (r Iterator[T]) DropWhile(p func(T) bool) Iterator[T] {
 			if hasNext() {
 				if first.IsDefined() {
 					ret := first.Get()
-					first = Option[T]{}
+					first = None[T]()
 					return ret
 				}
 
@@ -198,7 +198,7 @@ func (r Iterator[T]) DropWhile(p func(T) bool) Iterator[T] {
 func (r Iterator[T]) Filter(p func(T) bool) Iterator[T] {
 
 	first := true
-	var fv Option[T] = Option[T]{}
+	var fv Option[T] = None[T]()
 
 	hasNext := func() bool {
 		if first {
@@ -235,7 +235,7 @@ func (r Iterator[T]) Find(p func(T) bool) Option[T] {
 			return Some(v)
 		}
 	}
-	return Option[T]{}
+	return None[T]()
 }
 
 func (r Iterator[T]) Foreach(p func(T)) {

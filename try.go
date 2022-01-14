@@ -94,7 +94,7 @@ func (r Try[T]) ToOption() Option[T] {
 	if r.IsSuccess() {
 		return Option[T]{r.v}
 	}
-	return Option[T]{}
+	return None[T]()
 }
 
 func (r Try[T]) ToSeq() Seq[T] {

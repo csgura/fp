@@ -18,7 +18,7 @@ func (r Seq[T]) Get(idx int) Option[T] {
 	if r.Size() > idx {
 		return Some(r[idx])
 	} else {
-		return Option[T]{}
+		return None[T]()
 	}
 }
 
@@ -26,7 +26,7 @@ func (r Seq[T]) Head() Option[T] {
 	if r.Size() > 0 {
 		return Some(r[0])
 	} else {
-		return Option[T]{}
+		return None[T]()
 	}
 }
 

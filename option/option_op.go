@@ -12,13 +12,13 @@ import (
 )
 
 func Some[T any](v T) fp.Option[T] {
-	return fp.Option[T]{}.Recover(func() T {
+	return fp.None[T]().Recover(func() T {
 		return v
 	})
 }
 
 func None[T any]() fp.Option[T] {
-	return fp.Option[T]{}
+	return fp.None[T]()
 }
 
 func Of[T any](v T) fp.Option[T] {
