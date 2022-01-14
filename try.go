@@ -40,13 +40,7 @@ func (r Try[T]) Unapply() (T, error) {
 		return r.Get(), nil
 	} else {
 		var zero T
-		var err = r.err
-
-		if err == nil {
-			err = Error(http.StatusNotAcceptable, "Try not initialized correctly")
-		}
-
-		return zero, err
+		return zero, r.Failed().Get()
 	}
 }
 
@@ -88,14 +82,14 @@ func (r Try[T]) Recover(f func(err error) T) Try[T] {
 	if r.IsSuccess() {
 		return r
 	}
-	return Success(f(r.err))
+	return Success(f(r.Failed().Get()))
 
 }
 func (r Try[T]) RecoverWith(f func(err error) Try[T]) Try[T] {
 	if r.IsSuccess() {
 		return r
 	}
-	return f(r.err)
+	return f(r.Failed().Get())
 }
 
 func (r Try[T]) ToOption() Option[T] {
@@ -116,7 +110,7 @@ func (r Try[T]) String() string {
 	if r.IsSuccess() {
 		return fmt.Sprintf("Success(%v)", r.Get())
 	}
-	return fmt.Sprintf("Failure(%v)", r.err)
+	return fmt.Sprintf("Failure(%v)", r.Failed().Get())
 }
 
 func (r Try[T]) Iterator() Iterator[T] {
