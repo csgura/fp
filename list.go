@@ -10,8 +10,8 @@ type List[T any] interface {
 }
 
 type ListAdaptor[T any] struct {
-	GetHead Func0[Option[T]]
-	GetTail Func0[List[T]]
+	getHead Func0[Option[T]]
+	getTail Func0[List[T]]
 }
 
 func (r ListAdaptor[T]) IsEmpty() bool {
@@ -21,11 +21,11 @@ func (r ListAdaptor[T]) NonEmpty() bool {
 	return r.Head().IsDefined()
 }
 func (r ListAdaptor[T]) Head() Option[T] {
-	return r.GetHead.Apply()
+	return r.getHead.Apply()
 }
 
 func (r ListAdaptor[T]) Tail() List[T] {
-	return r.GetTail.Apply()
+	return r.getTail.Apply()
 }
 
 func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
