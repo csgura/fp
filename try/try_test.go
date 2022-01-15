@@ -9,6 +9,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/try"
 )
 
@@ -19,33 +20,42 @@ func print[T any](v T) {
 func TestTry(t *testing.T) {
 	v := try.Success(10)
 
-	v.Foreach(print[int])
+	assert.True(v.IsSuccess())
+	assert.Equal(v.Get(), 10)
+	assert.False(v.IsFailure())
 
 	f2 := try.Success(try.Success(20))
 	v = try.Flatten(f2)
-	v.Foreach(print[int])
+
+	assert.True(v.IsSuccess())
+	assert.Equal(v.Get(), 20)
 
 	e := try.Failure[string](fmt.Errorf("bad request"))
-	e.Failed().Foreach(print[error])
+	assert.True(e.IsFailure())
+	assert.False(e.IsSuccess())
+	assert.Equal(e.Failed().Get().Error(), "bad request")
 
-	e.Recover(func(err error) string {
+	assert.Equal(e.Recover(func(err error) string {
 		return "recover"
-	}).Foreach(print[string])
+	}).Get(), "recover")
 
 	e.RecoverWith(func(err error) fp.Try[string] {
 		return try.Success("recoverWith")
 	}).Foreach(print[string])
 
-	v.ToOption().Foreach(print[int])
+	assert.True(v.ToOption().IsDefined())
 
 	// fp.Try[*url.URL]
 	var u fp.Try[*url.URL] = try.Func1(url.Parse)("http://[abc")
-	fmt.Println(u)
+
+	assert.True(u.IsFailure())
 
 	var p fp.Try[string] = try.Map(u, (*url.URL).Port)
+	assert.True(p.IsFailure())
 
 	var intPort fp.Try[int] = try.Flatten(try.Map(p, try.Func1(strconv.Atoi)))
 	fmt.Println(intPort)
+	assert.True(intPort.IsFailure())
 
 	try.FlatMap(p, try.Func1(strconv.Atoi)).Foreach(fp.Println[int])
 
@@ -55,12 +65,17 @@ func TestFlatMap(t *testing.T) {
 
 	// fp.Try[*url.URL]
 	var u fp.Try[*url.URL] = try.Func1(url.Parse)("http://localhost:8080/abcd")
+	assert.True(u.IsSuccess())
 	fmt.Println(u)
 
 	var p fp.Try[string] = try.Map(u, (*url.URL).Port)
+	assert.True(p.IsSuccess())
+	assert.Equal(p.Get(), "8080")
 
 	var intPort fp.Try[int] = try.FlatMap(p, try.Func1(strconv.Atoi))
 	fmt.Println(intPort)
+	assert.True(intPort.IsSuccess())
+	assert.Equal(intPort.Get(), 8080)
 
 }
 
@@ -72,8 +87,8 @@ func TestApplicative(t *testing.T) {
 		ApTry(try.Func1(url.Parse)("http://localhost:8080/abcd")).
 		Map((*url.URL).Port).
 		FlatMap(try.Func1(strconv.Atoi))
-	fmt.Println(intPort)
-
+	assert.True(intPort.IsSuccess())
+	assert.Equal(intPort.Get(), 8080)
 }
 
 func TestCompose(t *testing.T) {
@@ -83,8 +98,8 @@ func TestCompose(t *testing.T) {
 		fp.Compose((*url.URL).Port, try.Func1(strconv.Atoi)),
 	)("http://localhost:8080/abcd")
 
-	fmt.Println(intPort)
-
+	assert.True(intPort.IsSuccess())
+	assert.Equal(intPort.Get(), 8080)
 }
 
 func ParsePort() (int, error) {
@@ -105,9 +120,13 @@ func ParsePortFn() fp.Try[int] {
 
 func TestProcessAp(t *testing.T) {
 	tstr := try.Success("25380")
-	killResult := try.Applicative3(fp.Nop2[string, int](try.Unit1((*os.Process).Kill))).
-		ApTry(tstr).
-		FlatMap(try.Func1(strconv.Atoi))
+	killResult := try.Flatten(
+		try.Applicative3(fp.Nop2[string, int](try.Unit1((*os.Process).Kill))).
+			ApTry(tstr).
+			FlatMap(try.Func1(strconv.Atoi)).
+			FlatMap(try.Func1(os.FindProcess)),
+	)
 	fmt.Println(killResult)
+	assert.True(killResult.IsFailure())
 
 }
