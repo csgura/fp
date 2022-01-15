@@ -1,6 +1,9 @@
 package fp
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Option[T any] struct {
 	present bool
@@ -106,4 +109,25 @@ func Some[T any](v T) Option[T] {
 
 func None[T any]() Option[T] {
 	return Option[T]{}
+}
+
+func (r *Option[T]) UnmarshalJSON(b []byte) error {
+	if len(b) > 0 {
+		if b[0] != 'n' {
+			err := json.Unmarshal(b, &r.v)
+			if err == nil {
+				r.present = true
+			}
+			return err
+		}
+	}
+	return nil
+}
+
+func (r Option[T]) MarshalJSON() ([]byte, error) {
+	if r.IsDefined() {
+		return json.Marshal(r.Get())
+	}
+
+	return []byte("null"), nil
 }

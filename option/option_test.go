@@ -2,6 +2,7 @@ package option_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
 )
@@ -155,4 +157,49 @@ func TestFunc(t *testing.T) {
 		ApOption(oint).
 		Map(strconv.Itoa)
 	fmt.Println(oreader)
+}
+
+func TestJson(t *testing.T) {
+
+	type Hello struct {
+		Hello string         `json:"hello"`
+		World fp.Option[int] `json:"world"`
+	}
+
+	strNull := `{
+		"hello":"world",
+		"world" : null
+	}`
+
+	str := `{
+		"hello":"world",
+		"world" : 20
+	}`
+
+	strNone := `{
+		"hello":"world"
+	}`
+
+	var h Hello
+	json.Unmarshal([]byte(strNull), &h)
+	assert.True(h.World.IsEmpty())
+
+	b, err := json.Marshal(h)
+	assert.Equal(err, nil)
+	assert.Equal(string(b), `{"hello":"world","world":null}`)
+
+	json.Unmarshal([]byte(strNone), &h)
+
+	assert.True(h.World.IsEmpty())
+	b, err = json.Marshal(h)
+	assert.Equal(err, nil)
+	assert.Equal(string(b), `{"hello":"world","world":null}`)
+
+	json.Unmarshal([]byte(str), &h)
+	assert.True(h.World.IsDefined())
+
+	b, err = json.Marshal(h)
+	assert.Equal(err, nil)
+	assert.Equal(string(b), `{"hello":"world","world":20}`)
+
 }
