@@ -3,6 +3,7 @@ package fp
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 type Option[T any] struct {
@@ -112,11 +113,15 @@ func None[T any]() Option[T] {
 }
 
 func (r *Option[T]) UnmarshalJSON(b []byte) error {
+	if r == nil {
+		return Error(http.StatusBadRequest, "target ptr is nil")
+	}
 	if len(b) > 0 {
 		if b[0] != 'n' {
-			err := json.Unmarshal(b, &r.v)
+			var t T
+			err := json.Unmarshal(b, &t)
 			if err == nil {
-				r.present = true
+				*r = Some(t)
 			}
 			return err
 		}
