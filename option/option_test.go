@@ -185,21 +185,21 @@ func TestJson(t *testing.T) {
 	assert.True(h.World.IsEmpty())
 
 	b, err := json.Marshal(h)
-	assert.Equal(err, nil)
+	assert.IsNil(err)
 	assert.Equal(string(b), `{"hello":"world","world":null}`)
 
 	json.Unmarshal([]byte(strNone), &h)
 
 	assert.True(h.World.IsEmpty())
 	b, err = json.Marshal(h)
-	assert.Equal(err, nil)
+	assert.IsNil(err)
 	assert.Equal(string(b), `{"hello":"world","world":null}`)
 
 	json.Unmarshal([]byte(str), &h)
 	assert.True(h.World.IsDefined())
 
 	b, err = json.Marshal(h)
-	assert.Equal(err, nil)
+	assert.IsNil(err)
 	assert.Equal(string(b), `{"hello":"world","world":20}`)
 
 }
