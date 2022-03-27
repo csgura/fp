@@ -7,7 +7,7 @@ import (
 	"github.com/csgura/fp"
 )
 
-type CopyOnWriteMap[K comparable, V any] struct {
+type CopyOnWriteMap[K, V any] struct {
 	value atomic.Value
 	lock  sync.Mutex
 }
@@ -62,7 +62,7 @@ func (r *CopyOnWriteMap[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
 		s := SetOf(k...)
 
 		for k, v := range om {
-			if !s.Contains(k) {
+			if !s.Contains(k.(K)) {
 				nm[k] = v
 			}
 		}

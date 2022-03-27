@@ -6,7 +6,7 @@ import (
 	"github.com/csgura/fp/option"
 )
 
-type Set[V comparable] map[V]bool
+type Set[V any] map[any]bool
 
 var _ fp.SetMinimal[string] = Set[string]{}
 
@@ -21,7 +21,7 @@ func (r Set[V]) Size() int {
 func (r Set[V]) Iterator() fp.Iterator[V] {
 	seq := fp.Seq[V]{}
 	for k := range r {
-		seq = append(seq, k)
+		seq = append(seq, k.(V))
 	}
 	return seq.Iterator()
 }
@@ -36,7 +36,7 @@ func (r Set[V]) Excl(v V) fp.SetMinimal[V] {
 	return r
 }
 
-func SetOf[V comparable](v ...V) Set[V] {
+func SetOf[V any](v ...V) Set[V] {
 	ret := Set[V]{}
 	for _, e := range v {
 		ret[e] = true
@@ -44,7 +44,7 @@ func SetOf[V comparable](v ...V) Set[V] {
 	return ret
 }
 
-type Map[K comparable, V any] map[K]V
+type Map[K, V any] map[any]V
 
 var _ fp.MapMinimal[string, int] = Map[string, int]{}
 
@@ -76,7 +76,7 @@ func (r Map[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	seq := fp.Seq[fp.Tuple2[K, V]]{}
 	for k, v := range r {
-		seq = append(seq, as.Tuple2(k, v))
+		seq = append(seq, as.Tuple2(k.(K), v))
 	}
 	return seq.Iterator()
 }
