@@ -58,6 +58,18 @@ func (r Func2[A1, A2, R]) Curried() Func1[A1, Func1[A2, R]] {
 	}
 }
 
+func (r Func2[A1, A2, R]) ApplyFirst(a1 A1) Func1[A2, R] {
+	return func(a2 A2) R {
+		return r(a1, a2)
+	}
+}
+
+func (r Func2[A1, A2, R]) ApplyLast(a2 A2) Func1[A1, R] {
+	return func(a1 A1) R {
+		return r(a1, a2)
+	}
+}
+
 func Println[T any](v T) {
 	fmt.Println(v)
 }
