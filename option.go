@@ -126,6 +126,8 @@ func (r *Option[T]) UnmarshalJSON(b []byte) error {
 			return err
 		}
 	}
+	*r = None[T]()
+
 	return nil
 }
 

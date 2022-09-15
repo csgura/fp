@@ -21,6 +21,7 @@ func TestUnmarshal(t *testing.T) {
 	assert.IsNil(err)
 
 	hello := Hello{}
+
 	err = json.Unmarshal([]byte(str), &hello)
 	assert.IsNil(err)
 	assert.False(hello.Hello.IsDefined())
@@ -31,6 +32,13 @@ func TestUnmarshal(t *testing.T) {
 	assert.IsNil(err)
 	assert.True(hello.Hello.IsDefined())
 	assert.Equal(hello.Hello.Get(), "world")
+
+	err = json.Unmarshal([]byte(`{
+		"hello" : null
+	}`), &hello)
+	assert.IsNil(err)
+	assert.False(hello.Hello.IsDefined())
+
 }
 
 func TestMarshal(t *testing.T) {
