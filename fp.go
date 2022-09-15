@@ -18,6 +18,10 @@ func (r Unit) String() string {
 	return "()"
 }
 
+func (r *Unit) UnmarshalJSON(data []byte) error {
+	return nil
+}
+
 type Tuple1[T1 any] struct {
 	I1 T1
 }
