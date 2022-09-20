@@ -196,53 +196,58 @@ func(r Func%d[%s,R]) Curried() %s {
 }
 `, i, funcTypeArgs(1, i), curriedType(1, i), curriedType(2, i), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
 
-			fmt.Fprintf(f, `
-func(r Func%d[%s,R]) ApplyFirst(%s) Func%d[%s,R] {
-	return func(%s) R {
-		return r(%s)
-	}
-}
-`, i, funcTypeArgs(1, i), funcDeclArgs(1, 1), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
+			/* 일부만 아규먼트 적용하는 함수는
+			   너무 많은 code 를 생성해내서, 삭제
 
-			for j := 2; j < i; j++ {
-				fmt.Fprintf(f, `
-func(r Func%d[%s,R]) ApplyFirst%d(%s) Func%d[%s,R] {
-	return func(%s) R {
-		return r(%s)
-	}
-}
-`, i, funcTypeArgs(1, i), j, funcDeclArgs(1, j), i-j, funcTypeArgs(j+1, i), funcDeclArgs(j+1, i), funcCallArgs(1, i))
-			}
+			   			fmt.Fprintf(f, `
+			   func(r Func%d[%s,R]) ApplyFirst(%s) Func%d[%s,R] {
+			   	return func(%s) R {
+			   		return r(%s)
+			   	}
+			   }
+			   `, i, funcTypeArgs(1, i), funcDeclArgs(1, 1), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
 
-			fmt.Fprintf(f, `
-func(r Func%d[%s,R]) ApplyLast(%s) Func%d[%s,R] {
-	return func(%s) R {
-		return r(%s)
-	}
-}
-`, i, funcTypeArgs(1, i), funcDeclArgs(i, i), i-1, funcTypeArgs(1, i-1), funcDeclArgs(1, i-1), funcCallArgs(1, i))
+			   			for j := 2; j < i; j++ {
+			   				fmt.Fprintf(f, `
+			   func(r Func%d[%s,R]) ApplyFirst%d(%s) Func%d[%s,R] {
+			   	return func(%s) R {
+			   		return r(%s)
+			   	}
+			   }
+			   `, i, funcTypeArgs(1, i), j, funcDeclArgs(1, j), i-j, funcTypeArgs(j+1, i), funcDeclArgs(j+1, i), funcCallArgs(1, i))
+			   			}
 
-			for j := 2; j < i; j++ {
-				fmt.Fprintf(f, `
-func(r Func%d[%s,R]) ApplyLast%d(%s) Func%d[%s,R] {
-	return func(%s) R {
-		return r(%s)
-	}
-}
-`, i, funcTypeArgs(1, i), j, funcDeclArgs(i-j+1, i), i-j, funcTypeArgs(1, i-j), funcDeclArgs(1, i-j), funcCallArgs(1, i))
+			   			fmt.Fprintf(f, `
+			   func(r Func%d[%s,R]) ApplyLast(%s) Func%d[%s,R] {
+			   	return func(%s) R {
+			   		return r(%s)
+			   	}
+			   }
+			   `, i, funcTypeArgs(1, i), funcDeclArgs(i, i), i-1, funcTypeArgs(1, i-1), funcDeclArgs(1, i-1), funcCallArgs(1, i))
 
-			}
+			   			for j := 2; j < i; j++ {
+			   				fmt.Fprintf(f, `
+			   func(r Func%d[%s,R]) ApplyLast%d(%s) Func%d[%s,R] {
+			   	return func(%s) R {
+			   		return r(%s)
+			   	}
+			   }
+			   `, i, funcTypeArgs(1, i), j, funcDeclArgs(i-j+1, i), i-j, funcTypeArgs(1, i-j), funcDeclArgs(1, i-j), funcCallArgs(1, i))
 
-			for j := 2; j < i; j++ {
-				fmt.Fprintf(f, `
-func(r Func%d[%s,R]) Apply%s(%s) Func%d[%s,%s,R] {
-	return func(%s,%s) R {
-		return r(%s)
-	}
-}
-`, i, funcTypeArgs(1, i), ordinalName[j], funcDeclArgs(j, j), i-1, funcTypeArgs(1, j-1), funcTypeArgs(j+1, i), funcDeclArgs(1, j-1), funcDeclArgs(j+1, i), funcCallArgs(1, i))
+			   			}
 
-			}
+			   			for j := 2; j < i; j++ {
+			   				fmt.Fprintf(f, `
+			   func(r Func%d[%s,R]) Apply%s(%s) Func%d[%s,%s,R] {
+			   	return func(%s,%s) R {
+			   		return r(%s)
+			   	}
+			   }
+			   `, i, funcTypeArgs(1, i), ordinalName[j], funcDeclArgs(j, j), i-1, funcTypeArgs(1, j-1), funcTypeArgs(j+1, i), funcDeclArgs(1, j-1), funcDeclArgs(j+1, i), funcCallArgs(1, i))
+
+			   			}
+
+			*/
 
 			// 			if i < max.Shift {
 			// 				fmt.Fprintf(f, `

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 )
 
@@ -18,6 +19,18 @@ func curriedType(start, until int) string {
 		endBracket = endBracket + "]"
 	}
 	fmt.Fprintf(f, "R%s", endBracket)
+
+	return f.String()
+}
+
+func curriedTypeReturn(start, until int, rtype string) string {
+	f := &bytes.Buffer{}
+	endBracket := ""
+	for j := start; j <= until; j++ {
+		fmt.Fprintf(f, "fp.Func1[A%d, ", j)
+		endBracket = endBracket + "]"
+	}
+	fmt.Fprintf(f, "%s%s", rtype, endBracket)
 
 	return f.String()
 }
@@ -103,6 +116,19 @@ import (
 }	
 `, funcDeclArgs(1, i), curriedCallArgs(1, i))
 
+	}
+	for i := 3; i < max.Func; i++ {
+		fmt.Fprintf(f, `
+func Flip%d[%s,R any](f  %s) %s {
+	return Func%d(
+		func(%s, a1 A1) R {
+			return f%s
+		}, 
+	)
+}
+`, i-1, common.FuncTypeArgs(1, i), curriedType(1, i), curriedTypeReturn(2, i, "fp.Func1[A1, R]"),
+			i, common.FuncDeclArgs(2, i), curriedCallArgs(1, i),
+		)
 	}
 
 	formatted, err := format.Source(f.Bytes())
