@@ -46,6 +46,14 @@ func SetOf[V any](v ...V) Set[V] {
 
 type Map[K, V any] map[any]V
 
+func MapOf[K comparable, V any](m map[K]V) Map[K, V] {
+	ret := Map[K, V]{}
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
 var _ fp.MapMinimal[string, int] = Map[string, int]{}
 
 func (r Map[K, V]) Get(k K) fp.Option[V] {

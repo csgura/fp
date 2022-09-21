@@ -131,6 +131,15 @@ func ToMap[K, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp
 	return fp.MakeMap(ret.Build())
 }
 
+func ToGoMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]]) map[K]V {
+	ret := map[K]V{}
+	for itr.HasNext() {
+		k, v := itr.Next().Unapply()
+		ret[k] = v
+	}
+	return ret
+}
+
 func ToSet[V any](itr fp.Iterator[V], hasher fp.Hashable[V]) fp.Set[V] {
 	ret := immutable.SetBuilder(hasher)
 
