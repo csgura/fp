@@ -7,9 +7,9 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/promise"
-	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
 
@@ -216,17 +216,16 @@ func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Fut
 }
 
 func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Seq[T]] {
-	head, tail := futureList.UnSeq()
-	if head.IsDefined() {
-		return FlatMap(head.Get(), func(headResult T) fp.Future[fp.Seq[T]] {
-			last := Sequence(tail, ctx...)
-			return Map(last, func(tail fp.Seq[T]) fp.Seq[T] {
-				return seq.Concat(headResult, tail)
-			}, ctx...)
+	return Map(SequenceIterator(futureList.Iterator()), fp.Iterator[T].ToSeq)
 
+}
+
+func SequenceIterator[T any](futureList fp.Iterator[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Iterator[T]] {
+	return iterator.Fold(futureList, Successful(iterator.Empty[T]()), func(list fp.Future[fp.Iterator[T]], v fp.Future[T]) fp.Future[fp.Iterator[T]] {
+		return Map2(list, v, func(l fp.Iterator[T], e T) fp.Iterator[T] {
+			return l.Concat(iterator.Of(e))
 		}, ctx...)
-	}
-	return Successful(seq.Of[T]())
+	})
 }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {

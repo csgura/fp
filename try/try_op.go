@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 )
@@ -120,6 +121,19 @@ func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple
 		ApTry(c1).
 		ApTry(c2).
 		ApTry(c3)
+}
+
+func SequenceIterator[T any](tryItr fp.Iterator[fp.Try[T]]) fp.Try[fp.Iterator[T]] {
+
+	return iterator.Fold(tryItr, Success(iterator.Empty[T]()), func(list fp.Try[fp.Iterator[T]], v fp.Try[T]) fp.Try[fp.Iterator[T]] {
+		return Map2(list, v, func(l fp.Iterator[T], e T) fp.Iterator[T] {
+			return l.Concat(iterator.Of(e))
+		})
+	})
+}
+
+func Sequence[T any](trySeq fp.Seq[fp.Try[T]]) fp.Try[fp.Seq[T]] {
+	return Map(SequenceIterator(trySeq.Iterator()), fp.Iterator[T].ToSeq)
 }
 
 func Fold[A, B any](s fp.Try[A], zero B, f func(B, A) B) B {

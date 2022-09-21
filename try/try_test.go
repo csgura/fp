@@ -1,6 +1,7 @@
 package try_test
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/try"
 )
 
@@ -128,5 +130,31 @@ func TestProcessAp(t *testing.T) {
 	)
 	fmt.Println(killResult)
 	assert.True(killResult.IsFailure())
+
+}
+
+func TestSequence(t *testing.T) {
+
+	successItr := iterator.Of(
+		try.Success(10),
+		try.Success(20),
+		try.Success(30),
+	)
+
+	tryItr := try.SequenceIterator(successItr)
+	assert.True(tryItr.IsSuccess())
+
+	seq := tryItr.Get().ToSeq()
+	assert.True(seq[0] == 10)
+	assert.True(len(seq) == 3)
+
+	failureItr := iterator.Of(
+		try.Success(10),
+		try.Failure[int](errors.New("hey")),
+		try.Success(30),
+	)
+
+	tryItr = try.SequenceIterator(failureItr)
+	assert.True(tryItr.IsFailure())
 
 }

@@ -84,6 +84,10 @@ func (r Seq[T]) Find(p func(v T) bool) Option[T] {
 	return r.Iterator().Find(p)
 }
 
+func (r Seq[T]) Add(item T) Seq[T] {
+	return r.Append(item)
+}
+
 func (r Seq[T]) Append(items ...T) Seq[T] {
 	tail := Seq[T](items)
 	ret := make(Seq[T], r.Size()+tail.Size())

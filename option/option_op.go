@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 )
@@ -117,6 +118,19 @@ func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Opt
 		ApOption(c1).
 		ApOption(c2).
 		ApOption(c3)
+}
+
+func SequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Iterator[T]] {
+
+	return iterator.Fold(optItr, Some(iterator.Empty[T]()), func(list fp.Option[fp.Iterator[T]], v fp.Option[T]) fp.Option[fp.Iterator[T]] {
+		return Map2(list, v, func(l fp.Iterator[T], e T) fp.Iterator[T] {
+			return l.Concat(iterator.Of(e))
+		})
+	})
+}
+
+func Sequence[T any](optSeq fp.Seq[fp.Option[T]]) fp.Option[fp.Seq[T]] {
+	return Map(SequenceIterator(optSeq.Iterator()), fp.Iterator[T].ToSeq)
 }
 
 func Fold[A, B any](s fp.Option[A], zero B, f func(B, A) B) B {

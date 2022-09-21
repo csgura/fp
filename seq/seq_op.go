@@ -18,6 +18,10 @@ func Collect[T any](r fp.Iterator[T]) fp.Seq[T] {
 	return ret
 }
 
+func Empty[T any]() fp.Seq[T] {
+	return nil
+}
+
 func Of[T any](list ...T) fp.Seq[T] {
 	return list
 }

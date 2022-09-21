@@ -24,6 +24,14 @@ func List[T any](list fp.List[T]) fp.Iterator[T] {
 	)
 }
 
+func Empty[T any]() fp.Iterator[T] {
+	return fp.MakeIterator(func() bool {
+		return false
+	}, func() T {
+		panic("next on empty iterator")
+	})
+}
+
 func Of[T any](list ...T) fp.Iterator[T] {
 	return fp.Seq[T](list).Iterator()
 }
