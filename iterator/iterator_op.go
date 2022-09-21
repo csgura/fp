@@ -6,7 +6,6 @@ import (
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
-	"github.com/csgura/fp/option"
 )
 
 func List[T any](list fp.List[T]) fp.Iterator[T] {
@@ -91,16 +90,16 @@ func Map2[A, B, U any](a fp.Iterator[A], b fp.Iterator[B], f func(A, B) U) fp.It
 
 func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Iterator[U] {
 
-	current := option.None[fp.Iterator[U]]()
+	current := fp.None[fp.Iterator[U]]()
 
 	hasNext := func() bool {
-		if option.Map(current, fp.Iterator[U].HasNext).OrElse(false) == true {
+		if current.IsDefined() && current.Get().HasNext() {
 			return true
 		}
 
 		for opt.HasNext() {
 			nextItr := fn(opt.Next())
-			current = option.Some(nextItr)
+			current = fp.Some(nextItr)
 			if nextItr.HasNext() {
 				return true
 			}

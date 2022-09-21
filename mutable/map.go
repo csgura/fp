@@ -3,7 +3,6 @@ package mutable
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/option"
 )
 
 type Set[V any] map[any]bool
@@ -58,9 +57,9 @@ var _ fp.MapMinimal[string, int] = Map[string, int]{}
 
 func (r Map[K, V]) Get(k K) fp.Option[V] {
 	if v, ok := r[k]; ok {
-		return option.Some(v)
+		return fp.Some(v)
 	}
-	return option.None[V]()
+	return fp.None[V]()
 }
 
 func (r Map[K, V]) Size() int {

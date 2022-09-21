@@ -6,7 +6,6 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/option"
 )
 
 // hashUint64 returns a 32-bit hash for a 64-bit value.
@@ -80,7 +79,7 @@ func (m *hamt[K, V]) clone() *hamt[K, V] {
 // non-existent key in the map.
 func (m *hamt[K, V]) Get(key K) fp.Option[V] {
 	if m.root == nil {
-		return option.None[V]()
+		return fp.None[V]()
 	}
 	keyHash := m.hasher.Hash(key)
 	return m.root.get(key, 0, keyHash, m.hasher)
@@ -284,9 +283,9 @@ func (n *mapArrayNode[K, V]) indexOf(key K, h fp.Hashable[K]) int {
 func (n *mapArrayNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
 	i := n.indexOf(key, h)
 	if i == -1 {
-		return option.None[V]()
+		return fp.None[V]()
 	}
-	return option.Some(n.entries[i].value)
+	return fp.Some(n.entries[i].value)
 }
 
 // set inserts or updates the value for a given key. If the key is inserted and
@@ -377,7 +376,7 @@ type mapBitmapIndexedNode[K, V any] struct {
 func (n *mapBitmapIndexedNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
 	bit := uint32(1) << ((keyHash >> shift) & mapNodeMask)
 	if (n.bitmap & bit) == 0 {
-		return option.None[V]()
+		return fp.None[V]()
 	}
 	child := n.nodes[bits.OnesCount32(n.bitmap&(bit-1))]
 	return child.get(key, shift+mapNodeBits, keyHash, h)
@@ -529,7 +528,7 @@ func (n *mapHashArrayNode[K, V]) clone() *mapHashArrayNode[K, V] {
 func (n *mapHashArrayNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
 	node := n.nodes[(keyHash>>shift)&mapNodeMask]
 	if node == nil {
-		return option.None[V]()
+		return fp.None[V]()
 	}
 	return node.get(key, shift+mapNodeBits, keyHash, h)
 }
@@ -633,9 +632,9 @@ func (n *mapValueNode[K, V]) keyHashValue() uint32 {
 // get returns the value for the given key.
 func (n *mapValueNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
 	if !h.Eqv(n.key, key) {
-		return option.None[V]()
+		return fp.None[V]()
 	}
-	return option.Some(n.value)
+	return fp.Some(n.value)
 }
 
 // set returns a new node with the new value set for the key. If the key equals
@@ -707,10 +706,10 @@ func (n *mapHashCollisionNode[K, V]) indexOf(key K, h fp.Hashable[K]) int {
 func (n *mapHashCollisionNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
 	for i := range n.entries {
 		if h.Eqv(n.entries[i].key, key) {
-			return option.Some(n.entries[i].value)
+			return fp.Some(n.entries[i].value)
 		}
 	}
-	return option.None[V]()
+	return fp.None[V]()
 }
 
 // set returns a copy of the node with key set to the given value.
