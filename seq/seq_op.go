@@ -26,6 +26,14 @@ func Of[T any](list ...T) fp.Seq[T] {
 	return list
 }
 
+func FromMap[K comparable, V any](m map[K]V) fp.Seq[fp.Tuple2[K, V]] {
+	seq := make([]fp.Tuple2[K, V], 0, len(m))
+	for k, v := range m {
+		seq = append(seq, fp.Tuple2[K, V]{I1: k, I2: v})
+	}
+	return seq
+}
+
 func Ap[T, U any](t fp.Seq[fp.Func1[T, U]], a fp.Seq[T]) fp.Seq[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Seq[U] {
 		return Map(a, f)
