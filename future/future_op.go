@@ -228,6 +228,16 @@ func SequenceIterator[T any](futureList fp.Iterator[fp.Future[T]], ctx ...fp.Exe
 	})
 }
 
+func Traverse[T any](itr fp.Iterator[T], fn func(T) fp.Future[T], ctx ...fp.Executor) fp.Future[fp.Iterator[T]] {
+	return iterator.Fold(itr, Successful(iterator.Empty[T]()), func(tryItr fp.Future[fp.Iterator[T]], v T) fp.Future[fp.Iterator[T]] {
+		return FlatMap(tryItr, func(acc fp.Iterator[T]) fp.Future[fp.Iterator[T]] {
+			return Map(fn(v), func(v T) fp.Iterator[T] {
+				return acc.Concat(iterator.Of(v))
+			}, ctx...)
+		}, ctx...)
+	})
+}
+
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Future[H]
 	fn fp.Future[fp.Func1[A, R]]
