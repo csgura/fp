@@ -139,8 +139,8 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[f
 	})
 }
 
-func TraverseSeq[T any](seq fp.Seq[T], fn func(T) fp.Option[T]) fp.Option[fp.Seq[T]] {
-	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[T].ToSeq)
+func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
+	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq)
 }
 
 func Sequence[T any](optSeq fp.Seq[fp.Option[T]]) fp.Option[fp.Seq[T]] {
