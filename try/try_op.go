@@ -132,17 +132,17 @@ func SequenceIterator[T any](tryItr fp.Iterator[fp.Try[T]]) fp.Try[fp.Iterator[T
 	})
 }
 
-func Traverse[T any](itr fp.Iterator[T], fn func(T) fp.Try[T]) fp.Try[fp.Iterator[T]] {
-	return iterator.Fold(itr, Success(iterator.Empty[T]()), func(tryItr fp.Try[fp.Iterator[T]], v T) fp.Try[fp.Iterator[T]] {
-		return FlatMap(tryItr, func(acc fp.Iterator[T]) fp.Try[fp.Iterator[T]] {
-			return Map(fn(v), func(v T) fp.Iterator[T] {
+func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Try[U]) fp.Try[fp.Iterator[U]] {
+	return iterator.Fold(itr, Success(iterator.Empty[U]()), func(tryItr fp.Try[fp.Iterator[U]], v T) fp.Try[fp.Iterator[U]] {
+		return FlatMap(tryItr, func(acc fp.Iterator[U]) fp.Try[fp.Iterator[U]] {
+			return Map(fn(v), func(v U) fp.Iterator[U] {
 				return acc.Concat(iterator.Of(v))
 			})
 		})
 	})
 }
 
-func TraverseSeq[T any](seq fp.Seq[T], fn func(T) fp.Try[T]) fp.Try[fp.Seq[T]] {
+func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Try[T]) fp.Try[fp.Seq[T]] {
 	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[T].ToSeq)
 }
 
