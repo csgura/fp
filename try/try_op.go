@@ -142,6 +142,10 @@ func Traverse[T any](itr fp.Iterator[T], fn func(T) fp.Try[T]) fp.Try[fp.Iterato
 	})
 }
 
+func TraverseSeq[T any](seq fp.Seq[T], fn func(T) fp.Try[T]) fp.Try[fp.Seq[T]] {
+	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[T].ToSeq)
+}
+
 func Sequence[T any](trySeq fp.Seq[fp.Try[T]]) fp.Try[fp.Seq[T]] {
 	return Map(SequenceIterator(trySeq.Iterator()), fp.Iterator[T].ToSeq)
 }

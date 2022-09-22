@@ -238,6 +238,10 @@ func Traverse[T any](itr fp.Iterator[T], fn func(T) fp.Future[T], ctx ...fp.Exec
 	})
 }
 
+func TraverseSeq[T any](seq fp.Seq[T], fn func(T) fp.Future[T], ctx ...fp.Executor) fp.Future[fp.Seq[T]] {
+	return Map(Traverse(seq.Iterator(), fn, ctx...), fp.Iterator[T].ToSeq)
+}
+
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Future[H]
 	fn fp.Future[fp.Func1[A, R]]
