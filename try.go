@@ -114,8 +114,5 @@ func (r Try[T]) String() string {
 }
 
 func (r Try[T]) Iterator() Iterator[T] {
-	return MakeIterator(
-		r.IsSuccess,
-		r.Get,
-	)
+	return r.ToSeq().Iterator()
 }

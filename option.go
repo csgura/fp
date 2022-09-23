@@ -98,10 +98,7 @@ func (r Option[T]) ToSeq() Seq[T] {
 }
 
 func (r Option[T]) Iterator() Iterator[T] {
-	return MakeIterator(
-		r.IsDefined,
-		r.Get,
-	)
+	return r.ToSeq().Iterator()
 }
 
 func Some[T any](v T) Option[T] {

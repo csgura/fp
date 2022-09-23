@@ -166,13 +166,6 @@ func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[
 	return f(s.Get(), lazy.Done(zero))
 }
 
-// func (r failure[T]) Iterator() fp.Iterator[T] {
-// 	return fp.MakeIterator(
-// 		r.IsSuccess,
-// 		r.Get,
-// 	)
-// }
-
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Try[H]
 	fn fp.Try[fp.Func1[A, R]]

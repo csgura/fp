@@ -203,3 +203,19 @@ func TestJson(t *testing.T) {
 	assert.Equal(string(b), `{"hello":"world","world":20}`)
 
 }
+
+func TestIterator(t *testing.T) {
+	itr := option.Some(1).Iterator()
+
+	count := 0
+	for itr.HasNext() {
+		count++
+		v := itr.Next()
+		fmt.Println("v =", v)
+
+		if count > 2 {
+			panic("invalid iterator")
+		}
+	}
+
+}
