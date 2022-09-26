@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hash"
+	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/seq"
 )
@@ -66,4 +67,16 @@ func TestRange(t *testing.T) {
 
 func TestToSet(t *testing.T) {
 	iterator.ToSet(iterator.Of("hello", "world", "hello", "merong"), hash.String).Foreach(fp.Println[string])
+}
+
+func TestToList(t *testing.T) {
+
+	list := iterator.Range(0, 10).ToList()
+
+	assert.Equal(list.Tail().Head().Get(), 1)
+	assert.Equal(list.Tail().Head().Get(), 1)
+
+	list.Foreach(fp.Println[int])
+	list.Foreach(fp.Println[int])
+
 }

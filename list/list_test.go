@@ -7,6 +7,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/list"
@@ -89,8 +90,8 @@ func TestFibonacci(t *testing.T) {
 }
 
 func NotTestSum(t *testing.T) {
-	l := list.GenerateFrom(1, func(i int) float64 {
-		return 1.0 / (float64(i) * float64(i))
+	l := list.GenerateFrom(1, func(i int) fp.Option[float64] {
+		return option.Some(1.0 / (float64(i) * float64(i)))
 	})
 
 	printFirst10(l)
@@ -119,8 +120,8 @@ func NotTestSum(t *testing.T) {
 
 	fmt.Println("sum 1/n^2 = ", sumOpt)
 
-	l = list.GenerateFrom(1, func(i int) float64 {
-		return 1.0 / float64(i)
+	l = list.GenerateFrom(1, func(i int) fp.Option[float64] {
+		return option.Some(1.0 / float64(i))
 	})
 
 	printFirst10(l)
@@ -144,7 +145,7 @@ func NotTestSum(t *testing.T) {
 
 func TestScan(t *testing.T) {
 
-	l := list.GenerateFrom(1, fp.Id[int])
+	l := list.GenerateFrom(1, option.Some[int])
 	list.Scan(l, 0, monoid.Sum[int]().Combine).
 		Iterator().Take(10).Foreach(fp.Println[int])
 
@@ -159,9 +160,9 @@ func TestScan(t *testing.T) {
 }
 
 func NotTestInfinity(t *testing.T) {
-	l := list.GenerateFrom(1, func(i int) float64 {
+	l := list.GenerateFrom(1, func(i int) fp.Option[float64] {
 		fmt.Println("generate : ", i)
-		return 1.0 / (float64(i))
+		return option.Some(1.0 / (float64(i)))
 	})
 
 	//printFirst10(l)
@@ -221,9 +222,9 @@ func TestFoldMap(t *testing.T) {
 }
 
 func NotTestFoldMapInfinity(t *testing.T) {
-	l := list.GenerateFrom(1, func(i int) bool {
+	l := list.GenerateFrom(1, func(i int) fp.Option[bool] {
 		fmt.Printf("idx : %d\n", i)
-		return false
+		return option.Some(false)
 	})
 
 	sum := list.FoldMap(l, monoid.All, fp.Id[bool])
@@ -275,4 +276,19 @@ func TestEndoOrder(t *testing.T) {
 	})
 
 	fmt.Println(monoid.Endo[int]().Combine(e1, e2)(1))
+}
+
+func TestRange(t *testing.T) {
+
+	s := list.Range(5, 10).Iterator().ToSeq()
+
+	assert.Equal(s.Reverse().Head().Get(), 9)
+
+	s = list.RangeClosed(5, 10).Iterator().ToSeq()
+
+	assert.Equal(s.Reverse().Head().Get(), 10)
+
+	s = list.RangeClosed(5, 2).Iterator().ToSeq()
+
+	assert.True(s.IsEmpty())
 }

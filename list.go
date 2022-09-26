@@ -7,6 +7,7 @@ type List[T any] interface {
 	Tail() List[T]
 	Unapply() (Option[T], List[T])
 	Iterator() Iterator[T]
+	Foreach(f func(v T))
 }
 
 type ListAdaptor[T any] struct {
@@ -30,6 +31,14 @@ func (r ListAdaptor[T]) Tail() List[T] {
 
 func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
 	return r.Head(), r.Tail()
+}
+
+func (r ListAdaptor[T]) Foreach(f func(v T)) {
+	var cursor List[T] = r
+	for cursor.NonEmpty() {
+		f(cursor.Head().Get())
+		cursor = cursor.Tail()
+	}
 }
 
 func (r ListAdaptor[T]) Iterator() Iterator[T] {

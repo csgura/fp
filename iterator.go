@@ -24,7 +24,14 @@ func (r Iterator[T]) ToSeq() Seq[T] {
 }
 
 func (r Iterator[T]) ToList() List[T] {
-	return iteratorList[T]{r.NextOption(), r}
+
+	head := r.NextOption()
+
+	return MakeList(func() Option[T] {
+		return head
+	}, func() List[T] {
+		return r.ToList()
+	})
 }
 
 func (r Iterator[T]) Map(f func(T) any) Iterator[any] {
@@ -74,10 +81,6 @@ func iteratorToSeq[T any](r Iterator[T]) Seq[T] {
 		ret = append(ret, r.Next())
 	}
 	return ret
-}
-
-func iteratorToList[T any](r Iterator[T]) List[T] {
-	return iteratorList[T]{r.NextOption(), r}
 }
 
 func (r Iterator[T]) Take(n int) Iterator[T] {
@@ -400,30 +403,4 @@ func MakeIterator[T any](has func() bool, next func() T) Iterator[T] {
 		hasNext: has,
 		next:    next,
 	}
-}
-
-type iteratorList[T any] struct {
-	head     Option[T]
-	iterator Iterator[T]
-}
-
-func (r iteratorList[T]) IsEmpty() bool {
-	return r.head.IsEmpty()
-}
-func (r iteratorList[T]) NonEmpty() bool {
-	return r.head.IsDefined()
-}
-func (r iteratorList[T]) Head() Option[T] {
-	return r.head
-}
-func (r iteratorList[T]) Tail() List[T] {
-	return iteratorList[T]{r.iterator.NextOption(), r.iterator}
-}
-
-func (r iteratorList[T]) Unapply() (Option[T], List[T]) {
-	return r.Head(), r.Tail()
-}
-
-func (r iteratorList[T]) Iterator() Iterator[T] {
-	return r.iterator
 }

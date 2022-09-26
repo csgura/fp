@@ -4,6 +4,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
@@ -31,6 +32,9 @@ func (r Nil[T]) Tail() fp.List[T] {
 
 func (r Nil[T]) Unapply() (fp.Option[T], fp.List[T]) {
 	return r.Head(), r
+}
+
+func (r Nil[T]) Foreach(f func(v T)) {
 }
 
 func (r Nil[T]) Iterator() fp.Iterator[T] {
@@ -83,18 +87,23 @@ func (r Cons[T]) Iterator() fp.Iterator[T] {
 	})
 }
 
+func (r Cons[T]) Foreach(f func(v T)) {
+	f(r.head)
+	r.tail.Foreach(f)
+}
+
 func Empty[T any]() fp.List[T] {
 	return Nil[T]{}
 }
 
-func Generate[T any](generator func(index int) T) fp.List[T] {
+func Generate[T any](generator func(index int) fp.Option[T]) fp.List[T] {
 	return GenerateFrom(0, generator)
 }
 
-func GenerateFrom[T any](startIndex int, generator func(index int) T) fp.List[T] {
+func GenerateFrom[T any](startIndex int, generator func(index int) fp.Option[T]) fp.List[T] {
 	return fp.MakeList(
 		func() fp.Option[T] {
-			return option.Some(generator(startIndex))
+			return generator(startIndex)
 		},
 		func() fp.List[T] {
 			return GenerateFrom(startIndex+1, generator)
@@ -186,34 +195,8 @@ func Of[T any](e ...T) fp.List[T] {
 	return seq.Of(e...)
 }
 
-type iteratorList[T any] struct {
-	head     fp.Option[T]
-	iterator fp.Iterator[T]
-}
-
-func (r iteratorList[T]) IsEmpty() bool {
-	return r.head.IsEmpty()
-}
-func (r iteratorList[T]) NonEmpty() bool {
-	return r.head.IsDefined()
-}
-func (r iteratorList[T]) Head() fp.Option[T] {
-	return r.head
-}
-func (r iteratorList[T]) Tail() fp.List[T] {
-	return iteratorList[T]{r.iterator.NextOption(), r.iterator}
-}
-
-func (r iteratorList[T]) Unapply() (fp.Option[T], fp.List[T]) {
-	return r.Head(), r.Tail()
-}
-
-func (r iteratorList[T]) Iterator() fp.Iterator[T] {
-	return r.iterator
-}
-
 func Collect[T any](r fp.Iterator[T]) fp.List[T] {
-	return iteratorList[T]{r.NextOption(), r}
+	return r.ToList()
 }
 
 func Concat[T any](head T, tail fp.List[T]) fp.List[T] {
@@ -268,6 +251,43 @@ func Flatten[T any](opt fp.List[fp.List[T]]) fp.List[T] {
 	return FlatMap(opt, func(v fp.List[T]) fp.List[T] {
 		return v
 	})
+}
+
+func ToMap[K, V any](list fp.List[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
+	ret := immutable.MapBuilder[K, V](hasher)
+
+	cursor := list
+	for !cursor.IsEmpty() {
+		k, v := cursor.Head().Get().Unapply()
+		ret = ret.Add(k, v)
+		cursor = cursor.Tail()
+	}
+
+	return fp.MakeMap(ret.Build())
+}
+
+func ToGoMap[K comparable, V any](list fp.List[fp.Tuple2[K, V]]) map[K]V {
+	ret := map[K]V{}
+	cursor := list
+	for !cursor.IsEmpty() {
+		k, v := cursor.Head().Get().Unapply()
+		ret[k] = v
+		cursor = cursor.Tail()
+	}
+	return ret
+}
+
+func ToSet[V any](list fp.List[V], hasher fp.Hashable[V]) fp.Set[V] {
+	ret := immutable.SetBuilder(hasher)
+
+	cursor := list
+	for !cursor.IsEmpty() {
+		v := cursor.Head().Get()
+		ret = ret.Add(v)
+		cursor = cursor.Tail()
+	}
+
+	return ret.Build()
 }
 
 func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
@@ -389,4 +409,22 @@ func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 			return Empty[B]()
 		},
 	)
+}
+
+func Range(from, exclusive int) fp.List[int] {
+	return GenerateFrom(from, func(index int) fp.Option[int] {
+		if index < exclusive {
+			return option.Some(index)
+		}
+		return option.None[int]()
+	})
+}
+
+func RangeClosed(from, inclusive int) fp.List[int] {
+	return GenerateFrom(from, func(index int) fp.Option[int] {
+		if index <= inclusive {
+			return option.Some(index)
+		}
+		return option.None[int]()
+	})
 }
