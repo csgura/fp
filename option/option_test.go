@@ -219,3 +219,17 @@ func TestIterator(t *testing.T) {
 	}
 
 }
+
+func TestPtr(t *testing.T) {
+
+	opt := option.Some(10)
+	ptr := opt.Ptr()
+
+	assert.True(ptr != nil)
+
+	*ptr = 20
+
+	assert.Equal(*ptr, 20)
+	assert.Equal(opt.Get(), 10)
+
+}

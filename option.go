@@ -135,3 +135,11 @@ func (r Option[T]) MarshalJSON() ([]byte, error) {
 
 	return []byte("null"), nil
 }
+
+func (r Option[T]) Ptr() *T {
+	if r.IsDefined() {
+		return &r.v
+	}
+
+	return nil
+}
