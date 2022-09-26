@@ -102,45 +102,41 @@ func Generate[T any](generator func(index int) fp.Option[T]) fp.List[T] {
 
 func GenerateFrom[T any](startIndex int, generator func(index int) fp.Option[T]) fp.List[T] {
 	return fp.MakeList(
-		func() fp.Option[T] {
+		lazy.Call(func() fp.Option[T] {
 			return generator(startIndex)
-		},
-		func() fp.List[T] {
+		}),
+		lazy.Call(func() fp.List[T] {
 			return GenerateFrom(startIndex+1, generator)
-		},
+		}),
 	)
 }
 
 func Recurrence1[T any](a1 T, relation func(n1 T) T) fp.List[T] {
 	return fp.MakeList(
-		func() fp.Option[T] {
-			return option.Some(a1)
-		},
-		func() fp.List[T] {
+		lazy.Done(option.Some(a1)),
+		lazy.Call(func() fp.List[T] {
 			return Recurrence1(relation(a1), relation)
-		},
+		}),
 	)
 }
 
 func Recurrence2[T any](a1 T, a2 T, relation func(n1, n2 T) T) fp.List[T] {
 	return fp.MakeList(
-		func() fp.Option[T] {
-			return option.Some(a1)
-		},
-		func() fp.List[T] {
+		lazy.Done(option.Some(a1)),
+		lazy.Call(func() fp.List[T] {
 			return Recurrence2(a2, relation(a1, a2), relation)
-		},
+		}),
 	)
 }
 
 func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
 	return fp.MakeList(
-		func() fp.Option[U] {
+		lazy.Call(func() fp.Option[U] {
 			return option.Map(opt.Head(), fn)
-		},
-		func() fp.List[U] {
+		}),
+		lazy.Call(func() fp.List[U] {
 			return Map(opt.Tail(), fn)
-		},
+		}),
 	)
 }
 
@@ -165,7 +161,7 @@ func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 	tail := opt.Tail()
 
 	return fp.MakeList(
-		func() fp.Option[U] {
+		lazy.Call(func() fp.Option[U] {
 			headList := mappedHeadLazy.Get()
 
 			if headList.IsEmpty() {
@@ -173,8 +169,8 @@ func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 			}
 
 			return headList.Head()
-		},
-		func() fp.List[U] {
+		}),
+		lazy.Call(func() fp.List[U] {
 			headList := mappedHeadLazy.Get()
 
 			if headList.IsEmpty() {
@@ -182,7 +178,7 @@ func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 			}
 
 			return Combine(headList.Tail(), FlatMap(tail, fn))
-		},
+		}),
 	)
 
 }
@@ -210,16 +206,16 @@ func Combine[T any](l1 fp.List[T], l2 fp.List[T]) fp.List[T] {
 	}
 
 	return fp.MakeList(
-		func() fp.Option[T] {
+		lazy.Call(func() fp.Option[T] {
 			return l1.Head()
-		},
-		func() fp.List[T] {
+		}),
+		lazy.Call(func() fp.List[T] {
 			l1Tail := l1.Tail()
 			if l1Tail.NonEmpty() {
 				return Combine(l1Tail, l2)
 			}
 			return l2
-		},
+		}),
 	)
 }
 
@@ -292,28 +288,28 @@ func ToSet[V any](list fp.List[V], hasher fp.Hashable[V]) fp.Set[V] {
 
 func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 	return fp.MakeList(
-		func() fp.Option[fp.Tuple2[T, U]] {
+		lazy.Call(func() fp.Option[fp.Tuple2[T, U]] {
 			return option.Applicative2(as.Tuple[T, U]).
 				ApOption(a.Head()).
 				ApOption(b.Head())
-		},
-		func() fp.List[fp.Tuple2[T, U]] {
+		}),
+		lazy.Call(func() fp.List[fp.Tuple2[T, U]] {
 			return Zip(a.Tail(), b.Tail())
-		},
+		}),
 	)
 }
 
 func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tuple3[A, B, C]] {
 	return fp.MakeList(
-		func() fp.Option[fp.Tuple3[A, B, C]] {
+		lazy.Call(func() fp.Option[fp.Tuple3[A, B, C]] {
 			return option.Applicative3(as.Tuple3[A, B, C]).
 				ApOption(a.Head()).
 				ApOption(b.Head()).
 				ApOption(c.Head())
-		},
-		func() fp.List[fp.Tuple3[A, B, C]] {
+		}),
+		lazy.Call(func() fp.List[fp.Tuple3[A, B, C]] {
 			return Zip3(a.Tail(), b.Tail(), c.Tail())
-		},
+		}),
 	)
 }
 
@@ -398,16 +394,14 @@ func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 
 	cf := as.Curried2(f)
 	return fp.MakeList(
-		func() fp.Option[B] {
-			return option.Some(zero)
-		},
-		func() fp.List[B] {
+		lazy.Done(option.Some(zero)),
+		lazy.Call(func() fp.List[B] {
 			z := option.Map(s.Head(), cf(zero))
 			if z.IsDefined() {
 				return Scan(s.Tail(), z.Get(), f)
 			}
 			return Empty[B]()
-		},
+		}),
 	)
 }
 

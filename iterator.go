@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"sync"
+
+	"github.com/csgura/fp/lazy"
 )
 
 type Iterable[T any] interface {
@@ -27,11 +29,9 @@ func (r Iterator[T]) ToList() List[T] {
 
 	head := r.NextOption()
 
-	return MakeList(func() Option[T] {
-		return head
-	}, func() List[T] {
+	return MakeList(lazy.Done(head), lazy.Call(func() List[T] {
 		return r.ToList()
-	})
+	}))
 }
 
 func (r Iterator[T]) Map(f func(T) any) Iterator[any] {
