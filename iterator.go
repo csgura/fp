@@ -34,12 +34,6 @@ func (r Iterator[T]) ToList() List[T] {
 	}))
 }
 
-func (r Iterator[T]) Map(f func(T) any) Iterator[any] {
-	return MakeIterator(r.HasNext, func() any {
-		return f(r.Next())
-	})
-}
-
 func (r Iterator[T]) MakeString(sep string) string {
 	buf := &bytes.Buffer{}
 
