@@ -286,6 +286,17 @@ func ToSet[V any](list fp.List[V], hasher fp.Hashable[V]) fp.Set[V] {
 	return ret.Build()
 }
 
+func ToGoSet[V comparable](list fp.List[V]) map[V]bool {
+	ret := map[V]bool{}
+	cursor := list
+	for !cursor.IsEmpty() {
+		k := cursor.Head().Get()
+		ret[k] = true
+		cursor = cursor.Tail()
+	}
+	return ret
+}
+
 func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 	return fp.MakeList(
 		lazy.Call(func() fp.Option[fp.Tuple2[T, U]] {

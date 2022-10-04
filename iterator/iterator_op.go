@@ -150,6 +150,15 @@ func ToSet[V any](itr fp.Iterator[V], hasher fp.Hashable[V]) fp.Set[V] {
 	return ret.Build()
 }
 
+func ToGoSet[V comparable](itr fp.Iterator[V]) map[V]bool {
+	ret := map[V]bool{}
+	for itr.HasNext() {
+		k := itr.Next()
+		ret[k] = true
+	}
+	return ret
+}
+
 func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, U]] {
 	return fp.MakeIterator(
 		func() bool {

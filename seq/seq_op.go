@@ -220,6 +220,14 @@ func ToSet[V any](s fp.Seq[V], hasher fp.Hashable[V]) fp.Set[V] {
 	return ret.Build()
 }
 
+func ToGoSet[V comparable](s fp.Seq[V]) map[V]bool {
+	ret := map[V]bool{}
+	for _, e := range s {
+		ret[e] = true
+	}
+	return ret
+}
+
 type seqSorter[T any] struct {
 	seq fp.Seq[T]
 	ord fp.Ord[T]
