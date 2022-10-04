@@ -69,8 +69,9 @@ func (r Iterator[T]) NextOption() Option[T] {
 	return None[T]()
 }
 
-func iteratorToSeq[T any](r Iterator[T]) Seq[T] {
-	ret := Seq[T]{}
+func iteratorToSeq[T any](r Iterator[T], capa int) Seq[T] {
+	ret := make(Seq[T], 0, capa)
+
 	for r.HasNext() {
 		ret = append(ret, r.Next())
 	}
