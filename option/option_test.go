@@ -6,15 +6,12 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
-	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
-	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
 )
 
@@ -33,57 +30,6 @@ func TestSome(t *testing.T) {
 	})
 
 	opt2.Foreach(fp.Println[int])
-
-	ap := option.Applicative2(Sum)
-	result := ap.Ap("hello").Ap(20)
-
-	result.Foreach(fp.Println[string])
-
-	result = ap.Ap("hello").ApOption(option.None[int]())
-
-	fmt.Printf("result is defined = %t\n", result.IsDefined())
-
-	result = ap.ApOption(option.None[string]()).Ap(10)
-
-	fmt.Printf("result is defined = %t\n", result.IsDefined())
-
-	ap = option.Applicative2(Sum)
-	r2 := ap.Ap("ap flatmap").FlatMap(func(h string) fp.Option[int] {
-		fmt.Printf("v = %v", h)
-		return option.Some(10)
-	})
-
-	r2.Foreach(func(v string) {
-		println(v)
-	})
-
-	r2 = ap.ApOption(option.None[string]()).FlatMap(func(h string) fp.Option[int] {
-		return option.Some(10)
-	})
-
-	r2.Foreach(fp.Println[string])
-	fmt.Printf("result is defined = %t\n", r2.IsDefined())
-
-	option.Applicative3(func(addr string, port int, scheme string) string {
-		return fmt.Sprintf("connect to %s://%s:%d", scheme, addr, port)
-	}).
-		Ap("hello.world.com").
-		FlatMap(func(addr string) fp.Option[int] {
-			return option.Some(80)
-		}).
-		HListMap(hlist.Rift2(func(addr string, port int) string {
-			if port == 80 {
-				return "http"
-			}
-			return "https"
-		})).
-		Foreach(fp.Println[string])
-
-	// hl := hlist.Concat(true, hlist.Concat("hello", hlist.Concat(10, hlist.Empty())))
-	// hlist.Case2(hl, func(a bool, b string) string {
-	// 	fmt.Printf("a = %v , b = %v\n", a, b)
-	// 	return "good"
-	// })
 
 	var ptr *string = nil
 	ptrOpt := option.Of(ptr)
@@ -129,34 +75,6 @@ func TestCompileError(t *testing.T) {
 		Ap(20)
 	fmt.Println(res)
 
-}
-
-func TestFunc(t *testing.T) {
-	o1 := option.Some(1)
-	o2 := option.Some(2)
-
-	os := option.Applicative2(monoid.Sum[int]().Combine).
-		ApOption(o1).
-		ApOption(o2)
-
-	fmt.Println(os)
-
-	oint := option.Some(2)
-	plus := func(a, b int) int {
-		return a * b
-	}
-	option.Applicative2(plus).
-		ApOption(oint).
-		Ap(2)
-
-	otuple := option.Some(as.Tuple(1, 2))
-	option.Applicative1(as.Func2(plus).Tupled()).
-		ApOption(otuple)
-
-	oreader := option.Applicative3(fp.Nop2[int, string](strings.NewReader)).
-		ApOption(oint).
-		Map(strconv.Itoa)
-	fmt.Println(oreader)
 }
 
 func TestJson(t *testing.T) {
