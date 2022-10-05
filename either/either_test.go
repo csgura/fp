@@ -8,10 +8,10 @@ import (
 )
 
 func TestEither(t *testing.T) {
-	l := either.Left[string, int]("error")
-	l.Left().Foreach(fp.Println[string])
+	l := either.Left[int, float64](10)
+	l.Left().Foreach(fp.Println[int])
 
 	s := l.Swap()
-	s.Foreach(fp.Println[string])
+	s.Foreach(fp.Println[int])
 
 }

@@ -19,10 +19,12 @@ import (
 
 func Fibonacci(n1 int, n2 int) fp.List[int] {
 	return fp.MakeList(
-		lazy.Done(option.Some(n1)),
-		lazy.Call(func() fp.List[int] {
+		func() fp.Option[int] {
+			return option.Some(n1)
+		},
+		func() fp.List[int] {
 			return Fibonacci(n2, n1+n2)
-		}),
+		},
 	)
 }
 

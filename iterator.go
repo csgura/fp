@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"sync"
-
-	"github.com/csgura/fp/lazy"
 )
 
 type Iterable[T any] interface {
@@ -25,14 +23,16 @@ func (r Iterator[T]) ToSeq() Seq[T] {
 	return ret
 }
 
-func (r Iterator[T]) ToList() List[T] {
+// func (r Iterator[T]) ToList() List[T] {
 
-	head := r.NextOption()
+// 	head := r.NextOption()
 
-	return MakeList(lazy.Done(head), lazy.Call(func() List[T] {
-		return r.ToList()
-	}))
-}
+// 	return MakeList(func() Option[T] {
+// 		return head
+// 	}, func() List[T] {
+// 		return r.ToList()
+// 	})
+// }
 
 func (r Iterator[T]) MakeString(sep string) string {
 	buf := &bytes.Buffer{}

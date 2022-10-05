@@ -28,12 +28,6 @@ func (r EqFunc[T]) Eqv(a, b T) bool {
 	return r(a, b)
 }
 
-func (r EqFunc[T]) ToOrd(less LessFunc[T]) Ord[T] {
-	return ord[T]{
-		r, less,
-	}
-}
-
 func EqGiven[T comparable]() Eq[T] {
 	return EqFunc[T](func(a, b T) bool {
 		return a == b
@@ -60,12 +54,6 @@ func (r LessFunc[T]) Less(a, b T) bool {
 	return r(a, b)
 }
 
-func (r LessFunc[T]) ToOrd(less LessFunc[T]) Ord[T] {
-	return ord[T]{
-		EqFunc[T](r.Eqv), less,
-	}
-}
-
 func LessGiven[T ImplicitOrd]() Ord[T] {
 	return LessFunc[T](func(a, b T) bool {
 		return a < b
@@ -83,10 +71,4 @@ func (r ord[T]) Eqv(a, b T) bool {
 
 func (r ord[T]) Less(a, b T) bool {
 	return r.less(a, b)
-}
-
-func (r ord[T]) ToOrd(less LessFunc[T]) Ord[T] {
-	return ord[T]{
-		r.eqv, less,
-	}
 }

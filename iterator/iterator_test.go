@@ -71,7 +71,7 @@ func TestToSet(t *testing.T) {
 
 func TestToList(t *testing.T) {
 
-	list := iterator.Range(0, 10).ToList()
+	list := iterator.ToList(iterator.Range(0, 10))
 
 	assert.Equal(list.Tail().Head().Get(), 1)
 	assert.Equal(list.Tail().Head().Get(), 1)

@@ -159,6 +159,17 @@ func ToGoSet[V comparable](itr fp.Iterator[V]) map[V]bool {
 	return ret
 }
 
+func ToList[V any](itr fp.Iterator[V]) fp.List[V] {
+	head := itr.NextOption()
+
+	return fp.MakeList(func() fp.Option[V] {
+		return head
+	}, func() fp.List[V] {
+
+		return ToList(itr)
+	})
+}
+
 func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, U]] {
 	return fp.MakeIterator(
 		func() bool {

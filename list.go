@@ -1,7 +1,5 @@
 package fp
 
-import "github.com/csgura/fp/lazy"
-
 type List[T any] interface {
 	IsEmpty() bool
 	NonEmpty() bool
@@ -13,8 +11,8 @@ type List[T any] interface {
 }
 
 type ListAdaptor[T any] struct {
-	getHead lazy.Eval[Option[T]]
-	getTail lazy.Eval[List[T]]
+	getHead Func0[Option[T]]
+	getTail Func0[List[T]]
 }
 
 func (r ListAdaptor[T]) IsEmpty() bool {
@@ -24,11 +22,11 @@ func (r ListAdaptor[T]) NonEmpty() bool {
 	return r.Head().IsDefined()
 }
 func (r ListAdaptor[T]) Head() Option[T] {
-	return r.getHead.Get()
+	return r.getHead.Apply()
 }
 
 func (r ListAdaptor[T]) Tail() List[T] {
-	return r.getTail.Get()
+	return r.getTail.Apply()
 }
 
 func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
@@ -58,6 +56,6 @@ func (r ListAdaptor[T]) Iterator() Iterator[T] {
 	)
 }
 
-func MakeList[T any](head lazy.Eval[Option[T]], tail lazy.Eval[List[T]]) List[T] {
-	return ListAdaptor[T]{head, tail}
+func MakeList[T any](head func() Option[T], tail func() List[T]) List[T] {
+	return ListAdaptor[T]{Memoize(head), Memoize(tail)}
 }

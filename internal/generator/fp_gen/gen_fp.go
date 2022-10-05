@@ -304,7 +304,7 @@ func Nop%d[%s,R any] ( f func(A%d) R ) Func%d[%s,R] {
 		fmt.Fprintln(f, `
 import (
 	"fmt"
-	"github.com/csgura/fp/hlist"
+//	"github.com/csgura/fp/hlist"
 
 )`)
 
@@ -334,16 +334,16 @@ func (r Tuple%d[%s]) Head() T1 {
 `, i, tupleTypeArgs(1, i))
 
 			fmt.Fprintf(f, `
-func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
-	return Tuple%d[%s]{%s};
-}
-`, i, tupleTypeArgs(1, i), i-1, tupleTypeArgs(2, i), i-1, tupleTypeArgs(2, i), tupleArgs(2, i))
-
-			fmt.Fprintf(f, `
-			func (r Tuple%d[%s]) ToHList() %s {
-				return hlist.Concat( r.Head(), r.Tail().ToHList())
+			func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
+				return Tuple%d[%s]{%s};
 			}
-			`, i, tupleTypeArgs(1, i), consType(1, i))
+			`, i, tupleTypeArgs(1, i), i-1, tupleTypeArgs(2, i), i-1, tupleTypeArgs(2, i), tupleArgs(2, i))
+
+			// fmt.Fprintf(f, `
+			// func (r Tuple%d[%s]) ToHList() %s {
+			// 	return hlist.Concat( r.Head(), r.Tail().ToHList())
+			// }
+			// `, i, tupleTypeArgs(1, i), consType(1, i))
 
 			fmt.Fprintf(f, `
 func (r Tuple%d[%s]) String() string {

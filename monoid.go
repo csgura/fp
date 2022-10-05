@@ -16,12 +16,6 @@ func (r SemigroupFunc[T]) Combine(a T, b T) T {
 	return r(a, b)
 }
 
-func (r SemigroupFunc[T]) ToMonoid(emptyFunc EmptyFunc[T]) Monoid[T] {
-	return monoid[T]{
-		emptyFunc, r,
-	}
-}
-
 func (r SemigroupFunc[T]) Curried() Func1[T, Func1[T, T]] {
 	return Func2[T, T, T](r).Curried()
 }
@@ -65,13 +59,14 @@ func (r monoid[T]) Curried() Func1[T, Func1[T, T]] {
 }
 
 func Product[T ImplicitNum]() Monoid[T] {
-
-	return SemigroupFunc[T](func(a, b T) T {
-		return a * b
-	}).ToMonoid(func() T {
-		return 1
-	})
-
+	return monoid[T]{
+		zero: func() T {
+			return 1
+		},
+		combine: SemigroupFunc[T](func(a, b T) T {
+			return a * b
+		}),
+	}
 }
 
 type Endo[T any] Func1[T, T]
