@@ -99,13 +99,6 @@ func (r Try[T]) ToOption() Option[T] {
 	return None[T]()
 }
 
-func (r Try[T]) ToSeq() Seq[T] {
-	if r.IsSuccess() {
-		return Seq[T]{r.Get()}
-	}
-	return nil
-}
-
 func (r Try[T]) String() string {
 	if r.IsSuccess() {
 		return fmt.Sprintf("Success(%v)", r.Get())
@@ -113,6 +106,13 @@ func (r Try[T]) String() string {
 	return fmt.Sprintf("Failure(%v)", r.Failed().Get())
 }
 
-func (r Try[T]) Iterator() Iterator[T] {
-	return r.ToSeq().Iterator()
-}
+// func (r Try[T]) ToSeq() Seq[T] {
+// 	if r.IsSuccess() {
+// 		return Seq[T]{r.Get()}
+// 	}
+// 	return nil
+// }
+
+// func (r Try[T]) Iterator() Iterator[T] {
+// 	return r.ToSeq().Iterator()
+// }

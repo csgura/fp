@@ -166,6 +166,17 @@ func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[
 	return f(s.Get(), lazy.Done(zero))
 }
 
+func ToSeq[T any](r fp.Try[T]) fp.Seq[T] {
+	if r.IsSuccess() {
+		return fp.Seq[T]{r.Get()}
+	}
+	return nil
+}
+
+func Iterator[T any](r fp.Try[T]) fp.Iterator[T] {
+	return ToSeq(r).Iterator()
+}
+
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Try[H]
 	fn fp.Try[fp.Func1[A, R]]

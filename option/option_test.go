@@ -123,7 +123,7 @@ func TestJson(t *testing.T) {
 }
 
 func TestIterator(t *testing.T) {
-	itr := option.Some(1).Iterator()
+	itr := option.Iterator(option.Some(1))
 
 	count := 0
 	for itr.HasNext() {

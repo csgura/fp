@@ -163,6 +163,17 @@ func FoldRight[A, B any](s fp.Option[A], zero B, f func(A, lazy.Eval[B]) lazy.Ev
 	return f(s.Get(), lazy.Done(zero))
 }
 
+func ToSeq[T any](r fp.Option[T]) fp.Seq[T] {
+	if r.IsDefined() {
+		return fp.Seq[T]{r.Get()}
+	}
+	return nil
+}
+
+func Iterator[T any](r fp.Option[T]) fp.Iterator[T] {
+	return ToSeq(r).Iterator()
+}
+
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Option[H]
 	fn fp.Option[fp.Func1[A, R]]

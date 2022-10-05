@@ -90,16 +90,16 @@ func (r Option[T]) ForAll(p func(v T) bool) bool {
 	return true
 }
 
-func (r Option[T]) ToSeq() Seq[T] {
-	if r.IsDefined() {
-		return Seq[T]{r.Get()}
-	}
-	return nil
-}
+// func (r Option[T]) ToSeq() Seq[T] {
+// 	if r.IsDefined() {
+// 		return Seq[T]{r.Get()}
+// 	}
+// 	return nil
+// }
 
-func (r Option[T]) Iterator() Iterator[T] {
-	return r.ToSeq().Iterator()
-}
+// func (r Option[T]) Iterator() Iterator[T] {
+// 	return r.ToSeq().Iterator()
+// }
 
 func Some[T any](v T) Option[T] {
 	return Option[T]{true, v}
