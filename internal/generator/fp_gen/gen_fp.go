@@ -178,23 +178,23 @@ func main() {
 		}
 		for i := 3; i < max.Func; i++ {
 
-			fmt.Fprintf(f, `
-func(r Func%d[%s,R]) Tupled() Func1[Tuple%d[%s],R] {
-	return func(t Tuple%d[%s]) R {
-		return r(t.Unapply())
-	}
-}
-`, i, funcTypeArgs(1, i), i, funcTypeArgs(1, i), i, funcTypeArgs(1, i))
+			// 			fmt.Fprintf(f, `
+			// func(r Func%d[%s,R]) Tupled() Func1[Tuple%d[%s],R] {
+			// 	return func(t Tuple%d[%s]) R {
+			// 		return r(t.Unapply())
+			// 	}
+			// }
+			// `, i, funcTypeArgs(1, i), i, funcTypeArgs(1, i), i, funcTypeArgs(1, i))
 
-			fmt.Fprintf(f, `
-func(r Func%d[%s,R]) Curried() %s {
-	return func(a1 A1) %s {
-		return Func%d[%s,R](func(%s) R {
-			return r(%s)
-		}).Curried()
-	}	
-}
-`, i, funcTypeArgs(1, i), curriedType(1, i), curriedType(2, i), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
+			// 			fmt.Fprintf(f, `
+			// func(r Func%d[%s,R]) Curried() %s {
+			// 	return func(a1 A1) %s {
+			// 		return Func%d[%s,R](func(%s) R {
+			// 			return r(%s)
+			// 		}).Curried()
+			// 	}
+			// }
+			// `, i, funcTypeArgs(1, i), curriedType(1, i), curriedType(2, i), i-1, funcTypeArgs(2, i), funcDeclArgs(2, i), funcCallArgs(1, i))
 
 			for j := i - 1; j < i; j++ {
 				fmt.Fprintf(f, `

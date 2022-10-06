@@ -123,10 +123,12 @@ func main() {
 			fmt.Fprintf(f, "func Lift%d [%s , R any](f func(%s) R) fp.Func1[fp.Tuple%d[%s],R] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
 
 			fmt.Fprintf(f, `
-	return fp.Func%d[%s,R](f).Tupled()
+	return func(t fp.Tuple%d[%s]) R {
+					return f(t.Unapply())
+				}
 }
 
-`, i, typeArgs(1, i))
+`, i, common.FuncTypeArgs(1, i))
 
 		}
 	})

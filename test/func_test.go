@@ -96,7 +96,7 @@ func TestFunc(t *testing.T) {
 		return a + b + c
 	}
 
-	f2 := curried.Revert2(as.Func3(f3).Curried()(1))
+	f2 := curried.Revert2(as.Curried3(f3)(1))
 	f2(2, 3)
 
 	format16 := curried.Flip(as.Curried2(strconv.FormatInt))(16)

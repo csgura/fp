@@ -79,7 +79,7 @@ func TestAp(t *testing.T) {
 		return a + b + c
 	}
 
-	f1 := seq.Of(as.Func3(plus3).Curried())
+	f1 := seq.Of(as.Curried3(plus3))
 	f2 := seq.Ap(f1, seq.Of(1, 2))
 	f3 := seq.Ap(f2, seq.Of(2, 3))
 	f4 := seq.Ap(f3, seq.Of(3, 4))

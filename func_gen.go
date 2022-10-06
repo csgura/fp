@@ -14,20 +14,6 @@ type Func8[A1, A2, A3, A4, A5, A6, A7, A8, R any] func(a1 A1, a2 A2, a3 A3, a4 A
 
 type Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any] func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R
 
-func (r Func3[A1, A2, A3, R]) Tupled() Func1[Tuple3[A1, A2, A3], R] {
-	return func(t Tuple3[A1, A2, A3]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func3[A1, A2, A3, R]) Curried() Func1[A1, Func1[A2, Func1[A3, R]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, R]] {
-		return Func2[A2, A3, R](func(a2 A2, a3 A3) R {
-			return r(a1, a2, a3)
-		}).Curried()
-	}
-}
-
 func (r Func3[A1, A2, A3, R]) ApplyFirst2(a1 A1, a2 A2) Func1[A3, R] {
 	return func(a3 A3) R {
 		return r(a1, a2, a3)
@@ -37,20 +23,6 @@ func (r Func3[A1, A2, A3, R]) ApplyFirst2(a1 A1, a2 A2) Func1[A3, R] {
 func (r Func3[A1, A2, A3, R]) ApplyLast2(a2 A2, a3 A3) Func1[A1, R] {
 	return func(a1 A1) R {
 		return r(a1, a2, a3)
-	}
-}
-
-func (r Func4[A1, A2, A3, A4, R]) Tupled() Func1[Tuple4[A1, A2, A3, A4], R] {
-	return func(t Tuple4[A1, A2, A3, A4]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func4[A1, A2, A3, A4, R]) Curried() Func1[A1, Func1[A2, Func1[A3, Func1[A4, R]]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, Func1[A4, R]]] {
-		return Func3[A2, A3, A4, R](func(a2 A2, a3 A3, a4 A4) R {
-			return r(a1, a2, a3, a4)
-		}).Curried()
 	}
 }
 
@@ -66,20 +38,6 @@ func (r Func4[A1, A2, A3, A4, R]) ApplyLast3(a2 A2, a3 A3, a4 A4) Func1[A1, R] {
 	}
 }
 
-func (r Func5[A1, A2, A3, A4, A5, R]) Tupled() Func1[Tuple5[A1, A2, A3, A4, A5], R] {
-	return func(t Tuple5[A1, A2, A3, A4, A5]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func5[A1, A2, A3, A4, A5, R]) Curried() Func1[A1, Func1[A2, Func1[A3, Func1[A4, Func1[A5, R]]]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, Func1[A4, Func1[A5, R]]]] {
-		return Func4[A2, A3, A4, A5, R](func(a2 A2, a3 A3, a4 A4, a5 A5) R {
-			return r(a1, a2, a3, a4, a5)
-		}).Curried()
-	}
-}
-
 func (r Func5[A1, A2, A3, A4, A5, R]) ApplyFirst4(a1 A1, a2 A2, a3 A3, a4 A4) Func1[A5, R] {
 	return func(a5 A5) R {
 		return r(a1, a2, a3, a4, a5)
@@ -89,20 +47,6 @@ func (r Func5[A1, A2, A3, A4, A5, R]) ApplyFirst4(a1 A1, a2 A2, a3 A3, a4 A4) Fu
 func (r Func5[A1, A2, A3, A4, A5, R]) ApplyLast4(a2 A2, a3 A3, a4 A4, a5 A5) Func1[A1, R] {
 	return func(a1 A1) R {
 		return r(a1, a2, a3, a4, a5)
-	}
-}
-
-func (r Func6[A1, A2, A3, A4, A5, A6, R]) Tupled() Func1[Tuple6[A1, A2, A3, A4, A5, A6], R] {
-	return func(t Tuple6[A1, A2, A3, A4, A5, A6]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func6[A1, A2, A3, A4, A5, A6, R]) Curried() Func1[A1, Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, R]]]]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, R]]]]] {
-		return Func5[A2, A3, A4, A5, A6, R](func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
-			return r(a1, a2, a3, a4, a5, a6)
-		}).Curried()
 	}
 }
 
@@ -118,20 +62,6 @@ func (r Func6[A1, A2, A3, A4, A5, A6, R]) ApplyLast5(a2 A2, a3 A3, a4 A4, a5 A5,
 	}
 }
 
-func (r Func7[A1, A2, A3, A4, A5, A6, A7, R]) Tupled() Func1[Tuple7[A1, A2, A3, A4, A5, A6, A7], R] {
-	return func(t Tuple7[A1, A2, A3, A4, A5, A6, A7]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func7[A1, A2, A3, A4, A5, A6, A7, R]) Curried() Func1[A1, Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, Func1[A7, R]]]]]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, Func1[A7, R]]]]]] {
-		return Func6[A2, A3, A4, A5, A6, A7, R](func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
-			return r(a1, a2, a3, a4, a5, a6, a7)
-		}).Curried()
-	}
-}
-
 func (r Func7[A1, A2, A3, A4, A5, A6, A7, R]) ApplyFirst6(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) Func1[A7, R] {
 	return func(a7 A7) R {
 		return r(a1, a2, a3, a4, a5, a6, a7)
@@ -144,20 +74,6 @@ func (r Func7[A1, A2, A3, A4, A5, A6, A7, R]) ApplyLast6(a2 A2, a3 A3, a4 A4, a5
 	}
 }
 
-func (r Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) Tupled() Func1[Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], R] {
-	return func(t Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) Curried() Func1[A1, Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, Func1[A7, Func1[A8, R]]]]]]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, Func1[A7, Func1[A8, R]]]]]]] {
-		return Func7[A2, A3, A4, A5, A6, A7, A8, R](func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
-			return r(a1, a2, a3, a4, a5, a6, a7, a8)
-		}).Curried()
-	}
-}
-
 func (r Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApplyFirst7(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) Func1[A8, R] {
 	return func(a8 A8) R {
 		return r(a1, a2, a3, a4, a5, a6, a7, a8)
@@ -167,20 +83,6 @@ func (r Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApplyFirst7(a1 A1, a2 A2, a3 A
 func (r Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApplyLast7(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) Func1[A1, R] {
 	return func(a1 A1) R {
 		return r(a1, a2, a3, a4, a5, a6, a7, a8)
-	}
-}
-
-func (r Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) Tupled() Func1[Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], R] {
-	return func(t Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) R {
-		return r(t.Unapply())
-	}
-}
-
-func (r Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) Curried() Func1[A1, Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, Func1[A7, Func1[A8, Func1[A9, R]]]]]]]]] {
-	return func(a1 A1) Func1[A2, Func1[A3, Func1[A4, Func1[A5, Func1[A6, Func1[A7, Func1[A8, Func1[A9, R]]]]]]]] {
-		return Func8[A2, A3, A4, A5, A6, A7, A8, A9, R](func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
-			return r(a1, a2, a3, a4, a5, a6, a7, a8, a9)
-		}).Curried()
 	}
 }
 

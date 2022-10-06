@@ -335,33 +335,49 @@ func Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 }
 
 func Lift2[A1, A2, R any](f func(a1 A1, a2 A2) R) fp.Func1[fp.Tuple2[A1, A2], R] {
-	return fp.Func2[A1, A2, R](f).Tupled()
+	return func(t fp.Tuple2[A1, A2]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) fp.Func1[fp.Tuple3[A1, A2, A3], R] {
-	return fp.Func3[A1, A2, A3, R](f).Tupled()
+	return func(t fp.Tuple3[A1, A2, A3]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Func1[fp.Tuple4[A1, A2, A3, A4], R] {
-	return fp.Func4[A1, A2, A3, A4, R](f).Tupled()
+	return func(t fp.Tuple4[A1, A2, A3, A4]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.Func1[fp.Tuple5[A1, A2, A3, A4, A5], R] {
-	return fp.Func5[A1, A2, A3, A4, A5, R](f).Tupled()
+	return func(t fp.Tuple5[A1, A2, A3, A4, A5]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.Func1[fp.Tuple6[A1, A2, A3, A4, A5, A6], R] {
-	return fp.Func6[A1, A2, A3, A4, A5, A6, R](f).Tupled()
+	return func(t fp.Tuple6[A1, A2, A3, A4, A5, A6]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.Func1[fp.Tuple7[A1, A2, A3, A4, A5, A6, A7], R] {
-	return fp.Func7[A1, A2, A3, A4, A5, A6, A7, R](f).Tupled()
+	return func(t fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.Func1[fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], R] {
-	return fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R](f).Tupled()
+	return func(t fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) R {
+		return f(t.Unapply())
+	}
 }
 
 func Lift9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) fp.Func1[fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], R] {
-	return fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](f).Tupled()
+	return func(t fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) R {
+		return f(t.Unapply())
+	}
 }

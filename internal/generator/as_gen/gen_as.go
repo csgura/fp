@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 )
 
@@ -120,12 +121,27 @@ func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
 
 		}
 
-		for i := 2; i < max.Func; i++ {
+		fmt.Fprintf(f, `
+func Curried2[A1, A2, R any](f func(A1, A2) R) fp.Func1[A1, fp.Func1[A2, R]] {
+	return func(a1 A1) fp.Func1[A2, R] {
+		return func(a2 A2) R {
+			return f(a1, a2)
+		}
+	}
+}		
+		`)
+
+		for i := 3; i < max.Func; i++ {
+
 			fmt.Fprintf(f, `
 func Curried%d[%s,R any]( f func(%s) R) %s {
-	return fp.Func%d[%s,R](f).Curried()
+	return func(a1 A1) %s {
+		return Curried%d( func(%s) R {
+			return f(%s)
+		} )
+	}	
 }
-`, i, typeArgs(1, i), typeArgs(1, i), curriedType(1, i), i, typeArgs(1, i))
+`, i, typeArgs(1, i), typeArgs(1, i), curriedType(1, i), curriedType(2, i), i-1, common.FuncDeclArgs(2, i), common.FuncCallArgs(1, i))
 
 		}
 
