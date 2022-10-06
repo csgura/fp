@@ -70,7 +70,7 @@ func Lift[T, U any](f func(v T) U) fp.Func1[fp.Option[T], fp.Option[U]] {
 
 func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Option[A1], fp.Option[A2], fp.Option[R]] {
 	return func(a1 fp.Option[A1], a2 fp.Option[A2]) fp.Option[R] {
-		return Ap(Ap(Some(f.Curried()), a1), a2)
+		return Map2(a1, a2, f)
 	}
 }
 
@@ -114,10 +114,7 @@ func Zip[A, B any](c1 fp.Option[A], c2 fp.Option[B]) fp.Option[fp.Tuple2[A, B]] 
 }
 
 func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Option[fp.Tuple3[A, B, C]] {
-	return Applicative3(as.Tuple3[A, B, C]).
-		ApOption(c1).
-		ApOption(c2).
-		ApOption(c3)
+	return LiftA3(as.Tuple3[A, B, C])(c1, c2, c3)
 }
 
 func SequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Iterator[T]] {

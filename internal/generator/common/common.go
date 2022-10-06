@@ -132,6 +132,17 @@ func FuncDeclTypeClassArgs(start, until int, typeClass string) string {
 	return f.String()
 }
 
+func TypeClassArgs(start, until int, typeClass string) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "%s[A%d]", typeClass, j)
+	}
+	return f.String()
+}
+
 type Range struct {
 	writer *writer
 	start  int

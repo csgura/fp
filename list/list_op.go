@@ -311,9 +311,7 @@ func ToGoSet[V comparable](list fp.List[V]) map[V]bool {
 func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 	return fp.MakeList(
 		func() fp.Option[fp.Tuple2[T, U]] {
-			return option.Applicative2(as.Tuple[T, U]).
-				ApOption(a.Head()).
-				ApOption(b.Head())
+			return option.LiftA2(as.Tuple[T, U])(a.Head(), b.Head())
 		},
 		func() fp.List[fp.Tuple2[T, U]] {
 			return Zip(a.Tail(), b.Tail())
@@ -324,10 +322,8 @@ func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tuple3[A, B, C]] {
 	return fp.MakeList(
 		func() fp.Option[fp.Tuple3[A, B, C]] {
-			return option.Applicative3(as.Tuple3[A, B, C]).
-				ApOption(a.Head()).
-				ApOption(b.Head()).
-				ApOption(c.Head())
+			return option.LiftA3(as.Tuple3[A, B, C])(a.Head(), b.Head(), c.Head())
+
 		},
 		func() fp.List[fp.Tuple3[A, B, C]] {
 			return Zip3(a.Tail(), b.Tail(), c.Tail())

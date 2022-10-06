@@ -249,6 +249,26 @@ import (
 	"github.com/csgura/fp"
 )`)
 
+		for i := 3; i < max.Func; i++ {
+			fmt.Fprintf(f, `
+				func LiftA%d[%s,R any]( f func(%s) R ) fp.Func%d[%s,fp.Try[R]] {
+					return func(%s) fp.Try[R] {
+
+						return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+							return LiftA%d(func(%s) R {
+								return f(%s)
+							})(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), funcDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Try"),
+				common.FuncDeclTypeClassArgs(1, i, "fp.Try"),
+				i-1, funcDeclArgs(2, i),
+				funcCallArgs(1, i),
+				common.FuncCallArgs(2, i, "ins"),
+			)
+		}
+
 		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
 func Func%d[%s,R any]( f func(%s) (R,error)) fp.Func%d[%s,fp.Try[R]] {

@@ -4,6 +4,83 @@ import (
 	"github.com/csgura/fp"
 )
 
+func LiftA3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R, exec ...fp.Executor) fp.Func3[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA2(func(a2 A2, a3 A3) R {
+				return f(a1, a2, a3)
+			}, exec...)(ins2, ins3)
+		}, exec...)
+	}
+}
+
+func LiftA4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R, exec ...fp.Executor) fp.Func4[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[A4], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA3(func(a2 A2, a3 A3, a4 A4) R {
+				return f(a1, a2, a3, a4)
+			}, exec...)(ins2, ins3, ins4)
+		}, exec...)
+	}
+}
+
+func LiftA5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R, exec ...fp.Executor) fp.Func5[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[A4], fp.Future[A5], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA4(func(a2 A2, a3 A3, a4 A4, a5 A5) R {
+				return f(a1, a2, a3, a4, a5)
+			}, exec...)(ins2, ins3, ins4, ins5)
+		}, exec...)
+	}
+}
+
+func LiftA6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R, exec ...fp.Executor) fp.Func6[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[A4], fp.Future[A5], fp.Future[A6], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
+				return f(a1, a2, a3, a4, a5, a6)
+			}, exec...)(ins2, ins3, ins4, ins5, ins6)
+		}, exec...)
+	}
+}
+
+func LiftA7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R, exec ...fp.Executor) fp.Func7[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[A4], fp.Future[A5], fp.Future[A6], fp.Future[A7], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6], ins7 fp.Future[A7]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA6(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
+				return f(a1, a2, a3, a4, a5, a6, a7)
+			}, exec...)(ins2, ins3, ins4, ins5, ins6, ins7)
+		}, exec...)
+	}
+}
+
+func LiftA8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R, exec ...fp.Executor) fp.Func8[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[A4], fp.Future[A5], fp.Future[A6], fp.Future[A7], fp.Future[A8], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6], ins7 fp.Future[A7], ins8 fp.Future[A8]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA7(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
+				return f(a1, a2, a3, a4, a5, a6, a7, a8)
+			}, exec...)(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
+		}, exec...)
+	}
+}
+
+func LiftA9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R, exec ...fp.Executor) fp.Func9[fp.Future[A1], fp.Future[A2], fp.Future[A3], fp.Future[A4], fp.Future[A5], fp.Future[A6], fp.Future[A7], fp.Future[A8], fp.Future[A9], fp.Future[R]] {
+	return func(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6], ins7 fp.Future[A7], ins8 fp.Future[A8], ins9 fp.Future[A9]) fp.Future[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftA8(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
+				return f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+			}, exec...)(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
+		}, exec...)
+	}
+}
+
 func Func1[A1, R any](f func(A1) (R, error), exec ...fp.Executor) fp.Func1[A1, fp.Future[R]] {
 	return func(a1 A1) fp.Future[R] {
 		return Apply2(func() (R, error) {

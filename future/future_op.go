@@ -122,7 +122,7 @@ func Lift[T, U any](f func(v T) U, ctx ...fp.Executor) fp.Func1[fp.Future[T], fp
 
 func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.Executor) fp.Func2[fp.Future[A1], fp.Future[A2], fp.Future[R]] {
 	return func(a1 fp.Future[A1], a2 fp.Future[A2]) fp.Future[R] {
-		return Ap(Ap(Successful(f.Curried()), a1, ctx...), a2, ctx...)
+		return Map2(a1, a2, f, ctx...)
 	}
 }
 
@@ -209,10 +209,7 @@ func Zip[A, B any](c1 fp.Future[A], c2 fp.Future[B]) fp.Future[fp.Tuple2[A, B]] 
 }
 
 func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Future[fp.Tuple3[A, B, C]] {
-	return Applicative3(as.Tuple3[A, B, C]).
-		ApFuture(c1).
-		ApFuture(c2).
-		ApFuture(c3)
+	return LiftA3(as.Tuple3[A, B, C])(c1, c2, c3)
 }
 
 func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Seq[T]] {

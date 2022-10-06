@@ -52,7 +52,7 @@ func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
 		if !t1.IsDefined() && !t2.IsDefined() {
 			return false
 		}
-		return option.Applicative2(m.Less).ApOption(t1).ApOption(t2).OrElse(!t1.IsDefined())
+		return option.Map2(t1, t2, m.Less).OrElse(!t1.IsDefined())
 	})
 }
 

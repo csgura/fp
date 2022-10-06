@@ -91,7 +91,7 @@ func Lift[T, U any](f func(v T) U) fp.Func1[fp.Try[T], fp.Try[U]] {
 
 func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Try[A1], fp.Try[A2], fp.Try[R]] {
 	return func(a1 fp.Try[A1], a2 fp.Try[A2]) fp.Try[R] {
-		return Ap(Ap(Success(f.Curried()), a1), a2)
+		return Map2(a1, a2, f)
 	}
 }
 
@@ -117,10 +117,7 @@ func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
 }
 
 func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
-	return Applicative3(as.Tuple3[A, B, C]).
-		ApTry(c1).
-		ApTry(c2).
-		ApTry(c3)
+	return LiftA3(as.Tuple3[A, B, C])(c1, c2, c3)
 }
 
 func SequenceIterator[T any](tryItr fp.Iterator[fp.Try[T]]) fp.Try[fp.Iterator[T]] {

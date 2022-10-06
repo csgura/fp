@@ -223,6 +223,26 @@ import (
 	"github.com/csgura/fp"
 )`)
 
+		for i := 3; i < max.Func; i++ {
+			fmt.Fprintf(f, `
+				func LiftA%d[%s,R any]( f func(%s) R ) fp.Func%d[%s,fp.Option[R]] {
+					return func(%s) fp.Option[R] {
+
+						return FlatMap(ins1, func(a1 A1) fp.Option[R] {
+							return LiftA%d(func(%s) R {
+								return f(%s)
+							})(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Option"),
+				common.FuncDeclTypeClassArgs(1, i, "fp.Option"),
+				i-1, common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+				common.FuncCallArgs(2, i, "ins"),
+			)
+		}
+
 		for i := 3; i < max.Compose; i++ {
 			fmt.Fprintf(f, `
 func Compose%d[%s,R any] ( %s ) fp.Func1[A1,fp.Option[R]] {
