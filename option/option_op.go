@@ -106,11 +106,7 @@ func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
 }
 
 func Zip[A, B any](c1 fp.Option[A], c2 fp.Option[B]) fp.Option[fp.Tuple2[A, B]] {
-	return FlatMap(c1, func(v1 A) fp.Option[fp.Tuple2[A, B]] {
-		return Map(c2, func(v2 B) fp.Tuple2[A, B] {
-			return product.Tuple2(v1, v2)
-		})
-	})
+	return Map2(c1, c2, product.Tuple2[A, B])
 }
 
 func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Option[fp.Tuple3[A, B, C]] {
@@ -118,12 +114,7 @@ func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Opt
 }
 
 func SequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Iterator[T]] {
-
-	return iterator.Fold(optItr, Some(iterator.Empty[T]()), func(list fp.Option[fp.Iterator[T]], v fp.Option[T]) fp.Option[fp.Iterator[T]] {
-		return Map2(list, v, func(l fp.Iterator[T], e T) fp.Iterator[T] {
-			return l.Concat(iterator.Of(e))
-		})
-	})
+	return iterator.Fold(optItr, Some(iterator.Empty[T]()), LiftA2(fp.Iterator[T].Appended))
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[fp.Iterator[U]] {

@@ -109,11 +109,7 @@ func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
 }
 
 func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
-	return FlatMap(c1, func(v1 A) fp.Try[fp.Tuple2[A, B]] {
-		return Map(c2, func(v2 B) fp.Tuple2[A, B] {
-			return product.Tuple2(v1, v2)
-		})
-	})
+	return Map2(c1, c2, product.Tuple2[A, B])
 }
 
 func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
@@ -121,20 +117,13 @@ func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple
 }
 
 func SequenceIterator[T any](tryItr fp.Iterator[fp.Try[T]]) fp.Try[fp.Iterator[T]] {
-
-	return iterator.Fold(tryItr, Success(iterator.Empty[T]()), func(list fp.Try[fp.Iterator[T]], v fp.Try[T]) fp.Try[fp.Iterator[T]] {
-		return Map2(list, v, func(l fp.Iterator[T], e T) fp.Iterator[T] {
-			return l.Concat(iterator.Of(e))
-		})
-	})
+	return iterator.Fold(tryItr, Success(iterator.Empty[T]()), LiftA2(fp.Iterator[T].Appended))
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Try[U]) fp.Try[fp.Iterator[U]] {
 	return iterator.Fold(itr, Success(iterator.Empty[U]()), func(tryItr fp.Try[fp.Iterator[U]], v T) fp.Try[fp.Iterator[U]] {
 		return FlatMap(tryItr, func(acc fp.Iterator[U]) fp.Try[fp.Iterator[U]] {
-			return Map(fn(v), func(v U) fp.Iterator[U] {
-				return acc.Concat(iterator.Of(v))
-			})
+			return Map(fn(v), acc.Appended)
 		})
 	})
 }

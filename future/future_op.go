@@ -201,11 +201,7 @@ func Flatten[T any](opt fp.Future[fp.Future[T]]) fp.Future[T] {
 }
 
 func Zip[A, B any](c1 fp.Future[A], c2 fp.Future[B]) fp.Future[fp.Tuple2[A, B]] {
-	return FlatMap(c1, func(v1 A) fp.Future[fp.Tuple2[A, B]] {
-		return Map(c2, func(v2 B) fp.Tuple2[A, B] {
-			return product.Tuple2(v1, v2)
-		})
-	})
+	return Map2(c1, c2, product.Tuple2[A, B])
 }
 
 func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Future[fp.Tuple3[A, B, C]] {
@@ -218,11 +214,7 @@ func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.Executor) fp.Fut
 }
 
 func SequenceIterator[T any](futureList fp.Iterator[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Iterator[T]] {
-	return iterator.Fold(futureList, Successful(iterator.Empty[T]()), func(list fp.Future[fp.Iterator[T]], v fp.Future[T]) fp.Future[fp.Iterator[T]] {
-		return Map2(list, v, func(l fp.Iterator[T], e T) fp.Iterator[T] {
-			return l.Concat(iterator.Of(e))
-		}, ctx...)
-	})
+	return iterator.Fold(futureList, Successful(iterator.Empty[T]()), LiftA2(fp.Iterator[T].Appended, ctx...))
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Iterator[U]] {

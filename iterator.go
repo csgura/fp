@@ -256,6 +256,10 @@ func (r Iterator[T]) TapEach(p func(T)) Iterator[T] {
 	)
 }
 
+func (r Iterator[T]) Appended(elem T) Iterator[T] {
+	return r.Concat((Seq[T]{elem}).Iterator())
+}
+
 func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 
 	return MakeIterator(
