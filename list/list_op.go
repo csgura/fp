@@ -270,7 +270,7 @@ func ToMap[K, V any](list fp.List[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Ma
 		cursor = cursor.Tail()
 	}
 
-	return fp.MakeMap(ret.Build())
+	return ret.Build()
 }
 
 func ToGoMap[K comparable, V any](list fp.List[fp.Tuple2[K, V]]) map[K]V {

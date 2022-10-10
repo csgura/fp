@@ -14,50 +14,34 @@ type MapMinimalUpdatedWith[K, V any] interface {
 	UpdatedWith(k K, remap func(Option[V]) Option[V]) MapMinimal[K, V]
 }
 
-type Map[K, V any] interface {
-	IsEmpty() bool
-	NonEmpty() bool
-	Size() int
-	Get(k K) Option[V]
-	Removed(k ...K) Map[K, V]
-	Updated(k K, v V) Map[K, V]
-	UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V]
-	Iterator() Iterator[Tuple2[K, V]]
-	Contains(K) bool
-	Keys() Iterator[K]
-	Values() Iterator[V]
-	Foreach(func(Tuple2[K, V]))
-	Concat(Iterable[Tuple2[K, V]]) Map[K, V]
+type Map[K, V any] struct {
+	minimal MapMinimal[K, V]
 }
 
-type MapOps[K, V any] struct {
-	Map MapMinimal[K, V]
+func (r Map[K, V]) Size() int {
+	return r.minimal.Size()
 }
 
-func (r MapOps[K, V]) Size() int {
-	return r.Map.Size()
+func (r Map[K, V]) IsEmpty() bool {
+	return r.minimal.Size() == 0
 }
 
-func (r MapOps[K, V]) IsEmpty() bool {
-	return r.Map.Size() == 0
+func (r Map[K, V]) NonEmpty() bool {
+	return r.minimal.Size() != 0
 }
 
-func (r MapOps[K, V]) NonEmpty() bool {
-	return r.Map.Size() != 0
+func (r Map[K, V]) Get(k K) Option[V] {
+	return r.minimal.Get(k)
+}
+func (r Map[K, V]) Removed(k ...K) Map[K, V] {
+	return MakeMap(r.minimal.Removed(k...))
+}
+func (r Map[K, V]) Updated(k K, v V) Map[K, V] {
+	return MakeMap(r.minimal.Updated(k, v))
 }
 
-func (r MapOps[K, V]) Get(k K) Option[V] {
-	return r.Map.Get(k)
-}
-func (r MapOps[K, V]) Removed(k ...K) Map[K, V] {
-	return MakeMap(r.Map.Removed(k...))
-}
-func (r MapOps[K, V]) Updated(k K, v V) Map[K, V] {
-	return MakeMap(r.Map.Updated(k, v))
-}
-
-func (r MapOps[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V] {
-	if um, ok := r.Map.(MapMinimalUpdatedWith[K, V]); ok {
+func (r Map[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V] {
+	if um, ok := r.minimal.(MapMinimalUpdatedWith[K, V]); ok {
 		return MakeMap(um.UpdatedWith(k, remap))
 	}
 
@@ -72,33 +56,33 @@ func (r MapOps[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V
 	return r
 }
 
-func (r MapOps[K, V]) Iterator() Iterator[Tuple2[K, V]] {
-	return r.Map.Iterator()
+func (r Map[K, V]) Iterator() Iterator[Tuple2[K, V]] {
+	return r.minimal.Iterator()
 }
 
-func (r MapOps[K, V]) Contains(k K) bool {
+func (r Map[K, V]) Contains(k K) bool {
 	return r.Get(k).IsDefined()
 }
 
-func (r MapOps[K, V]) Keys() Iterator[K] {
+func (r Map[K, V]) Keys() Iterator[K] {
 	itr := r.Iterator()
 	return MakeIterator(itr.HasNext, func() K {
 		return itr.Next().I1
 	})
 }
 
-func (r MapOps[K, V]) Values() Iterator[V] {
+func (r Map[K, V]) Values() Iterator[V] {
 	itr := r.Iterator()
 	return MakeIterator(itr.HasNext, func() V {
 		return itr.Next().I2
 	})
 }
 
-func (r MapOps[K, V]) Foreach(f func(Tuple2[K, V])) {
+func (r Map[K, V]) Foreach(f func(Tuple2[K, V])) {
 	r.Iterator().Foreach(f)
 }
 
-func (r MapOps[K, V]) Concat(other Iterable[Tuple2[K, V]]) Map[K, V] {
+func (r Map[K, V]) Concat(other Iterable[Tuple2[K, V]]) Map[K, V] {
 	var ret Map[K, V] = r
 	itr := other.Iterator()
 	for itr.HasNext() {
@@ -109,10 +93,10 @@ func (r MapOps[K, V]) Concat(other Iterable[Tuple2[K, V]]) Map[K, V] {
 	return ret
 }
 
-func (r MapOps[K, V]) String() string {
-	return fmt.Sprint(r.Map)
+func (r Map[K, V]) String() string {
+	return fmt.Sprint(r.minimal)
 }
 
 func MakeMap[K, V any](minimal MapMinimal[K, V]) Map[K, V] {
-	return MapOps[K, V]{minimal}
+	return Map[K, V]{minimal}
 }

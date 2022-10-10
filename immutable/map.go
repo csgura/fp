@@ -51,7 +51,7 @@ func MapMinimal[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.MapMin
 		for _, v := range t {
 			b.Add(v.I1, v.I2)
 		}
-		return b.Build()
+		return b.build()
 	} else {
 		return &hamt[K, V]{
 			hasher: hasher,
@@ -200,13 +200,17 @@ func assert(condition bool, message string) {
 	}
 }
 
-// Map returns the underlying map. Only call once.
-// Builder is invalid after call. Will panic on second invocation.
-func (b *mapBuilder[K, V]) Build() fp.MapMinimal[K, V] {
+func (b *mapBuilder[K, V]) build() fp.MapMinimal[K, V] {
 	assert(b.m != nil, "immutable.SortedMapBuilder.Build(): duplicate call to fetch map")
 	m := b.m
 	b.m = nil
 	return m
+}
+
+// Map returns the underlying map. Only call once.
+// Builder is invalid after call. Will panic on second invocation.
+func (b *mapBuilder[K, V]) Build() fp.Map[K, V] {
+	return fp.MakeMap(b.build())
 }
 
 // Len returns the number of elements in the underlying map.

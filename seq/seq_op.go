@@ -198,7 +198,7 @@ func ToMap[K, V any](s fp.Seq[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K,
 		ret = ret.Add(k, v)
 	}
 
-	return fp.MakeMap(ret.Build())
+	return ret.Build()
 }
 
 func ToGoMap[K comparable, V any](s fp.Seq[fp.Tuple2[K, V]]) map[K]V {
