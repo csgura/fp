@@ -10,45 +10,30 @@ type SetMinimal[V any] interface {
 	Excl(v V) SetMinimal[V]
 }
 
-type Set[V any] interface {
-	IsEmpty() bool
-	NonEmpty() bool
-	Contains(v V) bool
-	Size() int
-	Iterator() Iterator[V]
-	Incl(v V) Set[V]
-	Excl(v V) Set[V]
-	Foreach(func(V))
-	Concat(Iterable[V]) Set[V]
-	SubsetOf(other Set[V]) bool
-	Diff(other Set[V]) Set[V]
-	Intersect(other Set[V]) Set[V]
+type Set[V any] struct {
+	getEmpty func() SetMinimal[V]
+	set      SetMinimal[V]
 }
 
-type SetOps[V any] struct {
-	GetEmpty func() SetMinimal[V]
-	Set      SetMinimal[V]
+func (r Set[V]) Contains(v V) bool {
+	return r.set.Contains(v)
 }
-
-func (r SetOps[V]) Contains(v V) bool {
-	return r.Set.Contains(v)
+func (r Set[V]) Size() int {
+	return r.set.Size()
 }
-func (r SetOps[V]) Size() int {
-	return r.Set.Size()
+func (r Set[V]) Iterator() Iterator[V] {
+	return r.set.Iterator()
 }
-func (r SetOps[V]) Iterator() Iterator[V] {
-	return r.Set.Iterator()
+func (r Set[V]) Incl(v V) Set[V] {
+	return MakeSet(r.getEmpty, r.set.Incl(v))
 }
-func (r SetOps[V]) Incl(v V) Set[V] {
-	return MakeSet(r.GetEmpty, r.Set.Incl(v))
+func (r Set[V]) Excl(v V) Set[V] {
+	return MakeSet(r.getEmpty, r.set.Excl(v))
 }
-func (r SetOps[V]) Excl(v V) Set[V] {
-	return MakeSet(r.GetEmpty, r.Set.Excl(v))
-}
-func (r SetOps[V]) Foreach(f func(V)) {
+func (r Set[V]) Foreach(f func(V)) {
 	r.Iterator().Foreach(f)
 }
-func (r SetOps[V]) Concat(other Iterable[V]) Set[V] {
+func (r Set[V]) Concat(other Iterable[V]) Set[V] {
 	var ret Set[V] = r
 	itr := other.Iterator()
 	for itr.HasNext() {
@@ -57,12 +42,12 @@ func (r SetOps[V]) Concat(other Iterable[V]) Set[V] {
 	return ret
 }
 
-func (r SetOps[V]) SubsetOf(other Set[V]) bool {
+func (r Set[V]) SubsetOf(other Set[V]) bool {
 	return r.Iterator().ForAll(other.Contains)
 }
 
-func (r SetOps[V]) Diff(other Set[V]) Set[V] {
-	ret := r.GetEmpty()
+func (r Set[V]) Diff(other Set[V]) Set[V] {
+	ret := r.getEmpty()
 
 	itr := r.Iterator()
 	for itr.HasNext() {
@@ -72,10 +57,10 @@ func (r SetOps[V]) Diff(other Set[V]) Set[V] {
 		}
 	}
 
-	return MakeSet(r.GetEmpty, ret)
+	return MakeSet(r.getEmpty, ret)
 }
-func (r SetOps[V]) Intersect(other Set[V]) Set[V] {
-	ret := r.GetEmpty()
+func (r Set[V]) Intersect(other Set[V]) Set[V] {
+	ret := r.getEmpty()
 
 	itr := r.Iterator()
 	for itr.HasNext() {
@@ -85,21 +70,21 @@ func (r SetOps[V]) Intersect(other Set[V]) Set[V] {
 		}
 	}
 
-	return MakeSet(r.GetEmpty, ret)
+	return MakeSet(r.getEmpty, ret)
 }
 
-func (r SetOps[V]) String() string {
-	return fmt.Sprint(r.Set)
+func (r Set[V]) String() string {
+	return fmt.Sprint(r.set)
 }
 
-func (r SetOps[V]) IsEmpty() bool {
-	return r.Set.Size() == 0
+func (r Set[V]) IsEmpty() bool {
+	return r.set.Size() == 0
 }
 
-func (r SetOps[V]) NonEmpty() bool {
-	return r.Set.Size() != 0
+func (r Set[V]) NonEmpty() bool {
+	return r.set.Size() != 0
 }
 
 func MakeSet[V any](empty func() SetMinimal[V], s SetMinimal[V]) Set[V] {
-	return SetOps[V]{empty, s}
+	return Set[V]{empty, s}
 }
