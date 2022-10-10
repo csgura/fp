@@ -322,6 +322,11 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 }
 
 func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {
+	value := future.Value()
+	if value.IsDefined() {
+		return value.Get()
+	}
+
 	ch := make(chan fp.Try[T], 1)
 
 	timer := time.AfterFunc(timeout, func() {
