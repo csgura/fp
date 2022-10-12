@@ -42,8 +42,8 @@ func (r Set[V]) Iterator() Iterator[V] {
 func (r Set[V]) Incl(v V) Set[V] {
 	if r.set == nil && r.getEmpty == nil {
 		return MakeSet[V](func() SetMinimal[V] {
-			return UnsageGoSet[V]{}
-		}, UnsageGoSet[V]{
+			return UnsafeGoSet[V]{}
+		}, UnsafeGoSet[V]{
 			v: true,
 		})
 	}
@@ -124,19 +124,19 @@ func MakeSet[V any](empty func() SetMinimal[V], s SetMinimal[V]) Set[V] {
 	return Set[V]{empty, s}
 }
 
-type UnsageGoSet[V any] map[any]bool
+type UnsafeGoSet[V any] map[any]bool
 
-var _ SetMinimal[string] = UnsageGoSet[string]{}
+var _ SetMinimal[string] = UnsafeGoSet[string]{}
 
-func (r UnsageGoSet[V]) Contains(v V) bool {
+func (r UnsafeGoSet[V]) Contains(v V) bool {
 	return r[v]
 }
 
-func (r UnsageGoSet[V]) Size() int {
+func (r UnsafeGoSet[V]) Size() int {
 	return len(r)
 }
 
-func (r UnsageGoSet[V]) Iterator() Iterator[V] {
+func (r UnsafeGoSet[V]) Iterator() Iterator[V] {
 	seq := Seq[V]{}
 	for k := range r {
 		seq = append(seq, k.(V))
@@ -144,8 +144,8 @@ func (r UnsageGoSet[V]) Iterator() Iterator[V] {
 	return seq.Iterator()
 }
 
-func (r UnsageGoSet[V]) Incl(v V) SetMinimal[V] {
-	n := UnsageGoSet[V]{}
+func (r UnsafeGoSet[V]) Incl(v V) SetMinimal[V] {
+	n := UnsafeGoSet[V]{}
 	for ek, ev := range r {
 		n[ek] = ev
 	}
@@ -153,8 +153,8 @@ func (r UnsageGoSet[V]) Incl(v V) SetMinimal[V] {
 	return n
 }
 
-func (r UnsageGoSet[V]) Excl(v V) SetMinimal[V] {
-	n := UnsageGoSet[V]{}
+func (r UnsafeGoSet[V]) Excl(v V) SetMinimal[V] {
+	n := UnsafeGoSet[V]{}
 	for ek, ev := range r {
 		n[ek] = ev
 	}

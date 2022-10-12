@@ -55,8 +55,8 @@ func (r *CopyOnWriteMap[K, V]) Size() int {
 	return r.load().Size()
 }
 
-func unsafeSet[V any](v ...V) fp.UnsageGoSet[V] {
-	ret := fp.UnsageGoSet[V]{}
+func unsafeSet[V any](v ...V) fp.UnsafeGoSet[V] {
+	ret := fp.UnsafeGoSet[V]{}
 	for _, e := range v {
 		ret[e] = true
 	}
