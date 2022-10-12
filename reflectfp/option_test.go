@@ -12,13 +12,28 @@ import (
 
 func TestReflectOption(t *testing.T) {
 
-	opt := option.Some("10")
+	opt := option.Some(10)
 
-	isopt := reflectfp.IsOptionType(reflect.TypeOf(opt))
-	assert.True(isopt)
+	isopt := reflectfp.MatchOption(reflect.TypeOf(opt))
+	assert.True(isopt.IsDefined())
 
-	res := reflectfp.Some(reflect.TypeOf(opt), reflect.ValueOf("20"))
+	res := reflectfp.Some(reflect.TypeOf(opt), reflect.ValueOf(20))
 
-	s := res.Get().Interface().(fp.Option[string]).Get()
-	assert.Equal(s, "20")
+	assert.True(res.IsSuccess())
+	s := res.Get().Interface().(fp.Option[int]).Get()
+	assert.Equal(s, 20)
+}
+
+func TestReflectOptionConvert(t *testing.T) {
+
+	opt := option.Some(10)
+
+	isopt := reflectfp.MatchOption(reflect.TypeOf(opt))
+	assert.True(isopt.IsDefined())
+
+	res := reflectfp.Some(reflect.TypeOf(opt), reflect.ValueOf(20.2))
+
+	assert.True(res.IsSuccess())
+	s := res.Get().Interface().(fp.Option[int]).Get()
+	assert.Equal(s, 20)
 }

@@ -2,6 +2,9 @@
 package try
 
 import (
+	"fmt"
+	"runtime/debug"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
@@ -24,6 +27,40 @@ func FromOption[T any](v fp.Option[T]) fp.Try[T] {
 	} else {
 		return Failure[T](fp.ErrOptionEmpty)
 	}
+}
+
+type Panic interface {
+	error
+	Panic() any
+	Stack() []byte
+}
+
+type panicError struct {
+	cause any
+	stack []byte
+}
+
+func (r *panicError) Error() string {
+	return fmt.Sprintf("%v %v", r.cause, string(r.stack))
+}
+
+func (r *panicError) Stack() []byte {
+	return r.stack
+}
+
+func (r *panicError) Panic() any {
+	return r.cause
+}
+
+func Of[T any](f func() T) (ret fp.Try[T]) {
+	defer func() {
+		if p := recover(); p != nil {
+			ret = Failure[T](&panicError{p, debug.Stack()})
+		}
+	}()
+
+	ret = Success(f())
+	return
 }
 
 func Apply[T any](v T, err error) fp.Try[T] {
