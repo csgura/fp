@@ -14,7 +14,7 @@ type CopyOnWriteMap[K, V any] struct {
 
 var _ fp.MapMinimal[string, int] = &CopyOnWriteMap[string, int]{}
 
-func (r *CopyOnWriteMap[K, V]) load() Map[K, V] {
+func (r *CopyOnWriteMap[K, V]) load() fp.UnsafeGoMap[K, V] {
 	m := r.value.Load()
 
 	if m == nil {
@@ -23,24 +23,24 @@ func (r *CopyOnWriteMap[K, V]) load() Map[K, V] {
 
 		m = r.value.Load()
 		if m == nil {
-			m = Map[K, V]{}
+			m = fp.UnsafeGoMap[K, V]{}
 			r.value.Store(m)
 		}
 	}
-	return m.(Map[K, V])
+	return m.(fp.UnsafeGoMap[K, V])
 }
 
-func (r *CopyOnWriteMap[K, V]) copyOnWrite(f func(om Map[K, V]) Map[K, V]) Map[K, V] {
+func (r *CopyOnWriteMap[K, V]) copyOnWrite(f func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
 
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	m := r.value.Load()
 	if m == nil {
-		m = Map[K, V]{}
+		m = fp.UnsafeGoMap[K, V]{}
 	}
 
-	nm := f(m.(Map[K, V]))
+	nm := f(m.(fp.UnsafeGoMap[K, V]))
 	r.value.Store(nm)
 	return nm
 }
@@ -55,11 +55,19 @@ func (r *CopyOnWriteMap[K, V]) Size() int {
 	return r.load().Size()
 }
 
+func unsafeSet[V any](v ...V) fp.UnsageGoSet[V] {
+	ret := fp.UnsageGoSet[V]{}
+	for _, e := range v {
+		ret[e] = true
+	}
+	return ret
+}
+
 func (r *CopyOnWriteMap[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
 
-	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
-		nm := Map[K, V]{}
-		s := SetOf(k...)
+	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
+		nm := fp.UnsafeGoMap[K, V]{}
+		s := unsafeSet(k...)
 
 		for k, v := range om {
 			if !s.Contains(k.(K)) {
@@ -80,8 +88,8 @@ func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
 	}
 
 	nv := f()
-	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
-		nm := Map[K, V]{}
+	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
+		nm := fp.UnsafeGoMap[K, V]{}
 
 		for k, v := range om {
 			nm[k] = v
@@ -96,8 +104,8 @@ func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
 
 func (r *CopyOnWriteMap[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 
-	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
-		nm := Map[K, V]{}
+	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
+		nm := fp.UnsafeGoMap[K, V]{}
 
 		for k, v := range om {
 			nm[k] = v
@@ -111,13 +119,13 @@ func (r *CopyOnWriteMap[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 }
 
 func (r *CopyOnWriteMap[K, V]) UpdatedWith(k K, remap func(fp.Option[V]) fp.Option[V]) fp.MapMinimal[K, V] {
-	r.copyOnWrite(func(om Map[K, V]) Map[K, V] {
+	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
 
 		ov := om.Get(k)
 		nv := remap(ov)
 
 		if nv.IsDefined() {
-			nm := Map[K, V]{}
+			nm := fp.UnsafeGoMap[K, V]{}
 
 			for k, v := range om {
 				nm[k] = v
@@ -125,7 +133,7 @@ func (r *CopyOnWriteMap[K, V]) UpdatedWith(k K, remap func(fp.Option[V]) fp.Opti
 			nm[k] = nv.Get()
 			return nm
 		} else if ov.IsDefined() {
-			nm := Map[K, V]{}
+			nm := fp.UnsafeGoMap[K, V]{}
 
 			for k, v := range om {
 				nm[k] = v

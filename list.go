@@ -22,10 +22,20 @@ func (r ListAdaptor[T]) NonEmpty() bool {
 	return r.Head().IsDefined()
 }
 func (r ListAdaptor[T]) Head() Option[T] {
+	if r.getHead == nil {
+		return None[T]()
+	}
 	return r.getHead.Apply()
 }
 
 func (r ListAdaptor[T]) Tail() List[T] {
+	if r.getTail == nil {
+		return MakeList(func() Option[T] {
+			return None[T]()
+		}, func() List[T] {
+			return r.Tail()
+		})
+	}
 	return r.getTail.Apply()
 }
 

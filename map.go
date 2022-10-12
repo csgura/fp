@@ -1,6 +1,8 @@
 package fp
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type MapMinimal[K, V any] interface {
 	Size() int
@@ -19,24 +21,40 @@ type Map[K, V any] struct {
 }
 
 func (r Map[K, V]) Size() int {
+	if r.minimal == nil {
+		return 0
+	}
 	return r.minimal.Size()
 }
 
 func (r Map[K, V]) IsEmpty() bool {
-	return r.minimal.Size() == 0
+	return r.Size() == 0
 }
 
 func (r Map[K, V]) NonEmpty() bool {
-	return r.minimal.Size() != 0
+	return r.Size() != 0
 }
 
 func (r Map[K, V]) Get(k K) Option[V] {
+	if r.minimal == nil {
+		return None[V]()
+	}
 	return r.minimal.Get(k)
 }
 func (r Map[K, V]) Removed(k ...K) Map[K, V] {
+	if r.minimal == nil {
+		return r
+	}
 	return MakeMap(r.minimal.Removed(k...))
 }
 func (r Map[K, V]) Updated(k K, v V) Map[K, V] {
+	if r.minimal == nil {
+		return MakeMap[K, V](
+			UnsafeGoMap[K, V]{
+				k: v,
+			},
+		)
+	}
 	return MakeMap(r.minimal.Updated(k, v))
 }
 
@@ -57,6 +75,13 @@ func (r Map[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V] {
 }
 
 func (r Map[K, V]) Iterator() Iterator[Tuple2[K, V]] {
+	if r.minimal == nil {
+		return MakeIterator(func() bool {
+			return false
+		}, func() Tuple2[K, V] {
+			panic("next on empty iterator")
+		})
+	}
 	return r.minimal.Iterator()
 }
 
@@ -94,9 +119,58 @@ func (r Map[K, V]) Concat(other Iterable[Tuple2[K, V]]) Map[K, V] {
 }
 
 func (r Map[K, V]) String() string {
+	if r.minimal == nil {
+		return "Map()"
+	}
 	return fmt.Sprint(r.minimal)
 }
 
 func MakeMap[K, V any](minimal MapMinimal[K, V]) Map[K, V] {
 	return Map[K, V]{minimal}
+}
+
+type UnsafeGoMap[K, V any] map[any]V
+
+var _ MapMinimal[string, int] = UnsafeGoMap[string, int]{}
+
+func (r UnsafeGoMap[K, V]) Get(k K) Option[V] {
+	if v, ok := r[k]; ok {
+		return Some(v)
+	}
+	return None[V]()
+}
+
+func (r UnsafeGoMap[K, V]) Size() int {
+	return len(r)
+}
+
+func (r UnsafeGoMap[K, V]) Removed(k ...K) MapMinimal[K, V] {
+
+	n := UnsafeGoMap[K, V]{}
+	for ek, ev := range r {
+		n[ek] = ev
+	}
+
+	for _, k := range k {
+		delete(n, k)
+	}
+	return n
+}
+
+func (r UnsafeGoMap[K, V]) Updated(k K, v V) MapMinimal[K, V] {
+	n := UnsafeGoMap[K, V]{}
+	for ek, ev := range r {
+		n[ek] = ev
+	}
+
+	n[k] = v
+	return n
+}
+
+func (r UnsafeGoMap[K, V]) Iterator() Iterator[Tuple2[K, V]] {
+	seq := Seq[Tuple2[K, V]]{}
+	for k, v := range r {
+		seq = append(seq, Tuple2[K, V]{k.(K), v})
+	}
+	return seq.Iterator()
 }

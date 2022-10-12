@@ -16,20 +16,52 @@ type Set[V any] struct {
 }
 
 func (r Set[V]) Contains(v V) bool {
+	if r.set == nil {
+		return false
+	}
 	return r.set.Contains(v)
 }
 func (r Set[V]) Size() int {
+	if r.set == nil {
+		return 0
+	}
 	return r.set.Size()
 }
 func (r Set[V]) Iterator() Iterator[V] {
+
+	if r.set == nil {
+		return MakeIterator(func() bool {
+			return false
+		}, func() V {
+			panic("next on empty iterator")
+		})
+	}
+
 	return r.set.Iterator()
 }
 func (r Set[V]) Incl(v V) Set[V] {
+	if r.set == nil && r.getEmpty == nil {
+		return MakeSet[V](func() SetMinimal[V] {
+			return UnsageGoSet[V]{}
+		}, UnsageGoSet[V]{
+			v: true,
+		})
+	}
+
+	if r.set == nil {
+		return MakeSet(r.getEmpty, r.getEmpty().Incl(v))
+	}
+
 	return MakeSet(r.getEmpty, r.set.Incl(v))
 }
+
 func (r Set[V]) Excl(v V) Set[V] {
+	if r.set == nil {
+		return r
+	}
 	return MakeSet(r.getEmpty, r.set.Excl(v))
 }
+
 func (r Set[V]) Foreach(f func(V)) {
 	r.Iterator().Foreach(f)
 }
@@ -74,17 +106,58 @@ func (r Set[V]) Intersect(other Set[V]) Set[V] {
 }
 
 func (r Set[V]) String() string {
+	if r.set == nil {
+		return "Set()"
+	}
 	return fmt.Sprint(r.set)
 }
 
 func (r Set[V]) IsEmpty() bool {
-	return r.set.Size() == 0
+	return r.Size() == 0
 }
 
 func (r Set[V]) NonEmpty() bool {
-	return r.set.Size() != 0
+	return r.Size() != 0
 }
 
 func MakeSet[V any](empty func() SetMinimal[V], s SetMinimal[V]) Set[V] {
 	return Set[V]{empty, s}
+}
+
+type UnsageGoSet[V any] map[any]bool
+
+var _ SetMinimal[string] = UnsageGoSet[string]{}
+
+func (r UnsageGoSet[V]) Contains(v V) bool {
+	return r[v]
+}
+
+func (r UnsageGoSet[V]) Size() int {
+	return len(r)
+}
+
+func (r UnsageGoSet[V]) Iterator() Iterator[V] {
+	seq := Seq[V]{}
+	for k := range r {
+		seq = append(seq, k.(V))
+	}
+	return seq.Iterator()
+}
+
+func (r UnsageGoSet[V]) Incl(v V) SetMinimal[V] {
+	n := UnsageGoSet[V]{}
+	for ek, ev := range r {
+		n[ek] = ev
+	}
+	n[v] = true
+	return n
+}
+
+func (r UnsageGoSet[V]) Excl(v V) SetMinimal[V] {
+	n := UnsageGoSet[V]{}
+	for ek, ev := range r {
+		n[ek] = ev
+	}
+	delete(n, v)
+	return n
 }

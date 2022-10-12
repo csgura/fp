@@ -5,7 +5,7 @@ import (
 	"github.com/csgura/fp/as"
 )
 
-type Set[V any] map[any]bool
+type Set[V comparable] map[V]bool
 
 var _ fp.SetMinimal[string] = Set[string]{}
 
@@ -20,7 +20,7 @@ func (r Set[V]) Size() int {
 func (r Set[V]) Iterator() fp.Iterator[V] {
 	seq := fp.Seq[V]{}
 	for k := range r {
-		seq = append(seq, k.(V))
+		seq = append(seq, k)
 	}
 	return seq.Iterator()
 }
@@ -35,23 +35,21 @@ func (r Set[V]) Excl(v V) fp.SetMinimal[V] {
 	return r
 }
 
-func SetOf[V any](v ...V) Set[V] {
+func SetOf[V comparable](v ...V) fp.Set[V] {
 	ret := Set[V]{}
 	for _, e := range v {
 		ret[e] = true
 	}
-	return ret
+	return fp.MakeSet[V](func() fp.SetMinimal[V] {
+		return Set[V]{}
+	}, ret)
 }
 
-type Map[K, V any] map[any]V
-
-func MapOf[K comparable, V any](m map[K]V) Map[K, V] {
-	ret := Map[K, V]{}
-	for k, v := range m {
-		ret[k] = v
-	}
-	return ret
+func MapOf[K comparable, V any](m map[K]V) fp.Map[K, V] {
+	return fp.MakeMap[K, V](Map[K, V](m))
 }
+
+type Map[K comparable, V any] map[K]V
 
 var _ fp.MapMinimal[string, int] = Map[string, int]{}
 
@@ -83,7 +81,7 @@ func (r Map[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	seq := fp.Seq[fp.Tuple2[K, V]]{}
 	for k, v := range r {
-		seq = append(seq, as.Tuple2(k.(K), v))
+		seq = append(seq, as.Tuple2(k, v))
 	}
 	return seq.Iterator()
 }

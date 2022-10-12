@@ -54,6 +54,10 @@ func (r Iterator[T]) MakeString(sep string) string {
 }
 
 func (r Iterator[T]) HasNext() bool {
+	if r.hasNext == nil {
+		return false
+	}
+
 	return r.hasNext()
 }
 
@@ -246,7 +250,7 @@ func (r Iterator[T]) Foreach(p func(T)) {
 func (r Iterator[T]) TapEach(p func(T)) Iterator[T] {
 	return MakeIterator(
 		func() bool {
-			return r.hasNext()
+			return r.HasNext()
 		},
 		func() T {
 			ret := r.next()
@@ -324,7 +328,7 @@ func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			defer lock.Unlock()
 
 			if leftAhead || queue.IsEmpty() {
-				return r.hasNext()
+				return r.HasNext()
 			}
 			// queue not empty
 			return true
@@ -355,7 +359,7 @@ func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			defer lock.Unlock()
 
 			if !leftAhead || queue.IsEmpty() {
-				return r.hasNext()
+				return r.HasNext()
 			}
 			// queue not empty
 			return true

@@ -6,7 +6,6 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/product"
 )
 
@@ -179,11 +178,11 @@ func Scan[A, B any](s fp.Seq[A], zero B, f func(B, A) B) fp.Seq[B] {
 
 }
 
-func GroupBy[A any, K any](s fp.Seq[A], keyFunc func(A) K) mutable.Map[K, fp.Seq[A]] {
+func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) map[K]fp.Seq[A] {
 
-	ret := map[any]fp.Seq[A]{}
+	ret := map[K]fp.Seq[A]{}
 
-	return Fold(s, ret, func(b map[any]fp.Seq[A], a A) map[any]fp.Seq[A] {
+	return Fold(s, ret, func(b map[K]fp.Seq[A], a A) map[K]fp.Seq[A] {
 		k := keyFunc(a)
 		b[k] = b[k].Append(a)
 		return b
