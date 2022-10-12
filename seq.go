@@ -107,6 +107,10 @@ func (r Seq[T]) Append(items ...T) Seq[T] {
 	return ret
 }
 
+func (r Seq[T]) Appended(item T) Seq[T] {
+	return r.Append(item)
+}
+
 func (r Seq[T]) Concat(tail Seq[T]) Seq[T] {
 	ret := make(Seq[T], r.Size()+tail.Size())
 
