@@ -51,10 +51,10 @@ func (r Try[T]) Foreach(f func(v T)) {
 }
 func (r Try[T]) Failed() Try[error] {
 	if r.IsSuccess() {
-		return Success(ErrTryNotFailed)
+		return Failure[error](ErrTryNotFailed)
 	}
 	if r.err == nil {
-		return Success(Error(http.StatusNotAcceptable, "Try not initialized correctly"))
+		return Failure[error](Error(http.StatusNotAcceptable, "Try not initialized correctly"))
 	}
 	return Success(r.err)
 }
