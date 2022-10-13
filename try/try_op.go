@@ -96,6 +96,37 @@ func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, C]) fp.F
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
+func Method1[A, B, R any](t fp.Try[A], cf func(a A, b B) R) fp.Func1[B, fp.Try[R]] {
+	return func(b B) fp.Try[R] {
+		return Map(t, func(a A) R {
+			return cf(a, b)
+		})
+	}
+}
+
+func FlatMethod1[A, B, R any](t fp.Try[A], cf func(a A, b B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
+	return func(b B) fp.Try[R] {
+		return FlatMap(t, func(a A) fp.Try[R] {
+			return cf(a, b)
+		})
+	}
+}
+func Method2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
+	return func(b B, c C) fp.Try[R] {
+		return Map(t, func(a A) R {
+			return cf(a, b, c)
+		})
+	}
+}
+
+func FlatMethod2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
+	return func(b B, c C) fp.Try[R] {
+		return FlatMap(t, func(a A) fp.Try[R] {
+			return cf(a, b, c)
+		})
+	}
+}
+
 func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Try[U] {
 		return Map(a, f)
