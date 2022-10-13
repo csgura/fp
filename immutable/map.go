@@ -44,7 +44,7 @@ type hamt[K, V any] struct {
 // NewMap returns a new instance of Map. If hasher is nil, a default hasher
 // implementation will automatically be chosen based on the first key added.
 // Default hasher implementations only exist for int, string, and byte slice types.
-func MapMinimal[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.MapMinimal[K, V] {
+func MapBase[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.MapBase[K, V] {
 	if len(t) > 0 {
 		b := MapBuilder[K, V](hasher)
 
@@ -60,7 +60,7 @@ func MapMinimal[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.MapMin
 }
 
 func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
-	return fp.MakeMap(MapMinimal(hasher, t...))
+	return fp.MakeMap(MapBase(hasher, t...))
 }
 
 // Len returns the number of elements in the map.
@@ -89,7 +89,7 @@ func (m *hamt[K, V]) Get(key K) fp.Option[V] {
 //
 // This function will return a new map even if the updated value is the same as
 // the existing value because Map does not track value equality.
-func (m *hamt[K, V]) Updated(key K, value V) fp.MapMinimal[K, V] {
+func (m *hamt[K, V]) Updated(key K, value V) fp.MapBase[K, V] {
 	return m.set(key, value, false)
 }
 
@@ -126,7 +126,7 @@ func (m *hamt[K, V]) set(key K, value V, mutable bool) *hamt[K, V] {
 
 // Delete returns a map with the given key removed.
 // Removing a non-existent key will cause this method to return the same map.
-func (m *hamt[K, V]) Removed(key ...K) fp.MapMinimal[K, V] {
+func (m *hamt[K, V]) Removed(key ...K) fp.MapBase[K, V] {
 	ret := m
 	for _, k := range key {
 		ret = ret.delete(k, false)
@@ -200,7 +200,7 @@ func assert(condition bool, message string) {
 	}
 }
 
-func (b *mapBuilder[K, V]) build() fp.MapMinimal[K, V] {
+func (b *mapBuilder[K, V]) build() fp.MapBase[K, V] {
 	assert(b.m != nil, "immutable.SortedMapBuilder.Build(): duplicate call to fetch map")
 	m := b.m
 	b.m = nil
@@ -940,7 +940,7 @@ type mapIteratorElem[K, V any] struct {
 }
 
 type set[T any] struct {
-	m fp.MapMinimal[T, bool]
+	m fp.MapBase[T, bool]
 }
 
 func (r set[T]) Contains(v T) bool {
@@ -980,7 +980,7 @@ func SetMinimal[T any](hasher fp.Hashable[T], v ...T) fp.SetMinimal[T] {
 		tp[i] = as.Tuple2(v, true)
 	}
 
-	return set[T]{MapMinimal(hasher, tp...)}
+	return set[T]{MapBase(hasher, tp...)}
 }
 
 func Set[T any](hasher fp.Hashable[T], v ...T) fp.Set[T] {

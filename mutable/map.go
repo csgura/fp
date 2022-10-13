@@ -51,7 +51,7 @@ func MapOf[K comparable, V any](m map[K]V) fp.Map[K, V] {
 
 type Map[K comparable, V any] map[K]V
 
-var _ fp.MapMinimal[string, int] = Map[string, int]{}
+var _ fp.MapBase[string, int] = Map[string, int]{}
 
 func (r Map[K, V]) Get(k K) fp.Option[V] {
 	if v, ok := r[k]; ok {
@@ -64,7 +64,7 @@ func (r Map[K, V]) Size() int {
 	return len(r)
 }
 
-func (r Map[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
+func (r Map[K, V]) Removed(k ...K) fp.MapBase[K, V] {
 
 	for _, k := range k {
 		delete(r, k)
@@ -72,7 +72,7 @@ func (r Map[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
 	return r
 }
 
-func (r Map[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
+func (r Map[K, V]) Updated(k K, v V) fp.MapBase[K, V] {
 
 	r[k] = v
 	return r

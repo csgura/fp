@@ -4,27 +4,27 @@ import (
 	"fmt"
 )
 
-type MapMinimal[K, V any] interface {
+type MapBase[K, V any] interface {
 	Size() int
 	Get(k K) Option[V]
-	Removed(k ...K) MapMinimal[K, V]
-	Updated(k K, v V) MapMinimal[K, V]
+	Removed(k ...K) MapBase[K, V]
+	Updated(k K, v V) MapBase[K, V]
 	Iterator() Iterator[Tuple2[K, V]]
 }
 
-type MapMinimalUpdatedWith[K, V any] interface {
-	UpdatedWith(k K, remap func(Option[V]) Option[V]) MapMinimal[K, V]
+type MapBaseUpdatedWith[K, V any] interface {
+	UpdatedWith(k K, remap func(Option[V]) Option[V]) MapBase[K, V]
 }
 
 type Map[K, V any] struct {
-	minimal MapMinimal[K, V]
+	Base MapBase[K, V]
 }
 
 func (r Map[K, V]) Size() int {
-	if r.minimal == nil {
+	if r.Base == nil {
 		return 0
 	}
-	return r.minimal.Size()
+	return r.Base.Size()
 }
 
 func (r Map[K, V]) IsEmpty() bool {
@@ -36,30 +36,30 @@ func (r Map[K, V]) NonEmpty() bool {
 }
 
 func (r Map[K, V]) Get(k K) Option[V] {
-	if r.minimal == nil {
+	if r.Base == nil {
 		return None[V]()
 	}
-	return r.minimal.Get(k)
+	return r.Base.Get(k)
 }
 func (r Map[K, V]) Removed(k ...K) Map[K, V] {
-	if r.minimal == nil {
+	if r.Base == nil {
 		return r
 	}
-	return MakeMap(r.minimal.Removed(k...))
+	return MakeMap(r.Base.Removed(k...))
 }
 func (r Map[K, V]) Updated(k K, v V) Map[K, V] {
-	if r.minimal == nil {
+	if r.Base == nil {
 		return MakeMap[K, V](
 			UnsafeGoMap[K, V]{
 				k: v,
 			},
 		)
 	}
-	return MakeMap(r.minimal.Updated(k, v))
+	return MakeMap(r.Base.Updated(k, v))
 }
 
 func (r Map[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V] {
-	if um, ok := r.minimal.(MapMinimalUpdatedWith[K, V]); ok {
+	if um, ok := r.Base.(MapBaseUpdatedWith[K, V]); ok {
 		return MakeMap(um.UpdatedWith(k, remap))
 	}
 
@@ -75,14 +75,14 @@ func (r Map[K, V]) UpdatedWith(k K, remap func(Option[V]) Option[V]) Map[K, V] {
 }
 
 func (r Map[K, V]) Iterator() Iterator[Tuple2[K, V]] {
-	if r.minimal == nil {
+	if r.Base == nil {
 		return MakeIterator(func() bool {
 			return false
 		}, func() Tuple2[K, V] {
 			panic("next on empty iterator")
 		})
 	}
-	return r.minimal.Iterator()
+	return r.Base.Iterator()
 }
 
 func (r Map[K, V]) Contains(k K) bool {
@@ -119,19 +119,19 @@ func (r Map[K, V]) Concat(other Iterable[Tuple2[K, V]]) Map[K, V] {
 }
 
 func (r Map[K, V]) String() string {
-	if r.minimal == nil {
+	if r.Base == nil {
 		return "Map()"
 	}
-	return fmt.Sprint(r.minimal)
+	return fmt.Sprint(r.Base)
 }
 
-func MakeMap[K, V any](minimal MapMinimal[K, V]) Map[K, V] {
-	return Map[K, V]{minimal}
+func MakeMap[K, V any](Base MapBase[K, V]) Map[K, V] {
+	return Map[K, V]{Base}
 }
 
 type UnsafeGoMap[K, V any] map[any]V
 
-var _ MapMinimal[string, int] = UnsafeGoMap[string, int]{}
+var _ MapBase[string, int] = UnsafeGoMap[string, int]{}
 
 func (r UnsafeGoMap[K, V]) Get(k K) Option[V] {
 	if v, ok := r[k]; ok {
@@ -144,7 +144,7 @@ func (r UnsafeGoMap[K, V]) Size() int {
 	return len(r)
 }
 
-func (r UnsafeGoMap[K, V]) Removed(k ...K) MapMinimal[K, V] {
+func (r UnsafeGoMap[K, V]) Removed(k ...K) MapBase[K, V] {
 
 	n := UnsafeGoMap[K, V]{}
 	for ek, ev := range r {
@@ -157,7 +157,7 @@ func (r UnsafeGoMap[K, V]) Removed(k ...K) MapMinimal[K, V] {
 	return n
 }
 
-func (r UnsafeGoMap[K, V]) Updated(k K, v V) MapMinimal[K, V] {
+func (r UnsafeGoMap[K, V]) Updated(k K, v V) MapBase[K, V] {
 	n := UnsafeGoMap[K, V]{}
 	for ek, ev := range r {
 		n[ek] = ev

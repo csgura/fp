@@ -12,7 +12,7 @@ type CopyOnWriteMap[K, V any] struct {
 	lock  sync.Mutex
 }
 
-var _ fp.MapMinimal[string, int] = &CopyOnWriteMap[string, int]{}
+var _ fp.MapBase[string, int] = &CopyOnWriteMap[string, int]{}
 
 func (r *CopyOnWriteMap[K, V]) load() fp.UnsafeGoMap[K, V] {
 	m := r.value.Load()
@@ -63,7 +63,7 @@ func unsafeSet[V any](v ...V) fp.UnsafeGoSet[V] {
 	return ret
 }
 
-func (r *CopyOnWriteMap[K, V]) Removed(k ...K) fp.MapMinimal[K, V] {
+func (r *CopyOnWriteMap[K, V]) Removed(k ...K) fp.MapBase[K, V] {
 
 	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
 		nm := fp.UnsafeGoMap[K, V]{}
@@ -102,7 +102,7 @@ func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
 	return r.Get(k).Get()
 }
 
-func (r *CopyOnWriteMap[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
+func (r *CopyOnWriteMap[K, V]) Updated(k K, v V) fp.MapBase[K, V] {
 
 	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
 		nm := fp.UnsafeGoMap[K, V]{}
@@ -118,7 +118,7 @@ func (r *CopyOnWriteMap[K, V]) Updated(k K, v V) fp.MapMinimal[K, V] {
 	return r
 }
 
-func (r *CopyOnWriteMap[K, V]) UpdatedWith(k K, remap func(fp.Option[V]) fp.Option[V]) fp.MapMinimal[K, V] {
+func (r *CopyOnWriteMap[K, V]) UpdatedWith(k K, remap func(fp.Option[V]) fp.Option[V]) fp.MapBase[K, V] {
 	r.copyOnWrite(func(om fp.UnsafeGoMap[K, V]) fp.UnsafeGoMap[K, V] {
 
 		ov := om.Get(k)
