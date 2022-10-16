@@ -174,6 +174,9 @@ func Flap3[A, B, C, R any](f fp.Try[fp.Func1[A, fp.Func1[B, fp.Func1[C, R]]]]) f
 
 // (a -> b -> r) -> m a -> b -> m r
 // Map 호출 후에 Flap 을 호출 한 것
+//
+// https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
+// liftOp 라는 이름으로 정의된 것이 있음
 func FlapMap[A, B, R any](a fp.Try[A], f func(A, B) R) fp.Func1[B, fp.Try[R]] {
 	return Flap(Map(a, as.Func2(f).Curried()))
 }
@@ -181,6 +184,9 @@ func FlapMap[A, B, R any](a fp.Try[A], f func(A, B) R) fp.Func1[B, fp.Try[R]] {
 // ( a -> b -> m r) -> m a -> b -> m r
 //
 //	Flatten . FlapMap
+//
+// https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
+// om , ==<<  이름으로 정의된 것이 있음
 func FlatFlapMap[A, B, R any](a fp.Try[A], f func(A, B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
 	return fp.Compose(FlapMap(a, f), Flatten[R])
 }
