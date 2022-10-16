@@ -7,6 +7,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
@@ -157,11 +158,17 @@ func Flap[A, B any](f fp.Try[fp.Func1[A, B]]) fp.Func1[A, fp.Try[B]] {
 	}
 }
 
-func Flap2[A, B, R any](f fp.Try[fp.Func2[A, B, R]]) fp.Func2[A, B, fp.Try[R]] {
-	return func(a A, b B) fp.Try[R] {
-		return Map(f, func(rf fp.Func2[A, B, R]) R {
-			return rf(a, b)
-		})
+// 하스켈 : m( a -> b -> r ) -> a -> b -> m r
+func Flap2[A, B, R any](f fp.Try[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Try[R]]] {
+	return func(a A) fp.Func1[B, fp.Try[R]] {
+		return Flap(Ap(f, Success(a)))
+	}
+}
+
+// 하스켈 : m( a -> b -> c -> r ) -> a -> b -> c -> m r
+func Flap3[A, B, C, R any](f fp.Try[fp.Func1[A, fp.Func1[B, fp.Func1[C, R]]]]) fp.Func1[A, fp.Func1[B, fp.Func1[C, fp.Try[R]]]] {
+	return func(a A) fp.Func1[B, fp.Func1[C, fp.Try[R]]] {
+		return Flap2(Ap(f, Success(a)))
 	}
 }
 
@@ -186,20 +193,25 @@ func FlatMethod1[A, B, R any](t fp.Try[A], cf func(a A, b B) fp.Try[R]) fp.Func1
 	return FlatFlapMap(t, cf)
 }
 
-func Method2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
-	return func(b B, c C) fp.Try[R] {
-		return Map(t, func(a A) R {
-			return cf(a, b, c)
-		})
-	}
+func Method2[A, B, C, R any](a fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
+
+	return curried.Revert2(Flap2(Map(a, as.Curried3(cf))))
+	// return func(b B, c C) fp.Try[R] {
+	// 	return Map(a, func(a A) R {
+	// 		return cf(a, b, c)
+	// 	})
+	// }
 }
 
-func FlatMethod2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
-	return func(b B, c C) fp.Try[R] {
-		return FlatMap(t, func(a A) fp.Try[R] {
-			return cf(a, b, c)
-		})
-	}
+func FlatMethod2[A, B, C, R any](ta fp.Try[A], cf func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
+
+	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(cf))), Flatten[R]))
+
+	// return func(b B, c C) fp.Try[R] {
+	// 	return FlatMap(ta, func(a A) fp.Try[R] {
+	// 		return cf(a, b, c)
+	// 	})
+	// }
 }
 
 func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
