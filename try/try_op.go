@@ -96,37 +96,6 @@ func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, C]) fp.F
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
-func Method1[A, B, R any](t fp.Try[A], cf func(a A, b B) R) fp.Func1[B, fp.Try[R]] {
-	return func(b B) fp.Try[R] {
-		return Map(t, func(a A) R {
-			return cf(a, b)
-		})
-	}
-}
-
-func FlatMethod1[A, B, R any](t fp.Try[A], cf func(a A, b B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
-	return func(b B) fp.Try[R] {
-		return FlatMap(t, func(a A) fp.Try[R] {
-			return cf(a, b)
-		})
-	}
-}
-func Method2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
-	return func(b B, c C) fp.Try[R] {
-		return Map(t, func(a A) R {
-			return cf(a, b, c)
-		})
-	}
-}
-
-func FlatMethod2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
-	return func(b B, c C) fp.Try[R] {
-		return FlatMap(t, func(a A) fp.Try[R] {
-			return cf(a, b, c)
-		})
-	}
-}
-
 func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Try[U] {
 		return Map(a, f)
@@ -174,6 +143,63 @@ func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
 	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {
 		return v
 	})
+}
+
+// 하스켈 : m( a -> b ) -> a -> m b
+// 스칼라 : M[ A => B ] => A => M[B]
+// 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
+// hoogle 에서 검색해 보면
+// https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
+// ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
+func Flap[A, B any](f fp.Try[fp.Func1[A, B]]) fp.Func1[A, fp.Try[B]] {
+	return func(a A) fp.Try[B] {
+		return Ap(f, Success(a))
+	}
+}
+
+func Flap2[A, B, R any](f fp.Try[fp.Func2[A, B, R]]) fp.Func2[A, B, fp.Try[R]] {
+	return func(a A, b B) fp.Try[R] {
+		return Map(f, func(rf fp.Func2[A, B, R]) R {
+			return rf(a, b)
+		})
+	}
+}
+
+// (a -> b -> r) -> m a -> b -> m r
+// Map 호출 후에 Flap 을 호출 한 것
+func FlapMap[A, B, R any](a fp.Try[A], f func(A, B) R) fp.Func1[B, fp.Try[R]] {
+	return Flap(Map(a, as.Func2(f).Curried()))
+}
+
+// ( a -> b -> m r) -> m a -> b -> m r
+//
+//	Flatten . FlapMap
+func FlatFlapMap[A, B, R any](a fp.Try[A], f func(A, B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
+	return fp.Compose(FlapMap(a, f), Flatten[R])
+}
+
+func Method1[A, B, R any](t fp.Try[A], cf func(a A, b B) R) fp.Func1[B, fp.Try[R]] {
+	return FlapMap(t, cf)
+}
+
+func FlatMethod1[A, B, R any](t fp.Try[A], cf func(a A, b B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
+	return FlatFlapMap(t, cf)
+}
+
+func Method2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
+	return func(b B, c C) fp.Try[R] {
+		return Map(t, func(a A) R {
+			return cf(a, b, c)
+		})
+	}
+}
+
+func FlatMethod2[A, B, C, R any](t fp.Try[A], cf func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
+	return func(b B, c C) fp.Try[R] {
+		return FlatMap(t, func(a A) fp.Try[R] {
+			return cf(a, b, c)
+		})
+	}
 }
 
 func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
