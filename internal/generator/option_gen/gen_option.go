@@ -88,7 +88,7 @@ import (
 )`)
 
 		for i := 2; i < max.Func; i++ {
-			fmt.Fprintf(f, "type ApplicativeFunctor%d [H hlist.Header[HT], HT ", i)
+			fmt.Fprintf(f, "type MonadChain%d [H hlist.Header[HT], HT ", i)
 
 			for j := 1; j <= i; j++ {
 				fmt.Fprintf(f, ", A%d", j)
@@ -117,13 +117,13 @@ import (
 			typeparams = typeparams + ", R]"
 			nexttp = nexttp + ", R]"
 
-			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d%s)", i, typeparams)
+			receiver := fmt.Sprintf("func (r MonadChain%d%s)", i, typeparams)
 
 			if i < max.Flip {
 
-				fmt.Fprintf(f, "%s Flip() ApplicativeFunctor%d[H,HT,%s,R] {\n", receiver, i, flipTypeArgs(1, i))
+				fmt.Fprintf(f, "%s Flip() MonadChain%d[H,HT,%s,R] {\n", receiver, i, flipTypeArgs(1, i))
 				fmt.Fprintf(f, `
-	return ApplicativeFunctor%d[H, HT, %s, R]{
+	return MonadChain%d[H, HT, %s, R]{
 		r.h,
 		Map(r.fn, curried.Flip[A1,A2,%s]),
 	}
@@ -132,7 +132,7 @@ import (
 `, i, flipTypeArgs(1, i), curriedType(3, i))
 			}
 
-			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Option[A1] {
 		return a(v.Head())
@@ -140,21 +140,21 @@ import (
 	return r.ApOption(av)
 }`)
 
-			fmt.Fprintf(f, "%s Map( a func(HT) A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s Map( a func(HT) A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.FlatMap(func(h HT) fp.Option[A1] {
 		return Some(a(h))
 	})
 }`)
 
-			fmt.Fprintf(f, "%s HListMap( a func(H) A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s HListMap( a func(H) A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.HListFlatMap(func(h H) fp.Option[A1] {
 		return Some(a(h))
 	})
 }`)
 
-			fmt.Fprintf(f, "%s HListFlatMap( a func(H) fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s HListFlatMap( a func(H) fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Option[A1] {
 		return a(v)
@@ -163,21 +163,21 @@ import (
 	return r.ApOption(av)
 }`)
 
-			fmt.Fprintf(f, "%s ApOption( a fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApOption( a fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintf(f, `
 	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
-	return ApplicativeFunctor%d%s{nh, Ap(r.fn, a)}
+	return MonadChain%d%s{nh, Ap(r.fn, a)}
 }
 `, i-1, nexttp)
 
-			fmt.Fprintf(f, "%s Ap( a A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s Ap( a A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.ApOption(Some(a))
 
 }`)
 
-			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Option[A1] {
 		return a()
@@ -185,7 +185,7 @@ import (
 	return r.ApOption(av)
 }`)
 
-			fmt.Fprintf(f, "%s ApFunc( a func() A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApFunc( a func() A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := Map(r.h, func(v H) A1 {
 		return a()
@@ -202,8 +202,8 @@ import (
 			}
 			tpr = tpr + ",R"
 
-			fmt.Fprintf(f, "func Applicative%d[%s any](fn fp.Func%d[%s]) ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s] {\n", i, tpr, i, tpr, i, tpr)
-			fmt.Fprintf(f, "    return ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s]{Some(hlist.Empty()), Some(curried.Func%d(fn))}\n", i, tpr, i)
+			fmt.Fprintf(f, "func Chain%d[%s any](fn fp.Func%d[%s]) MonadChain%d[hlist.Nil, hlist.Nil, %s] {\n", i, tpr, i, tpr, i, tpr)
+			fmt.Fprintf(f, "    return MonadChain%d[hlist.Nil, hlist.Nil, %s]{Some(hlist.Empty()), Some(curried.Func%d(fn))}\n", i, tpr, i)
 			fmt.Fprintf(f, "}\n")
 
 			// for j := 1; j <= i; j++ {
@@ -213,6 +213,81 @@ import (
 			// 	fmt.Fprintf(f, "a%d A%d", j, j)
 			// }
 			// fmt.Fprintf(f, ") R\n\n")
+
+		}
+
+		for i := 2; i < max.Func; i++ {
+			fmt.Fprintf(f, "type ApplicativeFunctor%d [", i)
+
+			for j := 1; j <= i; j++ {
+				fmt.Fprintf(f, "A%d,", j)
+			}
+			fmt.Fprintf(f, "R any]")
+
+			fmt.Fprintf(f, " struct {\n")
+			fmt.Fprintf(f, "  fn fp.Option[")
+			endBracket := "]"
+			for j := 1; j <= i; j++ {
+				fmt.Fprintf(f, "fp.Func1[A%d, ", j)
+				endBracket = endBracket + "]"
+			}
+			fmt.Fprintf(f, "R%s\n", endBracket)
+
+			fmt.Fprintf(f, "}\n")
+
+			typeparams := fmt.Sprintf("[%s,R]", common.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[%s,R]", common.FuncTypeArgs(2, i))
+
+			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d%s)", i, typeparams)
+
+			fmt.Fprintf(f, "%s ApOption( a fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, `
+
+	return ApplicativeFunctor%d%s{Ap(r.fn, a)}
+}
+`, i-1, nexttp)
+
+			fmt.Fprintf(f, "%s Ap( a A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	return r.ApOption(Some(a))
+
+}`)
+
+			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, `
+		return ApplicativeFunctor%d%s{ApFunc(r.fn, a)}
+
+}
+`, i-1, nexttp)
+
+			fmt.Fprintf(f, "%s ApFunc( a func() A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+		return r.ApOptionFunc(func() fp.Option[A1] {
+			return Some(a())
+		})
+}`)
+
+			tpr := ""
+			for j := 1; j <= i; j++ {
+				if j != 1 {
+					tpr = tpr + ","
+				}
+				tpr = tpr + fmt.Sprintf("A%d", j)
+			}
+			tpr = tpr + ",R"
+
+			fmt.Fprintf(f, "func Applicative%d[%s any](fn fp.Func%d[%s]) ApplicativeFunctor%d[%s] {\n", i, tpr, i, tpr, i, tpr)
+			fmt.Fprintf(f, "    return ApplicativeFunctor%d[%s]{Some(curried.Func%d(fn))}\n", i, tpr, i)
+			fmt.Fprintf(f, "}\n")
+
+			// for j := 1; j <= i; j++ {
+			// 	if j != 1 {
+			// 		fmt.Fprintf(f, ",")
+			// 	}
+			// 	fmt.Fprintf(f, "a%d A%d", j, j)
+			// }
+			// fmt.Fprintf(f, ") R\n\n")
+
 		}
 
 	})

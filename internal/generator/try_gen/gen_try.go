@@ -136,7 +136,7 @@ import (
 		for i := 2; i < max.Func; i++ {
 
 			fmt.Fprintf(f, `
-type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
+type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 	h fp.Try[H]
 	fn fp.Try[%s]
 }
@@ -146,14 +146,14 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 				curriedType(1, i),
 			)
 
-			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[H,HT,%s,R])", i, typeArgs(1, i))
+			receiver := fmt.Sprintf("func (r MonadChain%d[H,HT,%s,R])", i, typeArgs(1, i))
 			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", typeArgs(1, i))
 
 			if i < max.Flip {
 
-				fmt.Fprintf(f, "%s Flip() ApplicativeFunctor%d[H,HT,%s,R] {\n", receiver, i, flipTypeArgs(1, i))
+				fmt.Fprintf(f, "%s Flip() MonadChain%d[H,HT,%s,R] {\n", receiver, i, flipTypeArgs(1, i))
 				fmt.Fprintf(f, `
-	return ApplicativeFunctor%d[H, HT, %s, R]{
+	return MonadChain%d[H, HT, %s, R]{
 		r.h,
 		Map(r.fn, curried.Flip[A1,A2,%s]),
 	}
@@ -162,7 +162,7 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 `, i, flipTypeArgs(1, i), curriedType(3, i))
 			}
 
-			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Try[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Try[A1] {
 		return a(v.Head())
@@ -170,21 +170,21 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApTry(av)
 }`)
 
-			fmt.Fprintf(f, "%s Map( a func(HT) A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s Map( a func(HT) A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.FlatMap(func(h HT) fp.Try[A1] {
 		return Success(a(h))
 	})
 }`)
 
-			fmt.Fprintf(f, "%s HListMap( a func(H) A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s HListMap( a func(H) A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	return r.HListFlatMap(func(h H) fp.Try[A1] {
 		return Success(a(h))
 	})
 }`)
 
-			fmt.Fprintf(f, "%s HListFlatMap( a func(H) fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s HListFlatMap( a func(H) fp.Try[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
 	av := FlatMap(r.h, func(v H) fp.Try[A1] {
 		return a(v)
@@ -193,11 +193,86 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApTry(av)
 }`)
 
-			fmt.Fprintf(f, "%s ApTry( a fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, "%s ApTry( a fp.Try[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintf(f, `
 	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
-	return ApplicativeFunctor%d%s{nh, Ap(r.fn, a)}
+	return MonadChain%d%s{nh, Ap(r.fn, a)}
+}
+`, i-1, nexttp)
+
+			fmt.Fprintf(f, "%s ApOption( a fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, `
+	return r.ApTry(FromOption(a))
+}
+`)
+
+			fmt.Fprintf(f, "%s Ap( a A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	return r.ApTry(Success(a))
+
+}`)
+
+			fmt.Fprintf(f, "%s ApTryFunc( a func() fp.Try[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}`)
+
+			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}`)
+
+			fmt.Fprintf(f, "%s ApFunc( a func() A1) MonadChain%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintln(f, `
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
+}`)
+
+			fmt.Fprintf(f, "func Chain%d[%s , R any](fn fp.Func%d[%s,R]) MonadChain%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
+			fmt.Fprintf(f, "    return MonadChain%d[hlist.Nil, hlist.Nil, %s,R]{Success(hlist.Empty()), Success(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
+			fmt.Fprintf(f, "}\n")
+		}
+
+		for i := 2; i < max.Func; i++ {
+
+			fmt.Fprintf(f, `
+type ApplicativeFunctor%d [%s , R any] struct {
+	fn fp.Try[%s]
+}
+`,
+				i,
+				typeArgs(1, i),
+				curriedType(1, i),
+			)
+
+			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[%s,R])", i, typeArgs(1, i))
+			nexttp := fmt.Sprintf("[%s, R]", typeArgs(2, i))
+
+			if i < max.Flip {
+
+				fmt.Fprintf(f, "%s Flip() ApplicativeFunctor%d[%s,R] {\n", receiver, i, flipTypeArgs(1, i))
+				fmt.Fprintf(f, `
+	return ApplicativeFunctor%d[%s, R]{
+		Map(r.fn, curried.Flip[A1,A2,%s]),
+	}
+
+}
+`, i, flipTypeArgs(1, i), curriedType(3, i))
+			}
+
+			fmt.Fprintf(f, "%s ApTry( a fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
+			fmt.Fprintf(f, `
+
+	return ApplicativeFunctor%d%s{Ap(r.fn, a)}
 }
 `, i-1, nexttp)
 
@@ -214,33 +289,31 @@ type ApplicativeFunctor%d [H hlist.Header[HT], HT , %s , R any] struct {
 }`)
 
 			fmt.Fprintf(f, "%s ApTryFunc( a func() fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
-			fmt.Fprintln(f, `
-	av := FlatMap(r.h, func(v H) fp.Try[A1] {
-		return a()
-	})
-	return r.ApTry(av)
-}`)
+			fmt.Fprintf(f, `
+		return ApplicativeFunctor%d%s{ApFunc(r.fn, a)}
+
+}
+`, i-1, nexttp)
 
 			fmt.Fprintf(f, "%s ApOptionFunc( a func() fp.Option[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
-	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
-	return r.ApTry(av)
 }`)
 
 			fmt.Fprintf(f, "%s ApFunc( a func() A1) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
 			fmt.Fprintln(f, `
-	av := Map(r.h, func(v H) A1 {
-		return a()
+	return r.ApTryFunc(func() fp.Try[A1] {
+		return Success(a())
 	})
-	return r.ApTry(av)
 }`)
 
-			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
-			fmt.Fprintf(f, "    return ApplicativeFunctor%d[hlist.Nil, hlist.Nil, %s,R]{Success(hlist.Empty()), Success(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
+			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[%s,R] {\n", i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
+			fmt.Fprintf(f, "    return ApplicativeFunctor%d[%s,R]{Success(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")
 		}
+
 	})
 
 	generate("try", "func_gen.go", func(f io.Writer) {

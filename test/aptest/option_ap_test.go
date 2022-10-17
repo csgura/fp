@@ -35,8 +35,8 @@ func TestSome(t *testing.T) {
 
 	fmt.Printf("result is defined = %t\n", result.IsDefined())
 
-	ap = option.Applicative2(Sum)
-	r2 := ap.Ap("ap flatmap").FlatMap(func(h string) fp.Option[int] {
+	chain := option.Chain2(Sum)
+	r2 := chain.Ap("ap flatmap").FlatMap(func(h string) fp.Option[int] {
 		fmt.Printf("v = %v", h)
 		return option.Some(10)
 	})
@@ -45,14 +45,14 @@ func TestSome(t *testing.T) {
 		println(v)
 	})
 
-	r2 = ap.ApOption(option.None[string]()).FlatMap(func(h string) fp.Option[int] {
+	r2 = chain.ApOption(option.None[string]()).FlatMap(func(h string) fp.Option[int] {
 		return option.Some(10)
 	})
 
 	r2.Foreach(fp.Println[string])
 	fmt.Printf("result is defined = %t\n", r2.IsDefined())
 
-	option.Applicative3(func(addr string, port int, scheme string) string {
+	option.Chain3(func(addr string, port int, scheme string) string {
 		return fmt.Sprintf("connect to %s://%s:%d", scheme, addr, port)
 	}).
 		Ap("hello.world.com").
@@ -91,7 +91,7 @@ func TestFunc(t *testing.T) {
 	option.Applicative1(as.Func2(plus).Tupled()).
 		ApOption(otuple)
 
-	oreader := option.Applicative3(fp.Id3[int, string, *strings.Reader]).
+	oreader := option.Chain3(fp.Id3[int, string, *strings.Reader]).
 		ApOption(oint).
 		Map(strconv.Itoa).
 		Map(strings.NewReader)

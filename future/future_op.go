@@ -100,6 +100,12 @@ func Ap[T, U any](t fp.Future[fp.Func1[T, U]], a fp.Future[T], ctx ...fp.Executo
 	}, ctx...)
 }
 
+func ApFunc[T, U any](t fp.Future[fp.Func1[T, U]], a func() fp.Future[T], ctx ...fp.Executor) fp.Future[U] {
+	return FlatMap(t, func(f fp.Func1[T, U]) fp.Future[U] {
+		return Map(a(), f)
+	}, ctx...)
+}
+
 func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(opt, func(v T) fp.Future[U] {
 		return Successful(f(v))
@@ -317,24 +323,24 @@ func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Exe
 	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq, ctx...)
 }
 
-type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
+type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Future[H]
 	fn fp.Future[fp.Func1[A, R]]
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A, ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) Map(a func(HT) A, ctx ...fp.Executor) fp.Future[R] {
 	return r.FlatMap(func(h HT) fp.Future[A] {
 		return Successful(a(h))
 	}, ctx...)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A, ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) HListMap(a func(H) A, ctx ...fp.Executor) fp.Future[R] {
 	return r.HListFlatMap(func(h H) fp.Future[A] {
 		return Successful(a(h))
 	}, ctx...)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a(v)
 	}, ctx...)
@@ -342,7 +348,7 @@ func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Future[A], c
 	return r.ApFuture(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a(v.Head())
 	}, ctx...)
@@ -350,44 +356,44 @@ func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Future[A], ctx .
 	return r.ApFuture(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Future[R] {
 	return r.ApFuture(FromOption(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApTry(a fp.Try[A]) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApTry(a fp.Try[A]) fp.Future[R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFuture(a fp.Future[A]) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApFuture(a fp.Future[A]) fp.Future[R] {
 	return Ap(r.fn, a)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) Ap(a A) fp.Future[R] {
 	return r.ApFuture(Successful(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFutureFunc(a func() fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApFutureFunc(a func() fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return a()
 	}, ctx...)
 	return r.ApFuture(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A], ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A], ctx ...fp.Executor) fp.Future[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return FromTry(a())
 	}, ctx...)
 	return r.ApFuture(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A], ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A], ctx ...fp.Executor) fp.Future[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Future[A] {
 		return FromOption(a())
 	}, ctx...)
 	return r.ApFuture(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A, ctx ...fp.Executor) fp.Future[R] {
+func (r MonadChain1[H, HT, A, R]) ApFunc(a func() A, ctx ...fp.Executor) fp.Future[R] {
 
 	av := Map(r.h, func(v H) A {
 		return a()
@@ -395,8 +401,55 @@ func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A, ctx ...fp.Executor)
 	return r.ApFuture(av)
 }
 
-func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {
-	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Successful(hlist.Empty()), Successful(fn)}
+func Chain1[A, R any](fn fp.Func1[A, R]) MonadChain1[hlist.Nil, hlist.Nil, A, R] {
+	return MonadChain1[hlist.Nil, hlist.Nil, A, R]{Successful(hlist.Empty()), Successful(fn)}
+}
+
+type ApplicativeFunctor1[A, R any] struct {
+	fn fp.Future[fp.Func1[A, R]]
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOption(a fp.Option[A]) fp.Future[R] {
+	return r.ApFuture(FromOption(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApTry(a fp.Try[A]) fp.Future[R] {
+	return r.ApFuture(FromTry(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApFuture(a fp.Future[A]) fp.Future[R] {
+	return Ap(r.fn, a)
+}
+
+func (r ApplicativeFunctor1[A, R]) Ap(a A) fp.Future[R] {
+	return r.ApFuture(Successful(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApFutureFunc(a func() fp.Future[A], ctx ...fp.Executor) fp.Future[R] {
+
+	return ApFunc(r.fn, a, ctx...)
+}
+func (r ApplicativeFunctor1[A, R]) ApTryFunc(a func() fp.Try[A], ctx ...fp.Executor) fp.Future[R] {
+
+	return r.ApFutureFunc(func() fp.Future[A] {
+		return FromTry(a())
+	}, ctx...)
+}
+func (r ApplicativeFunctor1[A, R]) ApOptionFunc(a func() fp.Option[A], ctx ...fp.Executor) fp.Future[R] {
+
+	return r.ApFutureFunc(func() fp.Future[A] {
+		return FromOption(a())
+	}, ctx...)
+}
+func (r ApplicativeFunctor1[A, R]) ApFunc(a func() A, ctx ...fp.Executor) fp.Future[R] {
+
+	return r.ApFutureFunc(func() fp.Future[A] {
+		return Successful(a())
+	}, ctx...)
+}
+
+func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
+	return ApplicativeFunctor1[A, R]{Successful(fn)}
 }
 
 func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {

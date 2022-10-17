@@ -19,7 +19,7 @@ func TestApplicative(t *testing.T) {
 
 	cf := fp.Id3[*url.URL, string, int]
 
-	var intPort fp.Try[int] = try.Applicative3(cf).
+	var intPort fp.Try[int] = try.Chain3(cf).
 		ApTry(try.Func1(url.Parse)("http://localhost:8080/abcd")).
 		Map((*url.URL).Port).
 		FlatMap(try.Func1(strconv.Atoi))
@@ -29,7 +29,7 @@ func TestApplicative(t *testing.T) {
 
 func TestProcessAp(t *testing.T) {
 	tstr := try.Success("25380")
-	killResult := try.Applicative4(fp.Id4[string, int, *os.Process, fp.Unit]).
+	killResult := try.Chain4(fp.Id4[string, int, *os.Process, fp.Unit]).
 		ApTry(tstr).
 		FlatMap(try.Func1(strconv.Atoi)).
 		FlatMap(try.Func1(os.FindProcess)).

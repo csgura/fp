@@ -49,6 +49,12 @@ func Ap[T, U any](t fp.Option[fp.Func1[T, U]], a fp.Option[T]) fp.Option[U] {
 	})
 }
 
+func ApFunc[T, U any](t fp.Option[fp.Func1[T, U]], fopt func() fp.Option[T]) fp.Option[U] {
+	return FlatMap(t, func(f fp.Func1[T, U]) fp.Option[U] {
+		return Map(fopt(), f)
+	})
+}
+
 func Map[T, U any](opt fp.Option[T], f func(v T) U) fp.Option[U] {
 	return FlatMap(opt, func(v T) fp.Option[U] {
 		return Some(f(v))
@@ -247,24 +253,24 @@ func Iterator[T any](r fp.Option[T]) fp.Iterator[T] {
 	return ToSeq(r).Iterator()
 }
 
-type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
+type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Option[H]
 	fn fp.Option[fp.Func1[A, R]]
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) Map(a func(HT) A) fp.Option[R] {
 	return r.FlatMap(func(h HT) fp.Option[A] {
 		return Some(a(h))
 	})
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) HListMap(a func(H) A) fp.Option[R] {
 	return r.HListFlatMap(func(h H) fp.Option[A] {
 		return Some(a(h))
 	})
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Option[A]) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) HListFlatMap(a func(H) fp.Option[A]) fp.Option[R] {
 	av := FlatMap(r.h, func(v H) fp.Option[A] {
 		return a(v)
 	})
@@ -272,7 +278,7 @@ func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Option[A]) f
 	return r.ApOption(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Option[A]) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) FlatMap(a func(HT) fp.Option[A]) fp.Option[R] {
 	av := FlatMap(r.h, func(v H) fp.Option[A] {
 		return a(v.Head())
 	})
@@ -280,22 +286,22 @@ func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Option[A]) fp.Op
 	return r.ApOption(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Option[R] {
 	return Ap(r.fn, a)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) Ap(a A) fp.Option[R] {
 	return r.ApOption(Some(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Option[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Option[A] {
 		return a()
 	})
 	return r.ApOption(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A) fp.Option[R] {
+func (r MonadChain1[H, HT, A, R]) ApFunc(a func() A) fp.Option[R] {
 
 	av := Map(r.h, func(v H) A {
 		return a()
@@ -303,8 +309,34 @@ func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A) fp.Option[R] {
 	return r.ApOption(av)
 }
 
-func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {
-	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Some(hlist.Empty()), Some(fn)}
+func Chain1[A, R any](fn fp.Func1[A, R]) MonadChain1[hlist.Nil, hlist.Nil, A, R] {
+	return MonadChain1[hlist.Nil, hlist.Nil, A, R]{Some(hlist.Empty()), Some(fn)}
+}
+
+type ApplicativeFunctor1[A, R any] struct {
+	fn fp.Option[fp.Func1[A, R]]
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOption(a fp.Option[A]) fp.Option[R] {
+	return Ap(r.fn, a)
+}
+
+func (r ApplicativeFunctor1[A, R]) Ap(a A) fp.Option[R] {
+	return r.ApOption(Some(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Option[R] {
+
+	return ApFunc(r.fn, a)
+}
+func (r ApplicativeFunctor1[A, R]) ApFunc(a func() A) fp.Option[R] {
+	return ApFunc(r.fn, func() fp.Option[A] {
+		return Some(a())
+	})
+}
+
+func Applicative1[A, R any](fn fp.Func1[A, R]) MonadChain1[hlist.Nil, hlist.Nil, A, R] {
+	return MonadChain1[hlist.Nil, hlist.Nil, A, R]{Some(hlist.Empty()), Some(fn)}
 }
 
 // type ApplicativeFunctor2[H hlist.Header[HT], HT, A, B, R any] struct {
@@ -312,7 +344,7 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 // 	fn fp.Option[fp.Func1[A, fp.Func1[B, R]]]
 // }
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) FlatMap(a func(HT) fp.Option[A]) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
+// func (r ApplicativeFunctor2[H, HT, A, B, R]) FlatMap(a func(HT) fp.Option[A]) MonadChain1[hlist.Cons[A, H], A, B, R] {
 
 // 	av := FlatMap(r.h, func(v H) fp.Option[A] {
 // 		return a(v.Head())
@@ -320,19 +352,19 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 // 	return r.ApOption(av)
 // }
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) Map(a func(HT) A) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
+// func (r ApplicativeFunctor2[H, HT, A, B, R]) Map(a func(HT) A) MonadChain1[hlist.Cons[A, H], A, B, R] {
 // 	return r.FlatMap(func(h HT) fp.Option[A] {
 // 		return Some(a(h))
 // 	})
 // }
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) HListMap(a func(H) A) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
+// func (r ApplicativeFunctor2[H, HT, A, B, R]) HListMap(a func(H) A) MonadChain1[hlist.Cons[A, H], A, B, R] {
 // 	return r.HListFlatMap(func(h H) fp.Option[A] {
 // 		return Some(a(h))
 // 	})
 // }
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) HListFlatMap(a func(H) fp.Option[A]) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
+// func (r ApplicativeFunctor2[H, HT, A, B, R]) HListFlatMap(a func(H) fp.Option[A]) MonadChain1[hlist.Cons[A, H], A, B, R] {
 // 	av := FlatMap(r.h, func(v H) fp.Option[A] {
 // 		return a(v)
 // 	})
@@ -340,17 +372,17 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hl
 // 	return r.ApOption(av)
 // }
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) ApOption(a fp.Option[A]) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
+// func (r ApplicativeFunctor2[H, HT, A, B, R]) ApOption(a fp.Option[A]) MonadChain1[hlist.Cons[A, H], A, B, R] {
 // 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
 // 		return Map(a, func(av A) hlist.Cons[A, H] {
 // 			return hlist.Concat(av, hv)
 // 		})
 // 	})
 
-// 	return ApplicativeFunctor1[hlist.Cons[A, H], A, B, R]{nh, Ap(r.fn, a)}
+// 	return MonadChain1[hlist.Cons[A, H], A, B, R]{nh, Ap(r.fn, a)}
 // }
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) Ap(a A) ApplicativeFunctor1[hlist.Cons[A, H], A, B, R] {
+// func (r ApplicativeFunctor2[H, HT, A, B, R]) Ap(a A) MonadChain1[hlist.Cons[A, H], A, B, R] {
 // 	return r.ApOption(Some(a))
 // }
 

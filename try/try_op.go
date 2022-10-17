@@ -103,6 +103,12 @@ func Ap[A, B any](tfab fp.Try[fp.Func1[A, B]], ta fp.Try[A]) fp.Try[B] {
 	})
 }
 
+func ApFunc[A, B any](tfab fp.Try[fp.Func1[A, B]], ta func() fp.Try[A]) fp.Try[B] {
+	return FlatMap(tfab, func(fab fp.Func1[A, B]) fp.Try[B] {
+		return Map(ta(), fab)
+	})
+}
+
 func Map[A, B any](ta fp.Try[A], f func(v A) B) fp.Try[B] {
 	return FlatMap(ta, func(a A) fp.Try[B] {
 		return Success(f(a))
@@ -285,24 +291,24 @@ func Iterator[A any](ta fp.Try[A]) fp.Iterator[A] {
 	return ToSeq(ta).Iterator()
 }
 
-type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {
+type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Try[H]
 	fn fp.Try[fp.Func1[A, R]]
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Map(a func(HT) A) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) Map(a func(HT) A) fp.Try[R] {
 	return r.FlatMap(func(h HT) fp.Try[A] {
 		return Success(a(h))
 	})
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListMap(a func(H) A) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) HListMap(a func(H) A) fp.Try[R] {
 	return r.HListFlatMap(func(h H) fp.Try[A] {
 		return Success(a(h))
 	})
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Try[A]) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) HListFlatMap(a func(H) fp.Try[A]) fp.Try[R] {
 	av := FlatMap(r.h, func(v H) fp.Try[A] {
 		return a(v)
 	})
@@ -310,7 +316,7 @@ func (r ApplicativeFunctor1[H, HT, A, R]) HListFlatMap(a func(H) fp.Try[A]) fp.T
 	return r.ApTry(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Try[A]) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) FlatMap(a func(HT) fp.Try[A]) fp.Try[R] {
 	av := FlatMap(r.h, func(v H) fp.Try[A] {
 		return a(v.Head())
 	})
@@ -318,33 +324,33 @@ func (r ApplicativeFunctor1[H, HT, A, R]) FlatMap(a func(HT) fp.Try[A]) fp.Try[R
 	return r.ApTry(av)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) ApOption(a fp.Option[A]) fp.Try[R] {
 	return r.ApTry(FromOption(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApTry(a fp.Try[A]) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) ApTry(a fp.Try[A]) fp.Try[R] {
 	return Ap(r.fn, a)
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) Ap(a A) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) Ap(a A) fp.Try[R] {
 	return r.ApTry(Success(a))
 }
 
-func (r ApplicativeFunctor1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A]) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) ApTryFunc(a func() fp.Try[A]) fp.Try[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Try[A] {
 		return a()
 	})
 	return r.ApTry(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Try[R] {
 
 	av := FlatMap(r.h, func(v H) fp.Try[A] {
 		return FromOption(a())
 	})
 	return r.ApTry(av)
 }
-func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A) fp.Try[R] {
+func (r MonadChain1[H, HT, A, R]) ApFunc(a func() A) fp.Try[R] {
 
 	av := Map(r.h, func(v H) A {
 		return a()
@@ -352,8 +358,46 @@ func (r ApplicativeFunctor1[H, HT, A, R]) ApFunc(a func() A) fp.Try[R] {
 	return r.ApTry(av)
 }
 
-func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R] {
-	return ApplicativeFunctor1[hlist.Nil, hlist.Nil, A, R]{Success(hlist.Empty()), Success(fn)}
+func Chain1[A, R any](fn fp.Func1[A, R]) MonadChain1[hlist.Nil, hlist.Nil, A, R] {
+	return MonadChain1[hlist.Nil, hlist.Nil, A, R]{Success(hlist.Empty()), Success(fn)}
+}
+
+type ApplicativeFunctor1[A, R any] struct {
+	fn fp.Try[fp.Func1[A, R]]
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOption(a fp.Option[A]) fp.Try[R] {
+	return r.ApTry(FromOption(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApTry(a fp.Try[A]) fp.Try[R] {
+	return Ap(r.fn, a)
+}
+
+func (r ApplicativeFunctor1[A, R]) Ap(a A) fp.Try[R] {
+	return r.ApTry(Success(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApTryFunc(a func() fp.Try[A]) fp.Try[R] {
+
+	return ApFunc(r.fn, a)
+
+}
+func (r ApplicativeFunctor1[A, R]) ApOptionFunc(a func() fp.Option[A]) fp.Try[R] {
+	return r.ApTryFunc(func() fp.Try[A] {
+		return FromOption(a())
+	})
+}
+func (r ApplicativeFunctor1[A, R]) ApFunc(a func() A) fp.Try[R] {
+
+	return r.ApTryFunc(func() fp.Try[A] {
+		return Success(a())
+	})
+
+}
+
+func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
+	return ApplicativeFunctor1[A, R]{Success(fn)}
 }
 
 func Func0[R any](f func() (R, error)) fp.Func1[fp.Unit, fp.Try[R]] {
