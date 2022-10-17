@@ -91,8 +91,10 @@ func TestFunc(t *testing.T) {
 	option.Applicative1(as.Func2(plus).Tupled()).
 		ApOption(otuple)
 
-	oreader := option.Applicative3(fp.Nop2[int, string](strings.NewReader)).
+	oreader := option.Applicative3(fp.Id3[int, string, *strings.Reader]).
 		ApOption(oint).
-		Map(strconv.Itoa)
+		Map(strconv.Itoa).
+		Map(strings.NewReader)
+
 	fmt.Println(oreader)
 }

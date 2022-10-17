@@ -291,12 +291,10 @@ func Compose%d[%s,R any] ( %s ) Func1[A1,R] {
 
 		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, `
-func Nop%d[%s,R any] ( f func(A%d) R ) Func%d[%s,R] {
-	return func(%s) R {
-		return f(a%d)
-	}
+func Id%d[%s,R any] ( %s, r R) R {
+		return r
 }
-			`, i-1, funcTypeArgs(1, i), i, i, funcTypeArgs(1, i), funcDeclArgs(1, i), i)
+			`, i, funcTypeArgs(1, i-1), funcDeclArgs(1, i-1))
 		}
 	})
 

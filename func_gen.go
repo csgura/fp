@@ -110,50 +110,34 @@ func Compose5[A1, A2, A3, A4, A5, R any](f1 Func1[A1, A2], f2 Func1[A2, A3], f3 
 	return Compose2(f1, Compose4(f2, f3, f4, f5))
 }
 
-func Nop1[A1, A2, R any](f func(A2) R) Func2[A1, A2, R] {
-	return func(a1 A1, a2 A2) R {
-		return f(a2)
-	}
+func Id2[A1, R any](a1 A1, r R) R {
+	return r
 }
 
-func Nop2[A1, A2, A3, R any](f func(A3) R) Func3[A1, A2, A3, R] {
-	return func(a1 A1, a2 A2, a3 A3) R {
-		return f(a3)
-	}
+func Id3[A1, A2, R any](a1 A1, a2 A2, r R) R {
+	return r
 }
 
-func Nop3[A1, A2, A3, A4, R any](f func(A4) R) Func4[A1, A2, A3, A4, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4) R {
-		return f(a4)
-	}
+func Id4[A1, A2, A3, R any](a1 A1, a2 A2, a3 A3, r R) R {
+	return r
 }
 
-func Nop4[A1, A2, A3, A4, A5, R any](f func(A5) R) Func5[A1, A2, A3, A4, A5, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R {
-		return f(a5)
-	}
+func Id5[A1, A2, A3, A4, R any](a1 A1, a2 A2, a3 A3, a4 A4, r R) R {
+	return r
 }
 
-func Nop5[A1, A2, A3, A4, A5, A6, R any](f func(A6) R) Func6[A1, A2, A3, A4, A5, A6, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
-		return f(a6)
-	}
+func Id6[A1, A2, A3, A4, A5, R any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, r R) R {
+	return r
 }
 
-func Nop6[A1, A2, A3, A4, A5, A6, A7, R any](f func(A7) R) Func7[A1, A2, A3, A4, A5, A6, A7, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
-		return f(a7)
-	}
+func Id7[A1, A2, A3, A4, A5, A6, R any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, r R) R {
+	return r
 }
 
-func Nop7[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A8) R) Func8[A1, A2, A3, A4, A5, A6, A7, A8, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
-		return f(a8)
-	}
+func Id8[A1, A2, A3, A4, A5, A6, A7, R any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, r R) R {
+	return r
 }
 
-func Nop8[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A9) R) Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
-	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
-		return f(a9)
-	}
+func Id9[A1, A2, A3, A4, A5, A6, A7, A8, R any](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, r R) R {
+	return r
 }
