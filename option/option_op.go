@@ -6,6 +6,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
@@ -74,6 +75,19 @@ func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Option[A1], fp.Opt
 	}
 }
 
+// (a -> b -> m r) -> m a -> m b -> m r
+// 하스켈에서는  liftM2 와 liftA2 는 같은 함수이고
+// 위와 같은 함수는 존재하지 않음.
+// hoogle 에서 검색해 보면 , liftJoin2 , bindM2 등의 이름으로 정의된 것이 있음.
+// 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
+// M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
+// LiftM2 를 다음과 같이 정의함.
+func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Option[R]]) fp.Func2[fp.Option[A], fp.Option[B], fp.Option[R]] {
+	return func(a fp.Option[A], b fp.Option[B]) fp.Option[R] {
+		return Flatten(Map2(a, b, fab))
+	}
+}
+
 func Compose[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
 	return func(a A) fp.Option[C] {
 		return FlatMap(f1(a), f2)
@@ -103,6 +117,77 @@ func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
 	return FlatMap(opt, func(v fp.Option[T]) fp.Option[T] {
 		return v
 	})
+}
+
+// 하스켈 : m( a -> r ) -> a -> m r
+// 스칼라 : M[ A => r ] => A => M[R]
+// 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
+// hoogle 에서 검색해 보면
+// https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
+// ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
+func Flap[A, R any](tfa fp.Option[fp.Func1[A, R]]) fp.Func1[A, fp.Option[R]] {
+	return func(a A) fp.Option[R] {
+		return Ap(tfa, Some(a))
+	}
+}
+
+// 하스켈 : m( a -> b -> r ) -> a -> b -> m r
+func Flap2[A, B, R any](tfab fp.Option[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Option[R]]] {
+	return func(a A) fp.Func1[B, fp.Option[R]] {
+		return Flap(Ap(tfab, Some(a)))
+	}
+}
+
+// (a -> b -> r) -> m a -> b -> m r
+// Map 호출 후에 Flap 을 호출 한 것
+//
+// https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
+// liftOp 라는 이름으로 정의된 것이 있음
+func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Option[A]) fp.Func1[B, fp.Option[R]] {
+	return Flap(Map(a, as.Func2(tfab).Curried()))
+}
+
+// ( a -> b -> m r) -> m a -> b -> m r
+//
+//	Flatten . FlapMap
+//
+// https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
+// om , ==<<  이름으로 정의된 것이 있음
+func FlatFlapMap[A, B, R any](fab func(A, B) fp.Option[R], ta fp.Option[A]) fp.Func1[B, fp.Option[R]] {
+	return fp.Compose(FlapMap(fab, ta), Flatten[R])
+}
+
+// FlatMap 과는 아규먼트 순서가 다른 함수로
+// Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
+// Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
+// Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
+func Method1[A, B, R any](ta fp.Option[A], fab func(a A, b B) R) fp.Func1[B, fp.Option[R]] {
+	return FlapMap(fab, ta)
+}
+
+func FlatMethod1[A, B, R any](ta fp.Option[A], fab func(a A, b B) fp.Option[R]) fp.Func1[B, fp.Option[R]] {
+	return FlatFlapMap(fab, ta)
+}
+
+func Method2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) R) fp.Func2[B, C, fp.Option[R]] {
+
+	return curried.Revert2(Flap2(Map(ta, as.Curried3(fabc))))
+	// return func(b B, c C) fp.Option[R] {
+	// 	return Map(a, func(a A) R {
+	// 		return cf(a, b, c)
+	// 	})
+	// }
+}
+
+func FlatMethod2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) fp.Option[R]) fp.Func2[B, C, fp.Option[R]] {
+
+	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(fabc))), Flatten[R]))
+
+	// return func(b B, c C) fp.Option[R] {
+	// 	return FlatMap(ta, func(a A) fp.Option[R] {
+	// 		return cf(a, b, c)
+	// 	})
+	// }
 }
 
 func Zip[A, B any](c1 fp.Option[A], c2 fp.Option[B]) fp.Option[fp.Tuple2[A, B]] {

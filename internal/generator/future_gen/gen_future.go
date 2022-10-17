@@ -281,6 +281,62 @@ import (
 				funcCallArgs(1, i),
 				common.FuncCallArgs(2, i, "ins"),
 			)
+
+			fmt.Fprintf(f, `
+				func LiftM%d[%s,R any]( f func(%s) fp.Future[R], exec ... fp.Executor ) fp.Func%d[%s,fp.Future[R]] {
+					return func(%s) fp.Future[R] {
+
+						return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+							return LiftM%d(func(%s) fp.Future[R] {
+								return f(%s)
+							}, exec...)(%s)
+						}, exec...)
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Future"),
+				common.FuncDeclTypeClassArgs(1, i, "fp.Future"),
+				i-1, common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+				common.FuncCallArgs(2, i, "ins"),
+			)
+
+			fmt.Fprintf(f, `
+				func Flap%d[%s,R any](tf fp.Future[%s], exec ... fp.Executor) %s {
+					return func(a1 A1) %s {
+						return Flap%d(Ap(tf, Successful(a1)), exec...)
+					}
+				}
+			`, i, typeArgs(1, i), curriedType(1, i), common.CurriedType(1, i, "fp.Future[R]"),
+				common.CurriedType(2, i, "fp.Future[R]"),
+				i-1,
+			)
+
+			fmt.Fprintf(f, `
+				func Method%d[%s,R any](ta1 fp.Future[A1], fa1 func(%s) R, exec ... fp.Executor) fp.Func%d[%s, fp.Future[R]] {
+					return func(%s) fp.Future[R] {
+						return Map(ta1, func(a1 A1) R {
+							return fa1(%s)
+						},exec...)
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
+				common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+			)
+
+			fmt.Fprintf(f, `
+				func FlatMethod%d[%s,R any](ta1 fp.Future[A1], fa1 func(%s) fp.Future[R], exec ... fp.Executor) fp.Func%d[%s, fp.Future[R]] {
+					return func(%s) fp.Future[R] {
+						return FlatMap(ta1, func(a1 A1) fp.Future[R] {
+							return fa1(%s)
+						}, exec...)
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
+				common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+			)
+
 		}
 
 		for i := 1; i < max.Func; i++ {

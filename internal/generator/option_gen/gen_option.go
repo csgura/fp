@@ -241,6 +241,61 @@ import (
 				common.FuncCallArgs(1, i),
 				common.FuncCallArgs(2, i, "ins"),
 			)
+
+			fmt.Fprintf(f, `
+				func LiftM%d[%s,R any]( f func(%s) fp.Option[R] ) fp.Func%d[%s,fp.Option[R]] {
+					return func(%s) fp.Option[R] {
+
+						return FlatMap(ins1, func(a1 A1) fp.Option[R] {
+							return LiftM%d(func(%s) fp.Option[R] {
+								return f(%s)
+							})(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Option"),
+				common.FuncDeclTypeClassArgs(1, i, "fp.Option"),
+				i-1, common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+				common.FuncCallArgs(2, i, "ins"),
+			)
+
+			fmt.Fprintf(f, `
+				func Flap%d[%s,R any](tf fp.Option[%s]) %s {
+					return func(a1 A1) %s {
+						return Flap%d(Ap(tf, Some(a1)))
+					}
+				}
+			`, i, typeArgs(1, i), curriedType(1, i), common.CurriedType(1, i, "fp.Option[R]"),
+				common.CurriedType(2, i, "fp.Option[R]"),
+				i-1,
+			)
+
+			fmt.Fprintf(f, `
+				func Method%d[%s,R any](ta1 fp.Option[A1], fa1 func(%s) R) fp.Func%d[%s, fp.Option[R]] {
+					return func(%s) fp.Option[R] {
+						return Map(ta1, func(a1 A1) R {
+							return fa1(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
+				common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+			)
+
+			fmt.Fprintf(f, `
+				func FlatMethod%d[%s,R any](ta1 fp.Option[A1], fa1 func(%s) fp.Option[R]) fp.Func%d[%s, fp.Option[R]] {
+					return func(%s) fp.Option[R] {
+						return FlatMap(ta1, func(a1 A1) fp.Option[R] {
+							return fa1(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
+				common.FuncDeclArgs(2, i),
+				common.FuncCallArgs(1, i),
+			)
 		}
 
 		for i := 3; i < max.Compose; i++ {

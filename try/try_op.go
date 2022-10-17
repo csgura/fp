@@ -198,7 +198,7 @@ func FlatFlapMap[A, B, R any](fab func(A, B) fp.Try[R], ta fp.Try[A]) fp.Func1[B
 }
 
 // FlatMap 과는 아규먼트 순서가 다른 함수로
-// C 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
+// Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
 // Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
 // Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
 func Method1[A, B, R any](ta fp.Try[A], fab func(a A, b B) R) fp.Func1[B, fp.Try[R]] {

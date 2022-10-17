@@ -129,6 +129,17 @@ func Flip%d[%s,R any](f  %s) %s {
 `, i-1, common.FuncTypeArgs(1, i), curriedType(1, i), curriedTypeReturn(2, i, "fp.Func1[A1, R]"),
 			i, common.FuncDeclArgs(2, i), curriedCallArgs(1, i),
 		)
+
+		fmt.Fprintf(f, `
+			func Compose%d[%s,GA,GR any](f %s, g fp.Func1[GA,GR]) %s {
+				return func(a1 A1) %s  {
+					return Compose%d(f(a1), g)
+				}
+			}
+		`, i, common.FuncTypeArgs(1, i), curriedTypeReturn(1, i, "GA"), curriedTypeReturn(1, i, "GR"),
+			curriedTypeReturn(2, i, "GR"),
+			i-1,
+		)
 	}
 
 	formatted, err := format.Source(f.Bytes())
