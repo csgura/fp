@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/future"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/try"
 )
@@ -92,50 +93,53 @@ func TestApChain(t *testing.T) {
 
 	fmt.Println(future.Await(res, time.Second))
 
-	// res = future.Applicative3(MakeURLWithPort).
-	// 	ApOption(option.Some("https")).
-	// 	Flip().
-	// 	Map(func(scheme string) int {
-	// 		switch scheme {
-	// 		case "https":
-	// 			return 8443
-	// 		default:
-	// 			return 8080
-	// 		}
-	// 	}).
-	// 	HListMap(hlist.Rift2(func(scheme string, port int) string {
-	// 		switch port {
-	// 		case 8443:
-	// 			return "localhost.uangel.com"
-	// 		}
-	// 		return "localhost"
-	// 	}))
+	res = future.Chain4(fp.Id4[string, int, string, string]).
+		ApOption(option.Some("https")).
+		Map(func(scheme string) int {
+			switch scheme {
+			case "https":
+				return 8443
+			default:
+				return 8080
+			}
+		}).
+		HListMap(hlist.Rift2(func(scheme string, port int) string {
+			switch port {
+			case 8443:
+				return "localhost.uangel.com"
+			}
+			return "localhost"
+		})).HListMap(hlist.Rift3(func(scheme string, port int, addr string) string {
+		return MakeURLWithPort(scheme, addr, port)
+	}))
 
-	// fmt.Println(future.Await(res, time.Second))
+	fmt.Println(future.Await(res, time.Second))
 
-	// calcPort := func(scheme string) int {
-	// 	switch scheme {
-	// 	case "https":
-	// 		return 8443
-	// 	default:
-	// 		return 8080
-	// 	}
-	// }
+	calcPort := func(scheme string) int {
+		switch scheme {
+		case "https":
+			return 8443
+		default:
+			return 8080
+		}
+	}
 
-	// calcHost := func(scheme string, port int) string {
-	// 	switch port {
-	// 	case 8443:
-	// 		return "localhost.uangel.com"
-	// 	}
-	// 	return "localhost"
-	// }
+	calcHost := func(scheme string, port int) string {
+		switch port {
+		case 8443:
+			return "localhost.uangel.com"
+		}
+		return "localhost"
+	}
 
-	// res = future.Applicative3(MakeURLWithPort).
-	// 	ApFuture(GetScheme()).
-	// 	Flip().
-	// 	Map(calcPort).
-	// 	HListMap(hlist.Rift2(calcHost))
+	res = future.Chain4(fp.Id4[string, int, string, string]).
+		ApFuture(GetScheme()).
+		Map(calcPort).
+		HListMap(hlist.Rift2(calcHost)).
+		HListMap(hlist.Rift3(func(scheme string, port int, addr string) string {
+			return MakeURLWithPort(scheme, addr, port)
+		}))
 
-	// fmt.Println(future.Await(res, time.Second))
+	fmt.Println(future.Await(res, time.Second))
 
 }
