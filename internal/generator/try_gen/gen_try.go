@@ -267,6 +267,61 @@ import (
 				funcCallArgs(1, i),
 				common.FuncCallArgs(2, i, "ins"),
 			)
+
+			fmt.Fprintf(f, `
+				func LiftM%d[%s,R any]( f func(%s) fp.Try[R] ) fp.Func%d[%s,fp.Try[R]] {
+					return func(%s) fp.Try[R] {
+
+						return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+							return LiftM%d(func(%s) fp.Try[R] {
+								return f(%s)
+							})(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), funcDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Try"),
+				common.FuncDeclTypeClassArgs(1, i, "fp.Try"),
+				i-1, funcDeclArgs(2, i),
+				funcCallArgs(1, i),
+				common.FuncCallArgs(2, i, "ins"),
+			)
+
+			fmt.Fprintf(f, `
+				func Flap%d[%s,R any](tf fp.Try[%s]) %s {
+					return func(a1 A1) %s {
+						return Flap%d(Ap(tf, Success(a1)))
+					}
+				}
+			`, i, typeArgs(1, i), curriedType(1, i), common.CurriedType(1, i, "fp.Try[R]"),
+				common.CurriedType(2, i, "fp.Try[R]"),
+				i-1,
+			)
+
+			fmt.Fprintf(f, `
+				func Method%d[%s,R any](ta1 fp.Try[A1], fa1 func(%s) R) fp.Func%d[%s, fp.Try[R]] {
+					return func(%s) fp.Try[R] {
+						return Map(ta1, func(a1 A1) R {
+							return fa1(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), funcDeclArgs(1, i), i-1, typeArgs(2, i),
+				funcDeclArgs(2, i),
+				funcCallArgs(1, i),
+			)
+
+			fmt.Fprintf(f, `
+				func FlatMethod%d[%s,R any](ta1 fp.Try[A1], fa1 func(%s) fp.Try[R]) fp.Func%d[%s, fp.Try[R]] {
+					return func(%s) fp.Try[R] {
+						return FlatMap(ta1, func(a1 A1) fp.Try[R] {
+							return fa1(%s)
+						})
+					}
+				}
+			`, i, typeArgs(1, i), funcDeclArgs(1, i), i-1, typeArgs(2, i),
+				funcDeclArgs(2, i),
+				funcCallArgs(1, i),
+			)
 		}
 
 		for i := 1; i < max.Func; i++ {

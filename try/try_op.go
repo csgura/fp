@@ -97,22 +97,22 @@ func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, C]) fp.F
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
-func Ap[T, U any](t fp.Try[fp.Func1[T, U]], a fp.Try[T]) fp.Try[U] {
-	return FlatMap(t, func(f fp.Func1[T, U]) fp.Try[U] {
-		return Map(a, f)
+func Ap[A, B any](tfab fp.Try[fp.Func1[A, B]], ta fp.Try[A]) fp.Try[B] {
+	return FlatMap(tfab, func(fab fp.Func1[A, B]) fp.Try[B] {
+		return Map(ta, fab)
 	})
 }
 
-func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
-	return FlatMap(opt, func(v T) fp.Try[U] {
-		return Success(f(v))
+func Map[A, B any](ta fp.Try[A], f func(v A) B) fp.Try[B] {
+	return FlatMap(ta, func(a A) fp.Try[B] {
+		return Success(f(a))
 	})
 }
 
-func Map2[A, B, U any](a fp.Try[A], b fp.Try[B], f func(A, B) U) fp.Try[U] {
-	return FlatMap(a, func(v1 A) fp.Try[U] {
-		return Map(b, func(v2 B) U {
-			return f(v1, v2)
+func Map2[A, B, R any](ta fp.Try[A], tb fp.Try[B], fab func(A, B) R) fp.Try[R] {
+	return FlatMap(ta, func(a A) fp.Try[R] {
+		return Map(tb, func(b B) R {
+			return fab(a, b)
 		})
 	})
 }
@@ -121,54 +121,60 @@ func Map2[A, B, U any](a fp.Try[A], b fp.Try[B], f func(A, B) U) fp.Try[U] {
 // 	return Ap(Success(as.Func1(f)), opt)
 // }
 
-func Lift[T, U any](f func(v T) U) fp.Func1[fp.Try[T], fp.Try[U]] {
-	return func(opt fp.Try[T]) fp.Try[U] {
-		return Map(opt, f)
+func Lift[A, R any](fa func(v A) R) fp.Func1[fp.Try[A], fp.Try[R]] {
+	return func(ta fp.Try[A]) fp.Try[R] {
+		return Map(ta, fa)
 	}
 }
 
-func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Try[A1], fp.Try[A2], fp.Try[R]] {
-	return func(a1 fp.Try[A1], a2 fp.Try[A2]) fp.Try[R] {
-		return Map2(a1, a2, f)
+func LiftA2[A, B, R any](fab fp.Func2[A, B, R]) fp.Func2[fp.Try[A], fp.Try[B], fp.Try[R]] {
+	return func(a fp.Try[A], b fp.Try[B]) fp.Try[R] {
+		return Map2(a, b, fab)
 	}
 }
 
-func FlatMap[T, U any](opt fp.Try[T], fn func(v T) fp.Try[U]) fp.Try[U] {
-	if opt.IsSuccess() {
-		return fn(opt.Get())
+// (a -> b -> m r) -> m a -> m b -> m r
+// 하스켈에서는  liftM2 와 liftA2 는 같은 함수이고
+// 위와 같은 함수는 존재하지 않음.
+// hoogle 에서 검색해 보면 , liftJoin2 , bindM2 등의 이름으로 정의된 것이 있음.
+// 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
+// M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
+// LiftM2 를 다음과 같이 정의함.
+func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Try[R]]) fp.Func2[fp.Try[A], fp.Try[B], fp.Try[R]] {
+	return func(a fp.Try[A], b fp.Try[B]) fp.Try[R] {
+		return Flatten(Map2(a, b, fab))
 	}
-	return Failure[U](opt.Failed().Get())
 }
 
-func Flatten[T any](opt fp.Try[fp.Try[T]]) fp.Try[T] {
-	return FlatMap(opt, func(v fp.Try[T]) fp.Try[T] {
+func FlatMap[A, B any](ta fp.Try[A], fn func(v A) fp.Try[B]) fp.Try[B] {
+	if ta.IsSuccess() {
+		return fn(ta.Get())
+	}
+	return Failure[B](ta.Failed().Get())
+}
+
+func Flatten[A any](tta fp.Try[fp.Try[A]]) fp.Try[A] {
+	return FlatMap(tta, func(v fp.Try[A]) fp.Try[A] {
 		return v
 	})
 }
 
-// 하스켈 : m( a -> b ) -> a -> m b
-// 스칼라 : M[ A => B ] => A => M[B]
+// 하스켈 : m( a -> r ) -> a -> m r
+// 스칼라 : M[ A => r ] => A => M[R]
 // 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
 // hoogle 에서 검색해 보면
 // https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
 // ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
-func Flap[A, B any](f fp.Try[fp.Func1[A, B]]) fp.Func1[A, fp.Try[B]] {
-	return func(a A) fp.Try[B] {
-		return Ap(f, Success(a))
+func Flap[A, R any](tfa fp.Try[fp.Func1[A, R]]) fp.Func1[A, fp.Try[R]] {
+	return func(a A) fp.Try[R] {
+		return Ap(tfa, Success(a))
 	}
 }
 
 // 하스켈 : m( a -> b -> r ) -> a -> b -> m r
-func Flap2[A, B, R any](f fp.Try[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Try[R]]] {
+func Flap2[A, B, R any](tfab fp.Try[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Try[R]]] {
 	return func(a A) fp.Func1[B, fp.Try[R]] {
-		return Flap(Ap(f, Success(a)))
-	}
-}
-
-// 하스켈 : m( a -> b -> c -> r ) -> a -> b -> c -> m r
-func Flap3[A, B, C, R any](f fp.Try[fp.Func1[A, fp.Func1[B, fp.Func1[C, R]]]]) fp.Func1[A, fp.Func1[B, fp.Func1[C, fp.Try[R]]]] {
-	return func(a A) fp.Func1[B, fp.Func1[C, fp.Try[R]]] {
-		return Flap2(Ap(f, Success(a)))
+		return Flap(Ap(tfab, Success(a)))
 	}
 }
 
@@ -177,8 +183,8 @@ func Flap3[A, B, C, R any](f fp.Try[fp.Func1[A, fp.Func1[B, fp.Func1[C, R]]]]) f
 //
 // https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
 // liftOp 라는 이름으로 정의된 것이 있음
-func FlapMap[A, B, R any](a fp.Try[A], f func(A, B) R) fp.Func1[B, fp.Try[R]] {
-	return Flap(Map(a, as.Func2(f).Curried()))
+func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Try[A]) fp.Func1[B, fp.Try[R]] {
+	return Flap(Map(a, as.Func2(tfab).Curried()))
 }
 
 // ( a -> b -> m r) -> m a -> b -> m r
@@ -187,21 +193,25 @@ func FlapMap[A, B, R any](a fp.Try[A], f func(A, B) R) fp.Func1[B, fp.Try[R]] {
 //
 // https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 // om , ==<<  이름으로 정의된 것이 있음
-func FlatFlapMap[A, B, R any](a fp.Try[A], f func(A, B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
-	return fp.Compose(FlapMap(a, f), Flatten[R])
+func FlatFlapMap[A, B, R any](fab func(A, B) fp.Try[R], ta fp.Try[A]) fp.Func1[B, fp.Try[R]] {
+	return fp.Compose(FlapMap(fab, ta), Flatten[R])
 }
 
-func Method1[A, B, R any](t fp.Try[A], cf func(a A, b B) R) fp.Func1[B, fp.Try[R]] {
-	return FlapMap(t, cf)
+// FlatMap 과는 아규먼트 순서가 다른 함수로
+// C 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
+// Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
+// Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
+func Method1[A, B, R any](ta fp.Try[A], fab func(a A, b B) R) fp.Func1[B, fp.Try[R]] {
+	return FlapMap(fab, ta)
 }
 
-func FlatMethod1[A, B, R any](t fp.Try[A], cf func(a A, b B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
-	return FlatFlapMap(t, cf)
+func FlatMethod1[A, B, R any](ta fp.Try[A], fab func(a A, b B) fp.Try[R]) fp.Func1[B, fp.Try[R]] {
+	return FlatFlapMap(fab, ta)
 }
 
-func Method2[A, B, C, R any](a fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
+func Method2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) R) fp.Func2[B, C, fp.Try[R]] {
 
-	return curried.Revert2(Flap2(Map(a, as.Curried3(cf))))
+	return curried.Revert2(Flap2(Map(ta, as.Curried3(fabc))))
 	// return func(b B, c C) fp.Try[R] {
 	// 	return Map(a, func(a A) R {
 	// 		return cf(a, b, c)
@@ -209,9 +219,9 @@ func Method2[A, B, C, R any](a fp.Try[A], cf func(a A, b B, c C) R) fp.Func2[B, 
 	// }
 }
 
-func FlatMethod2[A, B, C, R any](ta fp.Try[A], cf func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
+func FlatMethod2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) fp.Try[R]) fp.Func2[B, C, fp.Try[R]] {
 
-	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(cf))), Flatten[R]))
+	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(fabc))), Flatten[R]))
 
 	// return func(b B, c C) fp.Try[R] {
 	// 	return FlatMap(ta, func(a A) fp.Try[R] {
@@ -220,59 +230,59 @@ func FlatMethod2[A, B, C, R any](ta fp.Try[A], cf func(a A, b B, c C) fp.Try[R])
 	// }
 }
 
-func Zip[A, B any](c1 fp.Try[A], c2 fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
-	return Map2(c1, c2, product.Tuple2[A, B])
+func Zip[A, B any](ta fp.Try[A], tb fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
+	return Map2(ta, tb, product.Tuple2[A, B])
 }
 
-func Zip3[A, B, C any](c1 fp.Try[A], c2 fp.Try[B], c3 fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
-	return LiftA3(as.Tuple3[A, B, C])(c1, c2, c3)
+func Zip3[A, B, C any](ta fp.Try[A], tb fp.Try[B], tc fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
+	return LiftA3(as.Tuple3[A, B, C])(ta, tb, tc)
 }
 
-func SequenceIterator[T any](tryItr fp.Iterator[fp.Try[T]]) fp.Try[fp.Iterator[T]] {
-	return iterator.Fold(tryItr, Success(iterator.Empty[T]()), LiftA2(fp.Iterator[T].Appended))
+func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] {
+	return iterator.Fold(ita, Success(iterator.Empty[A]()), LiftA2(fp.Iterator[A].Appended))
 }
 
-func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Try[U]) fp.Try[fp.Iterator[U]] {
-	return iterator.Fold(itr, Success(iterator.Empty[U]()), func(tryItr fp.Try[fp.Iterator[U]], v T) fp.Try[fp.Iterator[U]] {
-		return FlatMap(tryItr, func(acc fp.Iterator[U]) fp.Try[fp.Iterator[U]] {
-			return Map(fn(v), acc.Appended)
+func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
+	return iterator.Fold(ia, Success(iterator.Empty[R]()), func(tir fp.Try[fp.Iterator[R]], a A) fp.Try[fp.Iterator[R]] {
+		return FlatMap(tir, func(acc fp.Iterator[R]) fp.Try[fp.Iterator[R]] {
+			return Map(fn(a), acc.Appended)
 		})
 	})
 }
 
-func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Try[U]) fp.Try[fp.Seq[U]] {
-	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq)
+func TraverseSeq[A, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
+	return Map(Traverse(sa.Iterator(), fa), fp.Iterator[R].ToSeq)
 }
 
-func Sequence[T any](trySeq fp.Seq[fp.Try[T]]) fp.Try[fp.Seq[T]] {
-	return Map(SequenceIterator(trySeq.Iterator()), fp.Iterator[T].ToSeq)
+func Sequence[A any](tsa fp.Seq[fp.Try[A]]) fp.Try[fp.Seq[A]] {
+	return Map(SequenceIterator(tsa.Iterator()), fp.Iterator[A].ToSeq)
 }
 
-func Fold[A, B any](s fp.Try[A], zero B, f func(B, A) B) B {
-	if s.IsFailure() {
-		return zero
+func Fold[A, B any](ta fp.Try[A], bzero B, fba func(B, A) B) B {
+	if ta.IsFailure() {
+		return bzero
 	}
 
-	return f(zero, s.Get())
+	return fba(bzero, ta.Get())
 }
 
-func FoldRight[A, B any](s fp.Try[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
-	if s.IsFailure() {
-		return lazy.Done(zero)
+func FoldRight[A, B any](ta fp.Try[A], bzero B, fab func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
+	if ta.IsFailure() {
+		return lazy.Done(bzero)
 	}
 
-	return f(s.Get(), lazy.Done(zero))
+	return fab(ta.Get(), lazy.Done(bzero))
 }
 
-func ToSeq[T any](r fp.Try[T]) fp.Seq[T] {
-	if r.IsSuccess() {
-		return fp.Seq[T]{r.Get()}
+func ToSeq[A any](ta fp.Try[A]) fp.Seq[A] {
+	if ta.IsSuccess() {
+		return fp.Seq[A]{ta.Get()}
 	}
 	return nil
 }
 
-func Iterator[T any](r fp.Try[T]) fp.Iterator[T] {
-	return ToSeq(r).Iterator()
+func Iterator[A any](ta fp.Try[A]) fp.Iterator[A] {
+	return ToSeq(ta).Iterator()
 }
 
 type ApplicativeFunctor1[H hlist.Header[HT], HT, A, R any] struct {

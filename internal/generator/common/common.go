@@ -143,6 +143,18 @@ func TypeClassArgs(start, until int, typeClass string) string {
 	return f.String()
 }
 
+func CurriedType(start, until int, rtype string) string {
+	f := &bytes.Buffer{}
+	endBracket := ""
+	for j := start; j <= until; j++ {
+		fmt.Fprintf(f, "fp.Func1[A%d, ", j)
+		endBracket = endBracket + "]"
+	}
+	fmt.Fprintf(f, "%s%s", rtype, endBracket)
+
+	return f.String()
+}
+
 type Range struct {
 	writer *writer
 	start  int
