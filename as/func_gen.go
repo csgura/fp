@@ -40,7 +40,7 @@ func Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5,
 	return fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](f)
 }
 
-func Curried2[A1, A2, R any](f func(A1, A2) R) fp.Func1[A1, fp.Func1[A2, R]] {
+func Curried2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func1[A1, fp.Func1[A2, R]] {
 	return func(a1 A1) fp.Func1[A2, R] {
 		return func(a2 A2) R {
 			return f(a1, a2)
@@ -48,7 +48,7 @@ func Curried2[A1, A2, R any](f func(A1, A2) R) fp.Func1[A1, fp.Func1[A2, R]] {
 	}
 }
 
-func Curried3[A1, A2, A3, R any](f func(A1, A2, A3) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]] {
+func Curried3[A1, A2, A3, R any](f fp.Func3[A1, A2, A3, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, R]] {
 		return Curried2(func(a2 A2, a3 A3) R {
 			return f(a1, a2, a3)
@@ -56,7 +56,7 @@ func Curried3[A1, A2, A3, R any](f func(A1, A2, A3) R) fp.Func1[A1, fp.Func1[A2,
 	}
 }
 
-func Curried4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]] {
+func Curried4[A1, A2, A3, A4, R any](f fp.Func4[A1, A2, A3, A4, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]] {
 		return Curried3(func(a2 A2, a3 A3, a4 A4) R {
 			return f(a1, a2, a3, a4)
@@ -64,7 +64,7 @@ func Curried4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) fp.Func1[A1, fp.F
 	}
 }
 
-func Curried5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]] {
+func Curried5[A1, A2, A3, A4, A5, R any](f fp.Func5[A1, A2, A3, A4, A5, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]] {
 		return Curried4(func(a2 A2, a3 A3, a4 A4, a5 A5) R {
 			return f(a1, a2, a3, a4, a5)
@@ -72,7 +72,7 @@ func Curried5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) fp.Func1[
 	}
 }
 
-func Curried6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]] {
+func Curried6[A1, A2, A3, A4, A5, A6, R any](f fp.Func6[A1, A2, A3, A4, A5, A6, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]] {
 		return Curried5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
 			return f(a1, a2, a3, a4, a5, a6)
@@ -80,7 +80,7 @@ func Curried6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) f
 	}
 }
 
-func Curried7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]] {
+func Curried7[A1, A2, A3, A4, A5, A6, A7, R any](f fp.Func7[A1, A2, A3, A4, A5, A6, A7, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]] {
 		return Curried6(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
 			return f(a1, a2, a3, a4, a5, a6, a7)
@@ -88,7 +88,7 @@ func Curried7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, 
 	}
 }
 
-func Curried8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]] {
+func Curried8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]] {
 		return Curried7(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
 			return f(a1, a2, a3, a4, a5, a6, a7, a8)
@@ -96,7 +96,7 @@ func Curried8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, 
 	}
 }
 
-func Curried9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]] {
+func Curried9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]] {
 		return Curried8(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
 			return f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
