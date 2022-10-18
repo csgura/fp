@@ -228,3 +228,16 @@ func Flip[A, B, R any](f Func1[A, Func1[B, R]]) Func1[B, Func1[A, R]] {
 		}
 	}
 }
+
+func IsInstanceOf[T, I any](v I) bool {
+	if _, ok := any(v).(T); ok {
+		return true
+	}
+	return false
+}
+
+func Return[T any](v T) func() T {
+	return func() T {
+		return v
+	}
+}
