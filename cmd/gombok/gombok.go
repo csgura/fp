@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go/ast"
+	"go/types"
 	"os"
 	"strings"
 
@@ -14,38 +15,50 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func findValueStruct(p []*packages.Package) fp.Seq[*ast.TypeSpec] {
-	s := seq.FlatMap(p, func(v *packages.Package) fp.Seq[*ast.File] {
-		return v.Syntax
-	})
+type TaggedType struct {
+	TypeSpec *ast.TypeSpec
+	Struct   *types.Struct
+}
 
-	s2 := seq.FlatMap(s, func(v *ast.File) fp.Seq[ast.Decl] {
-		return v.Decls
-	})
+func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
+	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedType] {
+		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
+			return v.Decls
+		})
 
-	s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
-		switch r := v.(type) {
-		case *ast.GenDecl:
-			return seq.Of(r)
-		}
-		return seq.Of[*ast.GenDecl]()
-	})
-
-	return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[*ast.TypeSpec] {
-		gdDoc := option.Of(gd.Doc)
-
-		return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[*ast.TypeSpec] {
-			if ts, ok := v.(*ast.TypeSpec); ok {
-				doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
-
-				if doc.Filter(as.Func2(strings.Contains).ApplyLast("@fp.Value")).IsDefined() {
-					return seq.Of(ts)
-				}
-
+		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+			switch r := v.(type) {
+			case *ast.GenDecl:
+				return seq.Of(r)
 			}
-			return seq.Of[*ast.TypeSpec]()
+			return seq.Of[*ast.GenDecl]()
+		})
+
+		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[TaggedType] {
+			gdDoc := option.Of(gd.Doc)
+
+			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedType] {
+				if ts, ok := v.(*ast.TypeSpec); ok {
+					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+
+					if doc.Filter(as.Func2(strings.Contains).ApplyLast("@fp.Value")).IsDefined() {
+
+						l := pk.Types.Scope().Lookup(ts.Name.Name)
+						if st, ok := l.Type().Underlying().(*types.Struct); ok {
+							return seq.Of(TaggedType{
+								TypeSpec: ts,
+								Struct:   st,
+							})
+						}
+
+					}
+
+				}
+				return seq.Of[TaggedType]()
+			})
 		})
 	})
+
 }
 
 func main() {
@@ -69,8 +82,10 @@ func main() {
 		return
 	}
 
-	findValueStruct(pkgs).Foreach(func(v *ast.TypeSpec) {
-		fmt.Println("generate value for", v.Name)
+	st := findValueStruct(pkgs)
+	st.Foreach(func(v TaggedType) {
+		fmt.Println("generate value for", v.TypeSpec.Name)
+
 	})
 
 	// seq.FromMapKeys(s.Scope.Objects).Foreach(func(k string) {
