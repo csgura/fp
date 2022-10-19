@@ -9,6 +9,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
@@ -16,6 +17,7 @@ import (
 )
 
 type TaggedType struct {
+	Package  *types.Package
 	TypeSpec *ast.TypeSpec
 	Struct   *types.Struct
 }
@@ -46,6 +48,7 @@ func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 						l := pk.Types.Scope().Lookup(ts.Name.Name)
 						if st, ok := l.Type().Underlying().(*types.Struct); ok {
 							return seq.Of(TaggedType{
+								Package:  l.Pkg(),
 								TypeSpec: ts,
 								Struct:   st,
 							})
@@ -59,6 +62,26 @@ func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 		})
 	})
 
+}
+
+func typeName(pk *types.Package, tpe types.Type) string {
+	ftp := tpe.String()
+	if namedtp, ok := tpe.(*types.Named); ok {
+		if namedtp.Obj().Pkg().Path() == pk.Path() {
+			ftp = namedtp.Origin().Obj().Name()
+		} else {
+			if namedtp.TypeArgs() != nil {
+				args := iterator.Map(iterator.Range(0, namedtp.TypeArgs().Len()), func(i int) string {
+					return typeName(pk, namedtp.TypeArgs().At(i))
+				}).MakeString(",")
+				ftp = fmt.Sprintf("%s.%s[%s]", namedtp.Obj().Pkg().Name(), namedtp.Obj().Name(), args)
+			} else {
+				ftp = fmt.Sprintf("%s.%s", namedtp.Obj().Pkg().Name(), namedtp.Obj().Name())
+
+			}
+		}
+	}
+	return ftp
 }
 
 func main() {
@@ -85,6 +108,22 @@ func main() {
 	st := findValueStruct(pkgs)
 	st.Foreach(func(v TaggedType) {
 		fmt.Println("generate value for", v.TypeSpec.Name)
+		for i := 0; i < v.Struct.NumFields(); i++ {
+			f := v.Struct.Field(i)
+			ftp := typeName(v.Package, f.Type())
+			fmt.Printf(`
+				func (r %s) %s() %s {
+					return r.%s
+				}
+			`, v.TypeSpec.Name, strings.ToUpper(f.Name()[:1])+f.Name()[1:], ftp, f.Name())
+
+			fmt.Printf(`
+				func (r %s) With%s(v %s) %s {
+					r.%s = v
+					return r
+				}
+			`, v.TypeSpec.Name, strings.ToUpper(f.Name()[:1])+f.Name()[1:], ftp, v.TypeSpec.Name, f.Name())
+		}
 
 	})
 

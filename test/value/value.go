@@ -1,6 +1,11 @@
 package value
 
-import "github.com/csgura/fp"
+import (
+	"os"
+	rf "reflect"
+
+	"github.com/csgura/fp"
+)
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 type (
@@ -12,10 +17,25 @@ type (
 	}
 )
 
+type Embed struct {
+}
+
+type Local interface {
+	Local()
+}
+
 // @fp.Value
 type MyMy struct { // what the
-	// hihi
+	Embed
 	hi fp.Option[int]
+
+	tpe rf.Type
+	arr []os.File
+	m   map[string]int
+	a   any
+	p   *int
+	l   Local
+	t   fp.Try[fp.Option[Local]]
 }
 
 type NoValue struct {
