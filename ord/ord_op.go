@@ -87,3 +87,5 @@ func HCons[H any, T hlist.HList](heq fp.Ord[H], teq fp.Ord[T]) fp.Ord[hlist.Cons
 func Given[T fp.ImplicitOrd]() fp.Ord[T] {
 	return fp.LessGiven[T]()
 }
+
+type Derives[T any] interface{ Target() T }

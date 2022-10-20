@@ -76,3 +76,7 @@ func Ptr[T any](eq fp.Eq[T]) fp.Eq[*T] {
 		return false
 	})
 }
+
+type Derives[T any] interface {
+	Target() T
+}

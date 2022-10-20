@@ -16,7 +16,6 @@ import (
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
-	"github.com/csgura/fp/try"
 
 	// . "github.com/dave/jennifer/jen"
 	"golang.org/x/tools/go/packages"
@@ -217,13 +216,13 @@ func typeInfo(imports *Imports, pk *types.Package, tpe types.Type) TypeInfo {
 }
 
 func main() {
-	file := os.Getenv("GOFILE")
-	line := os.Getenv("GOLINE")
+	//	file := os.Getenv("GOFILE")
+	//	line := os.Getenv("GOLINE")
 	pack := os.Getenv("GOPACKAGE")
 
 	cwd, _ := os.Getwd()
 
-	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
+	//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
 
 	//packages.LoadFiles()
 
