@@ -4,6 +4,11 @@ import (
 	"github.com/csgura/fp"
 )
 
+func Tuple1[A1 any](a1 A1) fp.Tuple1[A1] {
+	return fp.Tuple1[A1]{
+		I1: a1,
+	}
+}
 func Tuple2[A1, A2 any](a1 A1, a2 A2) fp.Tuple2[A1, A2] {
 	return fp.Tuple2[A1, A2]{
 		I1: a1,

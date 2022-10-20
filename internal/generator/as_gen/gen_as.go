@@ -164,7 +164,7 @@ import (
 	"github.com/csgura/fp"
 )`)
 
-		for i := 2; i < max.Product; i++ {
+		for i := 1; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Tuple%d[%s] { ", i, typeArgs(1, i), funcDeclArgs(1, i), i, typeArgs(1, i))
 

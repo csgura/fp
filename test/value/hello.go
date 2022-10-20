@@ -1,7 +1,10 @@
 package value
 
-// Hi
-// This is
+// @fp.Value
+type NotIgnored struct {
+	ig int
+}
+
 type Ignored struct {
 	ig int
 }

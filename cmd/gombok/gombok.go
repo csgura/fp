@@ -6,10 +6,12 @@ import (
 	"go/types"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/generator/common"
+	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
@@ -23,6 +25,10 @@ import (
 type StructField struct {
 	Name string
 	Type TypeInfo
+}
+
+func (r StructField) Public() bool {
+	return unicode.IsUpper([]rune(r.Name)[0])
 }
 
 type TypeInfo struct {
@@ -237,6 +243,7 @@ func main() {
 	}
 
 	fmtalias := imports.GetImportedName(types.NewPackage("fmt", "fmt"))
+	asalias := imports.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 	st := findValueStruct(&imports, pkgs)
 
@@ -251,32 +258,55 @@ func main() {
 			`, imports.ImportList().Iterator().MakeString("\n"))
 
 		st.Foreach(func(v TaggedType) {
-			v.Fields.Foreach(func(f StructField) {
+
+			fmt.Fprintf(w, `
+				type %sBuilder %s
+			`, v.Name, v.Name)
+
+			fmt.Fprintf(w, `
+				func(r %sBuilder) Build() %s {
+					return %s(r)
+				}
+			`, v.Name, v.Name, v.Name)
+
+			fmt.Fprintf(w, `
+				func(r %s) Builder() %sBuilder {
+					return %sBuilder(r)
+				}
+			`, v.Name, v.Name, v.Name)
+
+			privateFields := v.Fields.FilterNot(StructField.Public)
+			privateFields.Foreach(func(f StructField) {
 
 				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
-				if uname != f.Name {
-					ftp := f.Type.TypeName
+				ftp := f.Type.TypeName
 
-					fmt.Fprintf(w, `
+				fmt.Fprintf(w, `
 						func (r %s) %s() %s {
 							return r.%s
 						}
 					`, v.Name, uname, ftp, f.Name)
 
-					fmt.Fprintf(w, `
+				fmt.Fprintf(w, `
 						func (r %s) With%s(v %s) %s {
 							r.%s = v
 							return r
 						}
-					`, v.Name, uname, ftp, v.TypeSpec.Name, f.Name)
-				}
+					`, v.Name, uname, ftp, v.Name, f.Name)
+
+				fmt.Fprintf(w, `
+						func (r %sBuilder) %s( v %s) %sBuilder {
+							r.%s = v
+							return r
+						}
+					`, v.Name, uname, ftp, v.Name, f.Name)
 			})
 
-			fm := seq.Map(v.Fields, func(f StructField) string {
-				return fmt.Sprintf("%s = %%v", f.Name)
-			}).Iterator().MakeString(",")
+			fm := seq.Map(privateFields, func(f StructField) string {
+				return fmt.Sprintf("%s=%%v", f.Name)
+			}).Iterator().MakeString(", ")
 
-			fields := seq.Map(v.Fields, func(f StructField) string {
+			fields := seq.Map(privateFields, func(f StructField) string {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Iterator().MakeString(",")
 
@@ -286,6 +316,102 @@ func main() {
 					}
 				`, v.Name,
 				fmtalias, v.Name, fm, fields,
+			)
+
+			tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v StructField) string {
+				return v.Type.TypeName
+			}).MakeString(",")
+
+			fields = seq.Map(privateFields, func(f StructField) string {
+				return fmt.Sprintf("r.%s", f.Name)
+			}).Iterator().Take(max.Product).MakeString(",")
+
+			fmt.Fprintf(w, `
+					func(r %s) AsTuple() fp.Tuple%d[%s] {
+						return %s.Tuple%d(%s)
+					}
+
+				`, v.Name, privateFields.Size(), tp,
+				asalias, privateFields.Size(), fields,
+			)
+
+			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, StructField]) string {
+				return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
+			}).Take(max.Product).MakeString("\n")
+
+			fmt.Fprintf(w, `
+					func (r %sBuilder) FromTuple(t fp.Tuple%d[%s] ) %sBuilder {
+						%s
+						return r
+					}
+				`, v.Name, privateFields.Size(), tp, v.Name,
+				fields,
+			)
+
+			fields = seq.Map(privateFields, func(f StructField) string {
+				return fmt.Sprintf(`"%s" : r.%s`, f.Name, f.Name)
+			}).Iterator().Take(max.Product).MakeString(",\n")
+
+			fmt.Fprintf(w, `
+					func(r %s) AsMap() map[string]any {
+						return map[string]any {
+							%s,
+						}
+					}
+
+				`, v.Name,
+				fields,
+			)
+
+			fields = iterator.Map(privateFields.Iterator(), func(f StructField) string {
+				return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
+						r.%s = v
+					}
+						`, f.Name, f.Type.TypeName,
+					f.Name,
+				)
+			}).Take(max.Product).MakeString("\n")
+
+			fmt.Fprintf(w, `
+					func(r %sBuilder) FromMap(m map[string]any) %sBuilder {
+
+						%s
+						
+						return r
+					}
+
+				`, v.Name, v.Name,
+				fields,
+			)
+
+			tp = iterator.Map(privateFields.Iterator().Take(max.Product), func(v StructField) string {
+				return fmt.Sprintf("fp.Tuple2[string,%s]", v.Type.TypeName)
+			}).MakeString(",")
+
+			fields = seq.Map(privateFields, func(f StructField) string {
+				return fmt.Sprintf(`as.Tuple2("%s", r.%s)`, f.Name, f.Name)
+			}).Iterator().Take(max.Product).MakeString(",")
+
+			fmt.Fprintf(w, `
+					func(r %s) AsLabelled() fp.Tuple%d[%s] {
+						return %s.Tuple%d(%s)
+					}
+
+				`, v.Name, privateFields.Size(), tp,
+				asalias, privateFields.Size(), fields,
+			)
+
+			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, StructField]) string {
+				return fmt.Sprintf("r.%s = t.I%d.I2", f.I2.Name, f.I1+1)
+			}).Take(max.Product).MakeString("\n")
+
+			fmt.Fprintf(w, `
+					func (r %sBuilder) FromLabelled(t fp.Tuple%d[%s] ) %sBuilder {
+						%s
+						return r
+					}
+				`, v.Name, privateFields.Size(), tp, v.Name,
+				fields,
 			)
 
 		})

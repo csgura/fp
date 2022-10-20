@@ -241,3 +241,8 @@ func Return[T any](v T) func() T {
 		return v
 	}
 }
+
+func New[F, T any](nf func(F) T) T {
+	var zero F
+	return nf(zero)
+}
