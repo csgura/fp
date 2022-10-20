@@ -49,6 +49,10 @@ func MapOf[K comparable, V any](m map[K]V) fp.Map[K, V] {
 	return fp.MakeMap[K, V](Map[K, V](m))
 }
 
+func MakeMap[K comparable, V any]() fp.Map[K, V] {
+	return fp.MakeMap[K, V](Map[K, V]{})
+}
+
 type Map[K comparable, V any] map[K]V
 
 var _ fp.MapBase[string, int] = Map[string, int]{}

@@ -3,6 +3,7 @@ package value
 import (
 	"os"
 	rf "reflect"
+	"sync/atomic"
 
 	"github.com/csgura/fp"
 )
@@ -36,6 +37,8 @@ type MyMy struct { // what the
 	p   *int
 	l   Local
 	t   fp.Try[fp.Option[Local]]
+	m2  map[string]atomic.Bool
+	mm  fp.Map[string, int]
 }
 
 type NoValue struct {

@@ -9,20 +9,98 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
+
+	// . "github.com/dave/jennifer/jen"
 	"golang.org/x/tools/go/packages"
 )
 
+type StructField struct {
+	Name string
+	Type TypeInfo
+}
+
+type TypeInfo struct {
+	Pkg      *types.Package
+	TypeName string
+	Type     types.Type
+	TypeArgs fp.Seq[TypeInfo]
+}
 type TaggedType struct {
+	Name     string
 	Package  *types.Package
 	TypeSpec *ast.TypeSpec
 	Struct   *types.Struct
+	Fields   fp.Seq[StructField]
 }
 
-func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
+type importAlias struct {
+	alias   string
+	isalias bool
+}
+
+type Imports struct {
+	PathToName fp.Map[string, importAlias]
+	NameToPath fp.Map[string, string]
+}
+
+func (r *Imports) AddImport(p *types.Package, alias string) bool {
+	ret := r.PathToName.Get(p.Path())
+	if ret.IsDefined() {
+		return false
+	}
+
+	rev := r.NameToPath.Get(alias)
+	if rev.IsDefined() {
+		return false
+	}
+
+	r.PathToName = r.PathToName.Updated(p.Path(), importAlias{
+		alias:   alias,
+		isalias: p.Name() == alias,
+	})
+	r.NameToPath = r.NameToPath.Updated(alias, p.Path())
+
+	return true
+}
+
+func (r *Imports) GetImportedName(p *types.Package) string {
+	ret := r.PathToName.Get(p.Path())
+	if ret.IsDefined() {
+		return ret.Get().alias
+	}
+
+	i := 1
+	alias := p.Name()
+
+	for {
+		added := r.AddImport(p, alias)
+		if added {
+			return alias
+		}
+
+		alias = fmt.Sprintf("%s%d", p.Name(), i)
+	}
+}
+
+func (r *Imports) ImportList() fp.Seq[string] {
+	return iterator.Map(r.PathToName.Iterator(), func(v fp.Tuple2[string, importAlias]) string {
+		if v.I2.isalias {
+			return fmt.Sprintf(`"%s"`, v.I1)
+
+		} else {
+			return fmt.Sprintf(`%s "%s"`, v.I2.alias, v.I1)
+		}
+	}).ToSeq()
+}
+
+func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType] {
+
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedType] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
 			return v.Decls
@@ -47,13 +125,23 @@ func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 
 						l := pk.Types.Scope().Lookup(ts.Name.Name)
 						if st, ok := l.Type().Underlying().(*types.Struct); ok {
+							fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
+								f := st.Field(i)
+								tn := typeInfo(imports, l.Pkg(), f.Type())
+								return StructField{
+									Name: f.Name(),
+									Type: tn,
+								}
+							}).ToSeq()
+
 							return seq.Of(TaggedType{
+								Name:     ts.Name.Name,
 								Package:  l.Pkg(),
 								TypeSpec: ts,
 								Struct:   st,
+								Fields:   fl,
 							})
 						}
-
 					}
 
 				}
@@ -64,24 +152,62 @@ func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 
 }
 
-func typeName(pk *types.Package, tpe types.Type) string {
-	ftp := tpe.String()
-	if namedtp, ok := tpe.(*types.Named); ok {
-		if namedtp.Obj().Pkg().Path() == pk.Path() {
-			ftp = namedtp.Origin().Obj().Name()
+func typeInfo(imports *Imports, pk *types.Package, tpe types.Type) TypeInfo {
+	switch realtp := tpe.(type) {
+	case *types.Named:
+		tn := tpe.String()
+		args := fp.Seq[TypeInfo]{}
+		if realtp.Obj().Pkg().Path() == pk.Path() {
+			tn = realtp.Origin().Obj().Name()
 		} else {
-			if namedtp.TypeArgs() != nil {
-				args := iterator.Map(iterator.Range(0, namedtp.TypeArgs().Len()), func(i int) string {
-					return typeName(pk, namedtp.TypeArgs().At(i))
-				}).MakeString(",")
-				ftp = fmt.Sprintf("%s.%s[%s]", namedtp.Obj().Pkg().Name(), namedtp.Obj().Name(), args)
+			alias := imports.GetImportedName(realtp.Obj().Pkg())
+
+			if realtp.TypeArgs() != nil {
+				args = iterator.Map(iterator.Range(0, realtp.TypeArgs().Len()), func(i int) TypeInfo {
+					return typeInfo(imports, pk, realtp.TypeArgs().At(i))
+				}).ToSeq()
+
+				argsstr := seq.Map(args, func(v TypeInfo) string { return v.TypeName }).Iterator().MakeString(",")
+
+				tn = fmt.Sprintf("%s.%s[%s]", alias, realtp.Obj().Name(), argsstr)
 			} else {
-				ftp = fmt.Sprintf("%s.%s", namedtp.Obj().Pkg().Name(), namedtp.Obj().Name())
+
+				tn = fmt.Sprintf("%s.%s", alias, realtp.Obj().Name())
 
 			}
 		}
+		return TypeInfo{
+			Pkg:      realtp.Obj().Pkg(),
+			TypeName: tn,
+			Type:     tpe,
+			TypeArgs: args,
+		}
+	case *types.Array:
+		elemType := typeInfo(imports, pk, realtp.Elem())
+		return TypeInfo{
+			TypeName: fmt.Sprintf("[%d]%s", realtp.Len(), elemType.TypeName),
+			Type:     tpe,
+		}
+	case *types.Map:
+		keyType := typeInfo(imports, pk, realtp.Key())
+
+		elemType := typeInfo(imports, pk, realtp.Elem())
+		return TypeInfo{
+			TypeName: fmt.Sprintf("map[%s]%s", keyType.TypeName, elemType.TypeName),
+			Type:     tpe,
+		}
+	case *types.Slice:
+		elemType := typeInfo(imports, pk, realtp.Elem())
+		return TypeInfo{
+			TypeName: "[]" + elemType.TypeName,
+			Type:     tpe,
+		}
 	}
-	return ftp
+
+	return TypeInfo{
+		TypeName: tpe.String(),
+		Type:     tpe,
+	}
 }
 
 func main() {
@@ -105,25 +231,64 @@ func main() {
 		return
 	}
 
-	st := findValueStruct(pkgs)
-	st.Foreach(func(v TaggedType) {
-		fmt.Println("generate value for", v.TypeSpec.Name)
-		for i := 0; i < v.Struct.NumFields(); i++ {
-			f := v.Struct.Field(i)
-			ftp := typeName(v.Package, f.Type())
-			fmt.Printf(`
-				func (r %s) %s() %s {
-					return r.%s
-				}
-			`, v.TypeSpec.Name, strings.ToUpper(f.Name()[:1])+f.Name()[1:], ftp, f.Name())
+	imports := Imports{
+		PathToName: mutable.MakeMap[string, importAlias](),
+		NameToPath: mutable.MakeMap[string, string](),
+	}
 
-			fmt.Printf(`
-				func (r %s) With%s(v %s) %s {
-					r.%s = v
-					return r
+	fmtalias := imports.GetImportedName(types.NewPackage("fmt", "fmt"))
+
+	st := findValueStruct(&imports, pkgs)
+
+	// out := NewFile(pack)
+	// out.Qual(path string, name string)
+
+	common.Generate(pack, "value_generated.go", func(w common.Writer) {
+		fmt.Fprintf(w, `
+			import (
+				%s
+			)
+			`, imports.ImportList().Iterator().MakeString("\n"))
+
+		st.Foreach(func(v TaggedType) {
+			v.Fields.Foreach(func(f StructField) {
+
+				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
+				if uname != f.Name {
+					ftp := f.Type.TypeName
+
+					fmt.Fprintf(w, `
+						func (r %s) %s() %s {
+							return r.%s
+						}
+					`, v.Name, uname, ftp, f.Name)
+
+					fmt.Fprintf(w, `
+						func (r %s) With%s(v %s) %s {
+							r.%s = v
+							return r
+						}
+					`, v.Name, uname, ftp, v.TypeSpec.Name, f.Name)
 				}
-			`, v.TypeSpec.Name, strings.ToUpper(f.Name()[:1])+f.Name()[1:], ftp, v.TypeSpec.Name, f.Name())
-		}
+			})
+
+			fm := seq.Map(v.Fields, func(f StructField) string {
+				return fmt.Sprintf("%s = %%v", f.Name)
+			}).Iterator().MakeString(",")
+
+			fields := seq.Map(v.Fields, func(f StructField) string {
+				return fmt.Sprintf("r.%s", f.Name)
+			}).Iterator().MakeString(",")
+
+			fmt.Fprintf(w, `
+					func(r %s) String() string {
+						return %s.Sprintf("%s(%s)", %s)
+					}
+				`, v.Name,
+				fmtalias, v.Name, fm, fields,
+			)
+
+		})
 
 	})
 
