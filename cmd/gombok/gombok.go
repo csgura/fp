@@ -108,6 +108,7 @@ func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType]
 
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedType] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
+
 			return v.Decls
 		})
 
@@ -123,6 +124,27 @@ func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType]
 			gdDoc := option.Of(gd.Doc)
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedType] {
+				if vs, ok := v.(*ast.ValueSpec); ok {
+					doc := option.Map(option.Of(vs.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+					if doc.Filter(as.Func2(strings.Contains).ApplyLast("@fp.Derive")).IsDefined() {
+
+						info := &types.Info{
+							Types: make(map[ast.Expr]types.TypeAndValue),
+						}
+						types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
+						ti := info.Types[vs.Type]
+						if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() > 0 {
+							fmt.Printf("type class generator package = %v\n", nt.Obj().Pkg())
+							if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok {
+								fmt.Printf("type class = %s\n", tt.Obj().Type())
+								fmt.Printf("for = %s\n", tt.TypeArgs().At(0))
+
+							}
+
+						}
+					}
+				}
+
 				if ts, ok := v.(*ast.TypeSpec); ok {
 					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
 
