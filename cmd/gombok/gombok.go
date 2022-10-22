@@ -44,6 +44,13 @@ type TaggedType struct {
 	Fields   fp.Seq[StructField]
 }
 
+type TypeClassDerive struct {
+	Package   *types.Package
+	Generator *types.Package
+	TypeClass types.Type
+	DeriveFor types.Type
+}
+
 type importAlias struct {
 	alias   string
 	isalias bool
@@ -104,6 +111,53 @@ func (r *Imports) ImportList() fp.Seq[string] {
 	}).ToSeq()
 }
 
+func findTypeClassDerive(imports *Imports, p []*packages.Package) fp.Seq[TypeClassDerive] {
+	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TypeClassDerive] {
+		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
+
+			return v.Decls
+		})
+
+		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+			switch r := v.(type) {
+			case *ast.GenDecl:
+				return seq.Of(r)
+			}
+			return seq.Of[*ast.GenDecl]()
+		})
+
+		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[TypeClassDerive] {
+			gdDoc := option.Of(gd.Doc)
+
+			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TypeClassDerive] {
+				if vs, ok := v.(*ast.ValueSpec); ok {
+					doc := option.Map(option.Of(vs.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+					if doc.Filter(as.Func2(strings.Contains).ApplyLast("@fp.Derive")).IsDefined() {
+
+						info := &types.Info{
+							Types: make(map[ast.Expr]types.TypeAndValue),
+						}
+						types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
+						ti := info.Types[vs.Type]
+						if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
+							if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() == 1 {
+								return seq.Of(TypeClassDerive{
+									Package:   pk.Types,
+									Generator: nt.Obj().Pkg(),
+									TypeClass: tt.Obj().Type(),
+									DeriveFor: tt.TypeArgs().At(0),
+								})
+
+							}
+
+						}
+					}
+				}
+				return seq.Of[TypeClassDerive]()
+			})
+		})
+	})
+}
 func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType] {
 
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedType] {
@@ -124,26 +178,6 @@ func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType]
 			gdDoc := option.Of(gd.Doc)
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedType] {
-				if vs, ok := v.(*ast.ValueSpec); ok {
-					doc := option.Map(option.Of(vs.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
-					if doc.Filter(as.Func2(strings.Contains).ApplyLast("@fp.Derive")).IsDefined() {
-
-						info := &types.Info{
-							Types: make(map[ast.Expr]types.TypeAndValue),
-						}
-						types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
-						ti := info.Types[vs.Type]
-						if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() > 0 {
-							fmt.Printf("type class generator package = %v\n", nt.Obj().Pkg())
-							if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok {
-								fmt.Printf("type class = %s\n", tt.Obj().Type())
-								fmt.Printf("for = %s\n", tt.TypeArgs().At(0))
-
-							}
-
-						}
-					}
-				}
 
 				if ts, ok := v.(*ast.TypeSpec); ok {
 					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
@@ -267,6 +301,11 @@ func main() {
 	asalias := imports.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 	st := findValueStruct(&imports, pkgs)
+
+	d := findTypeClassDerive(&imports, pkgs)
+	d.Foreach(func(v TypeClassDerive) {
+		fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
+	})
 
 	// out := NewFile(pack)
 	// out.Qual(path string, name string)
