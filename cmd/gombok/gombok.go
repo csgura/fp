@@ -34,6 +34,47 @@ type TypeInfo struct {
 	Type     types.Type
 	TypeArgs fp.Seq[TypeInfo]
 }
+
+func (r TypeInfo) IsBasic() bool {
+	switch r.Type.(type) {
+	case *types.Basic:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsSlice() bool {
+	switch r.Type.(type) {
+	case *types.Slice:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsArray() bool {
+	switch r.Type.(type) {
+	case *types.Array:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsMap() bool {
+	switch r.Type.(type) {
+	case *types.Map:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsPtr() bool {
+	switch r.Type.(type) {
+	case *types.Pointer:
+		return true
+	}
+	return false
+}
+
 type ValueType struct {
 	Name    string
 	Package *types.Package
@@ -224,6 +265,10 @@ func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {
 	return TypeInfo{
 		Type: tpe,
 	}
+}
+
+func publicName(name string) string {
+	return strings.ToUpper(name[:1]) + name[1:]
 }
 
 func genValue() {
@@ -444,9 +489,25 @@ func genDerive() {
 			fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
 			privateFields := v.DeriveFor.Fields.FilterNot(StructField.Public)
 
-			fmt.Printf(`
-				var %s%s = eq.Tuple%d()
-			`, v.TypeClass.Name, v.DeriveFor.Name, privateFields.Size())
+			gpk := w.GetImportedName(v.Generator)
+
+			args := seq.Map(privateFields, func(f StructField) string {
+				if f.Type.IsBasic() {
+					tn := w.TypeName(f.Type.Pkg, f.Type.Type)
+
+					instance := v.Generator.Scope().Lookup(publicName(tn))
+					if instance != nil {
+						return fmt.Sprintf("%s.%s", gpk, publicName(tn))
+					} else {
+						return fmt.Sprintf("%s.Given[%s]()", gpk, tn)
+					}
+				}
+				return "nil"
+			}).Iterator().MakeString(",")
+
+			fmt.Fprintf(w, `
+				var %s%s = %s.ContraMap( %s.Tuple%d(%s), %s.AsTuple )
+			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, gpk, privateFields.Size(), args, v.DeriveFor.Name)
 			privateFields.Foreach(func(f StructField) {
 			})
 		})
