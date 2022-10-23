@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"go/types"
 	"io"
 	"io/ioutil"
 	"log"
@@ -53,8 +54,10 @@ func (r Args) Call(start, until int) string {
 }
 
 type writer struct {
-	Package string
-	Buffer  *bytes.Buffer
+	Package    string
+	Buffer     *bytes.Buffer
+	PathToName map[string]importAlias
+	NameToPath map[string]string
 }
 
 func (r *writer) Write(b []byte) (int, error) {
@@ -65,20 +68,139 @@ func (r *writer) Iteration(start, end int) Range {
 	return Range{r, start, end}
 }
 
+type importAlias struct {
+	alias   string
+	isalias bool
+}
+
+func (r *writer) AddImport(p *types.Package, alias string) bool {
+	_, ok := r.PathToName[p.Path()]
+	if ok {
+		return false
+	}
+
+	_, ok = r.NameToPath[alias]
+	if ok {
+		return false
+	}
+
+	r.PathToName[p.Path()] = importAlias{
+		alias:   alias,
+		isalias: p.Name() == alias,
+	}
+	r.NameToPath[alias] = p.Path()
+
+	return true
+}
+
+func (r *writer) GetImportedName(p *types.Package) string {
+	ret, ok := r.PathToName[p.Path()]
+	if ok {
+		return ret.alias
+	}
+
+	i := 1
+	alias := p.Name()
+
+	for {
+		added := r.AddImport(p, alias)
+		if added {
+			return alias
+		}
+
+		alias = fmt.Sprintf("%s%d", p.Name(), i)
+	}
+}
+
+func (r *writer) ImportList() []string {
+	var ret = []string{}
+
+	for k, v := range r.PathToName {
+		if v.isalias {
+			ret = append(ret, fmt.Sprintf(`"%s"`, k))
+
+		} else {
+			ret = append(ret, fmt.Sprintf(`%s "%s"`, v.alias, k))
+		}
+	}
+
+	return ret
+}
+
+func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
+	switch realtp := tpe.(type) {
+	case *types.Named:
+		if realtp.Obj().Pkg().Path() == pk.Path() {
+			return realtp.Origin().Obj().Name()
+		} else {
+			alias := r.GetImportedName(realtp.Obj().Pkg())
+
+			if realtp.TypeArgs() != nil {
+				args := []string{}
+				for i := 0; i < realtp.TypeArgs().Len(); i++ {
+					args = append(args, r.TypeName(pk, realtp.TypeArgs().At(i)))
+				}
+
+				argsstr := strings.Join(args, ",")
+
+				return fmt.Sprintf("%s.%s[%s]", alias, realtp.Obj().Name(), argsstr)
+			} else {
+
+				return fmt.Sprintf("%s.%s", alias, realtp.Obj().Name())
+
+			}
+		}
+	case *types.Array:
+		elemType := r.TypeName(pk, realtp.Elem())
+		return fmt.Sprintf("[%d]%s", realtp.Len(), elemType)
+
+	case *types.Map:
+		keyType := r.TypeName(pk, realtp.Key())
+
+		elemType := r.TypeName(pk, realtp.Elem())
+		return fmt.Sprintf("map[%s]%s", keyType, elemType)
+	case *types.Slice:
+		elemType := r.TypeName(pk, realtp.Elem())
+		return "[]" + elemType
+	}
+
+	return tpe.String()
+}
+
 type Writer interface {
 	io.Writer
+	GetImportedName(p *types.Package) string
 	Iteration(start, end int) Range
+	TypeName(pk *types.Package, tpe types.Type) string
 }
 
 func Generate(packname string, filename string, writeFunc func(w Writer)) {
-	f := &writer{packname, &bytes.Buffer{}}
+	f := &writer{packname, &bytes.Buffer{}, map[string]importAlias{}, map[string]string{}}
 
-	fmt.Fprintf(f, "package %s\n\n", packname)
 	writeFunc(f)
 
-	formatted, err := format.Source(f.Buffer.Bytes())
+	wholeSource := &bytes.Buffer{}
+	fmt.Fprintf(wholeSource, "package %s\n\n", packname)
+
+	importList := f.ImportList()
+	if len(importList) > 0 {
+		fmt.Fprintf(wholeSource, `
+			import (
+		`)
+		for _, v := range importList {
+			fmt.Fprintf(wholeSource, "%s\n", v)
+
+		}
+		fmt.Fprintf(wholeSource, `
+			)
+		`)
+	}
+
+	wholeSource.Write(f.Buffer.Bytes())
+
+	formatted, err := format.Source(wholeSource.Bytes())
 	if err != nil {
-		lines := strings.Split(f.Buffer.String(), "\n")
+		lines := strings.Split(wholeSource.String(), "\n")
 		for i := range lines {
 			lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
 		}

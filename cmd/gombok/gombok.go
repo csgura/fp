@@ -13,7 +13,6 @@ import (
 	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
-	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 
@@ -32,7 +31,6 @@ func (r StructField) Public() bool {
 
 type TypeInfo struct {
 	Pkg      *types.Package
-	TypeName string
 	Type     types.Type
 	TypeArgs fp.Seq[TypeInfo]
 }
@@ -51,67 +49,7 @@ type TypeClassDerive struct {
 	DeriveFor types.Type
 }
 
-type importAlias struct {
-	alias   string
-	isalias bool
-}
-
-type Imports struct {
-	PathToName fp.Map[string, importAlias]
-	NameToPath fp.Map[string, string]
-}
-
-func (r *Imports) AddImport(p *types.Package, alias string) bool {
-	ret := r.PathToName.Get(p.Path())
-	if ret.IsDefined() {
-		return false
-	}
-
-	rev := r.NameToPath.Get(alias)
-	if rev.IsDefined() {
-		return false
-	}
-
-	r.PathToName = r.PathToName.Updated(p.Path(), importAlias{
-		alias:   alias,
-		isalias: p.Name() == alias,
-	})
-	r.NameToPath = r.NameToPath.Updated(alias, p.Path())
-
-	return true
-}
-
-func (r *Imports) GetImportedName(p *types.Package) string {
-	ret := r.PathToName.Get(p.Path())
-	if ret.IsDefined() {
-		return ret.Get().alias
-	}
-
-	i := 1
-	alias := p.Name()
-
-	for {
-		added := r.AddImport(p, alias)
-		if added {
-			return alias
-		}
-
-		alias = fmt.Sprintf("%s%d", p.Name(), i)
-	}
-}
-
-func (r *Imports) ImportList() fp.Seq[string] {
-	return iterator.Map(r.PathToName.Iterator(), func(v fp.Tuple2[string, importAlias]) string {
-		if v.I2.isalias {
-			return fmt.Sprintf(`"%s"`, v.I1)
-
-		} else {
-			return fmt.Sprintf(`%s "%s"`, v.I2.alias, v.I1)
-		}
-	}).ToSeq()
-}
-
-func findTypeClassDerive(imports *Imports, p []*packages.Package) fp.Seq[TypeClassDerive] {
+func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TypeClassDerive] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
 
@@ -158,7 +96,7 @@ func findTypeClassDerive(imports *Imports, p []*packages.Package) fp.Seq[TypeCla
 		})
 	})
 }
-func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType] {
+func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedType] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
@@ -188,7 +126,7 @@ func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType]
 						if st, ok := l.Type().Underlying().(*types.Struct); ok {
 							fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
 								f := st.Field(i)
-								tn := typeInfo(imports, l.Pkg(), f.Type())
+								tn := typeInfo(l.Pkg(), f.Type())
 								return StructField{
 									Name: f.Name(),
 									Type: tn,
@@ -213,61 +151,42 @@ func findValueStruct(imports *Imports, p []*packages.Package) fp.Seq[TaggedType]
 
 }
 
-func typeInfo(imports *Imports, pk *types.Package, tpe types.Type) TypeInfo {
+func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {
 	switch realtp := tpe.(type) {
 	case *types.Named:
-		tn := tpe.String()
 		args := fp.Seq[TypeInfo]{}
-		if realtp.Obj().Pkg().Path() == pk.Path() {
-			tn = realtp.Origin().Obj().Name()
-		} else {
-			alias := imports.GetImportedName(realtp.Obj().Pkg())
 
-			if realtp.TypeArgs() != nil {
-				args = iterator.Map(iterator.Range(0, realtp.TypeArgs().Len()), func(i int) TypeInfo {
-					return typeInfo(imports, pk, realtp.TypeArgs().At(i))
-				}).ToSeq()
+		if realtp.TypeArgs() != nil {
+			args = iterator.Map(iterator.Range(0, realtp.TypeArgs().Len()), func(i int) TypeInfo {
+				return typeInfo(pk, realtp.TypeArgs().At(i))
+			}).ToSeq()
 
-				argsstr := seq.Map(args, func(v TypeInfo) string { return v.TypeName }).Iterator().MakeString(",")
-
-				tn = fmt.Sprintf("%s.%s[%s]", alias, realtp.Obj().Name(), argsstr)
-			} else {
-
-				tn = fmt.Sprintf("%s.%s", alias, realtp.Obj().Name())
-
-			}
 		}
 		return TypeInfo{
 			Pkg:      realtp.Obj().Pkg(),
-			TypeName: tn,
 			Type:     tpe,
 			TypeArgs: args,
 		}
 	case *types.Array:
-		elemType := typeInfo(imports, pk, realtp.Elem())
 		return TypeInfo{
-			TypeName: fmt.Sprintf("[%d]%s", realtp.Len(), elemType.TypeName),
 			Type:     tpe,
+			TypeArgs: []TypeInfo{typeInfo(pk, realtp.Elem())},
 		}
 	case *types.Map:
-		keyType := typeInfo(imports, pk, realtp.Key())
 
-		elemType := typeInfo(imports, pk, realtp.Elem())
 		return TypeInfo{
-			TypeName: fmt.Sprintf("map[%s]%s", keyType.TypeName, elemType.TypeName),
 			Type:     tpe,
+			TypeArgs: []TypeInfo{typeInfo(pk, realtp.Key()), typeInfo(pk, realtp.Elem())},
 		}
 	case *types.Slice:
-		elemType := typeInfo(imports, pk, realtp.Elem())
 		return TypeInfo{
-			TypeName: "[]" + elemType.TypeName,
 			Type:     tpe,
+			TypeArgs: []TypeInfo{typeInfo(pk, realtp.Elem())},
 		}
 	}
 
 	return TypeInfo{
-		TypeName: tpe.String(),
-		Type:     tpe,
+		Type: tpe,
 	}
 }
 
@@ -292,30 +211,22 @@ func main() {
 		return
 	}
 
-	imports := Imports{
-		PathToName: mutable.MakeMap[string, importAlias](),
-		NameToPath: mutable.MakeMap[string, string](),
-	}
-
-	fmtalias := imports.GetImportedName(types.NewPackage("fmt", "fmt"))
-	asalias := imports.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-
-	st := findValueStruct(&imports, pkgs)
-
-	d := findTypeClassDerive(&imports, pkgs)
-	d.Foreach(func(v TypeClassDerive) {
-		fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
-	})
-
 	// out := NewFile(pack)
 	// out.Qual(path string, name string)
 
 	common.Generate(pack, "value_generated.go", func(w common.Writer) {
-		fmt.Fprintf(w, `
-			import (
-				%s
-			)
-			`, imports.ImportList().Iterator().MakeString("\n"))
+
+		fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+		st := findValueStruct(pkgs)
+
+		d := findTypeClassDerive(pkgs)
+		d.Foreach(func(v TypeClassDerive) {
+			l := v.Generator.Scope().Lookup("Option")
+			fmt.Printf("lookup %s.Option = %v\n", v.Generator.Name(), l)
+			fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
+		})
 
 		st.Foreach(func(v TaggedType) {
 
@@ -339,7 +250,7 @@ func main() {
 			privateFields.Foreach(func(f StructField) {
 
 				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
-				ftp := f.Type.TypeName
+				ftp := w.TypeName(pkgs[0].Types, f.Type.Type)
 
 				fmt.Fprintf(w, `
 						func (r %s) %s() %s {
@@ -379,7 +290,7 @@ func main() {
 			)
 
 			tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v StructField) string {
-				return v.Type.TypeName
+				return w.TypeName(pkgs[0].Types, v.Type.Type)
 			}).MakeString(",")
 
 			fields = seq.Map(privateFields, func(f StructField) string {
@@ -427,7 +338,7 @@ func main() {
 				return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
 						r.%s = v
 					}
-						`, f.Name, f.Type.TypeName,
+						`, f.Name, w.TypeName(pkgs[0].Types, f.Type.Type),
 					f.Name,
 				)
 			}).Take(max.Product).MakeString("\n")
@@ -445,7 +356,7 @@ func main() {
 			)
 
 			tp = iterator.Map(privateFields.Iterator().Take(max.Product), func(v StructField) string {
-				return fmt.Sprintf("fp.Tuple2[string,%s]", v.Type.TypeName)
+				return fmt.Sprintf("fp.Tuple2[string,%s]", w.TypeName(pkgs[0].Types, v.Type.Type))
 			}).MakeString(",")
 
 			fields = seq.Map(privateFields, func(f StructField) string {
