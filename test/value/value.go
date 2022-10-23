@@ -7,7 +7,6 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
-	"github.com/csgura/fp/ord"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -46,8 +45,11 @@ type MyMy struct { // what the
 type NoValue struct {
 }
 
-// @fp.Derive
-var _ ord.Derives[fp.Ord[Hello]]
+// @fp.Value
+type Person struct {
+	name string
+	age  int
+}
 
 // @fp.Derive
-var _ eq.Derives[fp.Eq[Hello]]
+var _ eq.Derives[fp.Eq[Person]]

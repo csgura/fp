@@ -401,3 +401,85 @@ func (r MyMyBuilder) FromLabelled(t fp.Tuple10[fp.Tuple2[string, fp.Option[int]]
 	r.mm = t.I10.I2
 	return r
 }
+
+type PersonBuilder Person
+
+func (r PersonBuilder) Build() Person {
+	return Person(r)
+}
+
+func (r Person) Builder() PersonBuilder {
+	return PersonBuilder(r)
+}
+
+func (r Person) Name() string {
+	return r.name
+}
+
+func (r Person) WithName(v string) Person {
+	r.name = v
+	return r
+}
+
+func (r PersonBuilder) Name(v string) PersonBuilder {
+	r.name = v
+	return r
+}
+
+func (r Person) Age() int {
+	return r.age
+}
+
+func (r Person) WithAge(v int) Person {
+	r.age = v
+	return r
+}
+
+func (r PersonBuilder) Age(v int) PersonBuilder {
+	r.age = v
+	return r
+}
+
+func (r Person) String() string {
+	return fmt.Sprintf("Person(name=%v, age=%v)", r.name, r.age)
+}
+
+func (r Person) AsTuple() fp.Tuple2[string, int] {
+	return as.Tuple2(r.name, r.age)
+}
+
+func (r PersonBuilder) FromTuple(t fp.Tuple2[string, int]) PersonBuilder {
+	r.name = t.I1
+	r.age = t.I2
+	return r
+}
+
+func (r Person) AsMap() map[string]any {
+	return map[string]any{
+		"name": r.name,
+		"age":  r.age,
+	}
+}
+
+func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["age"].(int); ok {
+		r.age = v
+	}
+
+	return r
+}
+
+func (r Person) AsLabelled() fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, int]] {
+	return as.Tuple2(as.Tuple2("name", r.name), as.Tuple2("age", r.age))
+}
+
+func (r PersonBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, int]]) PersonBuilder {
+	r.name = t.I1.I2
+	r.age = t.I2.I2
+	return r
+}

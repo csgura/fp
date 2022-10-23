@@ -34,21 +34,46 @@ type TypeInfo struct {
 	Type     types.Type
 	TypeArgs fp.Seq[TypeInfo]
 }
-type TaggedType struct {
-	Name     string
-	Package  *types.Package
-	TypeSpec *ast.TypeSpec
-	Struct   *types.Struct
-	Fields   fp.Seq[StructField]
+type ValueType struct {
+	Name    string
+	Package *types.Package
+	Struct  *types.Struct
+	Fields  fp.Seq[StructField]
+}
+
+type TypeClass struct {
+	Name    string
+	Package *types.Package
 }
 
 type TypeClassDerive struct {
 	Package   *types.Package
 	Generator *types.Package
-	TypeClass types.Type
-	DeriveFor types.Type
+	TypeClass TypeClass
+	DeriveFor ValueType
 }
 
+func lookupValueType(pk *types.Package, name string) fp.Option[ValueType] {
+	l := pk.Scope().Lookup(name)
+	if st, ok := l.Type().Underlying().(*types.Struct); ok {
+		fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
+			f := st.Field(i)
+			tn := typeInfo(l.Pkg(), f.Type())
+			return StructField{
+				Name: f.Name(),
+				Type: tn,
+			}
+		}).ToSeq()
+
+		return option.Some(ValueType{
+			Name:    name,
+			Package: l.Pkg(),
+			Struct:  st,
+			Fields:  fl,
+		})
+	}
+	return option.None[ValueType]()
+}
 func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TypeClassDerive] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
@@ -79,12 +104,24 @@ func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 						ti := info.Types[vs.Type]
 						if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
 							if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() == 1 {
-								return seq.Of(TypeClassDerive{
-									Package:   pk.Types,
-									Generator: nt.Obj().Pkg(),
-									TypeClass: tt.Obj().Type(),
-									DeriveFor: tt.TypeArgs().At(0),
-								})
+								if deriveFor, ok := tt.TypeArgs().At(0).(*types.Named); ok {
+
+									fmt.Printf("lookup %s from %s\n", deriveFor.Obj().Name(), deriveFor.Obj().Pkg())
+									vt := lookupValueType(deriveFor.Obj().Pkg(), deriveFor.Obj().Name())
+									if vt.IsDefined() {
+										return seq.Of(TypeClassDerive{
+											Package:   pk.Types,
+											Generator: nt.Obj().Pkg(),
+											TypeClass: TypeClass{
+												Name:    tt.Obj().Name(),
+												Package: tt.Obj().Pkg(),
+											},
+											DeriveFor: vt.Get(),
+										})
+									} else {
+										fmt.Println("can't lookup")
+									}
+								}
 
 							}
 
@@ -96,9 +133,9 @@ func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 		})
 	})
 }
-func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
+func findValueStruct(p []*packages.Package) fp.Seq[ValueType] {
 
-	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedType] {
+	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[ValueType] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
 
 			return v.Decls
@@ -112,10 +149,10 @@ func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 			return seq.Of[*ast.GenDecl]()
 		})
 
-		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[TaggedType] {
+		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[ValueType] {
 			gdDoc := option.Of(gd.Doc)
 
-			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedType] {
+			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[ValueType] {
 
 				if ts, ok := v.(*ast.TypeSpec); ok {
 					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
@@ -133,18 +170,17 @@ func findValueStruct(p []*packages.Package) fp.Seq[TaggedType] {
 								}
 							}).ToSeq()
 
-							return seq.Of(TaggedType{
-								Name:     ts.Name.Name,
-								Package:  l.Pkg(),
-								TypeSpec: ts,
-								Struct:   st,
-								Fields:   fl,
+							return seq.Of(ValueType{
+								Name:    ts.Name.Name,
+								Package: l.Pkg(),
+								Struct:  st,
+								Fields:  fl,
 							})
 						}
 					}
 
 				}
-				return seq.Of[TaggedType]()
+				return seq.Of[ValueType]()
 			})
 		})
 	})
@@ -190,9 +226,7 @@ func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {
 	}
 }
 
-func main() {
-	//	file := os.Getenv("GOFILE")
-	//	line := os.Getenv("GOLINE")
+func genValue() {
 	pack := os.Getenv("GOPACKAGE")
 
 	cwd, _ := os.Getwd()
@@ -211,9 +245,6 @@ func main() {
 		return
 	}
 
-	// out := NewFile(pack)
-	// out.Qual(path string, name string)
-
 	common.Generate(pack, "value_generated.go", func(w common.Writer) {
 
 		fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
@@ -221,14 +252,7 @@ func main() {
 
 		st := findValueStruct(pkgs)
 
-		d := findTypeClassDerive(pkgs)
-		d.Foreach(func(v TypeClassDerive) {
-			l := v.Generator.Scope().Lookup("Option")
-			fmt.Printf("lookup %s.Option = %v\n", v.Generator.Name(), l)
-			fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
-		})
-
-		st.Foreach(func(v TaggedType) {
+		st.Foreach(func(v ValueType) {
 
 			fmt.Fprintf(w, `
 				type %sBuilder %s
@@ -388,40 +412,48 @@ func main() {
 		})
 
 	})
+}
 
-	// seq.FromMapKeys(s.Scope.Objects).Foreach(func(k string) {
-	// 	fmt.Println("key = ", k)
-	// 	o := s.Scope.Objects[k]
-	// 	if ts, ok := o.Decl.(*ast.TypeSpec); ok {
-	// 		fmt.Printf("name = %s\n", ts.Name)
-	// 		if ts.Doc != nil {
-	// 			fmt.Printf("Doc = %v\n", ts.Doc.Text())
-	// 		}
-	// 		fmt.Printf("comment = %v\n", ts.Comment)
+func genDerive() {
+	pack := os.Getenv("GOPACKAGE")
 
-	// 	}
-	// })
+	cwd, _ := os.Getwd()
 
-	// seq.Of(s.Decls).Foreach(func(v []ast.Decl) {
+	//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
 
-	// 	seq.Of(v...).Foreach(func(v ast.Decl) {
-	// 		fmt.Println("decl = ", v)
+	//packages.LoadFiles()
 
-	// 	})
-	// })
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+	}
 
-	// t := pkgs[0].Types.Scope()
-	// seq.Of(t.Names()...).Foreach(func(v string) {
-	// 	fmt.Printf("name = %s\n", v)
-	// 	c := t.Lookup(v)
-	// 	c.Pos()
-	// 	fmt.Println(c.String())
-	// 	if st, ok := t.Lookup(v).Type().Underlying().(*types.Struct); ok {
-	// 		iterator.Range(0, st.NumFields()).Foreach(func(i int) {
-	// 			fmt.Printf("field name = %s : %s\n", st.Field(i).Name(), st.Field(i).Type())
-	// 		})
-	// 	}
+	pkgs, err := packages.Load(cfg, cwd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	// })
+	common.Generate(pack, "derive_generated.go", func(w common.Writer) {
+
+		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+		d := findTypeClassDerive(pkgs)
+		d.Foreach(func(v TypeClassDerive) {
+			// fmt.Printf("lookup %s.Option = %v\n", v.Generator.Name(), l)
+			fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
+			privateFields := v.DeriveFor.Fields.FilterNot(StructField.Public)
+
+			fmt.Printf(`
+				var %s%s = eq.Tuple%d()
+			`, v.TypeClass.Name, v.DeriveFor.Name, privateFields.Size())
+			privateFields.Foreach(func(f StructField) {
+			})
+		})
+	})
+}
+func main() {
+	genValue()
+	genDerive()
 
 }
