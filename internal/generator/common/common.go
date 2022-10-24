@@ -130,26 +130,29 @@ func (r *writer) ImportList() []string {
 func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:
-		if realtp.Obj().Pkg().Path() == pk.Path() {
-			return realtp.Origin().Obj().Name()
-		} else {
+		tpname := realtp.Origin().Obj().Name()
+		nameWithPkg := tpname
+		if realtp.Obj().Pkg().Path() != pk.Path() {
 			alias := r.GetImportedName(realtp.Obj().Pkg())
 
-			if realtp.TypeArgs() != nil {
-				args := []string{}
-				for i := 0; i < realtp.TypeArgs().Len(); i++ {
-					args = append(args, r.TypeName(pk, realtp.TypeArgs().At(i)))
-				}
-
-				argsstr := strings.Join(args, ",")
-
-				return fmt.Sprintf("%s.%s[%s]", alias, realtp.Obj().Name(), argsstr)
-			} else {
-
-				return fmt.Sprintf("%s.%s", alias, realtp.Obj().Name())
-
-			}
+			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
 		}
+
+		if realtp.TypeArgs() != nil {
+			args := []string{}
+			for i := 0; i < realtp.TypeArgs().Len(); i++ {
+				args = append(args, r.TypeName(pk, realtp.TypeArgs().At(i)))
+			}
+
+			argsstr := strings.Join(args, ",")
+
+			return fmt.Sprintf("%s[%s]", nameWithPkg, argsstr)
+		} else {
+
+			return nameWithPkg
+
+		}
+
 	case *types.Array:
 		elemType := r.TypeName(pk, realtp.Elem())
 		return fmt.Sprintf("[%d]%s", realtp.Len(), elemType)

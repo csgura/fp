@@ -47,9 +47,13 @@ type NoValue struct {
 
 // @fp.Value
 type Person struct {
-	name string
-	age  int
+	name   string
+	age    int
+	height float64
+	phone  fp.Option[string]
 }
+
+var EqFloat64 = eq.Given[float64]()
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Person]]

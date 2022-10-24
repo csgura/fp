@@ -459,6 +459,79 @@ func genValue() {
 	})
 }
 
+type TypeClassInstance struct {
+	name     string
+	instance types.Object
+}
+
+func implicitTypeClassInstanceName(f TypeInfo) string {
+	switch at := f.Type.(type) {
+	case *types.Named:
+		return at.Obj().Name()
+	case *types.Array:
+		return "Array"
+	case *types.Slice:
+		return "Slice"
+	case *types.Map:
+		return "Map"
+	case *types.Basic:
+		return at.Name()
+	}
+	return f.Type.String()
+}
+
+func lookupTypeClassInstance(w common.Writer, pk *types.Package, tcgen *types.Package, f TypeInfo) TypeClassInstance {
+	tn := implicitTypeClassInstanceName(f)
+
+	publicTypeName := publicName(tn)
+
+	publicTypeNameWithPkg := publicName(tcgen.Name()) + publicTypeName
+
+	instance := pk.Scope().Lookup(publicTypeNameWithPkg)
+	if instance != nil {
+		return TypeClassInstance{publicTypeNameWithPkg, instance}
+	}
+
+	instance = pk.Scope().Lookup(publicTypeName)
+	if instance != nil {
+		return TypeClassInstance{publicTypeName, instance}
+	}
+
+	// instance = tcgen.Scope().Lookup(publicTypeNameWithPkg)
+	// if instance != nil {
+	// 	gpk := w.GetImportedName(tcgen)
+
+	// 	return TypeClassInstance{fmt.Sprintf("%s.%s", gpk, publicTypeNameWithPkg), instance}
+	// }
+
+	instance = tcgen.Scope().Lookup(publicTypeName)
+	if instance != nil {
+		gpk := w.GetImportedName(tcgen)
+
+		return TypeClassInstance{fmt.Sprintf("%s.%s", gpk, publicTypeName), instance}
+	}
+
+	instance = tcgen.Scope().Lookup("Given")
+	if instance != nil {
+		gpk := w.GetImportedName(tcgen)
+		return TypeClassInstance{fmt.Sprintf("%s.Given[%s]()", gpk, tn), instance}
+
+	}
+	panic("can't find typeclass instance for " + tn)
+
+}
+func summon(w common.Writer, pk *types.Package, tcgen *types.Package, args ...TypeInfo) string {
+	f := args[0]
+
+	instance := lookupTypeClassInstance(w, pk, tcgen, f)
+
+	if len(f.TypeArgs) > 0 {
+		return fmt.Sprintf("%s(%s)", instance.name, lookupTypeClassInstance(w, pk, tcgen, f.TypeArgs[0]).name)
+	}
+
+	return instance.name
+}
+
 func genDerive() {
 	pack := os.Getenv("GOPACKAGE")
 
@@ -492,17 +565,7 @@ func genDerive() {
 			gpk := w.GetImportedName(v.Generator)
 
 			args := seq.Map(privateFields, func(f StructField) string {
-				if f.Type.IsBasic() {
-					tn := w.TypeName(f.Type.Pkg, f.Type.Type)
-
-					instance := v.Generator.Scope().Lookup(publicName(tn))
-					if instance != nil {
-						return fmt.Sprintf("%s.%s", gpk, publicName(tn))
-					} else {
-						return fmt.Sprintf("%s.Given[%s]()", gpk, tn)
-					}
-				}
-				return "nil"
+				return summon(w, pkgs[0].Types, v.Generator, f.Type)
 			}).Iterator().MakeString(",")
 
 			fmt.Fprintf(w, `

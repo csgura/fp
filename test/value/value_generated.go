@@ -440,24 +440,56 @@ func (r PersonBuilder) Age(v int) PersonBuilder {
 	return r
 }
 
+func (r Person) Height() float64 {
+	return r.height
+}
+
+func (r Person) WithHeight(v float64) Person {
+	r.height = v
+	return r
+}
+
+func (r PersonBuilder) Height(v float64) PersonBuilder {
+	r.height = v
+	return r
+}
+
+func (r Person) Phone() fp.Option[string] {
+	return r.phone
+}
+
+func (r Person) WithPhone(v fp.Option[string]) Person {
+	r.phone = v
+	return r
+}
+
+func (r PersonBuilder) Phone(v fp.Option[string]) PersonBuilder {
+	r.phone = v
+	return r
+}
+
 func (r Person) String() string {
-	return fmt.Sprintf("Person(name=%v, age=%v)", r.name, r.age)
+	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v)", r.name, r.age, r.height, r.phone)
 }
 
-func (r Person) AsTuple() fp.Tuple2[string, int] {
-	return as.Tuple2(r.name, r.age)
+func (r Person) AsTuple() fp.Tuple4[string, int, float64, fp.Option[string]] {
+	return as.Tuple4(r.name, r.age, r.height, r.phone)
 }
 
-func (r PersonBuilder) FromTuple(t fp.Tuple2[string, int]) PersonBuilder {
+func (r PersonBuilder) FromTuple(t fp.Tuple4[string, int, float64, fp.Option[string]]) PersonBuilder {
 	r.name = t.I1
 	r.age = t.I2
+	r.height = t.I3
+	r.phone = t.I4
 	return r
 }
 
 func (r Person) AsMap() map[string]any {
 	return map[string]any{
-		"name": r.name,
-		"age":  r.age,
+		"name":   r.name,
+		"age":    r.age,
+		"height": r.height,
+		"phone":  r.phone,
 	}
 }
 
@@ -471,15 +503,25 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 		r.age = v
 	}
 
+	if v, ok := m["height"].(float64); ok {
+		r.height = v
+	}
+
+	if v, ok := m["phone"].(fp.Option[string]); ok {
+		r.phone = v
+	}
+
 	return r
 }
 
-func (r Person) AsLabelled() fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, int]] {
-	return as.Tuple2(as.Tuple2("name", r.name), as.Tuple2("age", r.age))
+func (r Person) AsLabelled() fp.Tuple4[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]]] {
+	return as.Tuple4(as.Tuple2("name", r.name), as.Tuple2("age", r.age), as.Tuple2("height", r.height), as.Tuple2("phone", r.phone))
 }
 
-func (r PersonBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, int]]) PersonBuilder {
+func (r PersonBuilder) FromLabelled(t fp.Tuple4[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]]]) PersonBuilder {
 	r.name = t.I1.I2
 	r.age = t.I2.I2
+	r.height = t.I3.I2
+	r.phone = t.I4.I2
 	return r
 }
