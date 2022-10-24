@@ -7,6 +7,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hlist"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -51,6 +52,13 @@ type Person struct {
 	age    int
 	height float64
 	phone  fp.Option[string]
+	addr   []string
+	list   hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
+	seq    fp.Seq[float64]
+}
+
+func EqFpSeq[T any](e fp.Eq[T]) fp.Eq[fp.Seq[T]] {
+	return eq.Seq(e)
 }
 
 var EqFloat64 = eq.Given[float64]()

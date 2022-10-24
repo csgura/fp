@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 	"os"
 	"reflect"
 	"sync/atomic"
@@ -468,19 +469,64 @@ func (r PersonBuilder) Phone(v fp.Option[string]) PersonBuilder {
 	return r
 }
 
+func (r Person) Addr() []string {
+	return r.addr
+}
+
+func (r Person) WithAddr(v []string) Person {
+	r.addr = v
+	return r
+}
+
+func (r PersonBuilder) Addr(v []string) PersonBuilder {
+	r.addr = v
+	return r
+}
+
+func (r Person) List() hlist.Cons[string, hlist.Cons[int, hlist.Nil]] {
+	return r.list
+}
+
+func (r Person) WithList(v hlist.Cons[string, hlist.Cons[int, hlist.Nil]]) Person {
+	r.list = v
+	return r
+}
+
+func (r PersonBuilder) List(v hlist.Cons[string, hlist.Cons[int, hlist.Nil]]) PersonBuilder {
+	r.list = v
+	return r
+}
+
+func (r Person) Seq() fp.Seq[float64] {
+	return r.seq
+}
+
+func (r Person) WithSeq(v fp.Seq[float64]) Person {
+	r.seq = v
+	return r
+}
+
+func (r PersonBuilder) Seq(v fp.Seq[float64]) PersonBuilder {
+	r.seq = v
+	return r
+}
+
 func (r Person) String() string {
-	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v)", r.name, r.age, r.height, r.phone)
+	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq)
 }
 
-func (r Person) AsTuple() fp.Tuple4[string, int, float64, fp.Option[string]] {
-	return as.Tuple4(r.name, r.age, r.height, r.phone)
+func (r Person) AsTuple() fp.Tuple7[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64]] {
+	return as.Tuple7(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq)
 }
 
-func (r PersonBuilder) FromTuple(t fp.Tuple4[string, int, float64, fp.Option[string]]) PersonBuilder {
+func (r PersonBuilder) FromTuple(t fp.Tuple7[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64]]) PersonBuilder {
 	r.name = t.I1
 	r.age = t.I2
 	r.height = t.I3
 	r.phone = t.I4
+	r.addr = t.I5
+	r.list = t.I6
+	r.seq = t.I7
 	return r
 }
 
@@ -490,6 +536,9 @@ func (r Person) AsMap() map[string]any {
 		"age":    r.age,
 		"height": r.height,
 		"phone":  r.phone,
+		"addr":   r.addr,
+		"list":   r.list,
+		"seq":    r.seq,
 	}
 }
 
@@ -511,17 +560,32 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 		r.phone = v
 	}
 
+	if v, ok := m["addr"].([]string); ok {
+		r.addr = v
+	}
+
+	if v, ok := m["list"].(hlist.Cons[string, hlist.Cons[int, hlist.Nil]]); ok {
+		r.list = v
+	}
+
+	if v, ok := m["seq"].(fp.Seq[float64]); ok {
+		r.seq = v
+	}
+
 	return r
 }
 
-func (r Person) AsLabelled() fp.Tuple4[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]]] {
-	return as.Tuple4(as.Tuple2("name", r.name), as.Tuple2("age", r.age), as.Tuple2("height", r.height), as.Tuple2("phone", r.phone))
+func (r Person) AsLabelled() fp.Tuple7[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]]] {
+	return as.Tuple7(as.Tuple2("name", r.name), as.Tuple2("age", r.age), as.Tuple2("height", r.height), as.Tuple2("phone", r.phone), as.Tuple2("addr", r.addr), as.Tuple2("list", r.list), as.Tuple2("seq", r.seq))
 }
 
-func (r PersonBuilder) FromLabelled(t fp.Tuple4[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]]]) PersonBuilder {
+func (r PersonBuilder) FromLabelled(t fp.Tuple7[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]]]) PersonBuilder {
 	r.name = t.I1.I2
 	r.age = t.I2.I2
 	r.height = t.I3.I2
 	r.phone = t.I4.I2
+	r.addr = t.I5.I2
+	r.list = t.I6.I2
+	r.seq = t.I7.I2
 	return r
 }

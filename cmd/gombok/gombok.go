@@ -467,25 +467,42 @@ type TypeClassInstance struct {
 func implicitTypeClassInstanceName(f TypeInfo) string {
 	switch at := f.Type.(type) {
 	case *types.Named:
+		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
+			if at.Obj().Name() == "Nil" {
+				return "HNil"
+			} else if at.Obj().Name() == "Cons" {
+				return "HCons"
+			}
+		}
 		return at.Obj().Name()
 	case *types.Array:
 		return "Array"
 	case *types.Slice:
 		return "Slice"
 	case *types.Map:
-		return "Map"
+		return "GoMap"
+	case *types.Pointer:
+		return "Ptr"
 	case *types.Basic:
 		return at.Name()
 	}
 	return f.Type.String()
 }
 
-func lookupTypeClassInstance(w common.Writer, pk *types.Package, tcgen *types.Package, f TypeInfo) TypeClassInstance {
+func lookupTypeClassInstance(w common.Writer, pk *types.Package, tc TypeClass, tcgen *types.Package, f TypeInfo) TypeClassInstance {
 	tn := implicitTypeClassInstanceName(f)
 
 	publicTypeName := publicName(tn)
 
-	publicTypeNameWithPkg := publicName(tcgen.Name()) + publicTypeName
+	publicTypeNameWithPkg := publicName(tc.Name) + publicTypeName
+
+	if f.Pkg != nil {
+		ln := tc.Name + publicName(f.Pkg.Name()) + publicTypeName
+		instance := pk.Scope().Lookup(ln)
+		if instance != nil {
+			return TypeClassInstance{ln, instance}
+		}
+	}
 
 	instance := pk.Scope().Lookup(publicTypeNameWithPkg)
 	if instance != nil {
@@ -520,13 +537,15 @@ func lookupTypeClassInstance(w common.Writer, pk *types.Package, tcgen *types.Pa
 	panic("can't find typeclass instance for " + tn)
 
 }
-func summon(w common.Writer, pk *types.Package, tcgen *types.Package, args ...TypeInfo) string {
-	f := args[0]
+func summon(w common.Writer, pk *types.Package, tc TypeClass, tcgen *types.Package, t TypeInfo) string {
 
-	instance := lookupTypeClassInstance(w, pk, tcgen, f)
+	instance := lookupTypeClassInstance(w, pk, tc, tcgen, t)
 
-	if len(f.TypeArgs) > 0 {
-		return fmt.Sprintf("%s(%s)", instance.name, lookupTypeClassInstance(w, pk, tcgen, f.TypeArgs[0]).name)
+	if len(t.TypeArgs) > 0 {
+		list := seq.Map(t.TypeArgs, func(t TypeInfo) string {
+			return summon(w, pk, tc, tcgen, t)
+		}).MakeString(",")
+		return fmt.Sprintf("%s(%s)", instance.name, list)
 	}
 
 	return instance.name
@@ -559,13 +578,13 @@ func genDerive() {
 		d := findTypeClassDerive(pkgs)
 		d.Foreach(func(v TypeClassDerive) {
 			// fmt.Printf("lookup %s.Option = %v\n", v.Generator.Name(), l)
-			fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
+			//fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
 			privateFields := v.DeriveFor.Fields.FilterNot(StructField.Public)
 
 			gpk := w.GetImportedName(v.Generator)
 
 			args := seq.Map(privateFields, func(f StructField) string {
-				return summon(w, pkgs[0].Types, v.Generator, f.Type)
+				return summon(w, pkgs[0].Types, v.TypeClass, v.Generator, f.Type)
 			}).Iterator().MakeString(",")
 
 			fmt.Fprintf(w, `

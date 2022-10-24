@@ -161,3 +161,7 @@ func (r Seq[T]) Iterator() Iterator[T] {
 		},
 	)
 }
+
+func (r Seq[T]) MakeString(sep string) string {
+	return r.Iterator().MakeString(sep)
+}

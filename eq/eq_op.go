@@ -5,6 +5,7 @@ import (
 	"bytes"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 )
 
@@ -49,6 +50,10 @@ func Seq[T any](eq fp.Eq[T]) fp.Eq[fp.Seq[T]] {
 		}
 		return true
 	})
+}
+
+func Slice[T any](eq fp.Eq[T]) fp.Eq[[]T] {
+	return ContraMap(Seq(eq), as.Seq[T])
 }
 
 var HNil fp.Eq[hlist.Nil] = fp.EqGiven[hlist.Nil]()
