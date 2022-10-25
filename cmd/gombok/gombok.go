@@ -24,6 +24,7 @@ import (
 type StructField struct {
 	Name string
 	Type TypeInfo
+	Tag  string
 }
 
 func (r StructField) Public() bool {
@@ -139,6 +140,7 @@ func lookupValueType(pk *types.Package, name string) fp.Option[ValueType] {
 			return StructField{
 				Name: f.Name(),
 				Type: tn,
+				Tag:  st.Tag(i),
 			}
 		}).ToSeq()
 
@@ -246,9 +248,11 @@ func findValueStruct(p []*packages.Package) fp.Seq[ValueType] {
 							fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
 								f := st.Field(i)
 								tn := typeInfo(l.Pkg(), f.Type())
+
 								return StructField{
 									Name: f.Name(),
 									Type: tn,
+									Tag:  st.Tag(i),
 								}
 							}).ToSeq()
 
@@ -386,14 +390,31 @@ func genValue() {
 			}
 
 			builderType := fmt.Sprintf("%sBuilder%s", v.Name, valuetpdec)
+			mutableType := fmt.Sprintf("%sMutable%s", v.Name, valuetpdec)
+
 			//valueType := fmt.Sprintf("%s%s", v.Name, valuetpdec)
 
 			valuereceiver := fmt.Sprintf("%s%s", v.Name, valuetp)
 			builderreceiver := fmt.Sprintf("%sBuilder%s", v.Name, valuetp)
+			mutablereceiver := fmt.Sprintf("%sMutable%s", v.Name, valuetp)
 
 			fmt.Fprintf(w, `
 				type %s %s
 			`, builderType, valuereceiver)
+
+			mutableFields := iterator.Map(v.Fields.Iterator(), func(v StructField) string {
+				if v.Tag != "" {
+					return fmt.Sprintf("%s %s `%s`", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type), v.Tag)
+				} else {
+					return fmt.Sprintf("%s %s", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
+
+				}
+			}).MakeString("\n")
+			fmt.Fprintf(w, `
+				type %s struct {
+					%s
+				}
+			`, mutableType, mutableFields)
 
 			fmt.Fprintf(w, `
 				func(r %s) Build() %s {
@@ -471,6 +492,36 @@ func genValue() {
 
 				`, valuereceiver, privateFields.Size(), tp,
 				asalias, privateFields.Size(), fields,
+			)
+
+			fields = seq.Map(privateFields, func(f StructField) string {
+				return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
+			}).Iterator().Take(max.Product).MakeString(",\n")
+
+			fmt.Fprintf(w, `
+					func(r %s) AsMutable() %s {
+						return %s{
+							%s,
+						}
+					}
+
+				`, valuereceiver, mutablereceiver,
+				mutablereceiver, fields,
+			)
+
+			fields = seq.Map(v.Fields, func(f StructField) string {
+				return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
+			}).Iterator().Take(max.Product).MakeString(",\n")
+
+			fmt.Fprintf(w, `
+					func(r %s) AsImmutable() %s {
+						return %s{
+							%s,
+						}
+					}
+
+				`, mutablereceiver, valuereceiver,
+				valuereceiver, fields,
 			)
 
 			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, StructField]) string {

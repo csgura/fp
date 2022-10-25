@@ -18,7 +18,10 @@ func TestBuilder(t *testing.T) {
 
 func TestEq(t *testing.T) {
 	a := fp.New(value.Person.Builder).Name("Hello").Age(10).Build()
-	b := fp.New(value.Person.Builder).Name("Hello").Age(10).Build()
+	b := value.PersonMutable{
+		Name: "Hello",
+		Age:  10,
+	}.AsImmutable()
 
 	assert.True(value.EqPerson.Eqv(a, b))
 	assert.False(value.EqPerson.Eqv(a, b.WithAge(20)))

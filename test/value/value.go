@@ -18,8 +18,8 @@ type (
 	// Hello is hello
 	// @fp.Value
 	Hello struct { // Hello
-		world string
-		hi    int
+		world string `json:"world"`
+		hi    int    `json:"hi"`
 	}
 )
 

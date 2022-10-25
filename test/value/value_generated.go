@@ -12,6 +12,10 @@ import (
 
 type NotIgnoredBuilder NotIgnored
 
+type NotIgnoredMutable struct {
+	Ig int
+}
+
 func (r NotIgnoredBuilder) Build() NotIgnored {
 	return NotIgnored(r)
 }
@@ -40,6 +44,18 @@ func (r NotIgnored) String() string {
 
 func (r NotIgnored) AsTuple() fp.Tuple1[int] {
 	return as.Tuple1(r.ig)
+}
+
+func (r NotIgnored) AsMutable() NotIgnoredMutable {
+	return NotIgnoredMutable{
+		Ig: r.ig,
+	}
+}
+
+func (r NotIgnoredMutable) AsImmutable() NotIgnored {
+	return NotIgnored{
+		ig: r.Ig,
+	}
 }
 
 func (r NotIgnoredBuilder) FromTuple(t fp.Tuple1[int]) NotIgnoredBuilder {
@@ -72,6 +88,11 @@ func (r NotIgnoredBuilder) FromLabelled(t fp.Tuple1[fp.Tuple2[string, int]]) Not
 }
 
 type HelloBuilder Hello
+
+type HelloMutable struct {
+	World string `json:"world"`
+	Hi    int    `json:"hi"`
+}
 
 func (r HelloBuilder) Build() Hello {
 	return Hello(r)
@@ -117,6 +138,20 @@ func (r Hello) AsTuple() fp.Tuple2[string, int] {
 	return as.Tuple2(r.world, r.hi)
 }
 
+func (r Hello) AsMutable() HelloMutable {
+	return HelloMutable{
+		World: r.world,
+		Hi:    r.hi,
+	}
+}
+
+func (r HelloMutable) AsImmutable() Hello {
+	return Hello{
+		world: r.World,
+		hi:    r.Hi,
+	}
+}
+
 func (r HelloBuilder) FromTuple(t fp.Tuple2[string, int]) HelloBuilder {
 	r.world = t.I1
 	r.hi = t.I2
@@ -154,6 +189,20 @@ func (r HelloBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, string], fp.Tup
 }
 
 type MyMyBuilder MyMy
+
+type MyMyMutable struct {
+	Embed Embed
+	Hi    fp.Option[int]
+	Tpe   reflect.Type
+	Arr   []os.File
+	M     map[string]int
+	A     any
+	P     *int
+	L     Local
+	T     fp.Try[fp.Option[Local]]
+	M2    map[string]atomic.Bool
+	Mm    fp.Map[string, int]
+}
 
 func (r MyMyBuilder) Build() MyMy {
 	return MyMy(r)
@@ -311,6 +360,37 @@ func (r MyMy) AsTuple() fp.Tuple10[fp.Option[int], reflect.Type, []os.File, map[
 	return as.Tuple10(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm)
 }
 
+func (r MyMy) AsMutable() MyMyMutable {
+	return MyMyMutable{
+		Hi:  r.hi,
+		Tpe: r.tpe,
+		Arr: r.arr,
+		M:   r.m,
+		A:   r.a,
+		P:   r.p,
+		L:   r.l,
+		T:   r.t,
+		M2:  r.m2,
+		Mm:  r.mm,
+	}
+}
+
+func (r MyMyMutable) AsImmutable() MyMy {
+	return MyMy{
+		Embed: r.Embed,
+		hi:    r.Hi,
+		tpe:   r.Tpe,
+		arr:   r.Arr,
+		m:     r.M,
+		a:     r.A,
+		p:     r.P,
+		l:     r.L,
+		t:     r.T,
+		m2:    r.M2,
+		mm:    r.Mm,
+	}
+}
+
 func (r MyMyBuilder) FromTuple(t fp.Tuple10[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int]]) MyMyBuilder {
 	r.hi = t.I1
 	r.tpe = t.I2
@@ -404,6 +484,17 @@ func (r MyMyBuilder) FromLabelled(t fp.Tuple10[fp.Tuple2[string, fp.Option[int]]
 }
 
 type PersonBuilder Person
+
+type PersonMutable struct {
+	Name   string
+	Age    int
+	Height float64
+	Phone  fp.Option[string]
+	Addr   []string
+	List   hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
+	Seq    fp.Seq[float64]
+	Blob   []byte
+}
 
 func (r PersonBuilder) Build() Person {
 	return Person(r)
@@ -533,6 +624,32 @@ func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []s
 	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
+func (r Person) AsMutable() PersonMutable {
+	return PersonMutable{
+		Name:   r.name,
+		Age:    r.age,
+		Height: r.height,
+		Phone:  r.phone,
+		Addr:   r.addr,
+		List:   r.list,
+		Seq:    r.seq,
+		Blob:   r.blob,
+	}
+}
+
+func (r PersonMutable) AsImmutable() Person {
+	return Person{
+		name:   r.Name,
+		age:    r.Age,
+		height: r.Height,
+		phone:  r.Phone,
+		addr:   r.Addr,
+		list:   r.List,
+		seq:    r.Seq,
+		blob:   r.Blob,
+	}
+}
+
 func (r PersonBuilder) FromTuple(t fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte]) PersonBuilder {
 	r.name = t.I1
 	r.age = t.I2
@@ -613,6 +730,11 @@ func (r PersonBuilder) FromLabelled(t fp.Tuple8[fp.Tuple2[string, string], fp.Tu
 
 type WalletBuilder Wallet
 
+type WalletMutable struct {
+	Owner  Person
+	Amount int64
+}
+
 func (r WalletBuilder) Build() Wallet {
 	return Wallet(r)
 }
@@ -657,6 +779,20 @@ func (r Wallet) AsTuple() fp.Tuple2[Person, int64] {
 	return as.Tuple2(r.owner, r.amount)
 }
 
+func (r Wallet) AsMutable() WalletMutable {
+	return WalletMutable{
+		Owner:  r.owner,
+		Amount: r.amount,
+	}
+}
+
+func (r WalletMutable) AsImmutable() Wallet {
+	return Wallet{
+		owner:  r.Owner,
+		amount: r.Amount,
+	}
+}
+
 func (r WalletBuilder) FromTuple(t fp.Tuple2[Person, int64]) WalletBuilder {
 	r.owner = t.I1
 	r.amount = t.I2
@@ -694,6 +830,12 @@ func (r WalletBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, Person], fp.Tu
 }
 
 type EntryBuilder[A interface{ String() string }, B any] Entry[A, B]
+
+type EntryMutable[A interface{ String() string }, B any] struct {
+	Name  string
+	Value A
+	Tuple fp.Tuple2[A, B]
+}
 
 func (r EntryBuilder[A, B]) Build() Entry[A, B] {
 	return Entry[A, B](r)
@@ -753,6 +895,22 @@ func (r Entry[A, B]) AsTuple() fp.Tuple3[string, A, fp.Tuple2[A, B]] {
 	return as.Tuple3(r.name, r.value, r.tuple)
 }
 
+func (r Entry[A, B]) AsMutable() EntryMutable[A, B] {
+	return EntryMutable[A, B]{
+		Name:  r.name,
+		Value: r.value,
+		Tuple: r.tuple,
+	}
+}
+
+func (r EntryMutable[A, B]) AsImmutable() Entry[A, B] {
+	return Entry[A, B]{
+		name:  r.Name,
+		value: r.Value,
+		tuple: r.Tuple,
+	}
+}
+
 func (r EntryBuilder[A, B]) FromTuple(t fp.Tuple3[string, A, fp.Tuple2[A, B]]) EntryBuilder[A, B] {
 	r.name = t.I1
 	r.value = t.I2
@@ -797,6 +955,12 @@ func (r EntryBuilder[A, B]) FromLabelled(t fp.Tuple3[fp.Tuple2[string, string], 
 }
 
 type KeyBuilder Key
+
+type KeyMutable struct {
+	A int
+	B float32
+	C []byte
+}
 
 func (r KeyBuilder) Build() Key {
 	return Key(r)
@@ -856,6 +1020,22 @@ func (r Key) AsTuple() fp.Tuple3[int, float32, []byte] {
 	return as.Tuple3(r.a, r.b, r.c)
 }
 
+func (r Key) AsMutable() KeyMutable {
+	return KeyMutable{
+		A: r.a,
+		B: r.b,
+		C: r.c,
+	}
+}
+
+func (r KeyMutable) AsImmutable() Key {
+	return Key{
+		a: r.A,
+		b: r.B,
+		c: r.C,
+	}
+}
+
 func (r KeyBuilder) FromTuple(t fp.Tuple3[int, float32, []byte]) KeyBuilder {
 	r.a = t.I1
 	r.b = t.I2
@@ -900,6 +1080,12 @@ func (r KeyBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[s
 }
 
 type PointBuilder Point
+
+type PointMutable struct {
+	X int
+	Y int
+	Z fp.Tuple2[int, int]
+}
 
 func (r PointBuilder) Build() Point {
 	return Point(r)
@@ -953,6 +1139,22 @@ func (r PointBuilder) Z(v fp.Tuple2[int, int]) PointBuilder {
 
 func (r Point) AsTuple() fp.Tuple3[int, int, fp.Tuple2[int, int]] {
 	return as.Tuple3(r.x, r.y, r.z)
+}
+
+func (r Point) AsMutable() PointMutable {
+	return PointMutable{
+		X: r.x,
+		Y: r.y,
+		Z: r.z,
+	}
+}
+
+func (r PointMutable) AsImmutable() Point {
+	return Point{
+		x: r.X,
+		y: r.Y,
+		z: r.Z,
+	}
 }
 
 func (r PointBuilder) FromTuple(t fp.Tuple3[int, int, fp.Tuple2[int, int]]) PointBuilder {
