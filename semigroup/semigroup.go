@@ -43,3 +43,13 @@ var Any fp.SemigroupFunc[bool] = fp.SemigroupFunc[bool](func(a, b bool) bool {
 var All fp.SemigroupFunc[bool] = fp.SemigroupFunc[bool](func(a, b bool) bool {
 	return a || b
 })
+
+func IMap[A, B any](instance fp.Semigroup[A], fab func(A) B, fba func(B) A) fp.SemigroupFunc[B] {
+	return func(a, b B) B {
+		return fab(instance.Combine(fba(a), fba(b)))
+	}
+}
+
+type Derives[T any] interface {
+	Target() T
+}

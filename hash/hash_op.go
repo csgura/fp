@@ -80,3 +80,13 @@ func HCons[H any, T hlist.HList](heq fp.Hashable[H], teq fp.Hashable[T]) fp.Hash
 		return heq.Hash(a.Head())*31 + teq.Hash(a.Tail())
 	})
 }
+
+func ContraMap[T, U any](teq fp.Hashable[T], fn func(U) T) fp.Hashable[U] {
+	return New(eq.ContraMap[T](teq, fn), func(a U) uint32 {
+		return teq.Hash(fn(a))
+	})
+}
+
+type Derives[T any] interface {
+	Target() T
+}

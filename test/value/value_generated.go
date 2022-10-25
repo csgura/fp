@@ -795,3 +795,106 @@ func (r EntryBuilder[A, B]) FromLabelled(t fp.Tuple3[fp.Tuple2[string, string], 
 	r.tuple = t.I3.I2
 	return r
 }
+
+type KeyBuilder Key
+
+func (r KeyBuilder) Build() Key {
+	return Key(r)
+}
+
+func (r Key) Builder() KeyBuilder {
+	return KeyBuilder(r)
+}
+
+func (r Key) A() int {
+	return r.a
+}
+
+func (r Key) WithA(v int) Key {
+	r.a = v
+	return r
+}
+
+func (r KeyBuilder) A(v int) KeyBuilder {
+	r.a = v
+	return r
+}
+
+func (r Key) B() float32 {
+	return r.b
+}
+
+func (r Key) WithB(v float32) Key {
+	r.b = v
+	return r
+}
+
+func (r KeyBuilder) B(v float32) KeyBuilder {
+	r.b = v
+	return r
+}
+
+func (r Key) C() []byte {
+	return r.c
+}
+
+func (r Key) WithC(v []byte) Key {
+	r.c = v
+	return r
+}
+
+func (r KeyBuilder) C(v []byte) KeyBuilder {
+	r.c = v
+	return r
+}
+
+func (r Key) String() string {
+	return fmt.Sprintf("Key(a=%v, b=%v, c=%v)", r.a, r.b, r.c)
+}
+
+func (r Key) AsTuple() fp.Tuple3[int, float32, []byte] {
+	return as.Tuple3(r.a, r.b, r.c)
+}
+
+func (r KeyBuilder) FromTuple(t fp.Tuple3[int, float32, []byte]) KeyBuilder {
+	r.a = t.I1
+	r.b = t.I2
+	r.c = t.I3
+	return r
+}
+
+func (r Key) AsMap() map[string]any {
+	return map[string]any{
+		"a": r.a,
+		"b": r.b,
+		"c": r.c,
+	}
+}
+
+func (r KeyBuilder) FromMap(m map[string]any) KeyBuilder {
+
+	if v, ok := m["a"].(int); ok {
+		r.a = v
+	}
+
+	if v, ok := m["b"].(float32); ok {
+		r.b = v
+	}
+
+	if v, ok := m["c"].([]byte); ok {
+		r.c = v
+	}
+
+	return r
+}
+
+func (r Key) AsLabelled() fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, float32], fp.Tuple2[string, []byte]] {
+	return as.Tuple3(as.Tuple2("a", r.a), as.Tuple2("b", r.b), as.Tuple2("c", r.c))
+}
+
+func (r KeyBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, float32], fp.Tuple2[string, []byte]]) KeyBuilder {
+	r.a = t.I1.I2
+	r.b = t.I2.I2
+	r.c = t.I3.I2
+	return r
+}

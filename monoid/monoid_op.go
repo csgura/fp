@@ -155,3 +155,15 @@ var All fp.Monoid[bool] = New(
 	},
 	semigroup.All,
 )
+
+func IMap[A, B any](instance fp.Monoid[A], fab func(A) B, fba func(B) A) fp.Monoid[B] {
+	return New(func() B {
+		return fab(instance.Empty())
+	}, func(a, b B) B {
+		return fab(instance.Combine(fba(a), fba(b)))
+	})
+}
+
+type Derives[T any] interface {
+	Target() T
+}

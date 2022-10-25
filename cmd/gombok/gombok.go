@@ -768,7 +768,19 @@ func (r TypeClassSummonContext) summon(t TypeInfo) string {
 		return r.expr(result.Get())
 	}
 
-	instance := r.tc.Generator.Scope().Lookup("Given")
+	instance := r.tc.Generator.Scope().Lookup("Number")
+	if instance != nil {
+		if _, ok := instance.Type().(*types.Signature); ok {
+			ctx := types.NewContext()
+			_, err := types.Instantiate(ctx, instance.Type(), []types.Type{t.Type}, true)
+			if err == nil {
+				gpk := r.w.GetImportedName(r.tc.Generator)
+				return fmt.Sprintf("%s.Number[%s]()", gpk, r.w.TypeName(r.tc.Package, t.Type))
+			}
+		}
+	}
+
+	instance = r.tc.Generator.Scope().Lookup("Given")
 	if instance != nil {
 		if _, ok := instance.Type().(*types.Signature); ok {
 			ctx := types.NewContext()

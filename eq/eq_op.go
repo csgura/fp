@@ -82,9 +82,9 @@ func Ptr[T any](eq fp.Eq[T]) fp.Eq[*T] {
 	})
 }
 
-func ContraMap[T, U any](teq fp.Eq[T], fn func(U) T) fp.Eq[U] {
+func ContraMap[T, U any](instance fp.Eq[T], fn func(U) T) fp.Eq[U] {
 	return New(func(a, b U) bool {
-		return teq.Eqv(fn(a), fn(b))
+		return instance.Eqv(fn(a), fn(b))
 	})
 }
 

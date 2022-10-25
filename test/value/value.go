@@ -7,6 +7,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 )
 
@@ -85,3 +86,17 @@ type Entry[A interface{ String() string }, B any] struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Entry[interface{ String() string }, any]]]
+
+// @fp.Value
+type Key struct {
+	a int
+	b float32
+	c []byte
+}
+
+func (r Key) Hash() uint32 {
+	return HashableKey.Hash(r)
+}
+
+// @fp.Derive
+var _ hash.Derives[fp.Hashable[Key]]

@@ -23,3 +23,9 @@ func TestEq(t *testing.T) {
 	assert.False(value.EqPerson.Eqv(a, b.WithAge(20)))
 
 }
+
+func TestHash(t *testing.T) {
+	key := fp.New(value.Key.Builder).A(10).B(13).C([]byte("hello")).Build()
+
+	fmt.Println("hash = ", key.Hash())
+}
