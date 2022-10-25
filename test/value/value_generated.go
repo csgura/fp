@@ -898,3 +898,106 @@ func (r KeyBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[s
 	r.c = t.I3.I2
 	return r
 }
+
+type PointBuilder Point
+
+func (r PointBuilder) Build() Point {
+	return Point(r)
+}
+
+func (r Point) Builder() PointBuilder {
+	return PointBuilder(r)
+}
+
+func (r Point) X() int {
+	return r.x
+}
+
+func (r Point) WithX(v int) Point {
+	r.x = v
+	return r
+}
+
+func (r PointBuilder) X(v int) PointBuilder {
+	r.x = v
+	return r
+}
+
+func (r Point) Y() int {
+	return r.y
+}
+
+func (r Point) WithY(v int) Point {
+	r.y = v
+	return r
+}
+
+func (r PointBuilder) Y(v int) PointBuilder {
+	r.y = v
+	return r
+}
+
+func (r Point) Z() fp.Tuple2[int, int] {
+	return r.z
+}
+
+func (r Point) WithZ(v fp.Tuple2[int, int]) Point {
+	r.z = v
+	return r
+}
+
+func (r PointBuilder) Z(v fp.Tuple2[int, int]) PointBuilder {
+	r.z = v
+	return r
+}
+
+func (r Point) String() string {
+	return fmt.Sprintf("Point(x=%v, y=%v, z=%v)", r.x, r.y, r.z)
+}
+
+func (r Point) AsTuple() fp.Tuple3[int, int, fp.Tuple2[int, int]] {
+	return as.Tuple3(r.x, r.y, r.z)
+}
+
+func (r PointBuilder) FromTuple(t fp.Tuple3[int, int, fp.Tuple2[int, int]]) PointBuilder {
+	r.x = t.I1
+	r.y = t.I2
+	r.z = t.I3
+	return r
+}
+
+func (r Point) AsMap() map[string]any {
+	return map[string]any{
+		"x": r.x,
+		"y": r.y,
+		"z": r.z,
+	}
+}
+
+func (r PointBuilder) FromMap(m map[string]any) PointBuilder {
+
+	if v, ok := m["x"].(int); ok {
+		r.x = v
+	}
+
+	if v, ok := m["y"].(int); ok {
+		r.y = v
+	}
+
+	if v, ok := m["z"].(fp.Tuple2[int, int]); ok {
+		r.z = v
+	}
+
+	return r
+}
+
+func (r Point) AsLabelled() fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, int], fp.Tuple2[string, fp.Tuple2[int, int]]] {
+	return as.Tuple3(as.Tuple2("x", r.x), as.Tuple2("y", r.y), as.Tuple2("z", r.z))
+}
+
+func (r PointBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, int], fp.Tuple2[string, fp.Tuple2[int, int]]]) PointBuilder {
+	r.x = t.I1.I2
+	r.y = t.I2.I2
+	r.z = t.I3.I2
+	return r
+}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/test/value"
 )
@@ -28,4 +29,16 @@ func TestHash(t *testing.T) {
 	key := fp.New(value.Key.Builder).A(10).B(13).C([]byte("hello")).Build()
 
 	fmt.Println("hash = ", key.Hash())
+}
+
+func TestMonoid(t *testing.T) {
+	p1 := fp.New(value.Point.Builder).X(10).Y(12).Z(as.Tuple(1, 2)).Build()
+	p2 := fp.New(value.Point.Builder).X(5).Y(4).Z(as.Tuple(2, 3)).Build()
+
+	p3 := value.MonoidPoint.Combine(p1, p2)
+	assert.Equal(p3.X(), 15)
+	assert.Equal(p3.Y(), 16)
+	assert.Equal(p3.Z().I1, 3)
+	assert.Equal(p3.Z().I2, 5)
+
 }

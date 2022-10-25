@@ -744,12 +744,24 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[TypeInfo]) string {
 
 	hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.HNil", gpk), func(tail string, ti TypeInfo) string {
 		instance := r.summon(ti)
-		return fmt.Sprintf("%s.HCons(%s,%s)", gpk, instance, tail)
+		return fmt.Sprintf(`%s.HCons(%s,
+			%s)`, gpk, instance, tail)
 	})
 
 	tp := seq.Map(typeArgs, func(f TypeInfo) string {
 		return r.w.TypeName(r.tc.Package, f.Type)
 	}).MakeString(",")
+
+	if imap := r.tc.Generator.Scope().Lookup("IMap"); imap != nil {
+		hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+		return fmt.Sprintf(`%s.IMap(%s , 
+			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]]).ApplyLast( %s.Tuple%d[%s] ),
+			%s.HList%d[%s])`,
+			gpk, hlist,
+			aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
+			aspk, typeArgs.Size(), tp)
+	}
 
 	return fmt.Sprintf("%s.ContraMap( %s,  %s.HList%d[%s])", gpk, hlist, aspk, typeArgs.Size(), tp)
 }
@@ -863,17 +875,44 @@ func genDerive() {
 					return fmt.Sprintf("%s%s %s[%s] ", privateName(v.TypeClass.Name), p.Name, tcname, p.Name)
 				}).MakeString(",")
 
-				fmt.Fprintf(w, `
+				if imap := v.Generator.Scope().Lookup("IMap"); imap != nil {
+					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+					fmt.Fprintf(w, `
+					func %s%s%s( %s ) %s[%s%s] {
+						return %s.IMap( %s, %s.Compose(
+							%s.Curried2(%sBuilder.FromTuple)(%sBuilder{}), %sBuilder.Build),  
+							%s.AsTuple )
+				}
+			`, v.TypeClass.Name, v.DeriveFor.Name, valuetpdec, fargs, tcname, v.DeriveFor.Name, valuetp,
+						gpk, summonExpr, fppk,
+						aspk, v.DeriveFor.Name, v.DeriveFor.Name, v.DeriveFor.Name,
+						v.DeriveFor.Name)
+				} else {
+					fmt.Fprintf(w, `
 						func %s%s%s( %s ) %s[%s%s] {
 							return %s.ContraMap( %s , %s%s.AsTuple )
 						}
 					`, v.TypeClass.Name, v.DeriveFor.Name, valuetpdec, fargs, tcname, v.DeriveFor.Name, valuetp,
-					gpk, summonExpr, v.DeriveFor.Name, valuetp,
-				)
+						gpk, summonExpr, v.DeriveFor.Name, valuetp,
+					)
+				}
 			} else {
-				fmt.Fprintf(w, `
+				if imap := v.Generator.Scope().Lookup("IMap"); imap != nil {
+					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+					fmt.Fprintf(w, `
+				var %s%s = %s.IMap( %s, %s.Compose(
+					%s.Curried2(%sBuilder.FromTuple)(%sBuilder{}), %sBuilder.Build),  
+					%s.AsTuple )
+			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, summonExpr, fppk,
+						aspk, v.DeriveFor.Name, v.DeriveFor.Name, v.DeriveFor.Name,
+						v.DeriveFor.Name)
+				} else {
+					fmt.Fprintf(w, `
 				var %s%s = %s.ContraMap( %s, %s.AsTuple )
 			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, summonExpr, v.DeriveFor.Name)
+				}
 			}
 
 		})

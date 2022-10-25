@@ -9,6 +9,7 @@ import (
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/monoid"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -100,3 +101,15 @@ func (r Key) Hash() uint32 {
 
 // @fp.Derive
 var _ hash.Derives[fp.Hashable[Key]]
+
+// @fp.Value
+type Point struct {
+	x int
+	y int
+	z fp.Tuple2[int, int]
+}
+
+var MonoidInt = monoid.Sum[int]()
+
+// @fp.Derive
+var _ monoid.Derives[fp.Monoid[Point]]
