@@ -49,7 +49,7 @@ func MapOf[K comparable, V any](m map[K]V) fp.Map[K, V] {
 	return fp.MakeMap[K, V](Map[K, V](m))
 }
 
-func MakeMap[K comparable, V any]() fp.Map[K, V] {
+func EmptyMap[K comparable, V any]() fp.Map[K, V] {
 	return fp.MakeMap[K, V](Map[K, V]{})
 }
 

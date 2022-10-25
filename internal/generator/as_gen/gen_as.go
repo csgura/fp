@@ -99,7 +99,7 @@ func reversConsType(start, until int) string {
 func consType(start, until int, last string) string {
 	ret := last
 	for j := until; j >= start; j-- {
-		ret = fmt.Sprintf("Cons[A%d, %s]", j, ret)
+		ret = fmt.Sprintf("hlist.Cons[A%d, %s]", j, ret)
 	}
 	return ret
 }
@@ -158,10 +158,12 @@ func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 
 	})
 
-	generate("as", "tuple_gen.go", func(f io.Writer) {
+	common.Generate("as", "tuple_gen.go", func(f common.Writer) {
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/hlist"
+
 )`)
 
 		for i := 1; i < max.Product; i++ {
@@ -175,8 +177,24 @@ import (
 			fmt.Fprintf(f, `}
 		}
 `)
+		}
+
+		fmt.Fprintf(f, `
+			func HList1[A1 any](tuple fp.Tuple1[A1]) hlist.Cons[A1, hlist.Nil] {
+				return hlist.Concat(tuple.Head(), hlist.Empty())
+			}		
+`)
+
+		for i := 2; i < max.Product; i++ {
+			fmt.Fprintf(f, "func HList%d [%s any]( tuple fp.Tuple%d[%s]) %s { ", i, typeArgs(1, i), i, typeArgs(1, i), consType(1, i, "hlist.Nil"))
+
+			fmt.Fprintf(f, `
+				return hlist.Concat( tuple.Head(), HList%d( tuple.Tail() ))
+			}
+			`, i-1)
 
 		}
+
 	})
 
 	// for j := 1; j <= i; j++ {

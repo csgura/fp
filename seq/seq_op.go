@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/product"
 )
 
@@ -219,7 +220,7 @@ func ToSet[V any](s fp.Seq[V], hasher fp.Hashable[V]) fp.Set[V] {
 	return ret.Build()
 }
 
-func ToGoSet[V comparable](s fp.Seq[V]) map[V]bool {
+func ToGoSet[V comparable](s fp.Seq[V]) mutable.Set[V] {
 	ret := map[V]bool{}
 	for _, e := range s {
 		ret[e] = true

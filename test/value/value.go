@@ -55,6 +55,7 @@ type Person struct {
 	addr   []string
 	list   hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
 	seq    fp.Seq[float64]
+	blob   []byte
 }
 
 func EqFpSeq[T any](e fp.Eq[T]) fp.Eq[fp.Seq[T]] {
@@ -65,3 +66,12 @@ var EqFloat64 = eq.Given[float64]()
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Person]]
+
+// @fp.Value
+type Wallet struct {
+	owner  Person
+	amount int64
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Wallet]]

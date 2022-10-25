@@ -13,6 +13,7 @@ import (
 	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 
@@ -464,91 +465,159 @@ type TypeClassInstance struct {
 	instance types.Object
 }
 
-func implicitTypeClassInstanceName(f TypeInfo) string {
+type lookupTarget struct {
+	name     string
+	scope    *types.Scope
+	typeArgs fp.Seq[TypeInfo]
+	genPk    *types.Package
+}
+
+func (r lookupTarget) instanceExpr(w common.Writer) string {
+	if r.genPk != nil {
+		pk := w.GetImportedName(r.genPk)
+		return fmt.Sprintf("%s.%s", pk, r.name)
+	}
+	return r.name
+}
+
+func lookupLocal(pk *types.Package, tc TypeClass, f TypeInfo, name string) fp.Seq[lookupTarget] {
+
+	var ret []lookupTarget
+
+	if f.Pkg != nil && pk.Path() != f.Pkg.Path() {
+		ret = append(ret, lookupTarget{
+			tc.Name + publicName(f.Pkg.Name()) + publicName(name),
+			pk.Scope(),
+			f.TypeArgs,
+			nil,
+		})
+	}
+
+	ret = append(ret, lookupTarget{
+		tc.Name + publicName(name),
+		pk.Scope(),
+		f.TypeArgs,
+		nil,
+	})
+
+	return ret
+}
+
+func lookupGenerator(tc TypeClass, tcgen *types.Package, f TypeInfo, name string) fp.Seq[lookupTarget] {
+
+	var ret []lookupTarget
+
+	if f.Pkg != nil {
+		ret = append(ret, lookupTarget{
+			tc.Name + publicName(f.Pkg.Name()) + publicName(name),
+			tcgen.Scope(),
+			f.TypeArgs,
+			tcgen,
+		})
+	}
+
+	ret = append(ret, lookupTarget{
+		tc.Name + publicName(name),
+		tcgen.Scope(),
+		f.TypeArgs,
+		tcgen,
+	})
+
+	ret = append(ret, lookupTarget{
+		publicName(name),
+		tcgen.Scope(),
+		f.TypeArgs,
+		tcgen,
+	})
+
+	return ret
+}
+
+func namedLookup(pk *types.Package, tc TypeClass, tcgen *types.Package, f TypeInfo, name string) fp.Seq[lookupTarget] {
+	return lookupLocal(pk, tc, f, name).
+		Concat(lookupGenerator(tc, tcgen, f, name))
+}
+
+func implicitTypeClassInstanceName(pk *types.Package, tc TypeClass, tcgen *types.Package, f TypeInfo) fp.Seq[lookupTarget] {
 	switch at := f.Type.(type) {
 	case *types.Named:
 		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
 			if at.Obj().Name() == "Nil" {
-				return "HNil"
+				return lookupLocal(pk, tc, f, "HNil").
+					Concat(lookupLocal(pk, tc, f, "HListNil")).
+					Concat(lookupGenerator(tc, tcgen, f, "HNil")).
+					Concat(lookupGenerator(tc, tcgen, f, "HListNil"))
+
 			} else if at.Obj().Name() == "Cons" {
-				return "HCons"
+				return lookupLocal(pk, tc, f, "HCons").
+					Concat(lookupLocal(pk, tc, f, "HListCons")).
+					Concat(lookupGenerator(tc, tcgen, f, "HCons")).
+					Concat(lookupGenerator(tc, tcgen, f, "HListCons"))
 			}
 		}
-		return at.Obj().Name()
+		return namedLookup(pk, tc, tcgen, f, at.Obj().Name())
 	case *types.Array:
-		return "Array"
+		return namedLookup(pk, tc, tcgen, f, "Array")
 	case *types.Slice:
-		return "Slice"
+		if at.Elem().String() == "byte" {
+			return namedLookup(pk, tc, tcgen, TypeInfo{
+				Pkg:      f.Pkg,
+				Type:     f.Type,
+				TypeArgs: nil,
+			}, "Bytes").Concat(namedLookup(pk, tc, tcgen, f, "Slice"))
+		}
+		return namedLookup(pk, tc, tcgen, f, "Slice")
 	case *types.Map:
-		return "GoMap"
+		return namedLookup(pk, tc, tcgen, f, "GoMap")
 	case *types.Pointer:
-		return "Ptr"
+		return namedLookup(pk, tc, tcgen, f, "Ptr")
 	case *types.Basic:
-		return at.Name()
+		return namedLookup(pk, tc, tcgen, f, at.Name())
 	}
-	return f.Type.String()
+	return namedLookup(pk, tc, tcgen, f, f.Type.String())
 }
 
-func lookupTypeClassInstance(w common.Writer, pk *types.Package, tc TypeClass, tcgen *types.Package, f TypeInfo) TypeClassInstance {
-	tn := implicitTypeClassInstanceName(f)
+func summon(w common.Writer, pk *types.Package, tc TypeClass, tcgen *types.Package, t TypeInfo, genSet mutable.Set[string]) string {
 
-	publicTypeName := publicName(tn)
+	list := implicitTypeClassInstanceName(pk, tc, tcgen, t)
 
-	publicTypeNameWithPkg := publicName(tc.Name) + publicTypeName
+	result := list.Iterator().Filter(func(v lookupTarget) bool {
+		ins := v.scope.Lookup(v.name)
+		if ins != nil {
+			return true
+		}
 
-	if f.Pkg != nil {
-		ln := tc.Name + publicName(f.Pkg.Name()) + publicTypeName
-		instance := pk.Scope().Lookup(ln)
-		if instance != nil {
-			return TypeClassInstance{ln, instance}
+		if v.genPk == nil && genSet.Contains(v.name) {
+			return true
+		}
+		return false
+	}).First()
+
+	if result.IsDefined() {
+		if len(result.Get().typeArgs) > 0 {
+			list := seq.Map(t.TypeArgs, func(t TypeInfo) string {
+				return summon(w, pk, tc, tcgen, t, genSet)
+			}).MakeString(",")
+			return fmt.Sprintf("%s(%s)", result.Get().instanceExpr(w), list)
+		}
+
+		return result.Get().instanceExpr(w)
+	}
+
+	instance := tcgen.Scope().Lookup("Given")
+	if instance != nil {
+		if _, ok := instance.Type().(*types.Signature); ok {
+			ctx := types.NewContext()
+			_, err := types.Instantiate(ctx, instance.Type(), []types.Type{t.Type}, true)
+			if err == nil {
+				gpk := w.GetImportedName(tcgen)
+				return fmt.Sprintf("%s.Given[%s]()", gpk, w.TypeName(pk, t.Type))
+			}
 		}
 	}
 
-	instance := pk.Scope().Lookup(publicTypeNameWithPkg)
-	if instance != nil {
-		return TypeClassInstance{publicTypeNameWithPkg, instance}
-	}
+	return list.Head().Get().instanceExpr(w)
 
-	instance = pk.Scope().Lookup(publicTypeName)
-	if instance != nil {
-		return TypeClassInstance{publicTypeName, instance}
-	}
-
-	// instance = tcgen.Scope().Lookup(publicTypeNameWithPkg)
-	// if instance != nil {
-	// 	gpk := w.GetImportedName(tcgen)
-
-	// 	return TypeClassInstance{fmt.Sprintf("%s.%s", gpk, publicTypeNameWithPkg), instance}
-	// }
-
-	instance = tcgen.Scope().Lookup(publicTypeName)
-	if instance != nil {
-		gpk := w.GetImportedName(tcgen)
-
-		return TypeClassInstance{fmt.Sprintf("%s.%s", gpk, publicTypeName), instance}
-	}
-
-	instance = tcgen.Scope().Lookup("Given")
-	if instance != nil {
-		gpk := w.GetImportedName(tcgen)
-		return TypeClassInstance{fmt.Sprintf("%s.Given[%s]()", gpk, tn), instance}
-
-	}
-	panic("can't find typeclass instance for " + tn)
-
-}
-func summon(w common.Writer, pk *types.Package, tc TypeClass, tcgen *types.Package, t TypeInfo) string {
-
-	instance := lookupTypeClassInstance(w, pk, tc, tcgen, t)
-
-	if len(t.TypeArgs) > 0 {
-		list := seq.Map(t.TypeArgs, func(t TypeInfo) string {
-			return summon(w, pk, tc, tcgen, t)
-		}).MakeString(",")
-		return fmt.Sprintf("%s(%s)", instance.name, list)
-	}
-
-	return instance.name
 }
 
 func genDerive() {
@@ -576,6 +645,11 @@ func genDerive() {
 		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 		d := findTypeClassDerive(pkgs)
+
+		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v TypeClassDerive) string {
+			return fmt.Sprintf("%s%s", v.TypeClass.Name, v.DeriveFor.Name)
+		}))
+
 		d.Foreach(func(v TypeClassDerive) {
 			// fmt.Printf("lookup %s.Option = %v\n", v.Generator.Name(), l)
 			//fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
@@ -584,14 +658,34 @@ func genDerive() {
 			gpk := w.GetImportedName(v.Generator)
 
 			args := seq.Map(privateFields, func(f StructField) string {
-				return summon(w, pkgs[0].Types, v.TypeClass, v.Generator, f.Type)
-			}).Iterator().MakeString(",")
-
-			fmt.Fprintf(w, `
-				var %s%s = %s.ContraMap( %s.Tuple%d(%s), %s.AsTuple )
-			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, gpk, privateFields.Size(), args, v.DeriveFor.Name)
-			privateFields.Foreach(func(f StructField) {
+				return summon(w, pkgs[0].Types, v.TypeClass, v.Generator, f.Type, genSet)
 			})
+
+			tupleTc := v.Generator.Scope().Lookup(fmt.Sprintf("Tuple%d", privateFields.Size()))
+			if tupleTc != nil {
+				fmt.Fprintf(w, `
+				var %s%s = %s.ContraMap( %s.Tuple%d(%s), %s.AsTuple )
+			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, gpk, privateFields.Size(), args.MakeString(","), v.DeriveFor.Name)
+
+			} else {
+				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+				hlist := seq.Fold(args.Reverse(), fmt.Sprintf("%s.HNil", gpk), func(tail string, instance string) string {
+					return fmt.Sprintf("%s.HCons(%s,%s)", gpk, instance, tail)
+				})
+
+				tp := seq.Map(privateFields, func(f StructField) string {
+					return w.TypeName(pkgs[0].Types, f.Type.Type)
+				}).MakeString(",")
+
+				fmt.Fprintf(w, `
+				var %s%s = %s.ContraMap( %s, %s.Compose( %s.AsTuple , %s.HList%d[%s]))
+			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, hlist, fppk, v.DeriveFor.Name, aspk, privateFields.Size(), tp)
+				//panic("tuple type class instance not found")
+
+			}
 		})
 	})
 }

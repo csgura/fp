@@ -511,15 +511,29 @@ func (r PersonBuilder) Seq(v fp.Seq[float64]) PersonBuilder {
 	return r
 }
 
+func (r Person) Blob() []byte {
+	return r.blob
+}
+
+func (r Person) WithBlob(v []byte) Person {
+	r.blob = v
+	return r
+}
+
+func (r PersonBuilder) Blob(v []byte) PersonBuilder {
+	r.blob = v
+	return r
+}
+
 func (r Person) String() string {
-	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq)
+	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v, blob=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
-func (r Person) AsTuple() fp.Tuple7[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64]] {
-	return as.Tuple7(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq)
+func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
+	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
-func (r PersonBuilder) FromTuple(t fp.Tuple7[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64]]) PersonBuilder {
+func (r PersonBuilder) FromTuple(t fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte]) PersonBuilder {
 	r.name = t.I1
 	r.age = t.I2
 	r.height = t.I3
@@ -527,6 +541,7 @@ func (r PersonBuilder) FromTuple(t fp.Tuple7[string, int, float64, fp.Option[str
 	r.addr = t.I5
 	r.list = t.I6
 	r.seq = t.I7
+	r.blob = t.I8
 	return r
 }
 
@@ -539,6 +554,7 @@ func (r Person) AsMap() map[string]any {
 		"addr":   r.addr,
 		"list":   r.list,
 		"seq":    r.seq,
+		"blob":   r.blob,
 	}
 }
 
@@ -572,14 +588,18 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 		r.seq = v
 	}
 
+	if v, ok := m["blob"].([]byte); ok {
+		r.blob = v
+	}
+
 	return r
 }
 
-func (r Person) AsLabelled() fp.Tuple7[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]]] {
-	return as.Tuple7(as.Tuple2("name", r.name), as.Tuple2("age", r.age), as.Tuple2("height", r.height), as.Tuple2("phone", r.phone), as.Tuple2("addr", r.addr), as.Tuple2("list", r.list), as.Tuple2("seq", r.seq))
+func (r Person) AsLabelled() fp.Tuple8[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]], fp.Tuple2[string, []byte]] {
+	return as.Tuple8(as.Tuple2("name", r.name), as.Tuple2("age", r.age), as.Tuple2("height", r.height), as.Tuple2("phone", r.phone), as.Tuple2("addr", r.addr), as.Tuple2("list", r.list), as.Tuple2("seq", r.seq), as.Tuple2("blob", r.blob))
 }
 
-func (r PersonBuilder) FromLabelled(t fp.Tuple7[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]]]) PersonBuilder {
+func (r PersonBuilder) FromLabelled(t fp.Tuple8[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]], fp.Tuple2[string, []byte]]) PersonBuilder {
 	r.name = t.I1.I2
 	r.age = t.I2.I2
 	r.height = t.I3.I2
@@ -587,5 +607,88 @@ func (r PersonBuilder) FromLabelled(t fp.Tuple7[fp.Tuple2[string, string], fp.Tu
 	r.addr = t.I5.I2
 	r.list = t.I6.I2
 	r.seq = t.I7.I2
+	r.blob = t.I8.I2
+	return r
+}
+
+type WalletBuilder Wallet
+
+func (r WalletBuilder) Build() Wallet {
+	return Wallet(r)
+}
+
+func (r Wallet) Builder() WalletBuilder {
+	return WalletBuilder(r)
+}
+
+func (r Wallet) Owner() Person {
+	return r.owner
+}
+
+func (r Wallet) WithOwner(v Person) Wallet {
+	r.owner = v
+	return r
+}
+
+func (r WalletBuilder) Owner(v Person) WalletBuilder {
+	r.owner = v
+	return r
+}
+
+func (r Wallet) Amount() int64 {
+	return r.amount
+}
+
+func (r Wallet) WithAmount(v int64) Wallet {
+	r.amount = v
+	return r
+}
+
+func (r WalletBuilder) Amount(v int64) WalletBuilder {
+	r.amount = v
+	return r
+}
+
+func (r Wallet) String() string {
+	return fmt.Sprintf("Wallet(owner=%v, amount=%v)", r.owner, r.amount)
+}
+
+func (r Wallet) AsTuple() fp.Tuple2[Person, int64] {
+	return as.Tuple2(r.owner, r.amount)
+}
+
+func (r WalletBuilder) FromTuple(t fp.Tuple2[Person, int64]) WalletBuilder {
+	r.owner = t.I1
+	r.amount = t.I2
+	return r
+}
+
+func (r Wallet) AsMap() map[string]any {
+	return map[string]any{
+		"owner":  r.owner,
+		"amount": r.amount,
+	}
+}
+
+func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
+
+	if v, ok := m["owner"].(Person); ok {
+		r.owner = v
+	}
+
+	if v, ok := m["amount"].(int64); ok {
+		r.amount = v
+	}
+
+	return r
+}
+
+func (r Wallet) AsLabelled() fp.Tuple2[fp.Tuple2[string, Person], fp.Tuple2[string, int64]] {
+	return as.Tuple2(as.Tuple2("owner", r.owner), as.Tuple2("amount", r.amount))
+}
+
+func (r WalletBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, Person], fp.Tuple2[string, int64]]) WalletBuilder {
+	r.owner = t.I1.I2
+	r.amount = t.I2.I2
 	return r
 }

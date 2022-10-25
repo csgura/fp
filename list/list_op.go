@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 )
@@ -297,7 +298,7 @@ func ToSet[V any](list fp.List[V], hasher fp.Hashable[V]) fp.Set[V] {
 	return ret.Build()
 }
 
-func ToGoSet[V comparable](list fp.List[V]) map[V]bool {
+func ToGoSet[V comparable](list fp.List[V]) mutable.Set[V] {
 	ret := map[V]bool{}
 	cursor := list
 	for !cursor.IsEmpty() {

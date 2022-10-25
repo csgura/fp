@@ -15,6 +15,13 @@ type Iterator[T any] struct {
 	next    func() T
 }
 
+func (r Iterator[T]) First() Option[T] {
+	if r.HasNext() {
+		return Some(r.Next())
+	}
+	return None[T]()
+}
+
 func (r Iterator[T]) ToSeq() Seq[T] {
 	ret := Seq[T]{}
 	for r.HasNext() {

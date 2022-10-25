@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/mutable"
 )
 
 func List[T any](list fp.List[T]) fp.Iterator[T] {
@@ -149,7 +150,7 @@ func ToSet[V any](itr fp.Iterator[V], hasher fp.Hashable[V]) fp.Set[V] {
 	return ret.Build()
 }
 
-func ToGoSet[V comparable](itr fp.Iterator[V]) map[V]bool {
+func ToGoSet[V comparable](itr fp.Iterator[V]) mutable.Set[V] {
 	ret := map[V]bool{}
 	for itr.HasNext() {
 		k := itr.Next()
