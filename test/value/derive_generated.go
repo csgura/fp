@@ -9,6 +9,6 @@ var EqPerson = eq.ContraMap(eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.
 
 var EqWallet = eq.ContraMap(eq.Tuple2(EqPerson, eq.Given[int64]()), Wallet.AsTuple)
 
-func EqEntry[A any, B any](eqA fp.Eq[A], eqB fp.Eq[B]) fp.Eq[Entry[A, B]] {
+func EqEntry[A interface{ String() string }, B any](eqA fp.Eq[A], eqB fp.Eq[B]) fp.Eq[Entry[A, B]] {
 	return eq.ContraMap(eq.Tuple3(eq.String, eqA, eq.Tuple2(eqA, eqB)), Entry[A, B].AsTuple)
 }

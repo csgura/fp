@@ -693,7 +693,7 @@ func (r WalletBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, Person], fp.Tu
 	return r
 }
 
-type EntryBuilder[A any, B any] Entry[A, B]
+type EntryBuilder[A interface{ String() string }, B any] Entry[A, B]
 
 func (r EntryBuilder[A, B]) Build() Entry[A, B] {
 	return Entry[A, B](r)

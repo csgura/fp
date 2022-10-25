@@ -77,11 +77,11 @@ type Wallet struct {
 var _ eq.Derives[fp.Eq[Wallet]]
 
 // @fp.Value
-type Entry[A, B any] struct {
+type Entry[A interface{ String() string }, B any] struct {
 	name  string
 	value A
 	tuple fp.Tuple2[A, B]
 }
 
 // @fp.Derive
-var _ eq.Derives[fp.Eq[Entry[any, any]]]
+var _ eq.Derives[fp.Eq[Entry[interface{ String() string }, any]]]
