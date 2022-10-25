@@ -75,3 +75,13 @@ type Wallet struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Wallet]]
+
+// @fp.Value
+type Entry[A, B any] struct {
+	name  string
+	value A
+	tuple fp.Tuple2[A, B]
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Entry[any, any]]]

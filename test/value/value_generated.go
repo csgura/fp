@@ -692,3 +692,106 @@ func (r WalletBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, Person], fp.Tu
 	r.amount = t.I2.I2
 	return r
 }
+
+type EntryBuilder[A any, B any] Entry[A, B]
+
+func (r EntryBuilder[A, B]) Build() Entry[A, B] {
+	return Entry[A, B](r)
+}
+
+func (r Entry[A, B]) Builder() EntryBuilder[A, B] {
+	return EntryBuilder[A, B](r)
+}
+
+func (r Entry[A, B]) Name() string {
+	return r.name
+}
+
+func (r Entry[A, B]) WithName(v string) Entry[A, B] {
+	r.name = v
+	return r
+}
+
+func (r EntryBuilder[A, B]) Name(v string) EntryBuilder[A, B] {
+	r.name = v
+	return r
+}
+
+func (r Entry[A, B]) Value() A {
+	return r.value
+}
+
+func (r Entry[A, B]) WithValue(v A) Entry[A, B] {
+	r.value = v
+	return r
+}
+
+func (r EntryBuilder[A, B]) Value(v A) EntryBuilder[A, B] {
+	r.value = v
+	return r
+}
+
+func (r Entry[A, B]) Tuple() fp.Tuple2[A, B] {
+	return r.tuple
+}
+
+func (r Entry[A, B]) WithTuple(v fp.Tuple2[A, B]) Entry[A, B] {
+	r.tuple = v
+	return r
+}
+
+func (r EntryBuilder[A, B]) Tuple(v fp.Tuple2[A, B]) EntryBuilder[A, B] {
+	r.tuple = v
+	return r
+}
+
+func (r Entry[A, B]) String() string {
+	return fmt.Sprintf("Entry(name=%v, value=%v, tuple=%v)", r.name, r.value, r.tuple)
+}
+
+func (r Entry[A, B]) AsTuple() fp.Tuple3[string, A, fp.Tuple2[A, B]] {
+	return as.Tuple3(r.name, r.value, r.tuple)
+}
+
+func (r EntryBuilder[A, B]) FromTuple(t fp.Tuple3[string, A, fp.Tuple2[A, B]]) EntryBuilder[A, B] {
+	r.name = t.I1
+	r.value = t.I2
+	r.tuple = t.I3
+	return r
+}
+
+func (r Entry[A, B]) AsMap() map[string]any {
+	return map[string]any{
+		"name":  r.name,
+		"value": r.value,
+		"tuple": r.tuple,
+	}
+}
+
+func (r EntryBuilder[A, B]) FromMap(m map[string]any) EntryBuilder[A, B] {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["value"].(A); ok {
+		r.value = v
+	}
+
+	if v, ok := m["tuple"].(fp.Tuple2[A, B]); ok {
+		r.tuple = v
+	}
+
+	return r
+}
+
+func (r Entry[A, B]) AsLabelled() fp.Tuple3[fp.Tuple2[string, string], fp.Tuple2[string, A], fp.Tuple2[string, fp.Tuple2[A, B]]] {
+	return as.Tuple3(as.Tuple2("name", r.name), as.Tuple2("value", r.value), as.Tuple2("tuple", r.tuple))
+}
+
+func (r EntryBuilder[A, B]) FromLabelled(t fp.Tuple3[fp.Tuple2[string, string], fp.Tuple2[string, A], fp.Tuple2[string, fp.Tuple2[A, B]]]) EntryBuilder[A, B] {
+	r.name = t.I1.I2
+	r.value = t.I2.I2
+	r.tuple = t.I3.I2
+	return r
+}
