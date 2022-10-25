@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"text/template"
 )
@@ -178,6 +179,8 @@ type Writer interface {
 }
 
 func Generate(packname string, filename string, writeFunc func(w Writer)) {
+	os.Remove(filename)
+
 	f := &writer{packname, &bytes.Buffer{}, map[string]importAlias{}, map[string]string{}}
 
 	writeFunc(f)

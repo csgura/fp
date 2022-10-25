@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"os"
 	rf "reflect"
 	"sync/atomic"
@@ -107,6 +108,10 @@ type Point struct {
 	x int
 	y int
 	z fp.Tuple2[int, int]
+}
+
+func (r Point) String() string {
+	return fmt.Sprintf("(%d,%d)", r.x, r.y)
 }
 
 var MonoidInt = monoid.Sum[int]()

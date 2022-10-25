@@ -951,10 +951,6 @@ func (r PointBuilder) Z(v fp.Tuple2[int, int]) PointBuilder {
 	return r
 }
 
-func (r Point) String() string {
-	return fmt.Sprintf("Point(x=%v, y=%v, z=%v)", r.x, r.y, r.z)
-}
-
 func (r Point) AsTuple() fp.Tuple3[int, int, fp.Tuple2[int, int]] {
 	return as.Tuple3(r.x, r.y, r.z)
 }

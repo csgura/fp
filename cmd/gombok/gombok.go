@@ -39,6 +39,7 @@ type TypeInfo struct {
 	Type      types.Type
 	TypeArgs  fp.Seq[TypeInfo]
 	TypeParam fp.Seq[TypeParam]
+	Method    fp.Map[string, *types.Func]
 }
 
 func (r TypeInfo) IsTypeParam() bool {
@@ -101,10 +102,12 @@ func (r TypeInfo) IsTuple() bool {
 
 type ValueType struct {
 	Name      string
+	Scope     *types.Scope
 	Package   *types.Package
 	Struct    *types.Struct
 	Fields    fp.Seq[StructField]
 	TypeParam fp.Seq[TypeParam]
+	Method    fp.Map[string, *types.Func]
 }
 
 type TypeClass struct {
@@ -143,10 +146,12 @@ func lookupValueType(pk *types.Package, name string) fp.Option[ValueType] {
 
 		return option.Some(ValueType{
 			Name:      name,
+			Scope:     l.Parent(),
 			Package:   l.Pkg(),
 			Struct:    st,
 			Fields:    fl,
 			TypeParam: info.TypeParam,
+			Method:    info.Method,
 		})
 	}
 	return option.None[ValueType]()
@@ -251,10 +256,12 @@ func findValueStruct(p []*packages.Package) fp.Seq[ValueType] {
 
 							return seq.Of(ValueType{
 								Name:      ts.Name.Name,
+								Scope:     l.Parent(),
 								Package:   l.Pkg(),
 								Struct:    st,
 								Fields:    fl,
 								TypeParam: info.TypeParam,
+								Method:    info.Method,
 							})
 						}
 					}
@@ -292,11 +299,18 @@ func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {
 				}
 			}).ToSeq()
 		}
+
+		method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+			m := realtp.Method(v)
+			return as.Tuple2(m.Name(), m)
+		})
+
 		return TypeInfo{
 			Pkg:       realtp.Obj().Pkg(),
 			Type:      tpe,
 			TypeArgs:  args,
 			TypeParam: params,
+			Method:    mutable.MapOf(iterator.ToGoMap(method)),
 		}
 	case *types.Array:
 		return TypeInfo{
@@ -332,27 +346,26 @@ func privateName(name string) string {
 func genValue() {
 	pack := os.Getenv("GOPACKAGE")
 
-	cwd, _ := os.Getwd()
-
-	//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
-
-	//packages.LoadFiles()
-
-	cfg := &packages.Config{
-		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
-	}
-
-	pkgs, err := packages.Load(cfg, cwd)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	workingPackage := pkgs[0].Types
-
 	common.Generate(pack, "value_generated.go", func(w common.Writer) {
 
-		fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+		cwd, _ := os.Getwd()
+
+		//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
+
+		//packages.LoadFiles()
+
+		cfg := &packages.Config{
+			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+		}
+
+		pkgs, err := packages.Load(cfg, cwd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		workingPackage := pkgs[0].Types
+
 		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 		st := findValueStruct(pkgs)
@@ -429,13 +442,19 @@ func genValue() {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Iterator().MakeString(",")
 
-			fmt.Fprintf(w, `
+			m := v.Method.Get("String")
+
+			if m.IsEmpty() {
+				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+
+				fmt.Fprintf(w, `
 					func(r %s) String() string {
 						return %s.Sprintf("%s(%s)", %s)
 					}
 				`, valuereceiver,
-				fmtalias, v.Name, fm, fields,
-			)
+					fmtalias, v.Name, fm, fields,
+				)
+			}
 
 			tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v StructField) string {
 				return w.TypeName(workingPackage, v.Type.Type)
@@ -811,23 +830,23 @@ func (r TypeClassSummonContext) summon(t TypeInfo) string {
 func genDerive() {
 	pack := os.Getenv("GOPACKAGE")
 
-	cwd, _ := os.Getwd()
-
-	//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
-
-	//packages.LoadFiles()
-
-	cfg := &packages.Config{
-		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
-	}
-
-	pkgs, err := packages.Load(cfg, cwd)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	common.Generate(pack, "derive_generated.go", func(w common.Writer) {
+
+		cwd, _ := os.Getwd()
+
+		//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
+
+		//packages.LoadFiles()
+
+		cfg := &packages.Config{
+			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+		}
+
+		pkgs, err := packages.Load(cfg, cwd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
 		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))

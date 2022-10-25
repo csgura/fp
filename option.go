@@ -50,6 +50,15 @@ func (r Option[T]) Filter(p func(v T) bool) Option[T] {
 
 }
 
+func (r Option[T]) FilterNot(p func(v T) bool) Option[T] {
+	if r.IsDefined() {
+		if !p(r.Get()) {
+			return r
+		}
+	}
+	return None[T]()
+
+}
 func (r Option[T]) OrElse(t T) T {
 	if r.IsDefined() {
 		return r.Get()
