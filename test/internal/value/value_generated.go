@@ -1342,3 +1342,128 @@ func (r *Greeting) UnmarshalJSON(b []byte) error {
 	}
 	return err
 }
+
+type ThreeBuilder Three
+
+type ThreeMutable struct {
+	One   int
+	Two   string
+	Three float64
+}
+
+func (r ThreeBuilder) Build() Three {
+	return Three(r)
+}
+
+func (r Three) Builder() ThreeBuilder {
+	return ThreeBuilder(r)
+}
+
+func (r Three) One() int {
+	return r.one
+}
+
+func (r Three) WithOne(v int) Three {
+	r.one = v
+	return r
+}
+
+func (r ThreeBuilder) One(v int) ThreeBuilder {
+	r.one = v
+	return r
+}
+
+func (r Three) Two() string {
+	return r.two
+}
+
+func (r Three) WithTwo(v string) Three {
+	r.two = v
+	return r
+}
+
+func (r ThreeBuilder) Two(v string) ThreeBuilder {
+	r.two = v
+	return r
+}
+
+func (r Three) Three() float64 {
+	return r.three
+}
+
+func (r Three) WithThree(v float64) Three {
+	r.three = v
+	return r
+}
+
+func (r ThreeBuilder) Three(v float64) ThreeBuilder {
+	r.three = v
+	return r
+}
+
+func (r Three) String() string {
+	return fmt.Sprintf("Three(one=%v, two=%v, three=%v)", r.one, r.two, r.three)
+}
+
+func (r Three) AsTuple() fp.Tuple3[int, string, float64] {
+	return as.Tuple3(r.one, r.two, r.three)
+}
+
+func (r Three) AsMutable() ThreeMutable {
+	return ThreeMutable{
+		One:   r.one,
+		Two:   r.two,
+		Three: r.three,
+	}
+}
+
+func (r ThreeMutable) AsImmutable() Three {
+	return Three{
+		one:   r.One,
+		two:   r.Two,
+		three: r.Three,
+	}
+}
+
+func (r ThreeBuilder) FromTuple(t fp.Tuple3[int, string, float64]) ThreeBuilder {
+	r.one = t.I1
+	r.two = t.I2
+	r.three = t.I3
+	return r
+}
+
+func (r Three) AsMap() map[string]any {
+	return map[string]any{
+		"one":   r.one,
+		"two":   r.two,
+		"three": r.three,
+	}
+}
+
+func (r ThreeBuilder) FromMap(m map[string]any) ThreeBuilder {
+
+	if v, ok := m["one"].(int); ok {
+		r.one = v
+	}
+
+	if v, ok := m["two"].(string); ok {
+		r.two = v
+	}
+
+	if v, ok := m["three"].(float64); ok {
+		r.three = v
+	}
+
+	return r
+}
+
+func (r Three) AsLabelled() fp.Labelled3[int, string, float64] {
+	return as.Labelled3(as.Field("one", r.one), as.Field("two", r.two), as.Field("three", r.three))
+}
+
+func (r ThreeBuilder) FromLabelled(t fp.Labelled3[int, string, float64]) ThreeBuilder {
+	r.one = t.I1.Value
+	r.two = t.I2.Value
+	r.three = t.I3.Value
+	return r
+}

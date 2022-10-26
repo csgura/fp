@@ -3,6 +3,7 @@ package as
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/hlist"
 )
 
 func Labelled1[A1 any](ins1 fp.Field[A1]) fp.Labelled1[A1] {
@@ -319,4 +320,68 @@ func Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 		I20: ins20,
 		I21: ins21,
 	}
+}
+
+func HList1Labelled[A1 any](tuple fp.Labelled1[A1]) hlist.Cons[fp.Field[A1], hlist.Nil] {
+	return hlist.Concat(tuple.Head(), hlist.Empty())
+}
+func HList2Labelled[A1, A2 any](tuple fp.Labelled2[A1, A2]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Nil]] {
+	return hlist.Concat(tuple.Head(), HList1Labelled(tuple.Tail()))
+}
+func HList3Labelled[A1, A2, A3 any](tuple fp.Labelled3[A1, A2, A3]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Nil]]] {
+	return hlist.Concat(tuple.Head(), HList2Labelled(tuple.Tail()))
+}
+func HList4Labelled[A1, A2, A3, A4 any](tuple fp.Labelled4[A1, A2, A3, A4]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Nil]]]] {
+	return hlist.Concat(tuple.Head(), HList3Labelled(tuple.Tail()))
+}
+func HList5Labelled[A1, A2, A3, A4, A5 any](tuple fp.Labelled5[A1, A2, A3, A4, A5]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Nil]]]]] {
+	return hlist.Concat(tuple.Head(), HList4Labelled(tuple.Tail()))
+}
+func HList6Labelled[A1, A2, A3, A4, A5, A6 any](tuple fp.Labelled6[A1, A2, A3, A4, A5, A6]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Nil]]]]]] {
+	return hlist.Concat(tuple.Head(), HList5Labelled(tuple.Tail()))
+}
+func HList7Labelled[A1, A2, A3, A4, A5, A6, A7 any](tuple fp.Labelled7[A1, A2, A3, A4, A5, A6, A7]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Nil]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList6Labelled(tuple.Tail()))
+}
+func HList8Labelled[A1, A2, A3, A4, A5, A6, A7, A8 any](tuple fp.Labelled8[A1, A2, A3, A4, A5, A6, A7, A8]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Nil]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList7Labelled(tuple.Tail()))
+}
+func HList9Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](tuple fp.Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Nil]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList8Labelled(tuple.Tail()))
+}
+func HList10Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](tuple fp.Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Nil]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList9Labelled(tuple.Tail()))
+}
+func HList11Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](tuple fp.Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Nil]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList10Labelled(tuple.Tail()))
+}
+func HList12Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](tuple fp.Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Nil]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList11Labelled(tuple.Tail()))
+}
+func HList13Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](tuple fp.Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Nil]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList12Labelled(tuple.Tail()))
+}
+func HList14Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](tuple fp.Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Nil]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList13Labelled(tuple.Tail()))
+}
+func HList15Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](tuple fp.Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Nil]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList14Labelled(tuple.Tail()))
+}
+func HList16Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](tuple fp.Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Nil]]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList15Labelled(tuple.Tail()))
+}
+func HList17Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](tuple fp.Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Nil]]]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList16Labelled(tuple.Tail()))
+}
+func HList18Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](tuple fp.Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Nil]]]]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList17Labelled(tuple.Tail()))
+}
+func HList19Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](tuple fp.Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Cons[fp.Field[A19], hlist.Nil]]]]]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList18Labelled(tuple.Tail()))
+}
+func HList20Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](tuple fp.Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Cons[fp.Field[A19], hlist.Cons[fp.Field[A20], hlist.Nil]]]]]]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList19Labelled(tuple.Tail()))
+}
+func HList21Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](tuple fp.Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Cons[fp.Field[A19], hlist.Cons[fp.Field[A20], hlist.Cons[fp.Field[A21], hlist.Nil]]]]]]]]]]]]]]]]]]]]] {
+	return hlist.Concat(tuple.Head(), HList20Labelled(tuple.Tail()))
 }

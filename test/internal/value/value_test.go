@@ -71,4 +71,12 @@ func TestJson(t *testing.T) {
 	fmt.Println(string(res2))
 	assert.True(res == string(res2))
 
+	t3 := value.ThreeMutable{
+		One:   1,
+		Two:   "2",
+		Three: 3,
+	}.AsImmutable()
+
+	res = value.EncoderThree.Encode(t3)
+	fmt.Println(res)
 }

@@ -637,8 +637,59 @@ func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo])
 
 	result := list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
 
-	return option.Map(result, r.expr)
+	res := option.Map(result, r.expr)
+	if res.IsDefined() {
+		return res
+	}
 
+	list = fp.Seq[lookupTarget]{
+		{
+			name:     "HConsLabelled",
+			scope:    r.tc.PrimitiveInstancePkg.Scope(),
+			genPk:    r.tc.PrimitiveInstancePkg,
+			typeArgs: typeArgs,
+		},
+	}
+
+	result = list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
+
+	if result.IsDefined() {
+		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+		gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
+
+		hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.HNil", gpk), func(tail string, ti metafp.TypeInfo) string {
+			instance := r.summon(ti)
+			return fmt.Sprintf(`%s.HConsLabelled(%s,
+			%s)`, gpk, instance, tail)
+		})
+
+		tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
+			return r.w.TypeName(r.tc.Package, f.Type)
+		}).MakeString(",")
+
+		hlisttp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
+			return fmt.Sprintf("%s.Field[%s]", fppk, r.w.TypeName(r.tc.Package, f.Type))
+		}).MakeString(",")
+
+		if imap := r.tc.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
+			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+			ret := fmt.Sprintf(`%s.IMap(%s , 
+			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]]).ApplyLast( %s.Labelled%d[%s] ),
+			%s.HList%dLabelled[%s])`,
+				gpk, hlist,
+				aspk, hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
+				aspk, typeArgs.Size(), tp)
+
+			return option.Some(ret)
+		}
+
+		ret := fmt.Sprintf("%s.ContraMap( %s,  %s.HList%dLabelled[%s])", gpk, hlist, aspk, typeArgs.Size(), tp)
+		return option.Some(ret)
+	}
+	return option.None[string]()
 }
 
 func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) string {
@@ -818,11 +869,15 @@ func genDerive() {
 				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
+				revExpr := option.Map(labelledExpr, func(v string) string {
+					return "FromLabelled"
+				}).OrElse("FromTuple")
+
 				return fmt.Sprintf(`%s.IMap( %s, %s.Compose(
-							%s.Curried2(%s.FromTuple)(%s{}), %s.Build),  
+							%s.Curried2(%s.%s)(%s{}), %s.Build),  
 							%s.%s )`,
 					gpk, summonExpr, fppk,
-					aspk, builderreceiver, builderreceiver, builderreceiver,
+					aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
 					valuereceiver, convExpr)
 			}).OrElseGet(func() string {
 				return fmt.Sprintf(`%s.ContraMap( %s , %s.%s )`,

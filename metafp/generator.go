@@ -71,6 +71,14 @@ func FuncChain(start, until int) string {
 
 type Monad string
 
+func (r Monad) ConsType(start, until int, last string) string {
+	ret := last
+	for j := until; j >= start; j-- {
+		ret = fmt.Sprintf("hlist.Cons[%s[A%d], %s]", r, j, ret)
+	}
+	return ret
+}
+
 func (r Monad) TypeDeclArgs(start, until int, prefixOpt ...string) string {
 
 	prefix := "A"

@@ -2,6 +2,7 @@ package js
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/csgura/fp"
@@ -29,8 +30,10 @@ var String = New(func(a string) string {
 	return fmt.Sprintf(`"%s"`, a)
 })
 
-func Number[T fp.ImplicitNum](v T) string {
-	return fmt.Sprintf("%v", v)
+func Number[T fp.ImplicitNum]() Encoder[T] {
+	return New(func(a T) string {
+		return fmt.Sprintf("%v", a)
+	})
 }
 
 var Time = New(func(a time.Time) string {
@@ -50,6 +53,23 @@ func HCons[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.C
 		return heq.Encode(a.Head()) + "," + teq.Encode(a.Tail())
 	})
 }
+
+func HConsLabelled[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[fp.Field[H], T]] {
+	return New(func(a hlist.Cons[fp.Field[H], T]) string {
+		if a.Tail().IsNil() {
+			return fmt.Sprintf(`{"%s":%s}`, a.Head().Name, heq.Encode(a.Head().Value))
+		}
+		return fmt.Sprintf(`{"%s":%s,%s}`, a.Head().Name, heq.Encode(a.Head().Value),
+			strings.Trim(teq.Encode(a.Tail()), "{}"),
+		)
+	})
+}
+
+// func IMap[A, B any](instance Encoder[A], fab func(A) B, fba func(B) A) Encoder[B] {
+// 	return New(func(a B) string {
+// 		return instance.Encode(fba(a))
+// 	})
+// }
 
 func ContraMap[T, U any](instance Encoder[T], fn func(U) T) Encoder[U] {
 	return New(func(a U) string {
