@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/test/internal/hello"
 )
 
 var EqPerson = eq.ContraMap(eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Given[int](), eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes), Person.AsTuple)
@@ -21,3 +22,5 @@ var HashableKey = hash.ContraMap(hash.Tuple3(hash.Number[int](), hash.Number[flo
 var MonoidPoint = monoid.IMap(monoid.Tuple3(MonoidInt, MonoidInt, monoid.Tuple2(MonoidInt, MonoidInt)), fp.Compose(
 	as.Curried2(PointBuilder.FromTuple)(PointBuilder{}), PointBuilder.Build),
 	Point.AsTuple)
+
+var EqGreeting = eq.ContraMap(eq.Tuple2(hello.EqWorld, eq.String), Greeting.AsTuple)

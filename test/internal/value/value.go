@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/test/internal/hello"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -118,3 +119,12 @@ var MonoidInt = monoid.Sum[int]()
 
 // @fp.Derive
 var _ monoid.Derives[fp.Monoid[Point]]
+
+// @fp.Value
+type Greeting struct {
+	hello    hello.World
+	language string
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Greeting]]

@@ -7,7 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
-	"github.com/csgura/fp/test/value"
+	"github.com/csgura/fp/test/internal/value"
 )
 
 func TestBuilder(t *testing.T) {

@@ -125,10 +125,10 @@ func (r TypeClass) expr(w common.Writer, pk *types.Package) string {
 }
 
 type TypeClassDerive struct {
-	Package   *types.Package
-	Generator *types.Package
-	TypeClass TypeClass
-	DeriveFor ValueType
+	Package              *types.Package
+	PrimitiveInstancePkg *types.Package
+	TypeClass            TypeClass
+	DeriveFor            ValueType
 }
 
 func lookupValueType(pk *types.Package, name string) fp.Option[ValueType] {
@@ -194,8 +194,8 @@ func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 									vt := lookupValueType(deriveFor.Obj().Pkg(), deriveFor.Obj().Name())
 									if vt.IsDefined() {
 										return seq.Of(TypeClassDerive{
-											Package:   pk.Types,
-											Generator: nt.Obj().Pkg(),
+											Package:              pk.Types,
+											PrimitiveInstancePkg: nt.Obj().Pkg(),
 											TypeClass: TypeClass{
 												Name:    tt.Obj().Name(),
 												Package: tt.Obj().Pkg(),
@@ -485,12 +485,14 @@ func genValue() {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Iterator().Take(max.Product).MakeString(",")
 
+			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
 			fmt.Fprintf(w, `
-					func(r %s) AsTuple() fp.Tuple%d[%s] {
+					func(r %s) AsTuple() %s.Tuple%d[%s] {
 						return %s.Tuple%d(%s)
 					}
 
-				`, valuereceiver, privateFields.Size(), tp,
+				`, valuereceiver, fppkg, privateFields.Size(), tp,
 				asalias, privateFields.Size(), fields,
 			)
 
@@ -529,11 +531,11 @@ func genValue() {
 			}).Take(max.Product).MakeString("\n")
 
 			fmt.Fprintf(w, `
-					func (r %s) FromTuple(t fp.Tuple%d[%s] ) %s {
+					func (r %s) FromTuple(t %s.Tuple%d[%s] ) %s {
 						%s
 						return r
 					}
-				`, builderreceiver, privateFields.Size(), tp, builderreceiver,
+				`, builderreceiver, fppkg, privateFields.Size(), tp, builderreceiver,
 				fields,
 			)
 
@@ -574,19 +576,19 @@ func genValue() {
 			)
 
 			tp = iterator.Map(privateFields.Iterator().Take(max.Product), func(v StructField) string {
-				return fmt.Sprintf("fp.Tuple2[string,%s]", w.TypeName(workingPackage, v.Type.Type))
+				return fmt.Sprintf("%s.Tuple2[string,%s]", fppkg, w.TypeName(workingPackage, v.Type.Type))
 			}).MakeString(",")
 
 			fields = seq.Map(privateFields, func(f StructField) string {
-				return fmt.Sprintf(`as.Tuple2("%s", r.%s)`, f.Name, f.Name)
+				return fmt.Sprintf(`%s.Tuple2("%s", r.%s)`, asalias, f.Name, f.Name)
 			}).Iterator().Take(max.Product).MakeString(",")
 
 			fmt.Fprintf(w, `
-					func(r %s) AsLabelled() fp.Tuple%d[%s] {
+					func(r %s) AsLabelled() %s.Tuple%d[%s] {
 						return %s.Tuple%d(%s)
 					}
 
-				`, valuereceiver, privateFields.Size(), tp,
+				`, valuereceiver, fppkg, privateFields.Size(), tp,
 				asalias, privateFields.Size(), fields,
 			)
 
@@ -595,11 +597,11 @@ func genValue() {
 			}).Take(max.Product).MakeString("\n")
 
 			fmt.Fprintf(w, `
-					func (r %s) FromLabelled(t fp.Tuple%d[%s] ) %s {
+					func (r %s) FromLabelled(t %s.Tuple%d[%s] ) %s {
 						%s
 						return r
 					}
-				`, builderreceiver, privateFields.Size(), tp, builderreceiver,
+				`, builderreceiver, fppkg, privateFields.Size(), tp, builderreceiver,
 				fields,
 			)
 
@@ -677,42 +679,60 @@ func (r TypeClassSummonContext) lookupLocal(f TypeInfo, name string) fp.Seq[look
 	return ret
 }
 
-func (r TypeClassSummonContext) lookupGenerator(f TypeInfo, name string) fp.Seq[lookupTarget] {
+func (r TypeClassSummonContext) lookupPrimitiveInstancePkg(f TypeInfo, name string) fp.Seq[lookupTarget] {
 
 	var ret []lookupTarget
 
 	if f.Pkg != nil {
 		ret = append(ret, lookupTarget{
 			r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(name),
-			r.tc.Generator.Scope(),
+			r.tc.PrimitiveInstancePkg.Scope(),
 			f.TypeArgs,
-			r.tc.Generator,
+			r.tc.PrimitiveInstancePkg,
 			nil,
 		})
 	}
 
 	ret = append(ret, lookupTarget{
 		r.tc.TypeClass.Name + publicName(name),
-		r.tc.Generator.Scope(),
+		r.tc.PrimitiveInstancePkg.Scope(),
 		f.TypeArgs,
-		r.tc.Generator,
+		r.tc.PrimitiveInstancePkg,
 		nil,
 	})
 
 	ret = append(ret, lookupTarget{
 		publicName(name),
-		r.tc.Generator.Scope(),
+		r.tc.PrimitiveInstancePkg.Scope(),
 		f.TypeArgs,
-		r.tc.Generator,
+		r.tc.PrimitiveInstancePkg,
 		nil,
 	})
 
 	return ret
 }
 
+func (r TypeClassSummonContext) lookupDeclaredPkg(f TypeInfo, name string) fp.Seq[lookupTarget] {
+
+	var ret []lookupTarget
+
+	if f.Pkg != nil && f.Pkg.Path() != r.tc.Package.Path() {
+		ret = append(ret, lookupTarget{
+			r.tc.TypeClass.Name + publicName(name),
+			f.Pkg.Scope(),
+			f.TypeArgs,
+			f.Pkg,
+			nil,
+		})
+	}
+
+	return ret
+}
+
 func (r TypeClassSummonContext) namedLookup(f TypeInfo, name string) fp.Seq[lookupTarget] {
 	return r.lookupLocal(f, name).
-		Concat(r.lookupGenerator(f, name))
+		Concat(r.lookupDeclaredPkg(f, name)).
+		Concat(r.lookupPrimitiveInstancePkg(f, name))
 }
 
 func (r TypeClassSummonContext) expr(lt lookupTarget) string {
@@ -742,14 +762,14 @@ func (r TypeClassSummonContext) implicitTypeClassInstanceName(f TypeInfo) fp.Seq
 			if at.Obj().Name() == "Nil" {
 				return r.lookupLocal(f, "HNil").
 					Concat(r.lookupLocal(f, "HListNil")).
-					Concat(r.lookupGenerator(f, "HNil")).
-					Concat(r.lookupGenerator(f, "HListNil"))
+					Concat(r.lookupPrimitiveInstancePkg(f, "HNil")).
+					Concat(r.lookupPrimitiveInstancePkg(f, "HListNil"))
 
 			} else if at.Obj().Name() == "Cons" {
 				return r.lookupLocal(f, "HCons").
 					Concat(r.lookupLocal(f, "HListCons")).
-					Concat(r.lookupGenerator(f, "HCons")).
-					Concat(r.lookupGenerator(f, "HListCons"))
+					Concat(r.lookupPrimitiveInstancePkg(f, "HCons")).
+					Concat(r.lookupPrimitiveInstancePkg(f, "HListCons"))
 			}
 		}
 		return r.namedLookup(f, at.Obj().Name())
@@ -790,14 +810,14 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[TypeInfo]) string {
 		},
 		{
 			name:     fmt.Sprintf("%sTuple%d", r.tc.TypeClass.Name, typeArgs.Size()),
-			scope:    r.tc.Generator.Scope(),
-			genPk:    r.tc.Generator,
+			scope:    r.tc.PrimitiveInstancePkg.Scope(),
+			genPk:    r.tc.PrimitiveInstancePkg,
 			typeArgs: typeArgs,
 		},
 		{
 			name:     fmt.Sprintf("Tuple%d", typeArgs.Size()),
-			scope:    r.tc.Generator.Scope(),
-			genPk:    r.tc.Generator,
+			scope:    r.tc.PrimitiveInstancePkg.Scope(),
+			genPk:    r.tc.PrimitiveInstancePkg,
 			typeArgs: typeArgs,
 		},
 	}
@@ -810,7 +830,7 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[TypeInfo]) string {
 
 	aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-	gpk := r.w.GetImportedName(r.tc.Generator)
+	gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
 
 	hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.HNil", gpk), func(tail string, ti TypeInfo) string {
 		instance := r.summon(ti)
@@ -822,7 +842,7 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[TypeInfo]) string {
 		return r.w.TypeName(r.tc.Package, f.Type)
 	}).MakeString(",")
 
-	if imap := r.tc.Generator.Scope().Lookup("IMap"); imap != nil {
+	if imap := r.tc.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
 		hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
 		return fmt.Sprintf(`%s.IMap(%s , 
@@ -850,25 +870,25 @@ func (r TypeClassSummonContext) summon(t TypeInfo) string {
 		return r.expr(result.Get())
 	}
 
-	instance := r.tc.Generator.Scope().Lookup("Number")
+	instance := r.tc.PrimitiveInstancePkg.Scope().Lookup("Number")
 	if instance != nil {
 		if _, ok := instance.Type().(*types.Signature); ok {
 			ctx := types.NewContext()
 			_, err := types.Instantiate(ctx, instance.Type(), []types.Type{t.Type}, true)
 			if err == nil {
-				gpk := r.w.GetImportedName(r.tc.Generator)
+				gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
 				return fmt.Sprintf("%s.Number[%s]()", gpk, r.w.TypeName(r.tc.Package, t.Type))
 			}
 		}
 	}
 
-	instance = r.tc.Generator.Scope().Lookup("Given")
+	instance = r.tc.PrimitiveInstancePkg.Scope().Lookup("Given")
 	if instance != nil {
 		if _, ok := instance.Type().(*types.Signature); ok {
 			ctx := types.NewContext()
 			_, err := types.Instantiate(ctx, instance.Type(), []types.Type{t.Type}, true)
 			if err == nil {
-				gpk := r.w.GetImportedName(r.tc.Generator)
+				gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
 				return fmt.Sprintf("%s.Given[%s]()", gpk, r.w.TypeName(r.tc.Package, t.Type))
 			}
 		}
@@ -916,7 +936,7 @@ func genDerive() {
 			//fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
 			privateFields := v.DeriveFor.Fields.FilterNot(StructField.Public)
 
-			gpk := w.GetImportedName(v.Generator)
+			gpk := w.GetImportedName(v.PrimitiveInstancePkg)
 
 			typeArgs := seq.Map(privateFields, func(v StructField) TypeInfo {
 				return v.Type
@@ -945,7 +965,7 @@ func genDerive() {
 					return fmt.Sprintf("%s%s %s[%s] ", privateName(v.TypeClass.Name), p.Name, tcname, p.Name)
 				}).MakeString(",")
 
-				if imap := v.Generator.Scope().Lookup("IMap"); imap != nil {
+				if imap := v.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
 					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 					fmt.Fprintf(w, `
@@ -968,7 +988,7 @@ func genDerive() {
 					)
 				}
 			} else {
-				if imap := v.Generator.Scope().Lookup("IMap"); imap != nil {
+				if imap := v.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
 					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 					fmt.Fprintf(w, `

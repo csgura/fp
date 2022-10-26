@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/test/internal/hello"
 	"os"
 	"reflect"
 	"sync/atomic"
@@ -1197,5 +1198,106 @@ func (r PointBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2
 	r.x = t.I1.I2
 	r.y = t.I2.I2
 	r.z = t.I3.I2
+	return r
+}
+
+type GreetingBuilder Greeting
+
+type GreetingMutable struct {
+	Hello    hello.World
+	Language string
+}
+
+func (r GreetingBuilder) Build() Greeting {
+	return Greeting(r)
+}
+
+func (r Greeting) Builder() GreetingBuilder {
+	return GreetingBuilder(r)
+}
+
+func (r Greeting) Hello() hello.World {
+	return r.hello
+}
+
+func (r Greeting) WithHello(v hello.World) Greeting {
+	r.hello = v
+	return r
+}
+
+func (r GreetingBuilder) Hello(v hello.World) GreetingBuilder {
+	r.hello = v
+	return r
+}
+
+func (r Greeting) Language() string {
+	return r.language
+}
+
+func (r Greeting) WithLanguage(v string) Greeting {
+	r.language = v
+	return r
+}
+
+func (r GreetingBuilder) Language(v string) GreetingBuilder {
+	r.language = v
+	return r
+}
+
+func (r Greeting) String() string {
+	return fmt.Sprintf("Greeting(hello=%v, language=%v)", r.hello, r.language)
+}
+
+func (r Greeting) AsTuple() fp.Tuple2[hello.World, string] {
+	return as.Tuple2(r.hello, r.language)
+}
+
+func (r Greeting) AsMutable() GreetingMutable {
+	return GreetingMutable{
+		Hello:    r.hello,
+		Language: r.language,
+	}
+}
+
+func (r GreetingMutable) AsImmutable() Greeting {
+	return Greeting{
+		hello:    r.Hello,
+		language: r.Language,
+	}
+}
+
+func (r GreetingBuilder) FromTuple(t fp.Tuple2[hello.World, string]) GreetingBuilder {
+	r.hello = t.I1
+	r.language = t.I2
+	return r
+}
+
+func (r Greeting) AsMap() map[string]any {
+	return map[string]any{
+		"hello":    r.hello,
+		"language": r.language,
+	}
+}
+
+func (r GreetingBuilder) FromMap(m map[string]any) GreetingBuilder {
+
+	if v, ok := m["hello"].(hello.World); ok {
+		r.hello = v
+	}
+
+	if v, ok := m["language"].(string); ok {
+		r.language = v
+	}
+
+	return r
+}
+
+func (r Greeting) AsLabelled() fp.Tuple2[fp.Tuple2[string, hello.World], fp.Tuple2[string, string]] {
+	return as.Tuple2(as.Tuple2("hello", r.hello), as.Tuple2("language", r.language))
+}
+
+func (r GreetingBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, hello.World], fp.Tuple2[string, string]]) GreetingBuilder {
+	r.hello = t.I1.I2
+	r.language = t.I2.I2
 	return r
 }
