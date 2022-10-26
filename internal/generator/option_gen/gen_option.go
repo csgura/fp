@@ -3,26 +3,11 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"go/format"
-	"io"
-	"io/ioutil"
-	"log"
-	"strings"
+	"go/types"
 
-	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
+	"github.com/csgura/fp/metafp"
 )
-
-func typeArgs(start, until int) string {
-	f := &bytes.Buffer{}
-	for j := start; j <= until; j++ {
-		if j != start {
-			fmt.Fprintf(f, ", ")
-		}
-		fmt.Fprintf(f, "A%d", j)
-	}
-	return f.String()
-}
 
 func flipTypeArgs(start, until int) string {
 	f := &bytes.Buffer{}
@@ -42,50 +27,11 @@ func flipTypeArgs(start, until int) string {
 	return f.String()
 }
 
-func curriedType(start, until int) string {
-	f := &bytes.Buffer{}
-	endBracket := ""
-	for j := start; j <= until; j++ {
-		fmt.Fprintf(f, "fp.Func1[A%d, ", j)
-		endBracket = endBracket + "]"
-	}
-	fmt.Fprintf(f, "R%s", endBracket)
-
-	return f.String()
-}
-
-func generate(packname string, filename string, writeFunc func(w io.Writer)) {
-	f := &bytes.Buffer{}
-
-	fmt.Fprintf(f, "package %s\n\n", packname)
-	writeFunc(f)
-
-	formatted, err := format.Source(f.Bytes())
-	if err != nil {
-		lines := strings.Split(f.String(), "\n")
-		for i := range lines {
-			lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
-		}
-		log.Print(strings.Join(lines, "\n"))
-		log.Fatal("format error ", err)
-
-		return
-	}
-
-	err = ioutil.WriteFile(filename, formatted, 0644)
-	if err != nil {
-		return
-	}
-}
-
 func main() {
-	generate("option", "applicative_gen.go", func(f io.Writer) {
-		fmt.Fprintln(f, `
-import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/curried"
-	"github.com/csgura/fp/hlist"
-)`)
+	metafp.Generate("option", "applicative_gen.go", func(f metafp.Writer) {
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/curried", "curried"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
 		for i := 2; i < max.Func; i++ {
 			fmt.Fprintf(f, "type MonadChain%d [H hlist.Header[HT], HT ", i)
@@ -129,7 +75,7 @@ import (
 	}
 
 }
-`, i, flipTypeArgs(1, i), curriedType(3, i))
+`, i, flipTypeArgs(1, i), metafp.CurriedType(3, i, "R"))
 			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
@@ -235,8 +181,8 @@ import (
 
 			fmt.Fprintf(f, "}\n")
 
-			typeparams := fmt.Sprintf("[%s,R]", common.FuncTypeArgs(1, i))
-			nexttp := fmt.Sprintf("[%s,R]", common.FuncTypeArgs(2, i))
+			typeparams := fmt.Sprintf("[%s,R]", metafp.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[%s,R]", metafp.FuncTypeArgs(2, i))
 
 			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d%s)", i, typeparams)
 
@@ -292,7 +238,7 @@ import (
 
 	})
 
-	generate("option", "func_gen.go", func(f io.Writer) {
+	metafp.Generate("option", "func_gen.go", func(f metafp.Writer) {
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
@@ -310,11 +256,11 @@ import (
 						})
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Option"),
-				common.FuncDeclTypeClassArgs(1, i, "fp.Option"),
-				i-1, common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
-				common.FuncCallArgs(2, i, "ins"),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Option"),
+				metafp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
+				i-1, metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
+				metafp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -328,11 +274,11 @@ import (
 						})
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Option"),
-				common.FuncDeclTypeClassArgs(1, i, "fp.Option"),
-				i-1, common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
-				common.FuncCallArgs(2, i, "ins"),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Option"),
+				metafp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
+				i-1, metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
+				metafp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -341,8 +287,8 @@ import (
 						return Flap%d(Ap(tf, Some(a1)))
 					}
 				}
-			`, i, typeArgs(1, i), curriedType(1, i), common.CurriedType(1, i, "fp.Option[R]"),
-				common.CurriedType(2, i, "fp.Option[R]"),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.CurriedType(1, i, "R"), metafp.CurriedType(1, i, "fp.Option[R]"),
+				metafp.CurriedType(2, i, "fp.Option[R]"),
 				i-1,
 			)
 
@@ -354,9 +300,9 @@ import (
 						})
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
-				common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
+				metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
 			)
 
 			fmt.Fprintf(f, `
@@ -367,9 +313,9 @@ import (
 						})
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
-				common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
+				metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
 			)
 		}
 
@@ -378,7 +324,7 @@ import (
 func Compose%d[%s,R any] ( %s ) fp.Func1[A1,fp.Option[R]] {
 	return Compose2(f1, Compose%d(%s))
 }
-			`, i, common.FuncTypeArgs(1, i), common.Monad("fp.Option").FuncChain(1, i), i-1, common.Args("f").Call(2, i))
+			`, i, metafp.FuncTypeArgs(1, i), metafp.Monad("fp.Option").FuncChain(1, i), i-1, metafp.Args("f").Call(2, i))
 		}
 	})
 }

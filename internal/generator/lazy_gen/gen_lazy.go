@@ -1,18 +1,13 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
+	"github.com/csgura/fp/metafp"
 )
 
 func main() {
 
-	common.Generate("lazy", "tailcall_gen.go", func(f common.Writer) {
-		fmt.Fprintln(f, `
-import (
-)`)
+	metafp.Generate("lazy", "tailcall_gen.go", func(f metafp.Writer) {
 
 		f.Iteration(1, max.Func).Write(`
 func TailCall{{.N}}[{{TypeArgs 1 .N}}, R any]( f func({{TypeArgs 1 .N}}) Eval[R], {{DeclArgs 1 .N}} ) Eval[R] {

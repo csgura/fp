@@ -3,46 +3,11 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"go/format"
-	"io"
-	"io/ioutil"
-	"log"
+	"go/types"
 
-	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
+	"github.com/csgura/fp/metafp"
 )
-
-func generate(packname string, filename string, writeFunc func(w io.Writer)) {
-	f := &bytes.Buffer{}
-
-	fmt.Fprintf(f, "package %s\n\n", packname)
-	writeFunc(f)
-
-	formatted, err := format.Source(f.Bytes())
-	if err != nil {
-		log.Print(f.String())
-		log.Fatal("format error ", err)
-
-		return
-	}
-
-	err = ioutil.WriteFile(filename, formatted, 0644)
-	if err != nil {
-		return
-	}
-}
-
-func curriedType(start, until int) string {
-	f := &bytes.Buffer{}
-	endBracket := ""
-	for j := start; j <= until; j++ {
-		fmt.Fprintf(f, "fp.Func1[A%d, ", j)
-		endBracket = endBracket + "]"
-	}
-	fmt.Fprintf(f, "R%s", endBracket)
-
-	return f.String()
-}
 
 func flipTypeArgs(start, until int) string {
 	f := &bytes.Buffer{}
@@ -62,76 +27,12 @@ func flipTypeArgs(start, until int) string {
 	return f.String()
 }
 
-func typeArgs(start, until int) string {
-	f := &bytes.Buffer{}
-	for j := start; j <= until; j++ {
-		if j != start {
-			fmt.Fprintf(f, ", ")
-		}
-		fmt.Fprintf(f, "A%d", j)
-	}
-	return f.String()
-}
-
-func funcDeclArgs(start, until int) string {
-	f := &bytes.Buffer{}
-	for j := start; j <= until; j++ {
-		if j != start {
-			fmt.Fprintf(f, ", ")
-		}
-		fmt.Fprintf(f, "a%d A%d", j, j)
-	}
-	return f.String()
-}
-
-func funcCallArgs(start, until int) string {
-	f := &bytes.Buffer{}
-	for j := start; j <= until; j++ {
-		if j != start {
-			fmt.Fprintf(f, ", ")
-		}
-		fmt.Fprintf(f, "a%d", j)
-	}
-	return f.String()
-}
-
-func reverseFuncCallArgs(start, until int) string {
-	f := &bytes.Buffer{}
-	for j := until; j >= start; j-- {
-		if j != until {
-			fmt.Fprintf(f, ", ")
-		}
-		fmt.Fprintf(f, "a%d", j)
-	}
-	return f.String()
-}
-
-func reversConsType(start, until int) string {
-	ret := "Nil"
-	for j := start; j <= until; j++ {
-		ret = fmt.Sprintf("Cons[A%d, %s]", j, ret)
-	}
-	return ret
-}
-
-func consType(start, until int, last string) string {
-	ret := last
-	for j := until; j >= start; j-- {
-		ret = fmt.Sprintf("Cons[A%d, %s]", j, ret)
-	}
-	return ret
-}
-
 func main() {
 
-	generate("future", "applicative_gen.go", func(f io.Writer) {
-
-		fmt.Fprintln(f, `
-import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/curried"
-	"github.com/csgura/fp/hlist"
-)`)
+	metafp.Generate("future", "applicative_gen.go", func(f metafp.Writer) {
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/curried", "curried"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
 		for i := 2; i < max.Func; i++ {
 
@@ -142,12 +43,12 @@ type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 }
 `,
 				i,
-				typeArgs(1, i),
-				curriedType(1, i),
+				metafp.FuncTypeArgs(1, i),
+				metafp.CurriedType(1, i, "R"),
 			)
 
-			receiver := fmt.Sprintf("func (r MonadChain%d[H,HT,%s,R])", i, typeArgs(1, i))
-			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", typeArgs(1, i))
+			receiver := fmt.Sprintf("func (r MonadChain%d[H,HT,%s,R])", i, metafp.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", metafp.FuncTypeArgs(1, i))
 
 			if i < max.Flip {
 
@@ -159,7 +60,7 @@ type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 	}
 
 }
-`, i, flipTypeArgs(1, i), curriedType(3, i))
+`, i, flipTypeArgs(1, i), metafp.CurriedType(3, i, "R"))
 			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Future[A1], ctx ...fp.Executor) MonadChain%d%s {\n", receiver, i-1, nexttp)
@@ -251,8 +152,8 @@ type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApFuture(av)
 }`)
 
-			fmt.Fprintf(f, "func Chain%d[%s , R any](fn fp.Func%d[%s,R]) MonadChain%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
-			fmt.Fprintf(f, "    return MonadChain%d[hlist.Nil, hlist.Nil, %s,R]{Successful(hlist.Empty()), Successful(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
+			fmt.Fprintf(f, "func Chain%d[%s , R any](fn fp.Func%d[%s,R]) MonadChain%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "    return MonadChain%d[hlist.Nil, hlist.Nil, %s,R]{Successful(hlist.Empty()), Successful(curried.Func%d(fn))}\n", i, metafp.FuncTypeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")
 		}
 
@@ -264,12 +165,12 @@ type ApplicativeFunctor%d [%s , R any] struct {
 }
 `,
 				i,
-				typeArgs(1, i),
-				curriedType(1, i),
+				metafp.FuncTypeArgs(1, i),
+				metafp.CurriedType(1, i, "R"),
 			)
 
-			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[%s,R])", i, typeArgs(1, i))
-			nexttp := fmt.Sprintf("[%s, R]", typeArgs(2, i))
+			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[%s,R])", i, metafp.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[%s, R]", metafp.FuncTypeArgs(2, i))
 
 			if i < max.Flip {
 
@@ -281,7 +182,7 @@ type ApplicativeFunctor%d [%s , R any] struct {
 	}
 
 }
-`, i, flipTypeArgs(1, i), curriedType(3, i))
+`, i, flipTypeArgs(1, i), metafp.CurriedType(3, i, "R"))
 			}
 
 			fmt.Fprintf(f, "%s ApFuture( a fp.Future[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
@@ -337,14 +238,14 @@ type ApplicativeFunctor%d [%s , R any] struct {
 	}, ctx...)
 }`)
 
-			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[%s,R] {\n", i, typeArgs(1, i), i, typeArgs(1, i), i, typeArgs(1, i))
-			fmt.Fprintf(f, "    return ApplicativeFunctor%d[%s,R]{Successful(curried.Func%d(fn))}\n", i, typeArgs(1, i), i)
+			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[%s,R] {\n", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "    return ApplicativeFunctor%d[%s,R]{Successful(curried.Func%d(fn))}\n", i, metafp.FuncTypeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")
 		}
 
 	})
 
-	generate("future", "func_gen.go", func(f io.Writer) {
+	metafp.Generate("future", "func_gen.go", func(f metafp.Writer) {
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
@@ -362,11 +263,11 @@ import (
 						}, exec...)
 					}
 				}
-			`, i, typeArgs(1, i), funcDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Future"),
-				common.FuncDeclTypeClassArgs(1, i, "fp.Future"),
-				i-1, funcDeclArgs(2, i),
-				funcCallArgs(1, i),
-				common.FuncCallArgs(2, i, "ins"),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Future"),
+				metafp.FuncDeclTypeClassArgs(1, i, "fp.Future"),
+				i-1, metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
+				metafp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -380,11 +281,11 @@ import (
 						}, exec...)
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i, common.TypeClassArgs(1, i, "fp.Future"),
-				common.FuncDeclTypeClassArgs(1, i, "fp.Future"),
-				i-1, common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
-				common.FuncCallArgs(2, i, "ins"),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Future"),
+				metafp.FuncDeclTypeClassArgs(1, i, "fp.Future"),
+				i-1, metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
+				metafp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -393,8 +294,8 @@ import (
 						return Flap%d(Ap(tf, Successful(a1)), exec...)
 					}
 				}
-			`, i, typeArgs(1, i), curriedType(1, i), common.CurriedType(1, i, "fp.Future[R]"),
-				common.CurriedType(2, i, "fp.Future[R]"),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.CurriedType(1, i, "R"), metafp.CurriedType(1, i, "fp.Future[R]"),
+				metafp.CurriedType(2, i, "fp.Future[R]"),
 				i-1,
 			)
 
@@ -406,9 +307,9 @@ import (
 						},exec...)
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
-				common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
+				metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
 			)
 
 			fmt.Fprintf(f, `
@@ -419,9 +320,9 @@ import (
 						}, exec...)
 					}
 				}
-			`, i, typeArgs(1, i), common.FuncDeclArgs(1, i), i-1, typeArgs(2, i),
-				common.FuncDeclArgs(2, i),
-				common.FuncCallArgs(1, i),
+			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
+				metafp.FuncDeclArgs(2, i),
+				metafp.FuncCallArgs(1, i),
 			)
 
 		}
@@ -435,7 +336,7 @@ func Func%d[%s,R any]( f func(%s) (R,error) , exec ... fp.Executor) fp.Func%d[%s
 		})
 	}
 }
-`, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
+`, i, metafp.FuncTypeArgs(1, i), metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), metafp.FuncCallArgs(1, i))
 
 			fmt.Fprintf(f, `
 func Unit%d[%s any]( f func(%s) (error) , exec ... fp.Executor) fp.Func%d[%s,fp.Future[fp.Unit]] {
@@ -446,7 +347,7 @@ func Unit%d[%s any]( f func(%s) (error) , exec ... fp.Executor) fp.Func%d[%s,fp.
 		})
 	}
 }
-`, i, typeArgs(1, i), typeArgs(1, i), i, typeArgs(1, i), funcDeclArgs(1, i), funcCallArgs(1, i))
+`, i, metafp.FuncTypeArgs(1, i), metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), metafp.FuncCallArgs(1, i))
 
 		}
 
@@ -455,7 +356,7 @@ func Unit%d[%s any]( f func(%s) (error) , exec ... fp.Executor) fp.Func%d[%s,fp.
 func Compose%d[%s,R any] ( %s , exec ...fp.Executor ) fp.Func1[A1,fp.Future[R]] {
 	return Compose2(f1, Compose%d(%s, exec...), exec...)
 }
-			`, i, common.FuncTypeArgs(1, i), common.Monad("fp.Future").FuncChain(1, i), i-1, common.Args("f").Call(2, i))
+			`, i, metafp.FuncTypeArgs(1, i), metafp.Monad("fp.Future").FuncChain(1, i), i-1, metafp.Args("f").Call(2, i))
 		}
 
 	})

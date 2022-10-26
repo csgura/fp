@@ -1,7 +1,5 @@
 package lazy
 
-import ()
-
 func TailCall1[A1, R any](f func(A1) Eval[R], a1 A1) Eval[R] {
 	return TailCall(func() Eval[R] {
 		return f(a1)

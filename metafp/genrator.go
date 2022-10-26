@@ -1,4 +1,4 @@
-package common
+package metafp
 
 import (
 	"bytes"
@@ -13,13 +13,57 @@ import (
 	"text/template"
 )
 
-func FuncTypeArgs(start, until int) string {
+var OrdinalName = []string{
+	"Zero",
+	"First",
+	"Second",
+	"Third",
+	"Fourth",
+	"Fifth",
+	"Sixth",
+	"Seventh",
+	"Eighth",
+	"Ninth",
+	"Tenth",
+}
+
+func FormatStr(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ",")
+		}
+		fmt.Fprintf(f, "%s", "%v")
+	}
+	return f.String()
+}
+
+func TypeArgs(prefix string, start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
 		if j != start {
 			fmt.Fprintf(f, ", ")
 		}
-		fmt.Fprintf(f, "A%d", j)
+		fmt.Fprintf(f, "%s%d", prefix, j)
+	}
+	return f.String()
+}
+
+func FuncTypeArgs(start, until int) string {
+	return TypeArgs("A", start, until)
+}
+
+func FuncChain(start, until int) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		if j == until {
+			fmt.Fprintf(f, "f%d Func1[A%d,R]", j, j)
+		} else {
+			fmt.Fprintf(f, "f%d Func1[A%d,A%d]", j, j, j+1)
+		}
 	}
 	return f.String()
 }
@@ -222,6 +266,22 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 	}
 }
 
+func ConsType(start, until int, last string) string {
+	ret := last
+	for j := until; j >= start; j-- {
+		ret = fmt.Sprintf("hlist.Cons[A%d, %s]", j, ret)
+	}
+	return ret
+}
+
+func ReversConsType(start, until int) string {
+	ret := "Nil"
+	for j := start; j <= until; j++ {
+		ret = fmt.Sprintf("hlist.Cons[A%d, %s]", j, ret)
+	}
+	return ret
+}
+
 func FuncDeclArgs(start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
@@ -245,6 +305,36 @@ func FuncCallArgs(start, until int, prefixOpt ...string) string {
 			fmt.Fprintf(f, ", ")
 		}
 		fmt.Fprintf(f, "%s%d", prefix, j)
+	}
+	return f.String()
+}
+
+func ReverseFuncCallArgs(start, until int, prefixOpt ...string) string {
+	prefix := "a"
+	if len(prefixOpt) > 0 {
+		prefix = prefixOpt[0]
+	}
+
+	f := &bytes.Buffer{}
+	for j := until; j >= start; j-- {
+		if j != until {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "%s%d", prefix, j)
+	}
+	return f.String()
+}
+
+func CurriedCallArgs(start, until int, prefixOpt ...string) string {
+	prefix := "a"
+	if len(prefixOpt) > 0 {
+		prefix = prefixOpt[0]
+	}
+
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+
+		fmt.Fprintf(f, "(%s%d)", prefix, j)
 	}
 	return f.String()
 }

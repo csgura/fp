@@ -10,9 +10,9 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
@@ -116,7 +116,7 @@ type TypeClass struct {
 	Package *types.Package
 }
 
-func (r TypeClass) expr(w common.Writer, pk *types.Package) string {
+func (r TypeClass) expr(w metafp.Writer, pk *types.Package) string {
 	if r.Package != nil && r.Package.Path() != pk.Path() {
 		pk := w.GetImportedName(r.Package)
 		return fmt.Sprintf("%s.%s", pk, r.Name)
@@ -350,7 +350,7 @@ func privateName(name string) string {
 func genValue() {
 	pack := os.Getenv("GOPACKAGE")
 
-	common.Generate(pack, "value_generated.go", func(w common.Writer) {
+	metafp.Generate(pack, "value_generated.go", func(w metafp.Writer) {
 
 		cwd, _ := os.Getwd()
 
@@ -638,7 +638,7 @@ func (r lookupTarget) available(genSet mutable.Set[string]) bool {
 	return false
 }
 
-func (r lookupTarget) instanceExpr(w common.Writer) string {
+func (r lookupTarget) instanceExpr(w metafp.Writer) string {
 	if r.genPk != nil {
 
 		if r.tc != nil {
@@ -795,7 +795,7 @@ func (r TypeClassSummonContext) implicitTypeClassInstanceName(f TypeInfo) fp.Seq
 }
 
 type TypeClassSummonContext struct {
-	w      common.Writer
+	w      metafp.Writer
 	tc     TypeClassDerive
 	genSet mutable.Set[string]
 }
@@ -901,7 +901,7 @@ func (r TypeClassSummonContext) summon(t TypeInfo) string {
 func genDerive() {
 	pack := os.Getenv("GOPACKAGE")
 
-	common.Generate(pack, "derive_generated.go", func(w common.Writer) {
+	metafp.Generate(pack, "derive_generated.go", func(w metafp.Writer) {
 
 		cwd, _ := os.Getwd()
 

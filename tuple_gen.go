@@ -2,7 +2,6 @@ package fp
 
 import (
 	"fmt"
-	//	"github.com/csgura/fp/hlist"
 )
 
 type Tuple2[T1, T2 any] struct {

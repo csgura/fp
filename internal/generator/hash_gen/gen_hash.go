@@ -1,20 +1,17 @@
 package main
 
 import (
-	"fmt"
+	"go/types"
 
-	"github.com/csgura/fp/internal/generator/common"
 	"github.com/csgura/fp/internal/max"
+	"github.com/csgura/fp/metafp"
 )
 
 func main() {
 
-	common.Generate("hash", "tuple_gen.go", func(f common.Writer) {
-		fmt.Fprintln(f, `
-import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/eq"
-)`)
+	metafp.Generate("hash", "tuple_gen.go", func(f metafp.Writer) {
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/eq", "eq"))
 
 		f.Iteration(2, max.Product).Write(`
 func Tuple{{.N}}[{{TypeArgs 1 .N}} any]( {{DeclTypeClassArgs 1 .N "fp.Hashable"}} ) fp.Hashable[fp.{{TupleType .N}}] {
