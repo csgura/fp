@@ -2,17 +2,19 @@
 package hello
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"net/http"
 	"time"
 )
 
 type WorldBuilder World
 
 type WorldMutable struct {
-	Message   string
-	Timestamp time.Time
+	Message   string    `json:"message"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 func (r WorldBuilder) Build() World {
@@ -107,4 +109,21 @@ func (r WorldBuilder) FromLabelled(t fp.Labelled2[string, time.Time]) WorldBuild
 	r.message = t.I1.Value
 	r.timestamp = t.I2.Value
 	return r
+}
+
+func (r World) MarshalJSON() ([]byte, error) {
+	m := r.AsMutable()
+	return json.Marshal(m)
+}
+
+func (r *World) UnmarshalJSON(b []byte) error {
+	if r == nil {
+		return fp.Error(http.StatusBadRequest, "target ptr is nil")
+	}
+	m := r.AsMutable()
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		*r = m.AsImmutable()
+	}
+	return err
 }

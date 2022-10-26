@@ -2,11 +2,13 @@
 package value
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/test/internal/hello"
+	"net/http"
 	"os"
 	"reflect"
 	"sync/atomic"
@@ -93,7 +95,7 @@ type HelloBuilder Hello
 
 type HelloMutable struct {
 	World string `json:"world"`
-	Hi    int    `json:"hi"`
+	Hi    int    `bson:"hi" json:"hi"`
 }
 
 func (r HelloBuilder) Build() Hello {
@@ -1205,8 +1207,8 @@ func (r PointBuilder) FromLabelled(t fp.Labelled3[int, int, fp.Tuple2[int, int]]
 type GreetingBuilder Greeting
 
 type GreetingMutable struct {
-	Hello    hello.World
-	Language string
+	Hello    hello.World `json:"hello"`
+	Language string      `json:"language"`
 }
 
 func (r GreetingBuilder) Build() Greeting {
@@ -1301,4 +1303,21 @@ func (r GreetingBuilder) FromLabelled(t fp.Labelled2[hello.World, string]) Greet
 	r.hello = t.I1.Value
 	r.language = t.I2.Value
 	return r
+}
+
+func (r Greeting) MarshalJSON() ([]byte, error) {
+	m := r.AsMutable()
+	return json.Marshal(m)
+}
+
+func (r *Greeting) UnmarshalJSON(b []byte) error {
+	if r == nil {
+		return fp.Error(http.StatusBadRequest, "target ptr is nil")
+	}
+	m := r.AsMutable()
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		*r = m.AsImmutable()
+	}
+	return err
 }

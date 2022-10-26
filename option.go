@@ -65,6 +65,14 @@ func (r Option[T]) OrElse(t T) T {
 	}
 	return t
 }
+
+func (r Option[T]) OrZero() T {
+	return r.OrElseGet(func() T {
+		var zero T
+		return zero
+	})
+}
+
 func (r Option[T]) OrElseGet(f func() T) T {
 	if r.IsDefined() {
 		return r.Get()

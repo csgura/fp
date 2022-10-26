@@ -25,3 +25,15 @@ func IsNil(a any) {
 		panic(fmt.Sprintf("expected nil , actual %v", a))
 	}
 }
+
+func Success(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func Error(err error) {
+	if err == nil {
+		panic("expected error")
+	}
+}

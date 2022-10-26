@@ -11,6 +11,7 @@ import (
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Value
+// @fp.Json
 type World struct {
 	message   string
 	timestamp time.Time

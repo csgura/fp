@@ -19,9 +19,10 @@ import (
 type (
 	// Hello is hello
 	// @fp.Value
+	// @fp.JsonTag
 	Hello struct { // Hello
-		world string `json:"world"`
-		hi    int    `json:"hi"`
+		world string
+		hi    int `bson:"hi"`
 	}
 )
 
@@ -125,6 +126,7 @@ var MonoidInt = monoid.Sum[int]()
 var _ monoid.Derives[fp.Monoid[Point]]
 
 // @fp.Value
+// @fp.Json
 type Greeting struct {
 	hello    hello.World
 	language string

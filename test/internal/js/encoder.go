@@ -69,7 +69,7 @@ func Labelled2[A1, A2 any](ins1 Encoder[A1], ins2 Encoder[A2]) Encoder[fp.Labell
 
 	return New(
 		func(a fp.Labelled2[A1, A2]) string {
-			return fmt.Sprintf(`{"%s" : %s, "%s" : %s}`,
+			return fmt.Sprintf(`{"%s":%s,"%s":%s}`,
 				a.I1.Name, ins1.Encode(a.I1.Value),
 				a.I2.Name, ins2.Encode(a.I2.Value),
 			)

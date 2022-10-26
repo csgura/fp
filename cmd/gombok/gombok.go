@@ -135,31 +135,39 @@ func genValue() {
 
 		st := metafp.FindTaggedStruct(pkgs, "@fp.Value")
 
-		st.Foreach(func(v metafp.TaggedStruct) {
+		st.Foreach(func(ts metafp.TaggedStruct) {
 
 			valuetpdec := ""
 			valuetp := ""
-			if len(v.Info.TypeParam) > 0 {
-				valuetpdec = "[" + v.Info.TypeParamDecl(w, workingPackage) + "]"
-				valuetp = "[" + v.Info.TypeParamIns(w, workingPackage) + "]"
+			if len(ts.Info.TypeParam) > 0 {
+				valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
+				valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
 			}
 
-			builderType := fmt.Sprintf("%sBuilder%s", v.Name, valuetpdec)
-			mutableType := fmt.Sprintf("%sMutable%s", v.Name, valuetpdec)
+			builderType := fmt.Sprintf("%sBuilder%s", ts.Name, valuetpdec)
+			mutableType := fmt.Sprintf("%sMutable%s", ts.Name, valuetpdec)
 
 			//valueType := fmt.Sprintf("%s%s", v.Name, valuetpdec)
 
-			valuereceiver := fmt.Sprintf("%s%s", v.Name, valuetp)
-			builderreceiver := fmt.Sprintf("%sBuilder%s", v.Name, valuetp)
-			mutablereceiver := fmt.Sprintf("%sMutable%s", v.Name, valuetp)
+			valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+			builderreceiver := fmt.Sprintf("%sBuilder%s", ts.Name, valuetp)
+			mutablereceiver := fmt.Sprintf("%sMutable%s", ts.Name, valuetp)
 
 			fmt.Fprintf(w, `
 				type %s %s
 			`, builderType, valuereceiver)
 
-			mutableFields := iterator.Map(v.Fields.Iterator(), func(v metafp.StructField) string {
-				if v.Tag != "" {
-					return fmt.Sprintf("%s %s `%s`", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type), v.Tag)
+			mutableFields := iterator.Map(ts.Fields.Iterator(), func(v metafp.StructField) string {
+				tag := v.Tag
+
+				if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
+					if tag != "" {
+						tag = tag + " "
+					}
+					tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
+				}
+				if tag != "" {
+					return fmt.Sprintf("%s %s `%s`", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type), tag)
 				} else {
 					return fmt.Sprintf("%s %s", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
 
@@ -183,7 +191,7 @@ func genValue() {
 				}
 			`, valuereceiver, builderreceiver, builderreceiver)
 
-			privateFields := v.Fields.FilterNot(metafp.StructField.Public)
+			privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 			privateFields.Foreach(func(f metafp.StructField) {
 
 				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
@@ -218,7 +226,7 @@ func genValue() {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Iterator().MakeString(",")
 
-			m := v.Info.Method.Get("String")
+			m := ts.Info.Method.Get("String")
 
 			if m.IsEmpty() {
 				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
@@ -228,7 +236,7 @@ func genValue() {
 						return %s.Sprintf("%s(%s)", %s)
 					}
 				`, valuereceiver,
-					fmtalias, v.Name, fm, fields,
+					fmtalias, ts.Name, fm, fields,
 				)
 			}
 
@@ -266,7 +274,7 @@ func genValue() {
 				mutablereceiver, fields,
 			)
 
-			fields = seq.Map(v.Fields, func(f metafp.StructField) string {
+			fields = seq.Map(ts.Fields, func(f metafp.StructField) string {
 				return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
 			}).Iterator().Take(max.Product).MakeString(",\n")
 
@@ -359,6 +367,36 @@ func genValue() {
 				`, builderreceiver, fppkg, privateFields.Size(), tp, builderreceiver,
 				fields,
 			)
+
+			if ts.Tags.Contains("@fp.Json") {
+				jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
+				httppk := w.GetImportedName(types.NewPackage("net/http", "http"))
+				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+				fmt.Fprintf(w, `
+					func(r %s) MarshalJSON() ([]byte, error) {
+						m := r.AsMutable()
+						return %s.Marshal(m)
+					}
+				`, valuereceiver, jsonpk)
+
+				fmt.Fprintf(w, `
+					func(r *%s) UnmarshalJSON(b []byte) error {
+						if r == nil {
+							return %s.Error(%s.StatusBadRequest, "target ptr is nil")
+						}
+						m := r.AsMutable()
+						err := %s.Unmarshal(b, &m)
+						if err == nil {
+							*r = m.AsImmutable()
+						}
+						return err
+					}
+				`, valuereceiver,
+					fppk, httppk,
+					jsonpk,
+				)
+			}
 
 		})
 

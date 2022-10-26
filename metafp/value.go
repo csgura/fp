@@ -23,6 +23,7 @@ type TaggedStruct struct {
 	Struct  *types.Struct
 	Fields  fp.Seq[StructField]
 	Info    TypeInfo
+	Tags    mutable.Set[string]
 }
 
 func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
@@ -52,6 +53,42 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	return option.None[TaggedStruct]()
 }
 
+func extractTag(comment string) mutable.Set[string] {
+	list := as.Seq(strings.Fields(comment))
+	return seq.ToGoSet(list.Filter(as.Func2(strings.Contains).ApplyLast("@")))
+}
+
+func GetTagsOfType(p []*packages.Package, name string) mutable.Set[string] {
+	comment := seq.FlatMap(p, func(pk *packages.Package) fp.Seq[string] {
+		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
+
+			return v.Decls
+		})
+
+		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+			switch r := v.(type) {
+			case *ast.GenDecl:
+				return seq.Of(r)
+			}
+			return seq.Of[*ast.GenDecl]()
+		})
+
+		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[string] {
+			gdDoc := option.Of(gd.Doc)
+
+			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[string] {
+				if ts, ok := v.(*ast.TypeSpec); ok && ts.Name.Name == name {
+					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+					return doc.ToSeq()
+				}
+				return seq.Of[string]()
+			})
+		})
+	}).Head()
+
+	return option.Map(comment, extractTag).OrZero()
+}
+
 func FindTaggedStruct(p []*packages.Package, tag string) fp.Seq[TaggedStruct] {
 
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedStruct] {
@@ -75,7 +112,10 @@ func FindTaggedStruct(p []*packages.Package, tag string) fp.Seq[TaggedStruct] {
 				if ts, ok := v.(*ast.TypeSpec); ok {
 					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
 					if doc.Filter(as.Func2(strings.Contains).ApplyLast(tag)).IsDefined() {
-						return LookupStruct(pk.Types, ts.Name.Name).ToSeq()
+						return option.Map(LookupStruct(pk.Types, ts.Name.Name), func(v TaggedStruct) TaggedStruct {
+							v.Tags = option.Map(doc, extractTag).OrZero()
+							return v
+						}).ToSeq()
 					}
 				}
 				return seq.Of[TaggedStruct]()

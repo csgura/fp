@@ -1,6 +1,7 @@
 package value_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -59,4 +60,15 @@ func TestJson(t *testing.T) {
 
 	res := value.EncoderGreeting.Encode(g)
 	fmt.Println(res)
+
+	var rev value.Greeting
+	err := json.Unmarshal([]byte(res), &rev)
+	assert.Success(err)
+	assert.True(rev.Language() == g.Language())
+
+	res2, err := json.Marshal(rev)
+	assert.Success(err)
+	fmt.Println(string(res2))
+	assert.True(res == string(res2))
+
 }
