@@ -26,35 +26,35 @@ func New[T any](f func(a T) string) Encoder[T] {
 	return EncoderFunc[T](f)
 }
 
-var String = New(func(a string) string {
+var EncoderString = New(func(a string) string {
 	return fmt.Sprintf(`"%s"`, a)
 })
 
-func Number[T fp.ImplicitNum]() Encoder[T] {
+func EncoderNumber[T fp.ImplicitNum]() Encoder[T] {
 	return New(func(a T) string {
 		return fmt.Sprintf("%v", a)
 	})
 }
 
-var Time = New(func(a time.Time) string {
-	return String.Encode(a.Format(time.RFC3339))
+var EncoderTime = New(func(a time.Time) string {
+	return EncoderString.Encode(a.Format(time.RFC3339))
 })
 
-var Unit = New(func(a fp.Unit) string {
+var EncoderUnit = New(func(a fp.Unit) string {
 	return "null"
 })
 
-var HNil Encoder[hlist.Nil] = New(func(a hlist.Nil) string {
+var EncoderHNil Encoder[hlist.Nil] = New(func(a hlist.Nil) string {
 	return ""
 })
 
-func HCons[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[H, T]] {
+func EncoderHCons[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[H, T]] {
 	return New(func(a hlist.Cons[H, T]) string {
 		return heq.Encode(a.Head()) + "," + teq.Encode(a.Tail())
 	})
 }
 
-func HConsLabelled[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[fp.Field[H], T]] {
+func EncoderHConsLabelled[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[fp.Field[H], T]] {
 	return New(func(a hlist.Cons[fp.Field[H], T]) string {
 		if a.Tail().IsNil() {
 			return fmt.Sprintf(`{"%s":%s}`, a.Head().Name, heq.Encode(a.Head().Value))
@@ -71,13 +71,13 @@ func HConsLabelled[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder
 // 	})
 // }
 
-func ContraMap[T, U any](instance Encoder[T], fn func(U) T) Encoder[U] {
+func EncoderContraMap[T, U any](instance Encoder[T], fn func(U) T) Encoder[U] {
 	return New(func(a U) string {
 		return instance.Encode(fn(a))
 	})
 }
 
-func Labelled1[A any](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
+func EncoderLabelled1[A any](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
 	return New(
 		func(a fp.Labelled1[A]) string {
 			return fmt.Sprintf(`{"%s" : %s}`, a.I1.Name, ins1.Encode(a.I1.Value))
@@ -85,7 +85,7 @@ func Labelled1[A any](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
 	)
 }
 
-func Labelled2[A1, A2 any](ins1 Encoder[A1], ins2 Encoder[A2]) Encoder[fp.Labelled2[A1, A2]] {
+func EncoderLabelled2[A1, A2 any](ins1 Encoder[A1], ins2 Encoder[A2]) Encoder[fp.Labelled2[A1, A2]] {
 
 	return New(
 		func(a fp.Labelled2[A1, A2]) string {

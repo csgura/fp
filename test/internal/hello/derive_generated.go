@@ -9,4 +9,4 @@ import (
 
 var EqWorld = eq.ContraMap(eq.Tuple2(eq.String, eq.Given[time.Time]()), World.AsTuple)
 
-var EncoderWorld = js.ContraMap(js.Labelled2(js.String, js.Time), World.AsLabelled)
+var EncoderWorld = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderString, js.EncoderTime), World.AsLabelled)

@@ -40,6 +40,32 @@ type TypeClassDerive struct {
 	DeriveFor            metafp.TaggedStruct
 }
 
+type instancePkgLookup struct {
+	name   string
+	object types.Object
+}
+
+func (r instancePkgLookup) Name() string {
+	return r.name
+}
+
+func (r instancePkgLookup) Type() types.Type {
+	return r.object.Type()
+}
+
+func (r TypeClassDerive) lookupInstancePkgFunc(name string) fp.Option[instancePkgLookup] {
+	nameWithTc := r.TypeClass.Name + name
+	ins := r.PrimitiveInstancePkg.Scope().Lookup(nameWithTc)
+	if ins != nil {
+		return option.Some(instancePkgLookup{nameWithTc, ins})
+	}
+	ins = r.PrimitiveInstancePkg.Scope().Lookup(name)
+	if ins != nil {
+		return option.Some(instancePkgLookup{name, ins})
+	}
+	return option.None[instancePkgLookup]()
+}
+
 func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TypeClassDerive] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
@@ -644,6 +670,12 @@ func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo])
 
 	list = fp.Seq[lookupTarget]{
 		{
+			name:     r.tc.TypeClass.Name + "HConsLabelled",
+			scope:    r.tc.PrimitiveInstancePkg.Scope(),
+			genPk:    r.tc.PrimitiveInstancePkg,
+			typeArgs: typeArgs,
+		},
+		{
 			name:     "HConsLabelled",
 			scope:    r.tc.PrimitiveInstancePkg.Scope(),
 			genPk:    r.tc.PrimitiveInstancePkg,
@@ -659,10 +691,11 @@ func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo])
 
 		gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
 
-		hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.HNil", gpk), func(tail string, ti metafp.TypeInfo) string {
+		hnil := option.Map(r.tc.lookupInstancePkgFunc("HNil"), instancePkgLookup.Name).OrElse("HNil")
+		hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.%s", gpk, hnil), func(tail string, ti metafp.TypeInfo) string {
 			instance := r.summon(ti)
-			return fmt.Sprintf(`%s.HConsLabelled(%s,
-			%s)`, gpk, instance, tail)
+			return fmt.Sprintf(`%s.%s(%s,
+			%s)`, gpk, result.Get().name, instance, tail)
 		})
 
 		tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
@@ -673,20 +706,22 @@ func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo])
 			return fmt.Sprintf("%s.Field[%s]", fppk, r.w.TypeName(r.tc.Package, f.Type))
 		}).MakeString(",")
 
-		if imap := r.tc.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
+		if imap := r.tc.lookupInstancePkgFunc("IMap"); imap.IsDefined() {
 			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
-			ret := fmt.Sprintf(`%s.IMap(%s , 
+			ret := fmt.Sprintf(`%s.%s(%s , 
 			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]]).ApplyLast( %s.Labelled%d[%s] ),
 			%s.HList%dLabelled[%s])`,
-				gpk, hlist,
+				gpk, imap.Get().name, hlist,
 				aspk, hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
 				aspk, typeArgs.Size(), tp)
 
 			return option.Some(ret)
 		}
 
-		ret := fmt.Sprintf("%s.ContraMap( %s,  %s.HList%dLabelled[%s])", gpk, hlist, aspk, typeArgs.Size(), tp)
+		contrmap := option.Map(r.tc.lookupInstancePkgFunc("ContraMap"), instancePkgLookup.Name).OrElse("ContraMap")
+
+		ret := fmt.Sprintf("%s.%s( %s,  %s.HList%dLabelled[%s])", gpk, contrmap, hlist, aspk, typeArgs.Size(), tp)
 		return option.Some(ret)
 	}
 	return option.None[string]()
@@ -724,7 +759,9 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 
 	gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
 
-	hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.HNil", gpk), func(tail string, ti metafp.TypeInfo) string {
+	hnil := option.Map(r.tc.lookupInstancePkgFunc("HNil"), instancePkgLookup.Name).OrElse("HNil")
+
+	hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.%s", gpk, hnil), func(tail string, ti metafp.TypeInfo) string {
 		instance := r.summon(ti)
 		return fmt.Sprintf(`%s.HCons(%s,
 			%s)`, gpk, instance, tail)
@@ -734,18 +771,20 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 		return r.w.TypeName(r.tc.Package, f.Type)
 	}).MakeString(",")
 
-	if imap := r.tc.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
+	if imap := r.tc.lookupInstancePkgFunc("IMap"); imap.IsDefined() {
 		hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
-		return fmt.Sprintf(`%s.IMap(%s , 
+		return fmt.Sprintf(`%s.%s(%s , 
 			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]]).ApplyLast( %s.Tuple%d[%s] ),
 			%s.HList%d[%s])`,
-			gpk, hlist,
+			gpk, imap.Get().name, hlist,
 			aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
 			aspk, typeArgs.Size(), tp)
 	}
 
-	return fmt.Sprintf("%s.ContraMap( %s,  %s.HList%d[%s])", gpk, hlist, aspk, typeArgs.Size(), tp)
+	contrmap := option.Map(r.tc.lookupInstancePkgFunc("ContraMap"), instancePkgLookup.Name).OrElse("ContraMap")
+
+	return fmt.Sprintf("%s.%s( %s,  %s.HList%d[%s])", gpk, contrmap, hlist, aspk, typeArgs.Size(), tp)
 }
 
 func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
@@ -762,26 +801,26 @@ func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
 		return r.expr(result.Get())
 	}
 
-	instance := r.tc.PrimitiveInstancePkg.Scope().Lookup("Number")
-	if instance != nil {
-		if _, ok := instance.Type().(*types.Signature); ok {
+	instance := r.tc.lookupInstancePkgFunc("Number")
+	if instance.IsDefined() {
+		if _, ok := instance.Get().Type().(*types.Signature); ok {
 			ctx := types.NewContext()
-			_, err := types.Instantiate(ctx, instance.Type(), []types.Type{t.Type}, true)
+			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
 			if err == nil {
 				gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
-				return fmt.Sprintf("%s.Number[%s]()", gpk, r.w.TypeName(r.tc.Package, t.Type))
+				return fmt.Sprintf("%s.%s[%s]()", gpk, instance.Get().Name(), r.w.TypeName(r.tc.Package, t.Type))
 			}
 		}
 	}
 
-	instance = r.tc.PrimitiveInstancePkg.Scope().Lookup("Given")
-	if instance != nil {
-		if _, ok := instance.Type().(*types.Signature); ok {
+	instance = r.tc.lookupInstancePkgFunc("Given")
+	if instance.IsDefined() {
+		if _, ok := instance.Get().Type().(*types.Signature); ok {
 			ctx := types.NewContext()
-			_, err := types.Instantiate(ctx, instance.Type(), []types.Type{t.Type}, true)
+			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
 			if err == nil {
 				gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
-				return fmt.Sprintf("%s.Given[%s]()", gpk, r.w.TypeName(r.tc.Package, t.Type))
+				return fmt.Sprintf("%s.%s[%s]()", gpk, instance.Get().Name(), r.w.TypeName(r.tc.Package, t.Type))
 			}
 		}
 	}
@@ -865,7 +904,7 @@ func genDerive() {
 			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.Name, valuetp)
 			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.Name, valuetp)
 
-			mapExpr := option.Map(option.Of(v.PrimitiveInstancePkg.Scope().Lookup("IMap")), func(types.Object) string {
+			mapExpr := option.Map(v.lookupInstancePkgFunc("IMap"), func(imapfunc instancePkgLookup) string {
 				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
@@ -873,15 +912,17 @@ func genDerive() {
 					return "FromLabelled"
 				}).OrElse("FromTuple")
 
-				return fmt.Sprintf(`%s.IMap( %s, %s.Compose(
+				return fmt.Sprintf(`%s.%s( %s, %s.Compose(
 							%s.Curried2(%s.%s)(%s{}), %s.Build),  
 							%s.%s )`,
-					gpk, summonExpr, fppk,
+					gpk, imapfunc.Name(), summonExpr, fppk,
 					aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
 					valuereceiver, convExpr)
 			}).OrElseGet(func() string {
-				return fmt.Sprintf(`%s.ContraMap( %s , %s.%s )`,
-					gpk, summonExpr, valuereceiver, convExpr,
+				contrmap := option.Map(v.lookupInstancePkgFunc("ContraMap"), instancePkgLookup.Name).OrElse("ContraMap")
+
+				return fmt.Sprintf(`%s.%s( %s , %s.%s )`,
+					gpk, contrmap, summonExpr, valuereceiver, convExpr,
 				)
 			})
 
