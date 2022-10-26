@@ -188,6 +188,16 @@ func (r TypeInfo) IsTuple() bool {
 	return false
 }
 
+func (r TypeInfo) IsOption() bool {
+	switch nt := r.Type.(type) {
+	case *types.Named:
+		if nt.Obj().Pkg().Path() == "github.com/csgura/fp" && nt.Obj().Name() == "Option" {
+			return true
+		}
+	}
+	return false
+}
+
 type TypeInfo struct {
 	Pkg       *types.Package
 	Type      types.Type

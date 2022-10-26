@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/hello"
 	"net/http"
 	"os"
@@ -227,6 +228,16 @@ func (r MyMy) WithHi(v fp.Option[int]) MyMy {
 
 func (r MyMyBuilder) Hi(v fp.Option[int]) MyMyBuilder {
 	r.hi = v
+	return r
+}
+
+func (r MyMyBuilder) SomeHi(v int) MyMyBuilder {
+	r.hi = option.Some(v)
+	return r
+}
+
+func (r MyMyBuilder) NoneHi() MyMyBuilder {
+	r.hi = option.None[int]()
 	return r
 }
 
@@ -561,6 +572,16 @@ func (r Person) WithPhone(v fp.Option[string]) Person {
 
 func (r PersonBuilder) Phone(v fp.Option[string]) PersonBuilder {
 	r.phone = v
+	return r
+}
+
+func (r PersonBuilder) SomePhone(v string) PersonBuilder {
+	r.phone = option.Some(v)
+	return r
+}
+
+func (r PersonBuilder) NonePhone() PersonBuilder {
+	r.phone = option.None[string]()
 	return r
 }
 

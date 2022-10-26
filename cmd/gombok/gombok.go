@@ -216,6 +216,27 @@ func genValue() {
 							return r
 						}
 					`, builderreceiver, uname, ftp, builderreceiver, f.Name)
+
+				if f.Type.IsOption() {
+					optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
+					optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
+					fmt.Fprintf(w, `
+						func (r %s) Some%s(v %s) %s {
+							r.%s = %s.Some(v)
+							return r
+						}
+					`, builderreceiver, uname, optiont, builderreceiver,
+						f.Name, optionpk)
+
+					fmt.Fprintf(w, `
+						func (r %s) None%s() %s {
+							r.%s = %s.None[%s]()
+							return r
+						}
+					`, builderreceiver, uname, builderreceiver,
+						f.Name, optionpk, optiont)
+				}
+
 			})
 
 			fm := seq.Map(privateFields, func(f metafp.StructField) string {
