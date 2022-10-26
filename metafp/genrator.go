@@ -215,11 +215,15 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	return tpe.String()
 }
 
+type ImportSet interface {
+	GetImportedName(p *types.Package) string
+	TypeName(pk *types.Package, tpe types.Type) string
+}
+
 type Writer interface {
 	io.Writer
-	GetImportedName(p *types.Package) string
+	ImportSet
 	Iteration(start, end int) Range
-	TypeName(pk *types.Package, tpe types.Type) string
 }
 
 func Generate(packname string, filename string, writeFunc func(w Writer)) {
