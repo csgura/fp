@@ -70,6 +70,23 @@ func FuncChain(start, until int) string {
 
 type Monad string
 
+func (r Monad) TypeDeclArgs(start, until int, prefixOpt ...string) string {
+
+	prefix := "A"
+	if len(prefixOpt) > 0 {
+		prefix = prefixOpt[0]
+	}
+
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "%s[%s%d]", r, prefix, j)
+	}
+	return f.String()
+}
+
 func (r Monad) FuncChain(start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {

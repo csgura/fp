@@ -182,4 +182,49 @@ func (r Tuple%d[%s]) Unapply() (%s) {
 
 	})
 
+	metafp.Generate("fp", "labelled_gen.go", func(f metafp.Writer) {
+		_ = f.GetImportedName(types.NewPackage("fmt", "fmt"))
+
+		for i := 2; i < max.Product; i++ {
+			fmt.Fprintf(f, "type Labelled%d[%s any] struct {\n", i, metafp.TypeArgs("T", 1, i))
+
+			for j := 1; j <= i; j++ {
+				fmt.Fprintf(f, "    I%d Field[T%d]\n", j, j)
+			}
+			fmt.Fprintf(f, "}\n\n")
+
+			fmt.Fprintf(f, `
+func (r Labelled%d[%s]) Head() Field[T1] {
+	return r.I1;
+}
+`, i, metafp.TypeArgs("T", 1, i))
+
+			fmt.Fprintf(f, `
+			func (r Labelled%d[%s]) Tail() Labelled%d[%s] {
+				return Labelled%d[%s]{%s};
+			}
+			`, i, metafp.TypeArgs("T", 1, i), i-1, metafp.TypeArgs("T", 2, i), i-1, metafp.TypeArgs("T", 2, i), metafp.FuncCallArgs(2, i, "r.I"))
+
+			// fmt.Fprintf(f, `
+			// func (r Labelled%d[%s]) ToHList() %s {
+			// 	return hlist.Concat( r.Head(), r.Tail().ToHList())
+			// }
+			// `, i, metafp.TypeArgs("T", 1, i), consType(1, i))
+
+			fmt.Fprintf(f, `
+func (r Labelled%d[%s]) String() string {
+	return fmt.Sprintf("(%s)", %s)
+}
+`, i, metafp.TypeArgs("T", 1, i), metafp.FormatStr(1, i), metafp.FuncCallArgs(1, i, "r.I"))
+
+			fmt.Fprintf(f, `
+func (r Labelled%d[%s]) Unapply() (%s) {
+	return %s
+}
+`, i, metafp.TypeArgs("T", 1, i), metafp.Monad("Field").TypeDeclArgs(1, i, "T"), metafp.FuncCallArgs(1, i, "r.I"))
+
+		}
+
+	})
+
 }

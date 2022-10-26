@@ -18,6 +18,12 @@ func New[T any](zero fp.EmptyFunc[T], combine fp.SemigroupFunc[T]) fp.Monoid[T] 
 	}
 }
 
+var String = New(func() string {
+	return ""
+}, func(a, b string) string {
+	return a + b
+})
+
 func Sum[T fp.ImplicitOrd]() fp.Monoid[T] {
 	return fp.SemigroupFunc[T](func(a, b T) T {
 		return a + b

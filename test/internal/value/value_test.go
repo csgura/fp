@@ -3,10 +3,12 @@ package value_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/test/internal/hello"
 	"github.com/csgura/fp/test/internal/value"
 )
 
@@ -44,4 +46,17 @@ func TestMonoid(t *testing.T) {
 	assert.Equal(p3.Z().I1, 3)
 	assert.Equal(p3.Z().I2, 5)
 
+}
+
+func TestJson(t *testing.T) {
+	g := value.GreetingMutable{
+		Hello: hello.WorldMutable{
+			Message:   "hello",
+			Timestamp: time.Now(),
+		}.AsImmutable(),
+		Language: "En",
+	}.AsImmutable()
+
+	res := value.EncoderGreeting.Encode(g)
+	fmt.Println(res)
 }

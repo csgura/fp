@@ -94,4 +94,39 @@ func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 
 	})
 
+	metafp.Generate("as", "labelled_gen.go", func(f metafp.Writer) {
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		//_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+		for i := 1; i < max.Product; i++ {
+
+			fmt.Fprintf(f, "func Labelled%d [%s any]( %s ) fp.Labelled%d[%s] { ", i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclTypeClassArgs(1, i, "fp.Field"), i, metafp.FuncTypeArgs(1, i))
+
+			fmt.Fprintf(f, "  return fp.Labelled%d[%s] {\n", i, metafp.FuncTypeArgs(1, i))
+			for j := 1; j <= i; j++ {
+				fmt.Fprintf(f, "    I%d: ins%d,\n", j, j)
+			}
+			fmt.Fprintf(f, `}
+		}
+`)
+		}
+
+		// 		fmt.Fprintf(f, `
+		// 			func HList1[A1 any](tuple fp.Tuple1[A1]) hlist.Cons[A1, hlist.Nil] {
+		// 				return hlist.Concat(tuple.Head(), hlist.Empty())
+		// 			}
+		// `)
+
+		// 		for i := 2; i < max.Product; i++ {
+		// 			fmt.Fprintf(f, "func HList%d [%s any]( tuple fp.Tuple%d[%s]) %s { ", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), metafp.ConsType(1, i, "hlist.Nil"))
+
+		// 			fmt.Fprintf(f, `
+		// 				return hlist.Concat( tuple.Head(), HList%d( tuple.Tail() ))
+		// 			}
+		// 			`, i-1)
+
+		// 		}
+
+	})
+
 }

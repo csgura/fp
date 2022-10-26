@@ -79,12 +79,12 @@ func (r NotIgnoredBuilder) FromMap(m map[string]any) NotIgnoredBuilder {
 	return r
 }
 
-func (r NotIgnored) AsLabelled() fp.Tuple1[fp.Tuple2[string, int]] {
-	return as.Tuple1(as.Tuple2("ig", r.ig))
+func (r NotIgnored) AsLabelled() fp.Labelled1[int] {
+	return as.Labelled1(as.Field("ig", r.ig))
 }
 
-func (r NotIgnoredBuilder) FromLabelled(t fp.Tuple1[fp.Tuple2[string, int]]) NotIgnoredBuilder {
-	r.ig = t.I1.I2
+func (r NotIgnoredBuilder) FromLabelled(t fp.Labelled1[int]) NotIgnoredBuilder {
+	r.ig = t.I1.Value
 	return r
 }
 
@@ -179,13 +179,13 @@ func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
 	return r
 }
 
-func (r Hello) AsLabelled() fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, int]] {
-	return as.Tuple2(as.Tuple2("world", r.world), as.Tuple2("hi", r.hi))
+func (r Hello) AsLabelled() fp.Labelled2[string, int] {
+	return as.Labelled2(as.Field("world", r.world), as.Field("hi", r.hi))
 }
 
-func (r HelloBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, int]]) HelloBuilder {
-	r.world = t.I1.I2
-	r.hi = t.I2.I2
+func (r HelloBuilder) FromLabelled(t fp.Labelled2[string, int]) HelloBuilder {
+	r.world = t.I1.Value
+	r.hi = t.I2.Value
 	return r
 }
 
@@ -466,21 +466,21 @@ func (r MyMyBuilder) FromMap(m map[string]any) MyMyBuilder {
 	return r
 }
 
-func (r MyMy) AsLabelled() fp.Tuple10[fp.Tuple2[string, fp.Option[int]], fp.Tuple2[string, reflect.Type], fp.Tuple2[string, []os.File], fp.Tuple2[string, map[string]int], fp.Tuple2[string, any], fp.Tuple2[string, *int], fp.Tuple2[string, Local], fp.Tuple2[string, fp.Try[fp.Option[Local]]], fp.Tuple2[string, map[string]atomic.Bool], fp.Tuple2[string, fp.Map[string, int]]] {
-	return as.Tuple10(as.Tuple2("hi", r.hi), as.Tuple2("tpe", r.tpe), as.Tuple2("arr", r.arr), as.Tuple2("m", r.m), as.Tuple2("a", r.a), as.Tuple2("p", r.p), as.Tuple2("l", r.l), as.Tuple2("t", r.t), as.Tuple2("m2", r.m2), as.Tuple2("mm", r.mm))
+func (r MyMy) AsLabelled() fp.Labelled10[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int]] {
+	return as.Labelled10(as.Field("hi", r.hi), as.Field("tpe", r.tpe), as.Field("arr", r.arr), as.Field("m", r.m), as.Field("a", r.a), as.Field("p", r.p), as.Field("l", r.l), as.Field("t", r.t), as.Field("m2", r.m2), as.Field("mm", r.mm))
 }
 
-func (r MyMyBuilder) FromLabelled(t fp.Tuple10[fp.Tuple2[string, fp.Option[int]], fp.Tuple2[string, reflect.Type], fp.Tuple2[string, []os.File], fp.Tuple2[string, map[string]int], fp.Tuple2[string, any], fp.Tuple2[string, *int], fp.Tuple2[string, Local], fp.Tuple2[string, fp.Try[fp.Option[Local]]], fp.Tuple2[string, map[string]atomic.Bool], fp.Tuple2[string, fp.Map[string, int]]]) MyMyBuilder {
-	r.hi = t.I1.I2
-	r.tpe = t.I2.I2
-	r.arr = t.I3.I2
-	r.m = t.I4.I2
-	r.a = t.I5.I2
-	r.p = t.I6.I2
-	r.l = t.I7.I2
-	r.t = t.I8.I2
-	r.m2 = t.I9.I2
-	r.mm = t.I10.I2
+func (r MyMyBuilder) FromLabelled(t fp.Labelled10[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int]]) MyMyBuilder {
+	r.hi = t.I1.Value
+	r.tpe = t.I2.Value
+	r.arr = t.I3.Value
+	r.m = t.I4.Value
+	r.a = t.I5.Value
+	r.p = t.I6.Value
+	r.l = t.I7.Value
+	r.t = t.I8.Value
+	r.m2 = t.I9.Value
+	r.mm = t.I10.Value
 	return r
 }
 
@@ -713,19 +713,19 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 	return r
 }
 
-func (r Person) AsLabelled() fp.Tuple8[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]], fp.Tuple2[string, []byte]] {
-	return as.Tuple8(as.Tuple2("name", r.name), as.Tuple2("age", r.age), as.Tuple2("height", r.height), as.Tuple2("phone", r.phone), as.Tuple2("addr", r.addr), as.Tuple2("list", r.list), as.Tuple2("seq", r.seq), as.Tuple2("blob", r.blob))
+func (r Person) AsLabelled() fp.Labelled8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
+	return as.Labelled8(as.Field("name", r.name), as.Field("age", r.age), as.Field("height", r.height), as.Field("phone", r.phone), as.Field("addr", r.addr), as.Field("list", r.list), as.Field("seq", r.seq), as.Field("blob", r.blob))
 }
 
-func (r PersonBuilder) FromLabelled(t fp.Tuple8[fp.Tuple2[string, string], fp.Tuple2[string, int], fp.Tuple2[string, float64], fp.Tuple2[string, fp.Option[string]], fp.Tuple2[string, []string], fp.Tuple2[string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], fp.Tuple2[string, fp.Seq[float64]], fp.Tuple2[string, []byte]]) PersonBuilder {
-	r.name = t.I1.I2
-	r.age = t.I2.I2
-	r.height = t.I3.I2
-	r.phone = t.I4.I2
-	r.addr = t.I5.I2
-	r.list = t.I6.I2
-	r.seq = t.I7.I2
-	r.blob = t.I8.I2
+func (r PersonBuilder) FromLabelled(t fp.Labelled8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte]) PersonBuilder {
+	r.name = t.I1.Value
+	r.age = t.I2.Value
+	r.height = t.I3.Value
+	r.phone = t.I4.Value
+	r.addr = t.I5.Value
+	r.list = t.I6.Value
+	r.seq = t.I7.Value
+	r.blob = t.I8.Value
 	return r
 }
 
@@ -820,13 +820,13 @@ func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
 	return r
 }
 
-func (r Wallet) AsLabelled() fp.Tuple2[fp.Tuple2[string, Person], fp.Tuple2[string, int64]] {
-	return as.Tuple2(as.Tuple2("owner", r.owner), as.Tuple2("amount", r.amount))
+func (r Wallet) AsLabelled() fp.Labelled2[Person, int64] {
+	return as.Labelled2(as.Field("owner", r.owner), as.Field("amount", r.amount))
 }
 
-func (r WalletBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, Person], fp.Tuple2[string, int64]]) WalletBuilder {
-	r.owner = t.I1.I2
-	r.amount = t.I2.I2
+func (r WalletBuilder) FromLabelled(t fp.Labelled2[Person, int64]) WalletBuilder {
+	r.owner = t.I1.Value
+	r.amount = t.I2.Value
 	return r
 }
 
@@ -944,14 +944,14 @@ func (r EntryBuilder[A, B]) FromMap(m map[string]any) EntryBuilder[A, B] {
 	return r
 }
 
-func (r Entry[A, B]) AsLabelled() fp.Tuple3[fp.Tuple2[string, string], fp.Tuple2[string, A], fp.Tuple2[string, fp.Tuple2[A, B]]] {
-	return as.Tuple3(as.Tuple2("name", r.name), as.Tuple2("value", r.value), as.Tuple2("tuple", r.tuple))
+func (r Entry[A, B]) AsLabelled() fp.Labelled3[string, A, fp.Tuple2[A, B]] {
+	return as.Labelled3(as.Field("name", r.name), as.Field("value", r.value), as.Field("tuple", r.tuple))
 }
 
-func (r EntryBuilder[A, B]) FromLabelled(t fp.Tuple3[fp.Tuple2[string, string], fp.Tuple2[string, A], fp.Tuple2[string, fp.Tuple2[A, B]]]) EntryBuilder[A, B] {
-	r.name = t.I1.I2
-	r.value = t.I2.I2
-	r.tuple = t.I3.I2
+func (r EntryBuilder[A, B]) FromLabelled(t fp.Labelled3[string, A, fp.Tuple2[A, B]]) EntryBuilder[A, B] {
+	r.name = t.I1.Value
+	r.value = t.I2.Value
+	r.tuple = t.I3.Value
 	return r
 }
 
@@ -1069,14 +1069,14 @@ func (r KeyBuilder) FromMap(m map[string]any) KeyBuilder {
 	return r
 }
 
-func (r Key) AsLabelled() fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, float32], fp.Tuple2[string, []byte]] {
-	return as.Tuple3(as.Tuple2("a", r.a), as.Tuple2("b", r.b), as.Tuple2("c", r.c))
+func (r Key) AsLabelled() fp.Labelled3[int, float32, []byte] {
+	return as.Labelled3(as.Field("a", r.a), as.Field("b", r.b), as.Field("c", r.c))
 }
 
-func (r KeyBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, float32], fp.Tuple2[string, []byte]]) KeyBuilder {
-	r.a = t.I1.I2
-	r.b = t.I2.I2
-	r.c = t.I3.I2
+func (r KeyBuilder) FromLabelled(t fp.Labelled3[int, float32, []byte]) KeyBuilder {
+	r.a = t.I1.Value
+	r.b = t.I2.Value
+	r.c = t.I3.Value
 	return r
 }
 
@@ -1190,14 +1190,14 @@ func (r PointBuilder) FromMap(m map[string]any) PointBuilder {
 	return r
 }
 
-func (r Point) AsLabelled() fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, int], fp.Tuple2[string, fp.Tuple2[int, int]]] {
-	return as.Tuple3(as.Tuple2("x", r.x), as.Tuple2("y", r.y), as.Tuple2("z", r.z))
+func (r Point) AsLabelled() fp.Labelled3[int, int, fp.Tuple2[int, int]] {
+	return as.Labelled3(as.Field("x", r.x), as.Field("y", r.y), as.Field("z", r.z))
 }
 
-func (r PointBuilder) FromLabelled(t fp.Tuple3[fp.Tuple2[string, int], fp.Tuple2[string, int], fp.Tuple2[string, fp.Tuple2[int, int]]]) PointBuilder {
-	r.x = t.I1.I2
-	r.y = t.I2.I2
-	r.z = t.I3.I2
+func (r PointBuilder) FromLabelled(t fp.Labelled3[int, int, fp.Tuple2[int, int]]) PointBuilder {
+	r.x = t.I1.Value
+	r.y = t.I2.Value
+	r.z = t.I3.Value
 	return r
 }
 
@@ -1292,12 +1292,12 @@ func (r GreetingBuilder) FromMap(m map[string]any) GreetingBuilder {
 	return r
 }
 
-func (r Greeting) AsLabelled() fp.Tuple2[fp.Tuple2[string, hello.World], fp.Tuple2[string, string]] {
-	return as.Tuple2(as.Tuple2("hello", r.hello), as.Tuple2("language", r.language))
+func (r Greeting) AsLabelled() fp.Labelled2[hello.World, string] {
+	return as.Labelled2(as.Field("hello", r.hello), as.Field("language", r.language))
 }
 
-func (r GreetingBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, hello.World], fp.Tuple2[string, string]]) GreetingBuilder {
-	r.hello = t.I1.I2
-	r.language = t.I2.I2
+func (r GreetingBuilder) FromLabelled(t fp.Labelled2[hello.World, string]) GreetingBuilder {
+	r.hello = t.I1.Value
+	r.language = t.I2.Value
 	return r
 }

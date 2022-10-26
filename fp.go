@@ -38,6 +38,27 @@ func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
 	return hlist.Concat(r.Head(), hlist.Empty())
 }
 
+type Field[T any] struct {
+	Name  string
+	Value T
+}
+
+func (r Field[T]) String() string {
+	return fmt.Sprintf("%s:%v", r.Name, r.Value)
+}
+
+type Labelled1[T1 any] struct {
+	I1 Field[T1]
+}
+
+func (r Labelled1[T1]) Head() Field[T1] {
+	return r.I1
+}
+
+func (r Labelled1[T1]) Tail() Unit {
+	return Unit{}
+}
+
 type Func0[R any] Func1[Unit, R]
 
 func (r Func0[R]) Apply() R {

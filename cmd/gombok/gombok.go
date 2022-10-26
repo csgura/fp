@@ -331,16 +331,16 @@ func genValue() {
 			)
 
 			tp = iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
-				return fmt.Sprintf("%s.Tuple2[string,%s]", fppkg, w.TypeName(workingPackage, v.Type.Type))
+				return fmt.Sprintf("%s", w.TypeName(workingPackage, v.Type.Type))
 			}).MakeString(",")
 
 			fields = seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`%s.Tuple2("%s", r.%s)`, asalias, f.Name, f.Name)
+				return fmt.Sprintf(`%s.Field("%s", r.%s)`, asalias, f.Name, f.Name)
 			}).Iterator().Take(max.Product).MakeString(",")
 
 			fmt.Fprintf(w, `
-					func(r %s) AsLabelled() %s.Tuple%d[%s] {
-						return %s.Tuple%d(%s)
+					func(r %s) AsLabelled() %s.Labelled%d[%s] {
+						return %s.Labelled%d(%s)
 					}
 
 				`, valuereceiver, fppkg, privateFields.Size(), tp,
@@ -348,11 +348,11 @@ func genValue() {
 			)
 
 			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
-				return fmt.Sprintf("r.%s = t.I%d.I2", f.I2.Name, f.I1+1)
+				return fmt.Sprintf("r.%s = t.I%d.Value", f.I2.Name, f.I1+1)
 			}).Take(max.Product).MakeString("\n")
 
 			fmt.Fprintf(w, `
-					func (r %s) FromLabelled(t %s.Tuple%d[%s] ) %s {
+					func (r %s) FromLabelled(t %s.Labelled%d[%s] ) %s {
 						%s
 						return r
 					}
@@ -555,6 +555,33 @@ type TypeClassSummonContext struct {
 	genSet mutable.Set[string]
 }
 
+func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo]) fp.Option[string] {
+	list := fp.Seq[lookupTarget]{
+		{
+			name:     fmt.Sprintf("%sLabelled%d", r.tc.TypeClass.Name, typeArgs.Size()),
+			scope:    r.tc.Package.Scope(),
+			typeArgs: typeArgs,
+		},
+		{
+			name:     fmt.Sprintf("%sLabelled%d", r.tc.TypeClass.Name, typeArgs.Size()),
+			scope:    r.tc.PrimitiveInstancePkg.Scope(),
+			genPk:    r.tc.PrimitiveInstancePkg,
+			typeArgs: typeArgs,
+		},
+		{
+			name:     fmt.Sprintf("Labelled%d", typeArgs.Size()),
+			scope:    r.tc.PrimitiveInstancePkg.Scope(),
+			genPk:    r.tc.PrimitiveInstancePkg,
+			typeArgs: typeArgs,
+		},
+	}
+
+	result := list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
+
+	return option.Map(result, r.expr)
+
+}
+
 func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) string {
 
 	list := fp.Seq[lookupTarget]{
@@ -703,61 +730,65 @@ func genDerive() {
 				genSet: genSet,
 			}
 
-			summonExpr := summonCtx.summonTuple(typeArgs)
+			labelledExpr := summonCtx.summonLabelled(typeArgs)
+			summonExpr := labelledExpr.OrElseGet(func() string {
+				return summonCtx.summonTuple(typeArgs)
+			})
 
+			convExpr := option.Map(labelledExpr, func(v string) string {
+				return "AsLabelled"
+			}).OrElse("AsTuple")
+
+			valuetpdec := ""
+			valuetp := ""
 			if v.DeriveFor.Info.TypeParam.Size() > 0 {
-				valuetpdec := "[" + iterator.Map(v.DeriveFor.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
+				valuetpdec = "[" + iterator.Map(v.DeriveFor.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
 					tn := w.TypeName(workingPackage, v.Constraint)
 					return fmt.Sprintf("%s %s", v.Name, tn)
 				}).MakeString(",") + "]"
 
-				valuetp := "[" + iterator.Map(v.DeriveFor.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
+				valuetp = "[" + iterator.Map(v.DeriveFor.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
 					return v.Name
 				}).MakeString(",") + "]"
+			}
+
+			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.Name, valuetp)
+			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.Name, valuetp)
+
+			mapExpr := option.Map(option.Of(v.PrimitiveInstancePkg.Scope().Lookup("IMap")), func(types.Object) string {
+				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+				return fmt.Sprintf(`%s.IMap( %s, %s.Compose(
+							%s.Curried2(%s.FromTuple)(%s{}), %s.Build),  
+							%s.%s )`,
+					gpk, summonExpr, fppk,
+					aspk, builderreceiver, builderreceiver, builderreceiver,
+					valuereceiver, convExpr)
+			}).OrElseGet(func() string {
+				return fmt.Sprintf(`%s.ContraMap( %s , %s.%s )`,
+					gpk, summonExpr, valuereceiver, convExpr,
+				)
+			})
+
+			if v.DeriveFor.Info.TypeParam.Size() > 0 {
 
 				tcname := v.TypeClass.expr(w, workingPackage)
 				fargs := seq.Map(v.DeriveFor.Info.TypeParam, func(p metafp.TypeParam) string {
 					return fmt.Sprintf("%s%s %s[%s] ", privateName(v.TypeClass.Name), p.Name, tcname, p.Name)
 				}).MakeString(",")
 
-				if imap := v.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
-					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-					fmt.Fprintf(w, `
+				fmt.Fprintf(w, `
 					func %s%s%s( %s ) %s[%s%s] {
-						return %s.IMap( %s, %s.Compose(
-							%s.Curried2(%sBuilder.FromTuple)(%sBuilder{}), %sBuilder.Build),  
-							%s.AsTuple )
-				}
-			`, v.TypeClass.Name, v.DeriveFor.Name, valuetpdec, fargs, tcname, v.DeriveFor.Name, valuetp,
-						gpk, summonExpr, fppk,
-						aspk, v.DeriveFor.Name, v.DeriveFor.Name, v.DeriveFor.Name,
-						v.DeriveFor.Name)
-				} else {
-					fmt.Fprintf(w, `
-						func %s%s%s( %s ) %s[%s%s] {
-							return %s.ContraMap( %s , %s%s.AsTuple )
-						}
+						return %s
+					}
 					`, v.TypeClass.Name, v.DeriveFor.Name, valuetpdec, fargs, tcname, v.DeriveFor.Name, valuetp,
-						gpk, summonExpr, v.DeriveFor.Name, valuetp,
-					)
-				}
+					mapExpr)
+
 			} else {
-				if imap := v.PrimitiveInstancePkg.Scope().Lookup("IMap"); imap != nil {
-					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-					fmt.Fprintf(w, `
-				var %s%s = %s.IMap( %s, %s.Compose(
-					%s.Curried2(%sBuilder.FromTuple)(%sBuilder{}), %sBuilder.Build),  
-					%s.AsTuple )
-			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, summonExpr, fppk,
-						aspk, v.DeriveFor.Name, v.DeriveFor.Name, v.DeriveFor.Name,
-						v.DeriveFor.Name)
-				} else {
-					fmt.Fprintf(w, `
-				var %s%s = %s.ContraMap( %s, %s.AsTuple )
-			`, v.TypeClass.Name, v.DeriveFor.Name, gpk, summonExpr, v.DeriveFor.Name)
-				}
+				fmt.Fprintf(w, `
+				var %s%s = %s
+			`, v.TypeClass.Name, v.DeriveFor.Name, mapExpr)
 			}
 
 		})

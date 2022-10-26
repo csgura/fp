@@ -12,6 +12,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/test/internal/hello"
+	"github.com/csgura/fp/test/internal/js"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -90,6 +91,9 @@ type Entry[A interface{ String() string }, B any] struct {
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Entry[interface{ String() string }, any]]]
 
+// @fp.Derive
+var _ monoid.Derives[fp.Monoid[Entry[interface{ String() string }, any]]]
+
 // @fp.Value
 type Key struct {
 	a int
@@ -128,3 +132,6 @@ type Greeting struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Greeting]]
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[Greeting]]

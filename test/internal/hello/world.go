@@ -5,6 +5,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/test/internal/js"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -17,3 +18,6 @@ type World struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[World]]
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[World]]

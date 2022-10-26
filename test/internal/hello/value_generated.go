@@ -98,12 +98,12 @@ func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
 	return r
 }
 
-func (r World) AsLabelled() fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, time.Time]] {
-	return as.Tuple2(as.Tuple2("message", r.message), as.Tuple2("timestamp", r.timestamp))
+func (r World) AsLabelled() fp.Labelled2[string, time.Time] {
+	return as.Labelled2(as.Field("message", r.message), as.Field("timestamp", r.timestamp))
 }
 
-func (r WorldBuilder) FromLabelled(t fp.Tuple2[fp.Tuple2[string, string], fp.Tuple2[string, time.Time]]) WorldBuilder {
-	r.message = t.I1.I2
-	r.timestamp = t.I2.I2
+func (r WorldBuilder) FromLabelled(t fp.Labelled2[string, time.Time]) WorldBuilder {
+	r.message = t.I1.Value
+	r.timestamp = t.I2.Value
 	return r
 }
