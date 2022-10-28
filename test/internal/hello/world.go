@@ -12,6 +12,7 @@ import (
 
 // @fp.Value
 // @fp.Json
+// @fp.GenLabelled
 type World struct {
 	message   string
 	timestamp time.Time

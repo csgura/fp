@@ -127,6 +127,7 @@ var _ monoid.Derives[fp.Monoid[Point]]
 
 // @fp.Value
 // @fp.Json
+// @fp.GenLabelled
 type Greeting struct {
 	hello    hello.World
 	language string
@@ -142,6 +143,7 @@ var _ js.Derives[js.Encoder[Greeting]]
 var _ js.Derives[js.Decoder[Greeting]]
 
 // @fp.Value
+// @fp.GenLabelled
 type Three struct {
 	one   int
 	two   string

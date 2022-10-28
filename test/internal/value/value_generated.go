@@ -83,15 +83,6 @@ func (r NotIgnoredBuilder) FromMap(m map[string]any) NotIgnoredBuilder {
 	return r
 }
 
-func (r NotIgnored) AsLabelled() fp.Labelled1[NameIsIg[int]] {
-	return as.Labelled1(NameIsIg[int]{r.ig})
-}
-
-func (r NotIgnoredBuilder) FromLabelled(t fp.Labelled1[NameIsIg[int]]) NotIgnoredBuilder {
-	r.ig = t.I1.Value()
-	return r
-}
-
 type HelloBuilder Hello
 
 type HelloMutable struct {
@@ -180,16 +171,6 @@ func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
 		r.hi = v
 	}
 
-	return r
-}
-
-func (r Hello) AsLabelled() fp.Labelled2[NameIsWorld[string], NameIsHi[int]] {
-	return as.Labelled2(NameIsWorld[string]{r.world}, NameIsHi[int]{r.hi})
-}
-
-func (r HelloBuilder) FromLabelled(t fp.Labelled2[NameIsWorld[string], NameIsHi[int]]) HelloBuilder {
-	r.world = t.I1.Value()
-	r.hi = t.I2.Value()
 	return r
 }
 
@@ -480,24 +461,6 @@ func (r MyMyBuilder) FromMap(m map[string]any) MyMyBuilder {
 	return r
 }
 
-func (r MyMy) AsLabelled() fp.Labelled10[NameIsHi[fp.Option[int]], NameIsTpe[reflect.Type], NameIsArr[[]os.File], NameIsM[map[string]int], NameIsA[any], NameIsP[*int], NameIsL[Local], NameIsT[fp.Try[fp.Option[Local]]], NameIsM2[map[string]atomic.Bool], NameIsMm[fp.Map[string, int]]] {
-	return as.Labelled10(NameIsHi[fp.Option[int]]{r.hi}, NameIsTpe[reflect.Type]{r.tpe}, NameIsArr[[]os.File]{r.arr}, NameIsM[map[string]int]{r.m}, NameIsA[any]{r.a}, NameIsP[*int]{r.p}, NameIsL[Local]{r.l}, NameIsT[fp.Try[fp.Option[Local]]]{r.t}, NameIsM2[map[string]atomic.Bool]{r.m2}, NameIsMm[fp.Map[string, int]]{r.mm})
-}
-
-func (r MyMyBuilder) FromLabelled(t fp.Labelled10[NameIsHi[fp.Option[int]], NameIsTpe[reflect.Type], NameIsArr[[]os.File], NameIsM[map[string]int], NameIsA[any], NameIsP[*int], NameIsL[Local], NameIsT[fp.Try[fp.Option[Local]]], NameIsM2[map[string]atomic.Bool], NameIsMm[fp.Map[string, int]]]) MyMyBuilder {
-	r.hi = t.I1.Value()
-	r.tpe = t.I2.Value()
-	r.arr = t.I3.Value()
-	r.m = t.I4.Value()
-	r.a = t.I5.Value()
-	r.p = t.I6.Value()
-	r.l = t.I7.Value()
-	r.t = t.I8.Value()
-	r.m2 = t.I9.Value()
-	r.mm = t.I10.Value()
-	return r
-}
-
 type PersonBuilder Person
 
 type PersonMutable struct {
@@ -737,22 +700,6 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 	return r
 }
 
-func (r Person) AsLabelled() fp.Labelled8[NameIsName[string], NameIsAge[int], NameIsHeight[float64], NameIsPhone[fp.Option[string]], NameIsAddr[[]string], NameIsList[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], NameIsSeq[fp.Seq[float64]], NameIsBlob[[]byte]] {
-	return as.Labelled8(NameIsName[string]{r.name}, NameIsAge[int]{r.age}, NameIsHeight[float64]{r.height}, NameIsPhone[fp.Option[string]]{r.phone}, NameIsAddr[[]string]{r.addr}, NameIsList[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{r.list}, NameIsSeq[fp.Seq[float64]]{r.seq}, NameIsBlob[[]byte]{r.blob})
-}
-
-func (r PersonBuilder) FromLabelled(t fp.Labelled8[NameIsName[string], NameIsAge[int], NameIsHeight[float64], NameIsPhone[fp.Option[string]], NameIsAddr[[]string], NameIsList[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], NameIsSeq[fp.Seq[float64]], NameIsBlob[[]byte]]) PersonBuilder {
-	r.name = t.I1.Value()
-	r.age = t.I2.Value()
-	r.height = t.I3.Value()
-	r.phone = t.I4.Value()
-	r.addr = t.I5.Value()
-	r.list = t.I6.Value()
-	r.seq = t.I7.Value()
-	r.blob = t.I8.Value()
-	return r
-}
-
 type WalletBuilder Wallet
 
 type WalletMutable struct {
@@ -841,16 +788,6 @@ func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
 		r.amount = v
 	}
 
-	return r
-}
-
-func (r Wallet) AsLabelled() fp.Labelled2[NameIsOwner[Person], NameIsAmount[int64]] {
-	return as.Labelled2(NameIsOwner[Person]{r.owner}, NameIsAmount[int64]{r.amount})
-}
-
-func (r WalletBuilder) FromLabelled(t fp.Labelled2[NameIsOwner[Person], NameIsAmount[int64]]) WalletBuilder {
-	r.owner = t.I1.Value()
-	r.amount = t.I2.Value()
 	return r
 }
 
@@ -968,17 +905,6 @@ func (r EntryBuilder[A, B]) FromMap(m map[string]any) EntryBuilder[A, B] {
 	return r
 }
 
-func (r Entry[A, B]) AsLabelled() fp.Labelled3[NameIsName[string], NameIsValue[A], NameIsTuple[fp.Tuple2[A, B]]] {
-	return as.Labelled3(NameIsName[string]{r.name}, NameIsValue[A]{r.value}, NameIsTuple[fp.Tuple2[A, B]]{r.tuple})
-}
-
-func (r EntryBuilder[A, B]) FromLabelled(t fp.Labelled3[NameIsName[string], NameIsValue[A], NameIsTuple[fp.Tuple2[A, B]]]) EntryBuilder[A, B] {
-	r.name = t.I1.Value()
-	r.value = t.I2.Value()
-	r.tuple = t.I3.Value()
-	return r
-}
-
 type KeyBuilder Key
 
 type KeyMutable struct {
@@ -1093,17 +1019,6 @@ func (r KeyBuilder) FromMap(m map[string]any) KeyBuilder {
 	return r
 }
 
-func (r Key) AsLabelled() fp.Labelled3[NameIsA[int], NameIsB[float32], NameIsC[[]byte]] {
-	return as.Labelled3(NameIsA[int]{r.a}, NameIsB[float32]{r.b}, NameIsC[[]byte]{r.c})
-}
-
-func (r KeyBuilder) FromLabelled(t fp.Labelled3[NameIsA[int], NameIsB[float32], NameIsC[[]byte]]) KeyBuilder {
-	r.a = t.I1.Value()
-	r.b = t.I2.Value()
-	r.c = t.I3.Value()
-	return r
-}
-
 type PointBuilder Point
 
 type PointMutable struct {
@@ -1211,17 +1126,6 @@ func (r PointBuilder) FromMap(m map[string]any) PointBuilder {
 		r.z = v
 	}
 
-	return r
-}
-
-func (r Point) AsLabelled() fp.Labelled3[NameIsX[int], NameIsY[int], NameIsZ[fp.Tuple2[int, int]]] {
-	return as.Labelled3(NameIsX[int]{r.x}, NameIsY[int]{r.y}, NameIsZ[fp.Tuple2[int, int]]{r.z})
-}
-
-func (r PointBuilder) FromLabelled(t fp.Labelled3[NameIsX[int], NameIsY[int], NameIsZ[fp.Tuple2[int, int]]]) PointBuilder {
-	r.x = t.I1.Value()
-	r.y = t.I2.Value()
-	r.z = t.I3.Value()
 	return r
 }
 
@@ -1468,123 +1372,6 @@ func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NameIsOne[int], NameIsTwo[stri
 	return r
 }
 
-type NameIsA[T any] fp.Tuple1[T]
-
-func (r NameIsA[T]) Name() string {
-	return "a"
-}
-func (r NameIsA[T]) Value() T {
-	return r.I1
-}
-func (r NameIsA[T]) WithValue(v T) NameIsA[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsAddr[T any] fp.Tuple1[T]
-
-func (r NameIsAddr[T]) Name() string {
-	return "addr"
-}
-func (r NameIsAddr[T]) Value() T {
-	return r.I1
-}
-func (r NameIsAddr[T]) WithValue(v T) NameIsAddr[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsAge[T any] fp.Tuple1[T]
-
-func (r NameIsAge[T]) Name() string {
-	return "age"
-}
-func (r NameIsAge[T]) Value() T {
-	return r.I1
-}
-func (r NameIsAge[T]) WithValue(v T) NameIsAge[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsAmount[T any] fp.Tuple1[T]
-
-func (r NameIsAmount[T]) Name() string {
-	return "amount"
-}
-func (r NameIsAmount[T]) Value() T {
-	return r.I1
-}
-func (r NameIsAmount[T]) WithValue(v T) NameIsAmount[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsArr[T any] fp.Tuple1[T]
-
-func (r NameIsArr[T]) Name() string {
-	return "arr"
-}
-func (r NameIsArr[T]) Value() T {
-	return r.I1
-}
-func (r NameIsArr[T]) WithValue(v T) NameIsArr[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsB[T any] fp.Tuple1[T]
-
-func (r NameIsB[T]) Name() string {
-	return "b"
-}
-func (r NameIsB[T]) Value() T {
-	return r.I1
-}
-func (r NameIsB[T]) WithValue(v T) NameIsB[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsBlob[T any] fp.Tuple1[T]
-
-func (r NameIsBlob[T]) Name() string {
-	return "blob"
-}
-func (r NameIsBlob[T]) Value() T {
-	return r.I1
-}
-func (r NameIsBlob[T]) WithValue(v T) NameIsBlob[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsC[T any] fp.Tuple1[T]
-
-func (r NameIsC[T]) Name() string {
-	return "c"
-}
-func (r NameIsC[T]) Value() T {
-	return r.I1
-}
-func (r NameIsC[T]) WithValue(v T) NameIsC[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsHeight[T any] fp.Tuple1[T]
-
-func (r NameIsHeight[T]) Name() string {
-	return "height"
-}
-func (r NameIsHeight[T]) Value() T {
-	return r.I1
-}
-func (r NameIsHeight[T]) WithValue(v T) NameIsHeight[T] {
-	r.I1 = v
-	return r
-}
-
 type NameIsHello[T any] fp.Tuple1[T]
 
 func (r NameIsHello[T]) Name() string {
@@ -1594,45 +1381,6 @@ func (r NameIsHello[T]) Value() T {
 	return r.I1
 }
 func (r NameIsHello[T]) WithValue(v T) NameIsHello[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsHi[T any] fp.Tuple1[T]
-
-func (r NameIsHi[T]) Name() string {
-	return "hi"
-}
-func (r NameIsHi[T]) Value() T {
-	return r.I1
-}
-func (r NameIsHi[T]) WithValue(v T) NameIsHi[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsIg[T any] fp.Tuple1[T]
-
-func (r NameIsIg[T]) Name() string {
-	return "ig"
-}
-func (r NameIsIg[T]) Value() T {
-	return r.I1
-}
-func (r NameIsIg[T]) WithValue(v T) NameIsIg[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsL[T any] fp.Tuple1[T]
-
-func (r NameIsL[T]) Name() string {
-	return "l"
-}
-func (r NameIsL[T]) Value() T {
-	return r.I1
-}
-func (r NameIsL[T]) WithValue(v T) NameIsL[T] {
 	r.I1 = v
 	return r
 }
@@ -1650,71 +1398,6 @@ func (r NameIsLanguage[T]) WithValue(v T) NameIsLanguage[T] {
 	return r
 }
 
-type NameIsList[T any] fp.Tuple1[T]
-
-func (r NameIsList[T]) Name() string {
-	return "list"
-}
-func (r NameIsList[T]) Value() T {
-	return r.I1
-}
-func (r NameIsList[T]) WithValue(v T) NameIsList[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsM[T any] fp.Tuple1[T]
-
-func (r NameIsM[T]) Name() string {
-	return "m"
-}
-func (r NameIsM[T]) Value() T {
-	return r.I1
-}
-func (r NameIsM[T]) WithValue(v T) NameIsM[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsM2[T any] fp.Tuple1[T]
-
-func (r NameIsM2[T]) Name() string {
-	return "m2"
-}
-func (r NameIsM2[T]) Value() T {
-	return r.I1
-}
-func (r NameIsM2[T]) WithValue(v T) NameIsM2[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsMm[T any] fp.Tuple1[T]
-
-func (r NameIsMm[T]) Name() string {
-	return "mm"
-}
-func (r NameIsMm[T]) Value() T {
-	return r.I1
-}
-func (r NameIsMm[T]) WithValue(v T) NameIsMm[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsName[T any] fp.Tuple1[T]
-
-func (r NameIsName[T]) Name() string {
-	return "name"
-}
-func (r NameIsName[T]) Value() T {
-	return r.I1
-}
-func (r NameIsName[T]) WithValue(v T) NameIsName[T] {
-	r.I1 = v
-	return r
-}
-
 type NameIsOne[T any] fp.Tuple1[T]
 
 func (r NameIsOne[T]) Name() string {
@@ -1724,71 +1407,6 @@ func (r NameIsOne[T]) Value() T {
 	return r.I1
 }
 func (r NameIsOne[T]) WithValue(v T) NameIsOne[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsOwner[T any] fp.Tuple1[T]
-
-func (r NameIsOwner[T]) Name() string {
-	return "owner"
-}
-func (r NameIsOwner[T]) Value() T {
-	return r.I1
-}
-func (r NameIsOwner[T]) WithValue(v T) NameIsOwner[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsP[T any] fp.Tuple1[T]
-
-func (r NameIsP[T]) Name() string {
-	return "p"
-}
-func (r NameIsP[T]) Value() T {
-	return r.I1
-}
-func (r NameIsP[T]) WithValue(v T) NameIsP[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsPhone[T any] fp.Tuple1[T]
-
-func (r NameIsPhone[T]) Name() string {
-	return "phone"
-}
-func (r NameIsPhone[T]) Value() T {
-	return r.I1
-}
-func (r NameIsPhone[T]) WithValue(v T) NameIsPhone[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsSeq[T any] fp.Tuple1[T]
-
-func (r NameIsSeq[T]) Name() string {
-	return "seq"
-}
-func (r NameIsSeq[T]) Value() T {
-	return r.I1
-}
-func (r NameIsSeq[T]) WithValue(v T) NameIsSeq[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsT[T any] fp.Tuple1[T]
-
-func (r NameIsT[T]) Name() string {
-	return "t"
-}
-func (r NameIsT[T]) Value() T {
-	return r.I1
-}
-func (r NameIsT[T]) WithValue(v T) NameIsT[T] {
 	r.I1 = v
 	return r
 }
@@ -1806,32 +1424,6 @@ func (r NameIsThree[T]) WithValue(v T) NameIsThree[T] {
 	return r
 }
 
-type NameIsTpe[T any] fp.Tuple1[T]
-
-func (r NameIsTpe[T]) Name() string {
-	return "tpe"
-}
-func (r NameIsTpe[T]) Value() T {
-	return r.I1
-}
-func (r NameIsTpe[T]) WithValue(v T) NameIsTpe[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsTuple[T any] fp.Tuple1[T]
-
-func (r NameIsTuple[T]) Name() string {
-	return "tuple"
-}
-func (r NameIsTuple[T]) Value() T {
-	return r.I1
-}
-func (r NameIsTuple[T]) WithValue(v T) NameIsTuple[T] {
-	r.I1 = v
-	return r
-}
-
 type NameIsTwo[T any] fp.Tuple1[T]
 
 func (r NameIsTwo[T]) Name() string {
@@ -1841,71 +1433,6 @@ func (r NameIsTwo[T]) Value() T {
 	return r.I1
 }
 func (r NameIsTwo[T]) WithValue(v T) NameIsTwo[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsValue[T any] fp.Tuple1[T]
-
-func (r NameIsValue[T]) Name() string {
-	return "value"
-}
-func (r NameIsValue[T]) Value() T {
-	return r.I1
-}
-func (r NameIsValue[T]) WithValue(v T) NameIsValue[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsWorld[T any] fp.Tuple1[T]
-
-func (r NameIsWorld[T]) Name() string {
-	return "world"
-}
-func (r NameIsWorld[T]) Value() T {
-	return r.I1
-}
-func (r NameIsWorld[T]) WithValue(v T) NameIsWorld[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsX[T any] fp.Tuple1[T]
-
-func (r NameIsX[T]) Name() string {
-	return "x"
-}
-func (r NameIsX[T]) Value() T {
-	return r.I1
-}
-func (r NameIsX[T]) WithValue(v T) NameIsX[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsY[T any] fp.Tuple1[T]
-
-func (r NameIsY[T]) Name() string {
-	return "y"
-}
-func (r NameIsY[T]) Value() T {
-	return r.I1
-}
-func (r NameIsY[T]) WithValue(v T) NameIsY[T] {
-	r.I1 = v
-	return r
-}
-
-type NameIsZ[T any] fp.Tuple1[T]
-
-func (r NameIsZ[T]) Name() string {
-	return "z"
-}
-func (r NameIsZ[T]) Value() T {
-	return r.I1
-}
-func (r NameIsZ[T]) WithValue(v T) NameIsZ[T] {
 	r.I1 = v
 	return r
 }

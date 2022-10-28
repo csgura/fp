@@ -222,10 +222,6 @@ func genValue() {
 
 			privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 
-			privateFields.Foreach(func(v metafp.StructField) {
-				keyTags = keyTags.Incl(v.Name)
-			})
-
 			privateFields.Foreach(func(f metafp.StructField) {
 
 				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
@@ -401,27 +397,33 @@ func genValue() {
 				return fmt.Sprintf(`NameIs%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
 			}).Iterator().Take(max.Product).MakeString(",")
 
-			fmt.Fprintf(w, `
+			if ts.Tags.Contains("@fp.GenLabelled") {
+				privateFields.Foreach(func(v metafp.StructField) {
+					keyTags = keyTags.Incl(v.Name)
+				})
+
+				fmt.Fprintf(w, `
 					func(r %s) AsLabelled() %s.Labelled%d[%s] {
 						return %s.Labelled%d(%s)
 					}
 
 				`, valuereceiver, fppkg, privateFields.Size(), tp,
-				asalias, privateFields.Size(), fields,
-			)
+					asalias, privateFields.Size(), fields,
+				)
 
-			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
-				return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
-			}).Take(max.Product).MakeString("\n")
+				fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
+					return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
+				}).Take(max.Product).MakeString("\n")
 
-			fmt.Fprintf(w, `
+				fmt.Fprintf(w, `
 					func (r %s) FromLabelled(t %s.Labelled%d[%s] ) %s {
 						%s
 						return r
 					}
 				`, builderreceiver, fppkg, privateFields.Size(), tp, builderreceiver,
-				fields,
-			)
+					fields,
+				)
+			}
 
 			if ts.Tags.Contains("@fp.Json") {
 				jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
