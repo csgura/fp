@@ -469,6 +469,12 @@ func genValue() {
 				return r.I1
 			}
 			`, publicName(name))
+
+			fmt.Fprintf(w, `func (r NameIs%s[T]) WithValue(v T) NameIs%s[T] {
+				r.I1 = v
+				return r
+			}
+			`, publicName(name), publicName(name))
 		})
 	})
 }
@@ -805,6 +811,18 @@ func (r TypeClassSummonContext) summonLabelled(names fp.Seq[string], typeArgs fp
 			return option.Some(ret)
 		}
 
+		if functor := r.lookupTypeClassMember("Map"); functor.IsDefined() {
+			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+			ret := fmt.Sprintf(`%s(%s , 
+			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]]).ApplyLast( %s.Labelled%d[%s] ))`,
+				functor.Get().PackagedName(r.w, r.tc.Package), hlist,
+				aspk, hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
+			)
+
+			return option.Some(ret)
+		}
+
 		contrmap := r.lookupTypeClassMemberMust("ContraMap")
 
 		ret := fmt.Sprintf("%s( %s,  %s.HList%dLabelled[%s])", contrmap.PackagedName(r.w, r.tc.Package), hlist, aspk, typeArgs.Size(), tp)
@@ -846,6 +864,16 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 			imap.Get().PackagedName(r.w, r.tc.Package), hlist,
 			aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
 			aspk, typeArgs.Size(), tp)
+	}
+
+	if functor := r.lookupTypeClassMember("Map"); functor.IsDefined() {
+		hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+		return fmt.Sprintf(`%s(%s , 
+			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]]).ApplyLast( %s.Tuple%d[%s] ))`,
+			functor.Get().PackagedName(r.w, r.tc.Package), hlist,
+			aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
+		)
 	}
 
 	contrmap := r.lookupTypeClassMemberMust("ContraMap")
@@ -993,6 +1021,24 @@ func genDerive() {
 					imapfunc.PackagedName(w, workingPackage), summonExpr, fppk,
 					aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
 					valuereceiver, convExpr)
+			}).Or(func() fp.Option[string] {
+				functor := summonCtx.lookupTypeClassMember("Map")
+
+				return option.Map(functor, func(v typeClassMember) string {
+					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+					revExpr := option.Map(labelledExpr, func(v string) string {
+						return "FromLabelled"
+					}).OrElse("FromTuple")
+
+					return fmt.Sprintf(`%s( %s, %s.Compose(
+							%s.Curried2(%s.%s)(%s{}), %s.Build))`,
+						v.PackagedName(w, workingPackage), summonExpr, fppk,
+						aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
+					)
+				})
+
 			}).OrElseGet(func() string {
 				contrmap := summonCtx.lookupTypeClassMemberMust("ContraMap")
 

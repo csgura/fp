@@ -1476,6 +1476,10 @@ func (r NameIsA[T]) Name() string {
 func (r NameIsA[T]) Value() T {
 	return r.I1
 }
+func (r NameIsA[T]) WithValue(v T) NameIsA[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsAddr[T any] fp.Tuple1[T]
 
@@ -1484,6 +1488,10 @@ func (r NameIsAddr[T]) Name() string {
 }
 func (r NameIsAddr[T]) Value() T {
 	return r.I1
+}
+func (r NameIsAddr[T]) WithValue(v T) NameIsAddr[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsAge[T any] fp.Tuple1[T]
@@ -1494,6 +1502,10 @@ func (r NameIsAge[T]) Name() string {
 func (r NameIsAge[T]) Value() T {
 	return r.I1
 }
+func (r NameIsAge[T]) WithValue(v T) NameIsAge[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsAmount[T any] fp.Tuple1[T]
 
@@ -1502,6 +1514,10 @@ func (r NameIsAmount[T]) Name() string {
 }
 func (r NameIsAmount[T]) Value() T {
 	return r.I1
+}
+func (r NameIsAmount[T]) WithValue(v T) NameIsAmount[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsArr[T any] fp.Tuple1[T]
@@ -1512,6 +1528,10 @@ func (r NameIsArr[T]) Name() string {
 func (r NameIsArr[T]) Value() T {
 	return r.I1
 }
+func (r NameIsArr[T]) WithValue(v T) NameIsArr[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsB[T any] fp.Tuple1[T]
 
@@ -1520,6 +1540,10 @@ func (r NameIsB[T]) Name() string {
 }
 func (r NameIsB[T]) Value() T {
 	return r.I1
+}
+func (r NameIsB[T]) WithValue(v T) NameIsB[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsBlob[T any] fp.Tuple1[T]
@@ -1530,6 +1554,10 @@ func (r NameIsBlob[T]) Name() string {
 func (r NameIsBlob[T]) Value() T {
 	return r.I1
 }
+func (r NameIsBlob[T]) WithValue(v T) NameIsBlob[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsC[T any] fp.Tuple1[T]
 
@@ -1538,6 +1566,10 @@ func (r NameIsC[T]) Name() string {
 }
 func (r NameIsC[T]) Value() T {
 	return r.I1
+}
+func (r NameIsC[T]) WithValue(v T) NameIsC[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsHeight[T any] fp.Tuple1[T]
@@ -1548,6 +1580,10 @@ func (r NameIsHeight[T]) Name() string {
 func (r NameIsHeight[T]) Value() T {
 	return r.I1
 }
+func (r NameIsHeight[T]) WithValue(v T) NameIsHeight[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsHello[T any] fp.Tuple1[T]
 
@@ -1556,6 +1592,10 @@ func (r NameIsHello[T]) Name() string {
 }
 func (r NameIsHello[T]) Value() T {
 	return r.I1
+}
+func (r NameIsHello[T]) WithValue(v T) NameIsHello[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsHi[T any] fp.Tuple1[T]
@@ -1566,6 +1606,10 @@ func (r NameIsHi[T]) Name() string {
 func (r NameIsHi[T]) Value() T {
 	return r.I1
 }
+func (r NameIsHi[T]) WithValue(v T) NameIsHi[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsIg[T any] fp.Tuple1[T]
 
@@ -1574,6 +1618,10 @@ func (r NameIsIg[T]) Name() string {
 }
 func (r NameIsIg[T]) Value() T {
 	return r.I1
+}
+func (r NameIsIg[T]) WithValue(v T) NameIsIg[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsL[T any] fp.Tuple1[T]
@@ -1584,6 +1632,10 @@ func (r NameIsL[T]) Name() string {
 func (r NameIsL[T]) Value() T {
 	return r.I1
 }
+func (r NameIsL[T]) WithValue(v T) NameIsL[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsLanguage[T any] fp.Tuple1[T]
 
@@ -1592,6 +1644,10 @@ func (r NameIsLanguage[T]) Name() string {
 }
 func (r NameIsLanguage[T]) Value() T {
 	return r.I1
+}
+func (r NameIsLanguage[T]) WithValue(v T) NameIsLanguage[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsList[T any] fp.Tuple1[T]
@@ -1602,6 +1658,10 @@ func (r NameIsList[T]) Name() string {
 func (r NameIsList[T]) Value() T {
 	return r.I1
 }
+func (r NameIsList[T]) WithValue(v T) NameIsList[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsM[T any] fp.Tuple1[T]
 
@@ -1610,6 +1670,10 @@ func (r NameIsM[T]) Name() string {
 }
 func (r NameIsM[T]) Value() T {
 	return r.I1
+}
+func (r NameIsM[T]) WithValue(v T) NameIsM[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsM2[T any] fp.Tuple1[T]
@@ -1620,6 +1684,10 @@ func (r NameIsM2[T]) Name() string {
 func (r NameIsM2[T]) Value() T {
 	return r.I1
 }
+func (r NameIsM2[T]) WithValue(v T) NameIsM2[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsMm[T any] fp.Tuple1[T]
 
@@ -1628,6 +1696,10 @@ func (r NameIsMm[T]) Name() string {
 }
 func (r NameIsMm[T]) Value() T {
 	return r.I1
+}
+func (r NameIsMm[T]) WithValue(v T) NameIsMm[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsName[T any] fp.Tuple1[T]
@@ -1638,6 +1710,10 @@ func (r NameIsName[T]) Name() string {
 func (r NameIsName[T]) Value() T {
 	return r.I1
 }
+func (r NameIsName[T]) WithValue(v T) NameIsName[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsOne[T any] fp.Tuple1[T]
 
@@ -1646,6 +1722,10 @@ func (r NameIsOne[T]) Name() string {
 }
 func (r NameIsOne[T]) Value() T {
 	return r.I1
+}
+func (r NameIsOne[T]) WithValue(v T) NameIsOne[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsOwner[T any] fp.Tuple1[T]
@@ -1656,6 +1736,10 @@ func (r NameIsOwner[T]) Name() string {
 func (r NameIsOwner[T]) Value() T {
 	return r.I1
 }
+func (r NameIsOwner[T]) WithValue(v T) NameIsOwner[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsP[T any] fp.Tuple1[T]
 
@@ -1664,6 +1748,10 @@ func (r NameIsP[T]) Name() string {
 }
 func (r NameIsP[T]) Value() T {
 	return r.I1
+}
+func (r NameIsP[T]) WithValue(v T) NameIsP[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsPhone[T any] fp.Tuple1[T]
@@ -1674,6 +1762,10 @@ func (r NameIsPhone[T]) Name() string {
 func (r NameIsPhone[T]) Value() T {
 	return r.I1
 }
+func (r NameIsPhone[T]) WithValue(v T) NameIsPhone[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsSeq[T any] fp.Tuple1[T]
 
@@ -1682,6 +1774,10 @@ func (r NameIsSeq[T]) Name() string {
 }
 func (r NameIsSeq[T]) Value() T {
 	return r.I1
+}
+func (r NameIsSeq[T]) WithValue(v T) NameIsSeq[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsT[T any] fp.Tuple1[T]
@@ -1692,6 +1788,10 @@ func (r NameIsT[T]) Name() string {
 func (r NameIsT[T]) Value() T {
 	return r.I1
 }
+func (r NameIsT[T]) WithValue(v T) NameIsT[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsThree[T any] fp.Tuple1[T]
 
@@ -1700,6 +1800,10 @@ func (r NameIsThree[T]) Name() string {
 }
 func (r NameIsThree[T]) Value() T {
 	return r.I1
+}
+func (r NameIsThree[T]) WithValue(v T) NameIsThree[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsTpe[T any] fp.Tuple1[T]
@@ -1710,6 +1814,10 @@ func (r NameIsTpe[T]) Name() string {
 func (r NameIsTpe[T]) Value() T {
 	return r.I1
 }
+func (r NameIsTpe[T]) WithValue(v T) NameIsTpe[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsTuple[T any] fp.Tuple1[T]
 
@@ -1718,6 +1826,10 @@ func (r NameIsTuple[T]) Name() string {
 }
 func (r NameIsTuple[T]) Value() T {
 	return r.I1
+}
+func (r NameIsTuple[T]) WithValue(v T) NameIsTuple[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsTwo[T any] fp.Tuple1[T]
@@ -1728,6 +1840,10 @@ func (r NameIsTwo[T]) Name() string {
 func (r NameIsTwo[T]) Value() T {
 	return r.I1
 }
+func (r NameIsTwo[T]) WithValue(v T) NameIsTwo[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsValue[T any] fp.Tuple1[T]
 
@@ -1736,6 +1852,10 @@ func (r NameIsValue[T]) Name() string {
 }
 func (r NameIsValue[T]) Value() T {
 	return r.I1
+}
+func (r NameIsValue[T]) WithValue(v T) NameIsValue[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsWorld[T any] fp.Tuple1[T]
@@ -1746,6 +1866,10 @@ func (r NameIsWorld[T]) Name() string {
 func (r NameIsWorld[T]) Value() T {
 	return r.I1
 }
+func (r NameIsWorld[T]) WithValue(v T) NameIsWorld[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsX[T any] fp.Tuple1[T]
 
@@ -1754,6 +1878,10 @@ func (r NameIsX[T]) Name() string {
 }
 func (r NameIsX[T]) Value() T {
 	return r.I1
+}
+func (r NameIsX[T]) WithValue(v T) NameIsX[T] {
+	r.I1 = v
+	return r
 }
 
 type NameIsY[T any] fp.Tuple1[T]
@@ -1764,6 +1892,10 @@ func (r NameIsY[T]) Name() string {
 func (r NameIsY[T]) Value() T {
 	return r.I1
 }
+func (r NameIsY[T]) WithValue(v T) NameIsY[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsZ[T any] fp.Tuple1[T]
 
@@ -1772,4 +1904,8 @@ func (r NameIsZ[T]) Name() string {
 }
 func (r NameIsZ[T]) Value() T {
 	return r.I1
+}
+func (r NameIsZ[T]) WithValue(v T) NameIsZ[T] {
+	r.I1 = v
+	return r
 }

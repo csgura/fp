@@ -2,6 +2,8 @@
 package hello
 
 import (
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/test/internal/js"
 	"time"
@@ -10,3 +12,6 @@ import (
 var EqWorld = eq.ContraMap(eq.Tuple2(eq.String, eq.Given[time.Time]()), World.AsTuple)
 
 var EncoderWorld = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameIsMessage[string]](js.EncoderString), js.EncoderNamed[NameIsTimestamp[time.Time]](js.EncoderTime)), World.AsLabelled)
+
+var DecoderWorld = js.DecoderMap(js.DecoderLabelled2(js.DecoderNamed[NameIsMessage[string]](js.DecoderString), js.DecoderNamed[NameIsTimestamp[time.Time]](js.DecoderTime)), fp.Compose(
+	as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}), WorldBuilder.Build))

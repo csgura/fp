@@ -138,6 +138,9 @@ var _ eq.Derives[fp.Eq[Greeting]]
 // @fp.Derive
 var _ js.Derives[js.Encoder[Greeting]]
 
+// @fp.Derive
+var _ js.Derives[js.Decoder[Greeting]]
+
 // @fp.Value
 type Three struct {
 	one   int
@@ -147,3 +150,6 @@ type Three struct {
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Three]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[Three]]

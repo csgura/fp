@@ -22,3 +22,6 @@ var _ eq.Derives[fp.Eq[World]]
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[World]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[World]]

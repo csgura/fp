@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/test/internal/hello"
 	"github.com/csgura/fp/test/internal/js"
@@ -35,7 +36,17 @@ var EqGreeting = eq.ContraMap(eq.Tuple2(hello.EqWorld, eq.String), Greeting.AsTu
 
 var EncoderGreeting = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameIsHello[hello.World]](hello.EncoderWorld), js.EncoderNamed[NameIsLanguage[string]](js.EncoderString)), Greeting.AsLabelled)
 
+var DecoderGreeting = js.DecoderMap(js.DecoderLabelled2(js.DecoderNamed[NameIsHello[hello.World]](hello.DecoderWorld), js.DecoderNamed[NameIsLanguage[string]](js.DecoderString)), fp.Compose(
+	as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}), GreetingBuilder.Build))
+
 var EncoderThree = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
 	js.EncoderHConsLabelled(js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
 		js.EncoderHConsLabelled(js.EncoderNamed[NameIsThree[float64]](js.EncoderNumber[float64]()),
 			js.EncoderHNil))), as.HList3Labelled[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]]), Three.AsLabelled)
+
+var DecoderThree = js.DecoderMap(js.DecoderMap(js.DecoderHConsLabelled(js.DecoderNamed[NameIsOne[int]](js.DecoderNumber[int]()),
+	js.DecoderHConsLabelled(js.DecoderNamed[NameIsTwo[string]](js.DecoderString),
+		js.DecoderHConsLabelled(js.DecoderNamed[NameIsThree[float64]](js.DecoderNumber[float64]()),
+			js.DecoderHNil))),
+	as.Func2(hlist.Case3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64], hlist.Nil, fp.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]]]).ApplyLast(as.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]])), fp.Compose(
+	as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}), ThreeBuilder.Build))

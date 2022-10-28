@@ -61,6 +61,14 @@ func TestJson(t *testing.T) {
 	res := value.EncoderGreeting.Encode(g)
 	fmt.Println(res)
 
+	parsedG := value.DecoderGreeting.Decode(res)
+	parsedG.Failed().Foreach(func(v error) {
+		fmt.Printf("parse error : %s\n", v)
+	})
+	assert.True(parsedG.IsSuccess())
+	assert.Equal(parsedG.Get().Hello().Message(), "hello")
+	assert.Equal(parsedG.Get().Language(), "En")
+
 	var rev value.Greeting
 	err := json.Unmarshal([]byte(res), &rev)
 	assert.Success(err)
@@ -79,4 +87,10 @@ func TestJson(t *testing.T) {
 
 	res = value.EncoderThree.Encode(t3)
 	fmt.Println(res)
+
+	parsedT3 := value.DecoderThree.Decode(res)
+	assert.True(parsedT3.IsSuccess())
+	assert.Equal(parsedT3.Get().One(), 1)
+	assert.Equal(parsedT3.Get().Two(), "2")
+
 }

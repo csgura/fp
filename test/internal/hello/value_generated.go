@@ -136,6 +136,10 @@ func (r NameIsMessage[T]) Name() string {
 func (r NameIsMessage[T]) Value() T {
 	return r.I1
 }
+func (r NameIsMessage[T]) WithValue(v T) NameIsMessage[T] {
+	r.I1 = v
+	return r
+}
 
 type NameIsTimestamp[T any] fp.Tuple1[T]
 
@@ -144,4 +148,8 @@ func (r NameIsTimestamp[T]) Name() string {
 }
 func (r NameIsTimestamp[T]) Value() T {
 	return r.I1
+}
+func (r NameIsTimestamp[T]) WithValue(v T) NameIsTimestamp[T] {
+	r.I1 = v
+	return r
 }
