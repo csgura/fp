@@ -101,13 +101,13 @@ func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
 	return r
 }
 
-func (r World) AsLabelled() fp.Labelled2[string, time.Time] {
-	return as.Labelled2(as.Field("message", r.message), as.Field("timestamp", r.timestamp))
+func (r World) AsLabelled() fp.Labelled2[NameIsMessage[string], NameIsTimestamp[time.Time]] {
+	return as.Labelled2(NameIsMessage[string]{r.message}, NameIsTimestamp[time.Time]{r.timestamp})
 }
 
-func (r WorldBuilder) FromLabelled(t fp.Labelled2[string, time.Time]) WorldBuilder {
-	r.message = t.I1.Value
-	r.timestamp = t.I2.Value
+func (r WorldBuilder) FromLabelled(t fp.Labelled2[NameIsMessage[string], NameIsTimestamp[time.Time]]) WorldBuilder {
+	r.message = t.I1.Value()
+	r.timestamp = t.I2.Value()
 	return r
 }
 
@@ -126,4 +126,22 @@ func (r *World) UnmarshalJSON(b []byte) error {
 		*r = m.AsImmutable()
 	}
 	return err
+}
+
+type NameIsTimestamp[T any] fp.Tuple1[T]
+
+func (r NameIsTimestamp[T]) Name() string {
+	return "timestamp"
+}
+func (r NameIsTimestamp[T]) Value() T {
+	return r.I1
+}
+
+type NameIsMessage[T any] fp.Tuple1[T]
+
+func (r NameIsMessage[T]) Name() string {
+	return "message"
+}
+func (r NameIsMessage[T]) Value() T {
+	return r.I1
 }

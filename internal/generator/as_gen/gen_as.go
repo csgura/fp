@@ -100,11 +100,11 @@ func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 
 		for i := 1; i < max.Product; i++ {
 
-			fmt.Fprintf(f, "func Labelled%d [%s any]( %s ) fp.Labelled%d[%s] { ", i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclTypeClassArgs(1, i, "fp.Field"), i, metafp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "func Labelled%d [%s fp.Named]( %s ) fp.Labelled%d[%s] { ", i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.FuncTypeArgs(1, i))
 
 			fmt.Fprintf(f, "  return fp.Labelled%d[%s] {\n", i, metafp.FuncTypeArgs(1, i))
 			for j := 1; j <= i; j++ {
-				fmt.Fprintf(f, "    I%d: ins%d,\n", j, j)
+				fmt.Fprintf(f, "    I%d: a%d,\n", j, j)
 			}
 			fmt.Fprintf(f, `}
 		}
@@ -112,14 +112,14 @@ func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 		}
 
 		fmt.Fprintf(f, `
-					func HList1Labelled[A1 any](tuple fp.Labelled1[A1]) hlist.Cons[fp.Field[A1], hlist.Nil] {
+					func HList1Labelled[A1 fp.Named](tuple fp.Labelled1[A1]) hlist.Cons[A1, hlist.Nil] {
 						return hlist.Concat(tuple.Head(), hlist.Empty())
 					}
 		`)
 
 		for i := 2; i < max.Product; i++ {
-			fmt.Fprintf(f, "func HList%dLabelled [%s any]( tuple fp.Labelled%d[%s]) %s { ", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i),
-				metafp.Monad("fp.Field").ConsType(1, i, "hlist.Nil"))
+			fmt.Fprintf(f, "func HList%dLabelled [%s fp.Named]( tuple fp.Labelled%d[%s]) %s { ", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i),
+				metafp.ConsType(1, i, "hlist.Nil"))
 
 			fmt.Fprintf(f, `
 						return hlist.Concat( tuple.Head(), HList%dLabelled( tuple.Tail() ))

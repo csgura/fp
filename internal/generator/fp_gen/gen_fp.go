@@ -186,15 +186,15 @@ func (r Tuple%d[%s]) Unapply() (%s) {
 		_ = f.GetImportedName(types.NewPackage("fmt", "fmt"))
 
 		for i := 2; i < max.Product; i++ {
-			fmt.Fprintf(f, "type Labelled%d[%s any] struct {\n", i, metafp.TypeArgs("T", 1, i))
+			fmt.Fprintf(f, "type Labelled%d[%s Named] struct {\n", i, metafp.TypeArgs("T", 1, i))
 
 			for j := 1; j <= i; j++ {
-				fmt.Fprintf(f, "    I%d Field[T%d]\n", j, j)
+				fmt.Fprintf(f, "    I%d T%d\n", j, j)
 			}
 			fmt.Fprintf(f, "}\n\n")
 
 			fmt.Fprintf(f, `
-func (r Labelled%d[%s]) Head() Field[T1] {
+func (r Labelled%d[%s]) Head() T1 {
 	return r.I1;
 }
 `, i, metafp.TypeArgs("T", 1, i))
@@ -221,7 +221,7 @@ func (r Labelled%d[%s]) String() string {
 func (r Labelled%d[%s]) Unapply() (%s) {
 	return %s
 }
-`, i, metafp.TypeArgs("T", 1, i), metafp.Monad("Field").TypeDeclArgs(1, i, "T"), metafp.FuncCallArgs(1, i, "r.I"))
+`, i, metafp.TypeArgs("T", 1, i), metafp.TypeArgs("T", 1, i), metafp.FuncCallArgs(1, i, "r.I"))
 
 		}
 

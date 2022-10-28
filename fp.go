@@ -38,20 +38,20 @@ func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
 	return hlist.Concat(r.Head(), hlist.Empty())
 }
 
-type Field[T any] struct {
-	Name  string
-	Value T
+type Named interface {
+	Name() string
 }
 
-func (r Field[T]) String() string {
-	return fmt.Sprintf("%s:%v", r.Name, r.Value)
+type NamedField[T any] interface {
+	Named
+	Value() T
 }
 
-type Labelled1[T1 any] struct {
-	I1 Field[T1]
+type Labelled1[T1 Named] struct {
+	I1 T1
 }
 
-func (r Labelled1[T1]) Head() Field[T1] {
+func (r Labelled1[T1]) Head() T1 {
 	return r.I1
 }
 

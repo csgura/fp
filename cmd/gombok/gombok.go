@@ -161,6 +161,8 @@ func genValue() {
 
 		st := metafp.FindTaggedStruct(pkgs, "@fp.Value")
 
+		keyTags := mutable.EmptySet[string]()
+
 		st.Foreach(func(ts metafp.TaggedStruct) {
 
 			valuetpdec := ""
@@ -220,6 +222,11 @@ func genValue() {
 			`, valuereceiver, builderreceiver, builderreceiver)
 
 			privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
+
+			privateFields.Foreach(func(v metafp.StructField) {
+				keyTags = keyTags.Incl(v.Name)
+			})
+
 			privateFields.Foreach(func(f metafp.StructField) {
 
 				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
@@ -388,11 +395,11 @@ func genValue() {
 			)
 
 			tp = iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
-				return fmt.Sprintf("%s", w.TypeName(workingPackage, v.Type.Type))
+				return fmt.Sprintf("NameIs%s[%s]", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
 			}).MakeString(",")
 
 			fields = seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`%s.Field("%s", r.%s)`, asalias, f.Name, f.Name)
+				return fmt.Sprintf(`NameIs%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
 			}).Iterator().Take(max.Product).MakeString(",")
 
 			fmt.Fprintf(w, `
@@ -405,7 +412,7 @@ func genValue() {
 			)
 
 			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
-				return fmt.Sprintf("r.%s = t.I%d.Value", f.I2.Name, f.I1+1)
+				return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
 			}).Take(max.Product).MakeString("\n")
 
 			fmt.Fprintf(w, `
@@ -449,6 +456,20 @@ func genValue() {
 
 		})
 
+		keyTags.Foreach(func(name string) {
+			fmt.Fprintf(w, `type NameIs%s[T any] fp.Tuple1[T]
+			`, publicName(name))
+
+			fmt.Fprintf(w, `func (r NameIs%s[T]) Name() string {
+				return "%s"
+			}
+			`, publicName(name), name)
+
+			fmt.Fprintf(w, `func (r NameIs%s[T]) Value() T {
+				return r.I1
+			}
+			`, publicName(name))
+		})
 	})
 }
 
@@ -589,6 +610,18 @@ func (r TypeClassSummonContext) expr(lt lookupTarget) string {
 
 }
 
+func (r TypeClassSummonContext) labelledExpr(lt lookupTarget, names fp.Seq[string]) string {
+	if len(lt.typeArgs) > 0 {
+		list := seq.Map(seq.Zip(lt.typeArgs, names), func(t fp.Tuple2[metafp.TypeInfo, string]) string {
+			return r.summonNamed(t.I2, t.I1)
+		}).MakeString(",")
+		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w), list)
+	}
+
+	return lt.instanceExpr(r.w)
+
+}
+
 func (r TypeClassSummonContext) implicitTypeClassInstanceName(f metafp.TypeInfo) fp.Seq[lookupTarget] {
 	switch at := f.Type.(type) {
 	case *types.TypeParam:
@@ -642,7 +675,7 @@ type TypeClassSummonContext struct {
 	genSet mutable.Set[string]
 }
 
-func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo]) fp.Option[string] {
+func (r TypeClassSummonContext) summonLabelled(names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfo]) fp.Option[string] {
 	list := fp.Seq[lookupTarget]{
 		{
 			name:     fmt.Sprintf("%sLabelled%d", r.tc.TypeClass.Name, typeArgs.Size()),
@@ -665,7 +698,8 @@ func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo])
 
 	result := list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
 
-	res := option.Map(result, r.expr)
+	res := option.Map(result, as.Func2(r.labelledExpr).ApplyLast(names))
+
 	if res.IsDefined() {
 		return res
 	}
@@ -689,23 +723,24 @@ func (r TypeClassSummonContext) summonLabelled(typeArgs fp.Seq[metafp.TypeInfo])
 
 	if result.IsDefined() {
 		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		//fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
 		gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
 
 		hnil := option.Map(r.tc.lookupInstancePkgFunc("HNil"), instancePkgLookup.Name).OrElse("HNil")
-		hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.%s", gpk, hnil), func(tail string, ti metafp.TypeInfo) string {
-			instance := r.summon(ti)
+		namedTypeArgs := seq.Zip(names, typeArgs)
+		hlist := seq.Fold(namedTypeArgs.Reverse(), fmt.Sprintf("%s.%s", gpk, hnil), func(tail string, ti fp.Tuple2[string, metafp.TypeInfo]) string {
+			instance := r.summonNamed(ti.Unapply())
 			return fmt.Sprintf(`%s.%s(%s,
 			%s)`, gpk, result.Get().name, instance, tail)
 		})
 
-		tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-			return r.w.TypeName(r.tc.Package, f.Type)
+		tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
+			return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
 		}).MakeString(",")
 
-		hlisttp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-			return fmt.Sprintf("%s.Field[%s]", fppk, r.w.TypeName(r.tc.Package, f.Type))
+		hlisttp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
+			return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
 		}).MakeString(",")
 
 		if imap := r.tc.lookupInstancePkgFunc("IMap"); imap.IsDefined() {
@@ -789,6 +824,20 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 	return fmt.Sprintf("%s.%s( %s,  %s.HList%d[%s])", gpk, contrmap, hlist, aspk, typeArgs.Size(), tp)
 }
 
+func (r TypeClassSummonContext) summonNamed(name string, t metafp.TypeInfo) string {
+
+	instance := r.tc.lookupInstancePkgFunc("Named")
+	if instance.IsDefined() {
+		gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
+
+		return fmt.Sprintf("%s.%s[NameIs%s[%s]](%s)", gpk, instance.Get().name, publicName(name),
+			r.w.TypeName(r.tc.Package, t.Type), r.summon(t))
+	}
+
+	pk := r.w.GetImportedName(r.tc.Package)
+	return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
+}
+
 func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
 
 	if t.IsTuple() {
@@ -869,6 +918,10 @@ func genDerive() {
 			//fmt.Printf("derive %v for %v\n", v.TypeClass, v.DeriveFor)
 			privateFields := v.DeriveFor.Fields.FilterNot(metafp.StructField.Public)
 
+			names := seq.Map(privateFields, func(v metafp.StructField) string {
+				return v.Name
+			})
+
 			gpk := w.GetImportedName(v.PrimitiveInstancePkg)
 
 			typeArgs := seq.Map(privateFields, func(v metafp.StructField) metafp.TypeInfo {
@@ -881,7 +934,7 @@ func genDerive() {
 				genSet: genSet,
 			}
 
-			labelledExpr := summonCtx.summonLabelled(typeArgs)
+			labelledExpr := summonCtx.summonLabelled(names, typeArgs)
 			summonExpr := labelledExpr.OrElseGet(func() string {
 				return summonCtx.summonTuple(typeArgs)
 			})

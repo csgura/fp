@@ -37,10 +37,3 @@ func Dual[T any](t T) fp.Dual[T] {
 func Endo[T any](f fp.Func1[T, T]) fp.Endo[T] {
 	return fp.Endo[T](f)
 }
-
-func Field[T any](name string, value T) fp.Field[T] {
-	return fp.Field[T]{
-		Name:  name,
-		Value: value,
-	}
-}

@@ -33,9 +33,9 @@ var MonoidPoint = monoid.IMap(monoid.Tuple3(MonoidInt, MonoidInt, monoid.Tuple2(
 
 var EqGreeting = eq.ContraMap(eq.Tuple2(hello.EqWorld, eq.String), Greeting.AsTuple)
 
-var EncoderGreeting = js.EncoderContraMap(js.EncoderLabelled2(hello.EncoderWorld, js.EncoderString), Greeting.AsLabelled)
+var EncoderGreeting = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameIsHello[hello.World]](hello.EncoderWorld), js.EncoderNamed[NameIsLanguage[string]](js.EncoderString)), Greeting.AsLabelled)
 
-var EncoderThree = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNumber[int](),
-	js.EncoderHConsLabelled(js.EncoderString,
-		js.EncoderHConsLabelled(js.EncoderNumber[float64](),
-			js.EncoderHNil))), as.HList3Labelled[int, string, float64]), Three.AsLabelled)
+var EncoderThree = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
+	js.EncoderHConsLabelled(js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
+		js.EncoderHConsLabelled(js.EncoderNamed[NameIsThree[float64]](js.EncoderNumber[float64]()),
+			js.EncoderHNil))), as.HList3Labelled[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]]), Three.AsLabelled)

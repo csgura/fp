@@ -54,12 +54,12 @@ func EncoderHCons[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[
 	})
 }
 
-func EncoderHConsLabelled[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[fp.Field[H], T]] {
-	return New(func(a hlist.Cons[fp.Field[H], T]) string {
+func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[H, T]] {
+	return New(func(a hlist.Cons[H, T]) string {
 		if a.Tail().IsNil() {
-			return fmt.Sprintf(`{"%s":%s}`, a.Head().Name, heq.Encode(a.Head().Value))
+			return fmt.Sprintf(`{"%s":%s}`, a.Head().Name(), heq.Encode(a.Head()))
 		}
-		return fmt.Sprintf(`{"%s":%s,%s}`, a.Head().Name, heq.Encode(a.Head().Value),
+		return fmt.Sprintf(`{"%s":%s,%s}`, a.Head().Name(), heq.Encode(a.Head()),
 			strings.Trim(teq.Encode(a.Tail()), "{}"),
 		)
 	})
@@ -77,21 +77,27 @@ func EncoderContraMap[T, U any](instance Encoder[T], fn func(U) T) Encoder[U] {
 	})
 }
 
-func EncoderLabelled1[A any](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
+func EncoderLabelled1[A fp.Named](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
 	return New(
 		func(a fp.Labelled1[A]) string {
-			return fmt.Sprintf(`{"%s" : %s}`, a.I1.Name, ins1.Encode(a.I1.Value))
+			return fmt.Sprintf(`{"%s" : %s}`, a.I1.Name(), ins1.Encode(a.I1))
 		},
 	)
 }
 
-func EncoderLabelled2[A1, A2 any](ins1 Encoder[A1], ins2 Encoder[A2]) Encoder[fp.Labelled2[A1, A2]] {
+func EncoderNamed[T fp.NamedField[A], A any](enc Encoder[A]) Encoder[T] {
+	return New(func(a T) string {
+		return enc.Encode(a.Value())
+	})
+}
+
+func EncoderLabelled2[A1, A2 fp.Named](ins1 Encoder[A1], ins2 Encoder[A2]) Encoder[fp.Labelled2[A1, A2]] {
 
 	return New(
 		func(a fp.Labelled2[A1, A2]) string {
 			return fmt.Sprintf(`{"%s":%s,"%s":%s}`,
-				a.I1.Name, ins1.Encode(a.I1.Value),
-				a.I2.Name, ins2.Encode(a.I2.Value),
+				a.I1.Name(), ins1.Encode(a.I1),
+				a.I2.Name(), ins2.Encode(a.I2),
 			)
 		},
 	)

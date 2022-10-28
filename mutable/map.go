@@ -45,6 +45,10 @@ func SetOf[V comparable](v ...V) fp.Set[V] {
 	}, ret)
 }
 
+func EmptySet[V comparable]() fp.Set[V] {
+	return SetOf[V]()
+}
+
 func MapOf[K comparable, V any](m map[K]V) fp.Map[K, V] {
 	return fp.MakeMap[K, V](Map[K, V](m))
 }

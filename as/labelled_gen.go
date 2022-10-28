@@ -6,382 +6,382 @@ import (
 	"github.com/csgura/fp/hlist"
 )
 
-func Labelled1[A1 any](ins1 fp.Field[A1]) fp.Labelled1[A1] {
+func Labelled1[A1 fp.Named](a1 A1) fp.Labelled1[A1] {
 	return fp.Labelled1[A1]{
-		I1: ins1,
+		I1: a1,
 	}
 }
-func Labelled2[A1, A2 any](ins1 fp.Field[A1], ins2 fp.Field[A2]) fp.Labelled2[A1, A2] {
+func Labelled2[A1, A2 fp.Named](a1 A1, a2 A2) fp.Labelled2[A1, A2] {
 	return fp.Labelled2[A1, A2]{
-		I1: ins1,
-		I2: ins2,
+		I1: a1,
+		I2: a2,
 	}
 }
-func Labelled3[A1, A2, A3 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3]) fp.Labelled3[A1, A2, A3] {
+func Labelled3[A1, A2, A3 fp.Named](a1 A1, a2 A2, a3 A3) fp.Labelled3[A1, A2, A3] {
 	return fp.Labelled3[A1, A2, A3]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
+		I1: a1,
+		I2: a2,
+		I3: a3,
 	}
 }
-func Labelled4[A1, A2, A3, A4 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4]) fp.Labelled4[A1, A2, A3, A4] {
+func Labelled4[A1, A2, A3, A4 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4) fp.Labelled4[A1, A2, A3, A4] {
 	return fp.Labelled4[A1, A2, A3, A4]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
-		I4: ins4,
+		I1: a1,
+		I2: a2,
+		I3: a3,
+		I4: a4,
 	}
 }
-func Labelled5[A1, A2, A3, A4, A5 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5]) fp.Labelled5[A1, A2, A3, A4, A5] {
+func Labelled5[A1, A2, A3, A4, A5 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Labelled5[A1, A2, A3, A4, A5] {
 	return fp.Labelled5[A1, A2, A3, A4, A5]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
-		I4: ins4,
-		I5: ins5,
+		I1: a1,
+		I2: a2,
+		I3: a3,
+		I4: a4,
+		I5: a5,
 	}
 }
-func Labelled6[A1, A2, A3, A4, A5, A6 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6]) fp.Labelled6[A1, A2, A3, A4, A5, A6] {
+func Labelled6[A1, A2, A3, A4, A5, A6 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Labelled6[A1, A2, A3, A4, A5, A6] {
 	return fp.Labelled6[A1, A2, A3, A4, A5, A6]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
-		I4: ins4,
-		I5: ins5,
-		I6: ins6,
+		I1: a1,
+		I2: a2,
+		I3: a3,
+		I4: a4,
+		I5: a5,
+		I6: a6,
 	}
 }
-func Labelled7[A1, A2, A3, A4, A5, A6, A7 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7]) fp.Labelled7[A1, A2, A3, A4, A5, A6, A7] {
+func Labelled7[A1, A2, A3, A4, A5, A6, A7 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Labelled7[A1, A2, A3, A4, A5, A6, A7] {
 	return fp.Labelled7[A1, A2, A3, A4, A5, A6, A7]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
-		I4: ins4,
-		I5: ins5,
-		I6: ins6,
-		I7: ins7,
+		I1: a1,
+		I2: a2,
+		I3: a3,
+		I4: a4,
+		I5: a5,
+		I6: a6,
+		I7: a7,
 	}
 }
-func Labelled8[A1, A2, A3, A4, A5, A6, A7, A8 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8]) fp.Labelled8[A1, A2, A3, A4, A5, A6, A7, A8] {
+func Labelled8[A1, A2, A3, A4, A5, A6, A7, A8 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Labelled8[A1, A2, A3, A4, A5, A6, A7, A8] {
 	return fp.Labelled8[A1, A2, A3, A4, A5, A6, A7, A8]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
-		I4: ins4,
-		I5: ins5,
-		I6: ins6,
-		I7: ins7,
-		I8: ins8,
+		I1: a1,
+		I2: a2,
+		I3: a3,
+		I4: a4,
+		I5: a5,
+		I6: a6,
+		I7: a7,
+		I8: a8,
 	}
 }
-func Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9]) fp.Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
+func Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
 	return fp.Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9]{
-		I1: ins1,
-		I2: ins2,
-		I3: ins3,
-		I4: ins4,
-		I5: ins5,
-		I6: ins6,
-		I7: ins7,
-		I8: ins8,
-		I9: ins9,
+		I1: a1,
+		I2: a2,
+		I3: a3,
+		I4: a4,
+		I5: a5,
+		I6: a6,
+		I7: a7,
+		I8: a8,
+		I9: a9,
 	}
 }
-func Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10]) fp.Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
+func Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10) fp.Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
 	return fp.Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
 	}
 }
-func Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11]) fp.Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
+func Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11) fp.Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
 	return fp.Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
 	}
 }
-func Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12]) fp.Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
+func Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12) fp.Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
 	return fp.Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
 	}
 }
-func Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13]) fp.Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
+func Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13) fp.Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
 	return fp.Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
 	}
 }
-func Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14]) fp.Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
+func Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14) fp.Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
 	return fp.Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
 	}
 }
-func Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15]) fp.Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
+func Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15) fp.Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
 	return fp.Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
 	}
 }
-func Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15], ins16 fp.Field[A16]) fp.Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {
+func Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16) fp.Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {
 	return fp.Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
-		I16: ins16,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
+		I16: a16,
 	}
 }
-func Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15], ins16 fp.Field[A16], ins17 fp.Field[A17]) fp.Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {
+func Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17) fp.Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {
 	return fp.Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
-		I16: ins16,
-		I17: ins17,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
+		I16: a16,
+		I17: a17,
 	}
 }
-func Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15], ins16 fp.Field[A16], ins17 fp.Field[A17], ins18 fp.Field[A18]) fp.Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {
+func Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18) fp.Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {
 	return fp.Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
-		I16: ins16,
-		I17: ins17,
-		I18: ins18,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
+		I16: a16,
+		I17: a17,
+		I18: a18,
 	}
 }
-func Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15], ins16 fp.Field[A16], ins17 fp.Field[A17], ins18 fp.Field[A18], ins19 fp.Field[A19]) fp.Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {
+func Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18, a19 A19) fp.Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {
 	return fp.Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
-		I16: ins16,
-		I17: ins17,
-		I18: ins18,
-		I19: ins19,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
+		I16: a16,
+		I17: a17,
+		I18: a18,
+		I19: a19,
 	}
 }
-func Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15], ins16 fp.Field[A16], ins17 fp.Field[A17], ins18 fp.Field[A18], ins19 fp.Field[A19], ins20 fp.Field[A20]) fp.Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {
+func Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18, a19 A19, a20 A20) fp.Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {
 	return fp.Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
-		I16: ins16,
-		I17: ins17,
-		I18: ins18,
-		I19: ins19,
-		I20: ins20,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
+		I16: a16,
+		I17: a17,
+		I18: a18,
+		I19: a19,
+		I20: a20,
 	}
 }
-func Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](ins1 fp.Field[A1], ins2 fp.Field[A2], ins3 fp.Field[A3], ins4 fp.Field[A4], ins5 fp.Field[A5], ins6 fp.Field[A6], ins7 fp.Field[A7], ins8 fp.Field[A8], ins9 fp.Field[A9], ins10 fp.Field[A10], ins11 fp.Field[A11], ins12 fp.Field[A12], ins13 fp.Field[A13], ins14 fp.Field[A14], ins15 fp.Field[A15], ins16 fp.Field[A16], ins17 fp.Field[A17], ins18 fp.Field[A18], ins19 fp.Field[A19], ins20 fp.Field[A20], ins21 fp.Field[A21]) fp.Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {
+func Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 fp.Named](a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18, a19 A19, a20 A20, a21 A21) fp.Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {
 	return fp.Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]{
-		I1:  ins1,
-		I2:  ins2,
-		I3:  ins3,
-		I4:  ins4,
-		I5:  ins5,
-		I6:  ins6,
-		I7:  ins7,
-		I8:  ins8,
-		I9:  ins9,
-		I10: ins10,
-		I11: ins11,
-		I12: ins12,
-		I13: ins13,
-		I14: ins14,
-		I15: ins15,
-		I16: ins16,
-		I17: ins17,
-		I18: ins18,
-		I19: ins19,
-		I20: ins20,
-		I21: ins21,
+		I1:  a1,
+		I2:  a2,
+		I3:  a3,
+		I4:  a4,
+		I5:  a5,
+		I6:  a6,
+		I7:  a7,
+		I8:  a8,
+		I9:  a9,
+		I10: a10,
+		I11: a11,
+		I12: a12,
+		I13: a13,
+		I14: a14,
+		I15: a15,
+		I16: a16,
+		I17: a17,
+		I18: a18,
+		I19: a19,
+		I20: a20,
+		I21: a21,
 	}
 }
 
-func HList1Labelled[A1 any](tuple fp.Labelled1[A1]) hlist.Cons[fp.Field[A1], hlist.Nil] {
+func HList1Labelled[A1 fp.Named](tuple fp.Labelled1[A1]) hlist.Cons[A1, hlist.Nil] {
 	return hlist.Concat(tuple.Head(), hlist.Empty())
 }
-func HList2Labelled[A1, A2 any](tuple fp.Labelled2[A1, A2]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Nil]] {
+func HList2Labelled[A1, A2 fp.Named](tuple fp.Labelled2[A1, A2]) hlist.Cons[A1, hlist.Cons[A2, hlist.Nil]] {
 	return hlist.Concat(tuple.Head(), HList1Labelled(tuple.Tail()))
 }
-func HList3Labelled[A1, A2, A3 any](tuple fp.Labelled3[A1, A2, A3]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Nil]]] {
+func HList3Labelled[A1, A2, A3 fp.Named](tuple fp.Labelled3[A1, A2, A3]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Nil]]] {
 	return hlist.Concat(tuple.Head(), HList2Labelled(tuple.Tail()))
 }
-func HList4Labelled[A1, A2, A3, A4 any](tuple fp.Labelled4[A1, A2, A3, A4]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Nil]]]] {
+func HList4Labelled[A1, A2, A3, A4 fp.Named](tuple fp.Labelled4[A1, A2, A3, A4]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Nil]]]] {
 	return hlist.Concat(tuple.Head(), HList3Labelled(tuple.Tail()))
 }
-func HList5Labelled[A1, A2, A3, A4, A5 any](tuple fp.Labelled5[A1, A2, A3, A4, A5]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Nil]]]]] {
+func HList5Labelled[A1, A2, A3, A4, A5 fp.Named](tuple fp.Labelled5[A1, A2, A3, A4, A5]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Nil]]]]] {
 	return hlist.Concat(tuple.Head(), HList4Labelled(tuple.Tail()))
 }
-func HList6Labelled[A1, A2, A3, A4, A5, A6 any](tuple fp.Labelled6[A1, A2, A3, A4, A5, A6]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Nil]]]]]] {
+func HList6Labelled[A1, A2, A3, A4, A5, A6 fp.Named](tuple fp.Labelled6[A1, A2, A3, A4, A5, A6]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Nil]]]]]] {
 	return hlist.Concat(tuple.Head(), HList5Labelled(tuple.Tail()))
 }
-func HList7Labelled[A1, A2, A3, A4, A5, A6, A7 any](tuple fp.Labelled7[A1, A2, A3, A4, A5, A6, A7]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Nil]]]]]]] {
+func HList7Labelled[A1, A2, A3, A4, A5, A6, A7 fp.Named](tuple fp.Labelled7[A1, A2, A3, A4, A5, A6, A7]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Nil]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList6Labelled(tuple.Tail()))
 }
-func HList8Labelled[A1, A2, A3, A4, A5, A6, A7, A8 any](tuple fp.Labelled8[A1, A2, A3, A4, A5, A6, A7, A8]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Nil]]]]]]]] {
+func HList8Labelled[A1, A2, A3, A4, A5, A6, A7, A8 fp.Named](tuple fp.Labelled8[A1, A2, A3, A4, A5, A6, A7, A8]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Nil]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList7Labelled(tuple.Tail()))
 }
-func HList9Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](tuple fp.Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Nil]]]]]]]]] {
+func HList9Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9 fp.Named](tuple fp.Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Nil]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList8Labelled(tuple.Tail()))
 }
-func HList10Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](tuple fp.Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Nil]]]]]]]]]] {
+func HList10Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 fp.Named](tuple fp.Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Nil]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList9Labelled(tuple.Tail()))
 }
-func HList11Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](tuple fp.Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Nil]]]]]]]]]]] {
+func HList11Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 fp.Named](tuple fp.Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Nil]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList10Labelled(tuple.Tail()))
 }
-func HList12Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](tuple fp.Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Nil]]]]]]]]]]]] {
+func HList12Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 fp.Named](tuple fp.Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Nil]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList11Labelled(tuple.Tail()))
 }
-func HList13Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](tuple fp.Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Nil]]]]]]]]]]]]] {
+func HList13Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 fp.Named](tuple fp.Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Nil]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList12Labelled(tuple.Tail()))
 }
-func HList14Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](tuple fp.Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Nil]]]]]]]]]]]]]] {
+func HList14Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 fp.Named](tuple fp.Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Nil]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList13Labelled(tuple.Tail()))
 }
-func HList15Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](tuple fp.Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Nil]]]]]]]]]]]]]]] {
+func HList15Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 fp.Named](tuple fp.Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Nil]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList14Labelled(tuple.Tail()))
 }
-func HList16Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](tuple fp.Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Nil]]]]]]]]]]]]]]]] {
+func HList16Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 fp.Named](tuple fp.Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Nil]]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList15Labelled(tuple.Tail()))
 }
-func HList17Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](tuple fp.Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Nil]]]]]]]]]]]]]]]]] {
+func HList17Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 fp.Named](tuple fp.Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Nil]]]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList16Labelled(tuple.Tail()))
 }
-func HList18Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](tuple fp.Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Nil]]]]]]]]]]]]]]]]]] {
+func HList18Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 fp.Named](tuple fp.Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Nil]]]]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList17Labelled(tuple.Tail()))
 }
-func HList19Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](tuple fp.Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Cons[fp.Field[A19], hlist.Nil]]]]]]]]]]]]]]]]]]] {
+func HList19Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 fp.Named](tuple fp.Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Cons[A19, hlist.Nil]]]]]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList18Labelled(tuple.Tail()))
 }
-func HList20Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](tuple fp.Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Cons[fp.Field[A19], hlist.Cons[fp.Field[A20], hlist.Nil]]]]]]]]]]]]]]]]]]]] {
+func HList20Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 fp.Named](tuple fp.Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Cons[A19, hlist.Cons[A20, hlist.Nil]]]]]]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList19Labelled(tuple.Tail()))
 }
-func HList21Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](tuple fp.Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) hlist.Cons[fp.Field[A1], hlist.Cons[fp.Field[A2], hlist.Cons[fp.Field[A3], hlist.Cons[fp.Field[A4], hlist.Cons[fp.Field[A5], hlist.Cons[fp.Field[A6], hlist.Cons[fp.Field[A7], hlist.Cons[fp.Field[A8], hlist.Cons[fp.Field[A9], hlist.Cons[fp.Field[A10], hlist.Cons[fp.Field[A11], hlist.Cons[fp.Field[A12], hlist.Cons[fp.Field[A13], hlist.Cons[fp.Field[A14], hlist.Cons[fp.Field[A15], hlist.Cons[fp.Field[A16], hlist.Cons[fp.Field[A17], hlist.Cons[fp.Field[A18], hlist.Cons[fp.Field[A19], hlist.Cons[fp.Field[A20], hlist.Cons[fp.Field[A21], hlist.Nil]]]]]]]]]]]]]]]]]]]]] {
+func HList21Labelled[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 fp.Named](tuple fp.Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Cons[A19, hlist.Cons[A20, hlist.Cons[A21, hlist.Nil]]]]]]]]]]]]]]]]]]]]] {
 	return hlist.Concat(tuple.Head(), HList20Labelled(tuple.Tail()))
 }
