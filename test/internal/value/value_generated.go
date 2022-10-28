@@ -1468,204 +1468,6 @@ func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NameIsOne[int], NameIsTwo[stri
 	return r
 }
 
-type NameIsWorld[T any] fp.Tuple1[T]
-
-func (r NameIsWorld[T]) Name() string {
-	return "world"
-}
-func (r NameIsWorld[T]) Value() T {
-	return r.I1
-}
-
-type NameIsArr[T any] fp.Tuple1[T]
-
-func (r NameIsArr[T]) Name() string {
-	return "arr"
-}
-func (r NameIsArr[T]) Value() T {
-	return r.I1
-}
-
-type NameIsAmount[T any] fp.Tuple1[T]
-
-func (r NameIsAmount[T]) Name() string {
-	return "amount"
-}
-func (r NameIsAmount[T]) Value() T {
-	return r.I1
-}
-
-type NameIsHello[T any] fp.Tuple1[T]
-
-func (r NameIsHello[T]) Name() string {
-	return "hello"
-}
-func (r NameIsHello[T]) Value() T {
-	return r.I1
-}
-
-type NameIsPhone[T any] fp.Tuple1[T]
-
-func (r NameIsPhone[T]) Name() string {
-	return "phone"
-}
-func (r NameIsPhone[T]) Value() T {
-	return r.I1
-}
-
-type NameIsList[T any] fp.Tuple1[T]
-
-func (r NameIsList[T]) Name() string {
-	return "list"
-}
-func (r NameIsList[T]) Value() T {
-	return r.I1
-}
-
-type NameIsX[T any] fp.Tuple1[T]
-
-func (r NameIsX[T]) Name() string {
-	return "x"
-}
-func (r NameIsX[T]) Value() T {
-	return r.I1
-}
-
-type NameIsHeight[T any] fp.Tuple1[T]
-
-func (r NameIsHeight[T]) Name() string {
-	return "height"
-}
-func (r NameIsHeight[T]) Value() T {
-	return r.I1
-}
-
-type NameIsC[T any] fp.Tuple1[T]
-
-func (r NameIsC[T]) Name() string {
-	return "c"
-}
-func (r NameIsC[T]) Value() T {
-	return r.I1
-}
-
-type NameIsP[T any] fp.Tuple1[T]
-
-func (r NameIsP[T]) Name() string {
-	return "p"
-}
-func (r NameIsP[T]) Value() T {
-	return r.I1
-}
-
-type NameIsL[T any] fp.Tuple1[T]
-
-func (r NameIsL[T]) Name() string {
-	return "l"
-}
-func (r NameIsL[T]) Value() T {
-	return r.I1
-}
-
-type NameIsName[T any] fp.Tuple1[T]
-
-func (r NameIsName[T]) Name() string {
-	return "name"
-}
-func (r NameIsName[T]) Value() T {
-	return r.I1
-}
-
-type NameIsThree[T any] fp.Tuple1[T]
-
-func (r NameIsThree[T]) Name() string {
-	return "three"
-}
-func (r NameIsThree[T]) Value() T {
-	return r.I1
-}
-
-type NameIsSeq[T any] fp.Tuple1[T]
-
-func (r NameIsSeq[T]) Name() string {
-	return "seq"
-}
-func (r NameIsSeq[T]) Value() T {
-	return r.I1
-}
-
-type NameIsTuple[T any] fp.Tuple1[T]
-
-func (r NameIsTuple[T]) Name() string {
-	return "tuple"
-}
-func (r NameIsTuple[T]) Value() T {
-	return r.I1
-}
-
-type NameIsOne[T any] fp.Tuple1[T]
-
-func (r NameIsOne[T]) Name() string {
-	return "one"
-}
-func (r NameIsOne[T]) Value() T {
-	return r.I1
-}
-
-type NameIsAge[T any] fp.Tuple1[T]
-
-func (r NameIsAge[T]) Name() string {
-	return "age"
-}
-func (r NameIsAge[T]) Value() T {
-	return r.I1
-}
-
-type NameIsValue[T any] fp.Tuple1[T]
-
-func (r NameIsValue[T]) Name() string {
-	return "value"
-}
-func (r NameIsValue[T]) Value() T {
-	return r.I1
-}
-
-type NameIsY[T any] fp.Tuple1[T]
-
-func (r NameIsY[T]) Name() string {
-	return "y"
-}
-func (r NameIsY[T]) Value() T {
-	return r.I1
-}
-
-type NameIsIg[T any] fp.Tuple1[T]
-
-func (r NameIsIg[T]) Name() string {
-	return "ig"
-}
-func (r NameIsIg[T]) Value() T {
-	return r.I1
-}
-
-type NameIsM[T any] fp.Tuple1[T]
-
-func (r NameIsM[T]) Name() string {
-	return "m"
-}
-func (r NameIsM[T]) Value() T {
-	return r.I1
-}
-
-type NameIsMm[T any] fp.Tuple1[T]
-
-func (r NameIsMm[T]) Name() string {
-	return "mm"
-}
-func (r NameIsMm[T]) Value() T {
-	return r.I1
-}
-
 type NameIsA[T any] fp.Tuple1[T]
 
 func (r NameIsA[T]) Name() string {
@@ -1684,39 +1486,30 @@ func (r NameIsAddr[T]) Value() T {
 	return r.I1
 }
 
-type NameIsOwner[T any] fp.Tuple1[T]
+type NameIsAge[T any] fp.Tuple1[T]
 
-func (r NameIsOwner[T]) Name() string {
-	return "owner"
+func (r NameIsAge[T]) Name() string {
+	return "age"
 }
-func (r NameIsOwner[T]) Value() T {
+func (r NameIsAge[T]) Value() T {
 	return r.I1
 }
 
-type NameIsT[T any] fp.Tuple1[T]
+type NameIsAmount[T any] fp.Tuple1[T]
 
-func (r NameIsT[T]) Name() string {
-	return "t"
+func (r NameIsAmount[T]) Name() string {
+	return "amount"
 }
-func (r NameIsT[T]) Value() T {
+func (r NameIsAmount[T]) Value() T {
 	return r.I1
 }
 
-type NameIsTwo[T any] fp.Tuple1[T]
+type NameIsArr[T any] fp.Tuple1[T]
 
-func (r NameIsTwo[T]) Name() string {
-	return "two"
+func (r NameIsArr[T]) Name() string {
+	return "arr"
 }
-func (r NameIsTwo[T]) Value() T {
-	return r.I1
-}
-
-type NameIsBlob[T any] fp.Tuple1[T]
-
-func (r NameIsBlob[T]) Name() string {
-	return "blob"
-}
-func (r NameIsBlob[T]) Value() T {
+func (r NameIsArr[T]) Value() T {
 	return r.I1
 }
 
@@ -1729,21 +1522,39 @@ func (r NameIsB[T]) Value() T {
 	return r.I1
 }
 
-type NameIsZ[T any] fp.Tuple1[T]
+type NameIsBlob[T any] fp.Tuple1[T]
 
-func (r NameIsZ[T]) Name() string {
-	return "z"
+func (r NameIsBlob[T]) Name() string {
+	return "blob"
 }
-func (r NameIsZ[T]) Value() T {
+func (r NameIsBlob[T]) Value() T {
 	return r.I1
 }
 
-type NameIsLanguage[T any] fp.Tuple1[T]
+type NameIsC[T any] fp.Tuple1[T]
 
-func (r NameIsLanguage[T]) Name() string {
-	return "language"
+func (r NameIsC[T]) Name() string {
+	return "c"
 }
-func (r NameIsLanguage[T]) Value() T {
+func (r NameIsC[T]) Value() T {
+	return r.I1
+}
+
+type NameIsHeight[T any] fp.Tuple1[T]
+
+func (r NameIsHeight[T]) Name() string {
+	return "height"
+}
+func (r NameIsHeight[T]) Value() T {
+	return r.I1
+}
+
+type NameIsHello[T any] fp.Tuple1[T]
+
+func (r NameIsHello[T]) Name() string {
+	return "hello"
+}
+func (r NameIsHello[T]) Value() T {
 	return r.I1
 }
 
@@ -1756,12 +1567,48 @@ func (r NameIsHi[T]) Value() T {
 	return r.I1
 }
 
-type NameIsTpe[T any] fp.Tuple1[T]
+type NameIsIg[T any] fp.Tuple1[T]
 
-func (r NameIsTpe[T]) Name() string {
-	return "tpe"
+func (r NameIsIg[T]) Name() string {
+	return "ig"
 }
-func (r NameIsTpe[T]) Value() T {
+func (r NameIsIg[T]) Value() T {
+	return r.I1
+}
+
+type NameIsL[T any] fp.Tuple1[T]
+
+func (r NameIsL[T]) Name() string {
+	return "l"
+}
+func (r NameIsL[T]) Value() T {
+	return r.I1
+}
+
+type NameIsLanguage[T any] fp.Tuple1[T]
+
+func (r NameIsLanguage[T]) Name() string {
+	return "language"
+}
+func (r NameIsLanguage[T]) Value() T {
+	return r.I1
+}
+
+type NameIsList[T any] fp.Tuple1[T]
+
+func (r NameIsList[T]) Name() string {
+	return "list"
+}
+func (r NameIsList[T]) Value() T {
+	return r.I1
+}
+
+type NameIsM[T any] fp.Tuple1[T]
+
+func (r NameIsM[T]) Name() string {
+	return "m"
+}
+func (r NameIsM[T]) Value() T {
 	return r.I1
 }
 
@@ -1771,5 +1618,158 @@ func (r NameIsM2[T]) Name() string {
 	return "m2"
 }
 func (r NameIsM2[T]) Value() T {
+	return r.I1
+}
+
+type NameIsMm[T any] fp.Tuple1[T]
+
+func (r NameIsMm[T]) Name() string {
+	return "mm"
+}
+func (r NameIsMm[T]) Value() T {
+	return r.I1
+}
+
+type NameIsName[T any] fp.Tuple1[T]
+
+func (r NameIsName[T]) Name() string {
+	return "name"
+}
+func (r NameIsName[T]) Value() T {
+	return r.I1
+}
+
+type NameIsOne[T any] fp.Tuple1[T]
+
+func (r NameIsOne[T]) Name() string {
+	return "one"
+}
+func (r NameIsOne[T]) Value() T {
+	return r.I1
+}
+
+type NameIsOwner[T any] fp.Tuple1[T]
+
+func (r NameIsOwner[T]) Name() string {
+	return "owner"
+}
+func (r NameIsOwner[T]) Value() T {
+	return r.I1
+}
+
+type NameIsP[T any] fp.Tuple1[T]
+
+func (r NameIsP[T]) Name() string {
+	return "p"
+}
+func (r NameIsP[T]) Value() T {
+	return r.I1
+}
+
+type NameIsPhone[T any] fp.Tuple1[T]
+
+func (r NameIsPhone[T]) Name() string {
+	return "phone"
+}
+func (r NameIsPhone[T]) Value() T {
+	return r.I1
+}
+
+type NameIsSeq[T any] fp.Tuple1[T]
+
+func (r NameIsSeq[T]) Name() string {
+	return "seq"
+}
+func (r NameIsSeq[T]) Value() T {
+	return r.I1
+}
+
+type NameIsT[T any] fp.Tuple1[T]
+
+func (r NameIsT[T]) Name() string {
+	return "t"
+}
+func (r NameIsT[T]) Value() T {
+	return r.I1
+}
+
+type NameIsThree[T any] fp.Tuple1[T]
+
+func (r NameIsThree[T]) Name() string {
+	return "three"
+}
+func (r NameIsThree[T]) Value() T {
+	return r.I1
+}
+
+type NameIsTpe[T any] fp.Tuple1[T]
+
+func (r NameIsTpe[T]) Name() string {
+	return "tpe"
+}
+func (r NameIsTpe[T]) Value() T {
+	return r.I1
+}
+
+type NameIsTuple[T any] fp.Tuple1[T]
+
+func (r NameIsTuple[T]) Name() string {
+	return "tuple"
+}
+func (r NameIsTuple[T]) Value() T {
+	return r.I1
+}
+
+type NameIsTwo[T any] fp.Tuple1[T]
+
+func (r NameIsTwo[T]) Name() string {
+	return "two"
+}
+func (r NameIsTwo[T]) Value() T {
+	return r.I1
+}
+
+type NameIsValue[T any] fp.Tuple1[T]
+
+func (r NameIsValue[T]) Name() string {
+	return "value"
+}
+func (r NameIsValue[T]) Value() T {
+	return r.I1
+}
+
+type NameIsWorld[T any] fp.Tuple1[T]
+
+func (r NameIsWorld[T]) Name() string {
+	return "world"
+}
+func (r NameIsWorld[T]) Value() T {
+	return r.I1
+}
+
+type NameIsX[T any] fp.Tuple1[T]
+
+func (r NameIsX[T]) Name() string {
+	return "x"
+}
+func (r NameIsX[T]) Value() T {
+	return r.I1
+}
+
+type NameIsY[T any] fp.Tuple1[T]
+
+func (r NameIsY[T]) Name() string {
+	return "y"
+}
+func (r NameIsY[T]) Value() T {
+	return r.I1
+}
+
+type NameIsZ[T any] fp.Tuple1[T]
+
+func (r NameIsZ[T]) Name() string {
+	return "z"
+}
+func (r NameIsZ[T]) Value() T {
 	return r.I1
 }

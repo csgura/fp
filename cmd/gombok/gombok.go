@@ -11,9 +11,11 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 
 	// . "github.com/dave/jennifer/jen"
@@ -40,30 +42,27 @@ type TypeClassDerive struct {
 	DeriveFor            metafp.TaggedStruct
 }
 
-type instancePkgLookup struct {
+type typeClassMember struct {
+	pack   *types.Package
 	name   string
 	object types.Object
 }
 
-func (r instancePkgLookup) Name() string {
+func (r typeClassMember) Name() string {
 	return r.name
 }
 
-func (r instancePkgLookup) Type() types.Type {
-	return r.object.Type()
+func (r typeClassMember) PackagedName(importSet metafp.ImportSet, workingPackage *types.Package) string {
+	if r.pack.Path() == workingPackage.Path() {
+		return r.name
+	}
+	pk := importSet.GetImportedName(r.pack)
+	return fmt.Sprintf("%s.%s", pk, r.name)
+
 }
 
-func (r TypeClassDerive) lookupInstancePkgFunc(name string) fp.Option[instancePkgLookup] {
-	nameWithTc := r.TypeClass.Name + name
-	ins := r.PrimitiveInstancePkg.Scope().Lookup(nameWithTc)
-	if ins != nil {
-		return option.Some(instancePkgLookup{nameWithTc, ins})
-	}
-	ins = r.PrimitiveInstancePkg.Scope().Lookup(name)
-	if ins != nil {
-		return option.Some(instancePkgLookup{name, ins})
-	}
-	return option.None[instancePkgLookup]()
+func (r typeClassMember) Type() types.Type {
+	return r.object.Type()
 }
 
 func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
@@ -456,7 +455,8 @@ func genValue() {
 
 		})
 
-		keyTags.Foreach(func(name string) {
+		klist := keyTags.Iterator().ToSeq()
+		seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
 			fmt.Fprintf(w, `type NameIs%s[T any] fp.Tuple1[T]
 			`, publicName(name))
 
@@ -473,178 +473,260 @@ func genValue() {
 	})
 }
 
-type TypeClassInstance struct {
-	name     string
-	instance types.Object
-}
-
 type lookupTarget struct {
-	name     string
-	scope    *types.Scope
-	typeArgs fp.Seq[metafp.TypeInfo]
-	genPk    *types.Package
-	tc       *TypeClass
+	pk        *types.Package
+	name      string
+	typeArgs  fp.Seq[metafp.TypeInfo]
+	typeParam bool
+	// tc       *TypeClass
 }
 
 func (r lookupTarget) available(genSet mutable.Set[string]) bool {
-	if r.tc != nil {
+	if r.typeParam {
 		return true
 	}
-	ins := r.scope.Lookup(r.name)
+	ins := r.pk.Scope().Lookup(r.name)
 	if ins != nil {
 		return true
 	}
 
-	if r.genPk == nil && genSet.Contains(r.name) {
+	if genSet.Contains(r.name) {
 		return true
 	}
 	return false
 }
 
-func (r lookupTarget) instanceExpr(w metafp.Writer) string {
-	if r.genPk != nil {
+func (r lookupTarget) instanceExpr(w metafp.Writer, workingPkg *types.Package) string {
+	if r.pk == nil || r.pk.Path() == workingPkg.Path() {
+		return r.name
+	}
 
-		if r.tc != nil {
-			//pk := w.GetImportedName(r.tc.Package)
+	// if r.typeParam {
+	// 	return fmt.Sprintf("%s%s", privateName(r.tc.Name), r.name)
+	// }
 
-			return fmt.Sprintf("%s%s", privateName(r.tc.Name), r.name)
+	pk := w.GetImportedName(r.pk)
+
+	return fmt.Sprintf("%s.%s", pk, r.name)
+
+}
+
+func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name string) lookupTarget {
+	return lookupTarget{
+		pk:       r.tc.Package,
+		name:     name,
+		typeArgs: f.TypeArgs,
+	}
+}
+
+func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.TypeInfo, name ...string) fp.Option[lookupTarget] {
+
+	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
+		if f.Pkg != nil && r.tc.Package.Path() != f.Pkg.Path() {
+			return []string{
+				r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v),
+				r.tc.TypeClass.Name + publicName(v),
+			}
+
 		}
+		return []string{r.tc.TypeClass.Name + publicName(v)}
+	}).Iterator()
 
-		pk := w.GetImportedName(r.genPk)
+	return iterator.Map(itr, func(v string) lookupTarget {
+		return lookupTarget{
+			pk:       r.tc.Package,
+			name:     v,
+			typeArgs: f.TypeArgs,
+		}
+	}).Filter(func(lt lookupTarget) bool {
+		return lt.available(r.genSet)
+	}).Head()
 
-		return fmt.Sprintf("%s.%s", pk, r.name)
-	}
-	return r.name
 }
 
-func (r TypeClassSummonContext) lookupLocal(f metafp.TypeInfo, name string) fp.Seq[lookupTarget] {
-
-	var ret []lookupTarget
-
-	if f.Pkg != nil && r.tc.Package.Path() != f.Pkg.Path() {
-		ret = append(ret, lookupTarget{
-			r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(name),
-			r.tc.Package.Scope(),
-			f.TypeArgs,
-			nil,
-			nil,
-		})
+func (r TypeClassSummonContext) lookupHNilMust() typeClassMember {
+	ret := r.lookupTypeClassMember("HNil")
+	if ret.IsDefined() {
+		return ret.Get()
 	}
 
-	ret = append(ret, lookupTarget{
-		r.tc.TypeClass.Name + publicName(name),
-		r.tc.Package.Scope(),
-		f.TypeArgs,
-		nil,
-		nil,
-	})
+	ret = r.lookupTypeClassMember("HlistNil")
+	if ret.IsDefined() {
+		return ret.Get()
+	}
+	nameWithTc := r.tc.TypeClass.Name + "HNil"
 
-	return ret
+	return typeClassMember{r.tc.Package, nameWithTc, nil}
 }
 
-func (r TypeClassSummonContext) lookupPrimitiveInstancePkg(f metafp.TypeInfo, name string) fp.Seq[lookupTarget] {
+func (r TypeClassSummonContext) lookupTypeClassMember(name string) fp.Option[typeClassMember] {
+	nameWithTc := r.tc.TypeClass.Name + name
 
-	var ret []lookupTarget
-
-	if f.Pkg != nil {
-		ret = append(ret, lookupTarget{
-			r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(name),
-			r.tc.PrimitiveInstancePkg.Scope(),
-			f.TypeArgs,
-			r.tc.PrimitiveInstancePkg,
-			nil,
-		})
+	ins := r.tc.Package.Scope().Lookup(nameWithTc)
+	if ins != nil {
+		return fp.Some(typeClassMember{r.tc.Package, nameWithTc, ins})
 	}
 
-	ret = append(ret, lookupTarget{
-		r.tc.TypeClass.Name + publicName(name),
-		r.tc.PrimitiveInstancePkg.Scope(),
-		f.TypeArgs,
-		r.tc.PrimitiveInstancePkg,
-		nil,
-	})
+	ins = r.tc.PrimitiveInstancePkg.Scope().Lookup(nameWithTc)
+	if ins != nil {
+		return fp.Some(typeClassMember{r.tc.PrimitiveInstancePkg, nameWithTc, ins})
+	}
 
-	ret = append(ret, lookupTarget{
-		publicName(name),
-		r.tc.PrimitiveInstancePkg.Scope(),
-		f.TypeArgs,
-		r.tc.PrimitiveInstancePkg,
-		nil,
-	})
-
-	return ret
+	ins = r.tc.PrimitiveInstancePkg.Scope().Lookup(name)
+	if ins != nil {
+		return fp.Some((typeClassMember{r.tc.PrimitiveInstancePkg, name, ins}))
+	}
+	return fp.None[typeClassMember]()
 }
 
-func (r TypeClassSummonContext) lookupDeclaredPkg(f metafp.TypeInfo, name string) fp.Seq[lookupTarget] {
+func (r TypeClassSummonContext) lookupTypeClassMemberMust(name string) typeClassMember {
+	ret := r.lookupTypeClassMember(name)
+	if ret.IsDefined() {
+		return ret.Get()
+	}
 
-	var ret []lookupTarget
+	nameWithTc := r.tc.TypeClass.Name + name
+
+	return typeClassMember{r.tc.Package, nameWithTc, nil}
+}
+
+func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(f metafp.TypeInfo, name ...string) func() fp.Option[lookupTarget] {
+	return func() fp.Option[lookupTarget] {
+		return r.lookupTypeClassInstancePrimitivePkg(f, name...)
+	}
+}
+
+func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.TypeInfo, name ...string) fp.Option[lookupTarget] {
+
+	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
+		ret := seq.Of(
+			r.tc.TypeClass.Name+publicName(v),
+			publicName(v),
+		)
+		if f.Pkg != nil {
+			return seq.Of(r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v)).
+				Concat(ret)
+		}
+		return ret
+	}).Iterator()
+
+	return iterator.Map(itr, func(v string) lookupTarget {
+		return lookupTarget{
+			pk:       r.tc.PrimitiveInstancePkg,
+			name:     v,
+			typeArgs: f.TypeArgs,
+		}
+	}).Filter(func(lt lookupTarget) bool {
+		return lt.available(r.genSet)
+	}).Head()
+
+}
+
+func (r TypeClassSummonContext) lookupTypeClassInstanceTypePkg(f metafp.TypeInfo, name string) fp.Option[lookupTarget] {
 
 	if f.Pkg != nil && f.Pkg.Path() != r.tc.Package.Path() {
-		ret = append(ret, lookupTarget{
-			r.tc.TypeClass.Name + publicName(name),
-			f.Pkg.Scope(),
-			f.TypeArgs,
-			f.Pkg,
-			nil,
-		})
+		ret := lookupTarget{
+			pk:       f.Pkg,
+			name:     r.tc.TypeClass.Name + publicName(name),
+			typeArgs: f.TypeArgs,
+		}
+
+		if ret.available(r.genSet) {
+			return option.Some(ret)
+		}
 	}
 
-	return ret
+	return option.None[lookupTarget]()
 }
 
-func (r TypeClassSummonContext) namedLookup(f metafp.TypeInfo, name string) fp.Seq[lookupTarget] {
-	return r.lookupLocal(f, name).
-		Concat(r.lookupDeclaredPkg(f, name)).
-		Concat(r.lookupPrimitiveInstancePkg(f, name))
+func (r TypeClassSummonContext) namedLookup(f metafp.TypeInfo, name string) typeClassInstance {
+	ret := r.lookupTypeClassInstanceLocalDeclared(f, name).Or(lazy.Func2(r.lookupTypeClassInstanceTypePkg)(f, name)).Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, name))
+
+	return typeClassInstance{
+		ret,
+		r.typeclassInstanceMust(f, name),
+	}
 }
 
-func (r TypeClassSummonContext) expr(lt lookupTarget) string {
+func (r TypeClassSummonContext) lookupPrimitiveTypeClassInstance(f metafp.TypeInfo, name ...string) typeClassInstance {
+	ret := r.lookupTypeClassInstanceLocalDeclared(f, name...).Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, name...))
+
+	return typeClassInstance{
+		ret,
+		r.typeclassInstanceMust(f, name[0]),
+	}
+}
+
+func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
 	if len(lt.typeArgs) > 0 {
 		list := seq.Map(lt.typeArgs, func(t metafp.TypeInfo) string {
 			return r.summon(t)
 		}).MakeString(",")
-		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w), list)
+		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w, r.tc.Package), list)
 	}
 
-	return lt.instanceExpr(r.w)
+	return lt.instanceExpr(r.w, r.tc.Package)
 
 }
 
-func (r TypeClassSummonContext) labelledExpr(lt lookupTarget, names fp.Seq[string]) string {
-	if len(lt.typeArgs) > 0 {
-		list := seq.Map(seq.Zip(lt.typeArgs, names), func(t fp.Tuple2[metafp.TypeInfo, string]) string {
+func (r TypeClassSummonContext) exprTypeClassMember(lt typeClassMember, typeArgs fp.Seq[metafp.TypeInfo]) string {
+	if len(typeArgs) > 0 {
+		list := seq.Map(typeArgs, func(t metafp.TypeInfo) string {
+			return r.summon(t)
+		}).MakeString(",")
+		return fmt.Sprintf("%s(%s)", lt.PackagedName(r.w, r.tc.Package), list)
+	}
+
+	return lt.PackagedName(r.w, r.tc.Package)
+
+}
+
+func (r TypeClassSummonContext) exprTypeClassMemberLabelled(lt typeClassMember, names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfo]) string {
+	if len(typeArgs) > 0 {
+		list := seq.Map(seq.Zip(typeArgs, names), func(t fp.Tuple2[metafp.TypeInfo, string]) string {
 			return r.summonNamed(t.I2, t.I1)
 		}).MakeString(",")
-		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w), list)
+		return fmt.Sprintf("%s(%s)", lt.PackagedName(r.w, r.tc.Package), list)
 	}
 
-	return lt.instanceExpr(r.w)
+	return lt.PackagedName(r.w, r.tc.Package)
 
 }
 
-func (r TypeClassSummonContext) implicitTypeClassInstanceName(f metafp.TypeInfo) fp.Seq[lookupTarget] {
+type typeClassInstance struct {
+	available fp.Option[lookupTarget]
+	must      lookupTarget
+}
+
+func newTypeClassInstance(t lookupTarget) typeClassInstance {
+	return typeClassInstance{
+		available: option.Some(t),
+		must:      t,
+	}
+}
+
+func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeClassInstance {
 	switch at := f.Type.(type) {
 	case *types.TypeParam:
-		return []lookupTarget{
-			{
-				name:  at.Obj().Name(),
-				genPk: r.tc.TypeClass.Package,
-				tc:    &r.tc.TypeClass,
-			},
-		}
+		return newTypeClassInstance(lookupTarget{
+			name:      privateName(r.tc.TypeClass.Name) + at.Obj().Name(),
+			typeParam: true,
+		})
 	case *types.Named:
 		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
 			if at.Obj().Name() == "Nil" {
-				return r.lookupLocal(f, "HNil").
-					Concat(r.lookupLocal(f, "HListNil")).
-					Concat(r.lookupPrimitiveInstancePkg(f, "HNil")).
-					Concat(r.lookupPrimitiveInstancePkg(f, "HListNil"))
+				return typeClassInstance{r.lookupTypeClassInstanceLocalDeclared(f, "HNil", "HListNil").
+					Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, "HNil", "HListNil")),
+					r.typeclassInstanceMust(f, "HNil"),
+				}
 
 			} else if at.Obj().Name() == "Cons" {
-				return r.lookupLocal(f, "HCons").
-					Concat(r.lookupLocal(f, "HListCons")).
-					Concat(r.lookupPrimitiveInstancePkg(f, "HCons")).
-					Concat(r.lookupPrimitiveInstancePkg(f, "HListCons"))
+				return typeClassInstance{
+					r.lookupTypeClassInstanceLocalDeclared(f, "HCons", "HListCons").
+						Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, "HCons", "HListCons")),
+
+					r.typeclassInstanceMust(f, "HCons"),
+				}
 			}
 		}
 		return r.namedLookup(f, at.Obj().Name())
@@ -652,11 +734,15 @@ func (r TypeClassSummonContext) implicitTypeClassInstanceName(f metafp.TypeInfo)
 		return r.namedLookup(f, "Array")
 	case *types.Slice:
 		if at.Elem().String() == "byte" {
-			return r.namedLookup(metafp.TypeInfo{
+			bytesInstance := r.namedLookup(metafp.TypeInfo{
 				Pkg:      f.Pkg,
 				Type:     f.Type,
 				TypeArgs: nil,
-			}, "Bytes").Concat(r.namedLookup(f, "Slice"))
+			}, "Bytes")
+			if bytesInstance.available.IsDefined() {
+				return bytesInstance
+			}
+			return r.namedLookup(f, "Slice")
 		}
 		return r.namedLookup(f, "Slice")
 	case *types.Map:
@@ -676,63 +762,26 @@ type TypeClassSummonContext struct {
 }
 
 func (r TypeClassSummonContext) summonLabelled(names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfo]) fp.Option[string] {
-	list := fp.Seq[lookupTarget]{
-		{
-			name:     fmt.Sprintf("%sLabelled%d", r.tc.TypeClass.Name, typeArgs.Size()),
-			scope:    r.tc.Package.Scope(),
-			typeArgs: typeArgs,
-		},
-		{
-			name:     fmt.Sprintf("%sLabelled%d", r.tc.TypeClass.Name, typeArgs.Size()),
-			scope:    r.tc.PrimitiveInstancePkg.Scope(),
-			genPk:    r.tc.PrimitiveInstancePkg,
-			typeArgs: typeArgs,
-		},
-		{
-			name:     fmt.Sprintf("Labelled%d", typeArgs.Size()),
-			scope:    r.tc.PrimitiveInstancePkg.Scope(),
-			genPk:    r.tc.PrimitiveInstancePkg,
-			typeArgs: typeArgs,
-		},
-	}
+	result := r.lookupTypeClassMember(fmt.Sprintf("Labelled%d", typeArgs.Size()))
 
-	result := list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
-
-	res := option.Map(result, as.Func2(r.labelledExpr).ApplyLast(names))
+	res := option.Map(result, as.Func3(r.exprTypeClassMemberLabelled).ApplyLast2(names, typeArgs))
 
 	if res.IsDefined() {
 		return res
 	}
 
-	list = fp.Seq[lookupTarget]{
-		{
-			name:     r.tc.TypeClass.Name + "HConsLabelled",
-			scope:    r.tc.PrimitiveInstancePkg.Scope(),
-			genPk:    r.tc.PrimitiveInstancePkg,
-			typeArgs: typeArgs,
-		},
-		{
-			name:     "HConsLabelled",
-			scope:    r.tc.PrimitiveInstancePkg.Scope(),
-			genPk:    r.tc.PrimitiveInstancePkg,
-			typeArgs: typeArgs,
-		},
-	}
-
-	result = list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
+	result = r.lookupTypeClassMember("HConsLabelled")
 
 	if result.IsDefined() {
 		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 		//fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-		gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
-
-		hnil := option.Map(r.tc.lookupInstancePkgFunc("HNil"), instancePkgLookup.Name).OrElse("HNil")
+		hnil := r.lookupHNilMust()
 		namedTypeArgs := seq.Zip(names, typeArgs)
-		hlist := seq.Fold(namedTypeArgs.Reverse(), fmt.Sprintf("%s.%s", gpk, hnil), func(tail string, ti fp.Tuple2[string, metafp.TypeInfo]) string {
+		hlist := seq.Fold(namedTypeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti fp.Tuple2[string, metafp.TypeInfo]) string {
 			instance := r.summonNamed(ti.Unapply())
-			return fmt.Sprintf(`%s.%s(%s,
-			%s)`, gpk, result.Get().name, instance, tail)
+			return fmt.Sprintf(`%s(%s,
+			%s)`, result.Get().PackagedName(r.w, r.tc.Package), instance, tail)
 		})
 
 		tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
@@ -743,22 +792,22 @@ func (r TypeClassSummonContext) summonLabelled(names fp.Seq[string], typeArgs fp
 			return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
 		}).MakeString(",")
 
-		if imap := r.tc.lookupInstancePkgFunc("IMap"); imap.IsDefined() {
+		if imap := r.lookupTypeClassMember("IMap"); imap.IsDefined() {
 			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
-			ret := fmt.Sprintf(`%s.%s(%s , 
+			ret := fmt.Sprintf(`%s(%s , 
 			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]]).ApplyLast( %s.Labelled%d[%s] ),
 			%s.HList%dLabelled[%s])`,
-				gpk, imap.Get().name, hlist,
+				imap.Get().PackagedName(r.w, r.tc.Package), hlist,
 				aspk, hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
 				aspk, typeArgs.Size(), tp)
 
 			return option.Some(ret)
 		}
 
-		contrmap := option.Map(r.tc.lookupInstancePkgFunc("ContraMap"), instancePkgLookup.Name).OrElse("ContraMap")
+		contrmap := r.lookupTypeClassMemberMust("ContraMap")
 
-		ret := fmt.Sprintf("%s.%s( %s,  %s.HList%dLabelled[%s])", gpk, contrmap, hlist, aspk, typeArgs.Size(), tp)
+		ret := fmt.Sprintf("%s( %s,  %s.HList%dLabelled[%s])", contrmap.PackagedName(r.w, r.tc.Package), hlist, aspk, typeArgs.Size(), tp)
 		return option.Some(ret)
 	}
 	return option.None[string]()
@@ -766,76 +815,53 @@ func (r TypeClassSummonContext) summonLabelled(names fp.Seq[string], typeArgs fp
 
 func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) string {
 
-	list := fp.Seq[lookupTarget]{
-		{
-			name:     fmt.Sprintf("%sTuple%d", r.tc.TypeClass.Name, typeArgs.Size()),
-			scope:    r.tc.Package.Scope(),
-			typeArgs: typeArgs,
-		},
-		{
-			name:     fmt.Sprintf("%sTuple%d", r.tc.TypeClass.Name, typeArgs.Size()),
-			scope:    r.tc.PrimitiveInstancePkg.Scope(),
-			genPk:    r.tc.PrimitiveInstancePkg,
-			typeArgs: typeArgs,
-		},
-		{
-			name:     fmt.Sprintf("Tuple%d", typeArgs.Size()),
-			scope:    r.tc.PrimitiveInstancePkg.Scope(),
-			genPk:    r.tc.PrimitiveInstancePkg,
-			typeArgs: typeArgs,
-		},
-	}
-
-	result := list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
+	result := r.lookupTypeClassMember(fmt.Sprintf("Tuple%d", typeArgs.Size()))
 
 	if result.IsDefined() {
-		return r.expr(result.Get())
+		return r.exprTypeClassMember(result.Get(), typeArgs)
 	}
 
 	aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-	gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
+	hcons := r.lookupTypeClassMemberMust("HCons")
 
-	hnil := option.Map(r.tc.lookupInstancePkgFunc("HNil"), instancePkgLookup.Name).OrElse("HNil")
+	hnil := r.lookupHNilMust()
 
-	hlist := seq.Fold(typeArgs.Reverse(), fmt.Sprintf("%s.%s", gpk, hnil), func(tail string, ti metafp.TypeInfo) string {
+	hlist := seq.Fold(typeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti metafp.TypeInfo) string {
 		instance := r.summon(ti)
-		return fmt.Sprintf(`%s.HCons(%s,
-			%s)`, gpk, instance, tail)
+		return fmt.Sprintf(`%s(%s,
+			%s)`, hcons.PackagedName(r.w, r.tc.Package), instance, tail)
 	})
 
 	tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
 		return r.w.TypeName(r.tc.Package, f.Type)
 	}).MakeString(",")
 
-	if imap := r.tc.lookupInstancePkgFunc("IMap"); imap.IsDefined() {
+	if imap := r.lookupTypeClassMember("IMap"); imap.IsDefined() {
 		hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
-		return fmt.Sprintf(`%s.%s(%s , 
+		return fmt.Sprintf(`%s(%s , 
 			%s.Func2(%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]]).ApplyLast( %s.Tuple%d[%s] ),
 			%s.HList%d[%s])`,
-			gpk, imap.Get().name, hlist,
+			imap.Get().PackagedName(r.w, r.tc.Package), hlist,
 			aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
 			aspk, typeArgs.Size(), tp)
 	}
 
-	contrmap := option.Map(r.tc.lookupInstancePkgFunc("ContraMap"), instancePkgLookup.Name).OrElse("ContraMap")
+	contrmap := r.lookupTypeClassMemberMust("ContraMap")
 
-	return fmt.Sprintf("%s.%s( %s,  %s.HList%d[%s])", gpk, contrmap, hlist, aspk, typeArgs.Size(), tp)
+	return fmt.Sprintf("%s( %s,  %s.HList%d[%s])", contrmap.PackagedName(r.w, r.tc.Package), hlist, aspk, typeArgs.Size(), tp)
 }
 
 func (r TypeClassSummonContext) summonNamed(name string, t metafp.TypeInfo) string {
 
-	instance := r.tc.lookupInstancePkgFunc("Named")
-	if instance.IsDefined() {
-		gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
+	instance := r.lookupTypeClassMemberMust("Named")
 
-		return fmt.Sprintf("%s.%s[NameIs%s[%s]](%s)", gpk, instance.Get().name, publicName(name),
-			r.w.TypeName(r.tc.Package, t.Type), r.summon(t))
-	}
+	return fmt.Sprintf("%s[NameIs%s[%s]](%s)", instance.PackagedName(r.w, r.tc.Package), publicName(name),
+		r.w.TypeName(r.tc.Package, t.Type), r.summon(t))
 
-	pk := r.w.GetImportedName(r.tc.Package)
-	return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
+	// pk := r.w.GetImportedName(r.tc.Package)
+	// return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
 }
 
 func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
@@ -844,39 +870,35 @@ func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
 		return r.summonTuple(t.TypeArgs)
 	}
 
-	list := r.implicitTypeClassInstanceName(t)
+	result := r.lookupTypeClassInstance(t)
 
-	result := list.Iterator().Filter(as.Func2(lookupTarget.available).ApplyLast(r.genSet)).First()
-
-	if result.IsDefined() {
-		return r.expr(result.Get())
+	if result.available.IsDefined() {
+		return r.exprTypeClassInstance(result.available.Get())
 	}
 
-	instance := r.tc.lookupInstancePkgFunc("Number")
+	instance := r.lookupTypeClassMember("Number")
 	if instance.IsDefined() {
 		if _, ok := instance.Get().Type().(*types.Signature); ok {
 			ctx := types.NewContext()
 			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
 			if err == nil {
-				gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
-				return fmt.Sprintf("%s.%s[%s]()", gpk, instance.Get().Name(), r.w.TypeName(r.tc.Package, t.Type))
+				return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, t.Type))
 			}
 		}
 	}
 
-	instance = r.tc.lookupInstancePkgFunc("Given")
+	instance = r.lookupTypeClassMember("Given")
 	if instance.IsDefined() {
 		if _, ok := instance.Get().Type().(*types.Signature); ok {
 			ctx := types.NewContext()
 			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
 			if err == nil {
-				gpk := r.w.GetImportedName(r.tc.PrimitiveInstancePkg)
-				return fmt.Sprintf("%s.%s[%s]()", gpk, instance.Get().Name(), r.w.TypeName(r.tc.Package, t.Type))
+				return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, t.Type))
 			}
 		}
 	}
 
-	return list.Head().Get().instanceExpr(r.w)
+	return r.exprTypeClassInstance(result.must)
 
 }
 
@@ -922,8 +944,6 @@ func genDerive() {
 				return v.Name
 			})
 
-			gpk := w.GetImportedName(v.PrimitiveInstancePkg)
-
 			typeArgs := seq.Map(privateFields, func(v metafp.StructField) metafp.TypeInfo {
 				return v.Type
 			})
@@ -959,7 +979,7 @@ func genDerive() {
 			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.Name, valuetp)
 			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.Name, valuetp)
 
-			mapExpr := option.Map(v.lookupInstancePkgFunc("IMap"), func(imapfunc instancePkgLookup) string {
+			mapExpr := option.Map(summonCtx.lookupTypeClassMember("IMap"), func(imapfunc typeClassMember) string {
 				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
@@ -967,17 +987,17 @@ func genDerive() {
 					return "FromLabelled"
 				}).OrElse("FromTuple")
 
-				return fmt.Sprintf(`%s.%s( %s, %s.Compose(
+				return fmt.Sprintf(`%s( %s, %s.Compose(
 							%s.Curried2(%s.%s)(%s{}), %s.Build),  
 							%s.%s )`,
-					gpk, imapfunc.Name(), summonExpr, fppk,
+					imapfunc.PackagedName(w, workingPackage), summonExpr, fppk,
 					aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
 					valuereceiver, convExpr)
 			}).OrElseGet(func() string {
-				contrmap := option.Map(v.lookupInstancePkgFunc("ContraMap"), instancePkgLookup.Name).OrElse("ContraMap")
+				contrmap := summonCtx.lookupTypeClassMemberMust("ContraMap")
 
-				return fmt.Sprintf(`%s.%s( %s , %s.%s )`,
-					gpk, contrmap, summonExpr, valuereceiver, convExpr,
+				return fmt.Sprintf(`%s( %s , %s.%s )`,
+					contrmap.PackagedName(w, workingPackage), summonExpr, valuereceiver, convExpr,
 				)
 			})
 

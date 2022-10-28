@@ -128,20 +128,20 @@ func (r *World) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-type NameIsTimestamp[T any] fp.Tuple1[T]
-
-func (r NameIsTimestamp[T]) Name() string {
-	return "timestamp"
-}
-func (r NameIsTimestamp[T]) Value() T {
-	return r.I1
-}
-
 type NameIsMessage[T any] fp.Tuple1[T]
 
 func (r NameIsMessage[T]) Name() string {
 	return "message"
 }
 func (r NameIsMessage[T]) Value() T {
+	return r.I1
+}
+
+type NameIsTimestamp[T any] fp.Tuple1[T]
+
+func (r NameIsTimestamp[T]) Name() string {
+	return "timestamp"
+}
+func (r NameIsTimestamp[T]) Value() T {
 	return r.I1
 }
