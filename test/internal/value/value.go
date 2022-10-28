@@ -22,7 +22,7 @@ type (
 	// @fp.JsonTag
 	Hello struct { // Hello
 		world string
-		hi    int `bson:"hi"`
+		hi    int `bson:"hi" json:"merong"`
 	}
 )
 

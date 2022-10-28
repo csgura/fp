@@ -96,7 +96,7 @@ type HelloBuilder Hello
 
 type HelloMutable struct {
 	World string `json:"world"`
-	Hi    int    `bson:"hi" json:"hi"`
+	Hi    int    `bson:"hi" json:"merong"`
 }
 
 func (r HelloBuilder) Build() Hello {

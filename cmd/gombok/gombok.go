@@ -187,10 +187,12 @@ func genValue() {
 				tag := v.Tag
 
 				if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
-					if tag != "" {
-						tag = tag + " "
+					if !strings.Contains(tag, "json") {
+						if tag != "" {
+							tag = tag + " "
+						}
+						tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
 					}
-					tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
 				}
 				if tag != "" {
 					return fmt.Sprintf("%s %s `%s`", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type), tag)
