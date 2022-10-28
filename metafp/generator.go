@@ -236,6 +236,10 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	case *types.Slice:
 		elemType := r.TypeName(pk, realtp.Elem())
 		return "[]" + elemType
+	case *types.Pointer:
+		elemType := r.TypeName(pk, realtp.Elem())
+		return "*" + elemType
+
 	}
 
 	return tpe.String()

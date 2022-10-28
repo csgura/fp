@@ -156,13 +156,19 @@ func genValue() {
 
 		workingPackage := pkgs[0].Types
 
-		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-
 		st := metafp.FindTaggedStruct(pkgs, "@fp.Value")
 
 		keyTags := mutable.EmptySet[string]()
 
 		st.Foreach(func(ts metafp.TaggedStruct) {
+
+			privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
+
+			if privateFields.Size() == 0 {
+				return
+			}
+
+			asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 			valuetpdec := ""
 			valuetp := ""
@@ -219,8 +225,6 @@ func genValue() {
 					return %s(r)
 				}
 			`, valuereceiver, builderreceiver, builderreceiver)
-
-			privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 
 			privateFields.Foreach(func(f metafp.StructField) {
 
