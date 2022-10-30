@@ -38,3 +38,29 @@ type HasOption struct {
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[HasOption]]
+
+// @fp.Value
+type CustomValue struct {
+	a string
+	b int
+}
+
+func (r CustomValue) A() string {
+	return "hello" + r.a
+}
+
+func (r CustomValue) WithB(v int) CustomValue {
+	if v > 0 {
+		r.b = v
+	}
+	return r
+}
+
+type CustomValueBuilder CustomValue
+
+func (r CustomValueBuilder) B(v int) CustomValueBuilder {
+	if v > 0 {
+		r.b = v
+	}
+	return r
+}

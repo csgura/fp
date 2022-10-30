@@ -218,6 +218,16 @@ func (r AllKindTypesBuilder) Hi(v fp.Option[int]) AllKindTypesBuilder {
 	return r
 }
 
+func (r AllKindTypes) WithSomeHi(v int) AllKindTypes {
+	r.hi = option.Some(v)
+	return r
+}
+
+func (r AllKindTypes) WithNoneHi() AllKindTypes {
+	r.hi = option.None[int]()
+	return r
+}
+
 func (r AllKindTypesBuilder) SomeHi(v int) AllKindTypesBuilder {
 	r.hi = option.Some(v)
 	return r
@@ -674,6 +684,16 @@ func (r Person) WithPhone(v fp.Option[string]) Person {
 
 func (r PersonBuilder) Phone(v fp.Option[string]) PersonBuilder {
 	r.phone = v
+	return r
+}
+
+func (r Person) WithSomePhone(v string) Person {
+	r.phone = option.Some(v)
+	return r
+}
+
+func (r Person) WithNonePhone() Person {
+	r.phone = option.None[string]()
 	return r
 }
 

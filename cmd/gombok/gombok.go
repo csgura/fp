@@ -133,6 +133,27 @@ func privateName(name string) string {
 	return strings.ToLower(name[:1]) + name[1:]
 }
 
+func isTypeDefined(pk *types.Package, name string) bool {
+	return pk.Scope().Lookup(name) != nil
+}
+
+func isMethodDefined(pk *types.Package, tpeName string, method string) bool {
+	obj := pk.Scope().Lookup(tpeName)
+	if obj == nil {
+		return false
+	}
+
+	if atp, ok := obj.Type().(*types.Named); ok {
+		for i := 0; i < atp.NumMethods(); i++ {
+			if atp.Method(i).Name() == method {
+				return true
+			}
+		}
+	}
+	return false
+
+}
+
 func genValue() {
 	pack := os.Getenv("GOPACKAGE")
 
@@ -177,8 +198,11 @@ func genValue() {
 				valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
 			}
 
-			builderType := fmt.Sprintf("%sBuilder%s", ts.Name, valuetpdec)
-			mutableType := fmt.Sprintf("%sMutable%s", ts.Name, valuetpdec)
+			builderTypeName := fmt.Sprintf("%sBuilder", ts.Name)
+			builderType := builderTypeName + valuetpdec
+
+			mutableTypeName := fmt.Sprintf("%sMutable", ts.Name)
+			mutableType := mutableTypeName + valuetpdec
 
 			//valueType := fmt.Sprintf("%s%s", v.Name, valuetpdec)
 
@@ -186,9 +210,11 @@ func genValue() {
 			builderreceiver := fmt.Sprintf("%sBuilder%s", ts.Name, valuetp)
 			mutablereceiver := fmt.Sprintf("%sMutable%s", ts.Name, valuetp)
 
-			fmt.Fprintf(w, `
-				type %s %s
-			`, builderType, valuereceiver)
+			if !isTypeDefined(workingPackage, builderTypeName) {
+				fmt.Fprintf(w, `
+					type %s %s
+				`, builderType, valuereceiver)
+			}
 
 			mutableFields := iterator.Map(ts.Fields.Iterator(), func(v metafp.StructField) string {
 				tag := v.Tag
@@ -213,74 +239,118 @@ func genValue() {
 
 				}
 			}).MakeString("\n")
-			fmt.Fprintf(w, `
+
+			if !isTypeDefined(workingPackage, mutableTypeName) {
+				fmt.Fprintf(w, `
 				type %s struct {
 					%s
 				}
 			`, mutableType, mutableFields)
+			}
 
-			fmt.Fprintf(w, `
+			if !isMethodDefined(workingPackage, builderTypeName, "Build") {
+				fmt.Fprintf(w, `
 				func(r %s) Build() %s {
 					return %s(r)
 				}
 			`, builderreceiver, valuereceiver, valuereceiver)
+			}
 
-			fmt.Fprintf(w, `
+			if ts.Info.Method.Get("Builder").IsEmpty() {
+
+				fmt.Fprintf(w, `
 				func(r %s) Builder() %s {
 					return %s(r)
 				}
 			`, valuereceiver, builderreceiver, builderreceiver)
+			}
 
 			privateFields.Foreach(func(f metafp.StructField) {
 
 				uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
-				ftp := w.TypeName(workingPackage, f.Type.Type)
 
-				fmt.Fprintf(w, `
+				if ts.Info.Method.Get(uname).IsEmpty() {
+					ftp := w.TypeName(workingPackage, f.Type.Type)
+
+					fmt.Fprintf(w, `
 						func (r %s) %s() %s {
 							return r.%s
 						}
 					`, valuereceiver, uname, ftp, f.Name)
 
-				fmt.Fprintf(w, `
+				}
+
+				if ts.Info.Method.Get("With" + uname).IsEmpty() {
+					ftp := w.TypeName(workingPackage, f.Type.Type)
+
+					fmt.Fprintf(w, `
 						func (r %s) With%s(v %s) %s {
 							r.%s = v
 							return r
 						}
 					`, valuereceiver, uname, ftp, valuereceiver, f.Name)
+				}
 
-				fmt.Fprintf(w, `
+				if !isMethodDefined(workingPackage, builderTypeName, uname) {
+					ftp := w.TypeName(workingPackage, f.Type.Type)
+
+					fmt.Fprintf(w, `
 						func (r %s) %s( v %s) %s {
 							r.%s = v
 							return r
 						}
 					`, builderreceiver, uname, ftp, builderreceiver, f.Name)
+				}
 
 				if f.Type.IsOption() {
 					optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
 					optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
-					fmt.Fprintf(w, `
+
+					if ts.Info.Method.Get("WithSome" + uname).IsEmpty() {
+
+						fmt.Fprintf(w, `
+							func (r %s) WithSome%s(v %s) %s {
+								r.%s = %s.Some(v)
+								return r
+							}
+						`, valuereceiver, uname, optiont, valuereceiver, f.Name, optionpk)
+					}
+
+					if ts.Info.Method.Get("WithNone" + uname).IsEmpty() {
+
+						fmt.Fprintf(w, `
+							func (r %s) WithNone%s() %s {
+								r.%s = %s.None[%s]()
+								return r
+							}
+						`, valuereceiver, uname, valuereceiver, f.Name, optionpk, optiont)
+					}
+
+					if !isMethodDefined(workingPackage, builderTypeName, "Some"+uname) {
+
+						fmt.Fprintf(w, `
 						func (r %s) Some%s(v %s) %s {
 							r.%s = %s.Some(v)
 							return r
 						}
 					`, builderreceiver, uname, optiont, builderreceiver,
-						f.Name, optionpk)
+							f.Name, optionpk)
+					}
+					if !isMethodDefined(workingPackage, builderTypeName, "None"+uname) {
 
-					fmt.Fprintf(w, `
+						fmt.Fprintf(w, `
 						func (r %s) None%s() %s {
 							r.%s = %s.None[%s]()
 							return r
 						}
 					`, builderreceiver, uname, builderreceiver,
-						f.Name, optionpk, optiont)
+							f.Name, optionpk, optiont)
+					}
 				}
 
 			})
 
-			m := ts.Info.Method.Get("String")
-
-			if m.IsEmpty() {
+			if ts.Info.Method.Get("String").IsEmpty() {
 				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 
 				printable := privateFields.Filter(func(v metafp.StructField) bool {
@@ -303,30 +373,34 @@ func genValue() {
 				)
 			}
 
-			tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
-				return w.TypeName(workingPackage, v.Type.Type)
-			}).MakeString(",")
+			if ts.Info.Method.Get("AsTuple").IsEmpty() {
+				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-			fields := seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf("r.%s", f.Name)
-			}).Iterator().Take(max.Product).MakeString(",")
+				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
+					return w.TypeName(workingPackage, v.Type.Type)
+				}).MakeString(",")
 
-			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+					return fmt.Sprintf("r.%s", f.Name)
+				}).Iterator().Take(max.Product).MakeString(",")
 
-			fmt.Fprintf(w, `
+				fmt.Fprintf(w, `
 					func(r %s) AsTuple() %s.Tuple%d[%s] {
 						return %s.Tuple%d(%s)
 					}
 
 				`, valuereceiver, fppkg, privateFields.Size(), tp,
-				asalias, privateFields.Size(), fields,
-			)
+					asalias, privateFields.Size(), fields,
+				)
+			}
 
-			fields = seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
-			}).Iterator().Take(max.Product).MakeString(",\n")
+			if ts.Info.Method.Get("AsMutable").IsEmpty() {
 
-			fmt.Fprintf(w, `
+				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+					return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
+				}).Iterator().Take(max.Product).MakeString(",\n")
+
+				fmt.Fprintf(w, `
 					func(r %s) AsMutable() %s {
 						return %s{
 							%s,
@@ -334,14 +408,17 @@ func genValue() {
 					}
 
 				`, valuereceiver, mutablereceiver,
-				mutablereceiver, fields,
-			)
+					mutablereceiver, fields,
+				)
+			}
 
-			fields = seq.Map(ts.Fields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
-			}).Iterator().Take(max.Product).MakeString(",\n")
+			if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
 
-			fmt.Fprintf(w, `
+				fields := seq.Map(ts.Fields, func(f metafp.StructField) string {
+					return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
+				}).Iterator().Take(max.Product).MakeString(",\n")
+
+				fmt.Fprintf(w, `
 					func(r %s) AsImmutable() %s {
 						return %s{
 							%s,
@@ -349,86 +426,23 @@ func genValue() {
 					}
 
 				`, mutablereceiver, valuereceiver,
-				valuereceiver, fields,
-			)
-
-			fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
-				return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
-			}).Take(max.Product).MakeString("\n")
-
-			fmt.Fprintf(w, `
-					func (r %s) FromTuple(t %s.Tuple%d[%s] ) %s {
-						%s
-						return r
-					}
-				`, builderreceiver, fppkg, privateFields.Size(), tp, builderreceiver,
-				fields,
-			)
-
-			fields = seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`"%s" : r.%s`, f.Name, f.Name)
-			}).Iterator().Take(max.Product).MakeString(",\n")
-
-			fmt.Fprintf(w, `
-					func(r %s) AsMap() map[string]any {
-						return map[string]any {
-							%s,
-						}
-					}
-
-				`, valuereceiver,
-				fields,
-			)
-
-			fields = iterator.Map(privateFields.Iterator(), func(f metafp.StructField) string {
-				return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
-						r.%s = v
-					}
-						`, f.Name, w.TypeName(workingPackage, f.Type.Type),
-					f.Name,
+					valuereceiver, fields,
 				)
-			}).Take(max.Product).MakeString("\n")
+			}
 
-			fmt.Fprintf(w, `
-					func(r %s) FromMap(m map[string]any) %s {
+			if !isMethodDefined(workingPackage, builderTypeName, "FromTuple") {
+				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-						%s
-						
-						return r
-					}
+				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
+					return w.TypeName(workingPackage, v.Type.Type)
+				}).MakeString(",")
 
-				`, builderreceiver, builderreceiver,
-				fields,
-			)
-
-			tp = iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
-				return fmt.Sprintf("NameIs%s[%s]", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
-			}).MakeString(",")
-
-			fields = seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`NameIs%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
-			}).Iterator().Take(max.Product).MakeString(",")
-
-			if ts.Tags.Contains("@fp.GenLabelled") {
-				privateFields.Foreach(func(v metafp.StructField) {
-					keyTags = keyTags.Incl(v.Name)
-				})
-
-				fmt.Fprintf(w, `
-					func(r %s) AsLabelled() %s.Labelled%d[%s] {
-						return %s.Labelled%d(%s)
-					}
-
-				`, valuereceiver, fppkg, privateFields.Size(), tp,
-					asalias, privateFields.Size(), fields,
-				)
-
-				fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
-					return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
+				fields := iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
+					return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
 				}).Take(max.Product).MakeString("\n")
 
 				fmt.Fprintf(w, `
-					func (r %s) FromLabelled(t %s.Labelled%d[%s] ) %s {
+					func (r %s) FromTuple(t %s.Tuple%d[%s] ) %s {
 						%s
 						return r
 					}
@@ -437,19 +451,111 @@ func genValue() {
 				)
 			}
 
-			if ts.Tags.Contains("@fp.Json") {
-				jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
-				httppk := w.GetImportedName(types.NewPackage("net/http", "http"))
-				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			if ts.Info.Method.Get("AsMap").IsEmpty() {
+
+				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+					return fmt.Sprintf(`"%s" : r.%s`, f.Name, f.Name)
+				}).Iterator().Take(max.Product).MakeString(",\n")
 
 				fmt.Fprintf(w, `
+					func(r %s) AsMap() map[string]any {
+						return map[string]any {
+							%s,
+						}
+					}
+
+				`, valuereceiver,
+					fields,
+				)
+			}
+
+			if !isMethodDefined(workingPackage, builderTypeName, "FromMap") {
+
+				fields := iterator.Map(privateFields.Iterator(), func(f metafp.StructField) string {
+					return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
+							r.%s = v
+						}
+							`, f.Name, w.TypeName(workingPackage, f.Type.Type),
+						f.Name,
+					)
+				}).Take(max.Product).MakeString("\n")
+
+				fmt.Fprintf(w, `
+					func(r %s) FromMap(m map[string]any) %s {
+
+						%s
+						
+						return r
+					}
+
+				`, builderreceiver, builderreceiver,
+					fields,
+				)
+			}
+
+			if ts.Tags.Contains("@fp.GenLabelled") {
+				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
+					return fmt.Sprintf("NameIs%s[%s]", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
+				}).MakeString(",")
+
+				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+					return fmt.Sprintf(`NameIs%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
+				}).Iterator().Take(max.Product).MakeString(",")
+
+				privateFields.Foreach(func(v metafp.StructField) {
+					keyTags = keyTags.Incl(v.Name)
+				})
+
+				if ts.Info.Method.Get("AsLabelled").IsEmpty() {
+					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+					fmt.Fprintf(w, `
+					func(r %s) AsLabelled() %s.Labelled%d[%s] {
+						return %s.Labelled%d(%s)
+					}
+
+				`, valuereceiver, fppkg, privateFields.Size(), tp,
+						asalias, privateFields.Size(), fields,
+					)
+
+				}
+				if !isMethodDefined(workingPackage, builderTypeName, "FromLabelled") {
+					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+					fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
+						return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
+					}).Take(max.Product).MakeString("\n")
+
+					fmt.Fprintf(w, `
+					func (r %s) FromLabelled(t %s.Labelled%d[%s] ) %s {
+						%s
+						return r
+					}
+				`, builderreceiver, fppkg, privateFields.Size(), tp, builderreceiver,
+						fields,
+					)
+				}
+			}
+
+			if ts.Tags.Contains("@fp.Json") {
+
+				if ts.Info.Method.Get("MarshalJSON").IsEmpty() {
+					jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
+
+					fmt.Fprintf(w, `
 					func(r %s) MarshalJSON() ([]byte, error) {
 						m := r.AsMutable()
 						return %s.Marshal(m)
 					}
 				`, valuereceiver, jsonpk)
+				}
 
-				fmt.Fprintf(w, `
+				if ts.Info.Method.Get("UnmarshalJSON").IsEmpty() {
+					httppk := w.GetImportedName(types.NewPackage("net/http", "http"))
+					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
+
+					fmt.Fprintf(w, `
 					func(r *%s) UnmarshalJSON(b []byte) error {
 						if r == nil {
 							return %s.Error(%s.StatusBadRequest, "target ptr is nil")
@@ -462,9 +568,10 @@ func genValue() {
 						return err
 					}
 				`, valuereceiver,
-					fppk, httppk,
-					jsonpk,
-				)
+						fppk, httppk,
+						jsonpk,
+					)
+				}
 			}
 
 		})

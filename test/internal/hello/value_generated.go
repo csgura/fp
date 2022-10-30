@@ -174,6 +174,16 @@ func (r HasOptionBuilder) Addr(v fp.Option[string]) HasOptionBuilder {
 	return r
 }
 
+func (r HasOption) WithSomeAddr(v string) HasOption {
+	r.addr = option.Some(v)
+	return r
+}
+
+func (r HasOption) WithNoneAddr() HasOption {
+	r.addr = option.None[string]()
+	return r
+}
+
 func (r HasOptionBuilder) SomeAddr(v string) HasOptionBuilder {
 	r.addr = option.Some(v)
 	return r
@@ -285,6 +295,81 @@ func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NameIsMessage[string], Nam
 	r.addr = t.I2.Value()
 	r.phone = t.I3.Value()
 	r.emptySeq = t.I4.Value()
+	return r
+}
+
+type CustomValueMutable struct {
+	A string
+	B int
+}
+
+func (r CustomValueBuilder) Build() CustomValue {
+	return CustomValue(r)
+}
+
+func (r CustomValue) Builder() CustomValueBuilder {
+	return CustomValueBuilder(r)
+}
+
+func (r CustomValue) WithA(v string) CustomValue {
+	r.a = v
+	return r
+}
+
+func (r CustomValueBuilder) A(v string) CustomValueBuilder {
+	r.a = v
+	return r
+}
+
+func (r CustomValue) B() int {
+	return r.b
+}
+
+func (r CustomValue) String() string {
+	return fmt.Sprintf("CustomValue(a=%v, b=%v)", r.a, r.b)
+}
+
+func (r CustomValue) AsTuple() fp.Tuple2[string, int] {
+	return as.Tuple2(r.a, r.b)
+}
+
+func (r CustomValue) AsMutable() CustomValueMutable {
+	return CustomValueMutable{
+		A: r.a,
+		B: r.b,
+	}
+}
+
+func (r CustomValueMutable) AsImmutable() CustomValue {
+	return CustomValue{
+		a: r.A,
+		b: r.B,
+	}
+}
+
+func (r CustomValueBuilder) FromTuple(t fp.Tuple2[string, int]) CustomValueBuilder {
+	r.a = t.I1
+	r.b = t.I2
+	return r
+}
+
+func (r CustomValue) AsMap() map[string]any {
+	return map[string]any{
+		"a": r.a,
+		"b": r.b,
+	}
+}
+
+func (r CustomValueBuilder) FromMap(m map[string]any) CustomValueBuilder {
+
+	if v, ok := m["a"].(string); ok {
+		r.a = v
+	}
+
+	if v, ok := m["b"].(int); ok {
+		r.b = v
+	}
+
 	return r
 }
 
