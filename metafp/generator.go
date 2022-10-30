@@ -243,7 +243,15 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 		return "*" + elemType
 	case *types.Chan:
 		elemType := r.TypeName(pk, realtp.Elem())
-		return "chan " + elemType
+		switch realtp.Dir() {
+		case types.RecvOnly:
+			return "<-chan " + elemType
+		case types.SendOnly:
+			return "chan<- " + elemType
+		default:
+			return "chan " + elemType
+
+		}
 	case *types.Signature:
 		args := iterator.Map(iterator.Range(0, realtp.Params().Len()), realtp.Params().At)
 		argsstr := iterator.Map(args, func(v *types.Var) string {
@@ -257,7 +265,38 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 		}).MakeString(",")
 
 		return fmt.Sprintf("func (%s) (%s)", argsstr, resultstr)
+	case *types.Struct:
+		fields := iterator.Map(iterator.Range(0, realtp.NumFields()), func(idx int) string {
+			if realtp.Field(idx).Embedded() {
+				return fmt.Sprintf("%s %s",
+					r.TypeName(pk, realtp.Field(idx).Type()),
+					realtp.Tag(idx),
+				)
+			}
+			return fmt.Sprintf("%s %s %s",
+				realtp.Field(idx).Name(),
+				r.TypeName(pk, realtp.Field(idx).Type()),
+				realtp.Tag(idx),
+			)
 
+		}).MakeString("\n")
+		return fmt.Sprintf(`struct {
+			%s
+		}`, fields)
+	case *types.Interface:
+		embeded := iterator.Map(iterator.Range(0, realtp.NumEmbeddeds()), func(idx int) string {
+			return r.TypeName(pk, realtp.EmbeddedType(idx))
+		}).MakeString("\n")
+		fields := iterator.Map(iterator.Range(0, realtp.NumExplicitMethods()), func(idx int) string {
+			m := realtp.ExplicitMethod(idx)
+
+			return fmt.Sprintf("%s%s", m.Name(), r.TypeName(pk, m.Type())[4:])
+
+		}).MakeString("\n")
+		return fmt.Sprintf(`interface {
+			%s
+			%s
+		}`, embeded, fields)
 	}
 
 	return tpe.String()

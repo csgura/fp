@@ -64,3 +64,16 @@ func (r CustomValueBuilder) B(v int) CustomValueBuilder {
 	}
 	return r
 }
+
+// // @fp.Value
+// type NotDerivable struct {
+// 	a int
+// 	b interface {
+// 		Hello() string
+// 	}
+// }
+
+// // @fp.Derive
+// var _ monoid.Derives[fp.Monoid[NotDerivable]]
+
+// var MonoidInt = monoid.Sum[int]()

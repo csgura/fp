@@ -232,12 +232,18 @@ func genValue() {
 
 					}
 				}
-				if tag != "" {
-					return fmt.Sprintf("%s %s `%s`", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type), tag)
-				} else {
-					return fmt.Sprintf("%s %s", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
 
+				name := fp.Seq[string]{}
+				if !v.Embedded {
+					name = name.Append(publicName(v.Name))
 				}
+
+				name = name.Append(w.TypeName(workingPackage, v.Type.Type))
+
+				if tag != "" {
+					name = name.Append(fmt.Sprintf("`%s`", tag))
+				}
+				return name.MakeString(" ")
 			}).MakeString("\n")
 
 			if !isTypeDefined(workingPackage, mutableTypeName) {
@@ -641,7 +647,7 @@ func (r lookupTarget) instanceExpr(w metafp.Writer, workingPkg *types.Package) s
 func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name string) lookupTarget {
 	return lookupTarget{
 		pk:       r.tc.Package,
-		name:     name,
+		name:     r.tc.TypeClass.Name + publicName(name),
 		typeArgs: f.TypeArgs,
 	}
 }
@@ -858,7 +864,8 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeC
 		}
 		return r.namedLookup(f, at.Obj().Name())
 	case *types.Array:
-		return r.namedLookup(f, "Array")
+		panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
+		//return r.namedLookup(f, "Array")
 	case *types.Slice:
 		if at.Elem().String() == "byte" {
 			bytesInstance := r.namedLookup(metafp.TypeInfo{
@@ -878,6 +885,13 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeC
 		return r.namedLookup(f, "Ptr")
 	case *types.Basic:
 		return r.namedLookup(f, at.Name())
+	case *types.Struct:
+		panic(fmt.Sprintf("can't summon unnamed struct type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
+	case *types.Interface:
+		panic(fmt.Sprintf("can't summon unnamed interface type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
+	case *types.Chan:
+		panic(fmt.Sprintf("can't summon unnamed chan type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
+
 	}
 	return r.namedLookup(f, f.Type.String())
 }

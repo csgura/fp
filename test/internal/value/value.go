@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"io"
 	"os"
 	rf "reflect"
 	"sync/atomic"
@@ -49,10 +50,22 @@ type AllKindTypes struct { // what the
 	mm   fp.Map[string, int]
 	intf fp.Future[int]
 	ch   chan fp.Try[fp.Either[int, string]]
+	ch2  chan<- int
+	ch3  <-chan int
+
 	fn3  fp.Func1[int, fp.Try[string]]
 	fn   func(a string) fp.Try[int]
 	fn2  func(fp.Try[string]) (result int, err error)
 	arr2 [2]int
+	st   struct {
+		Embed
+		A int
+		B fp.Option[string]
+	}
+	i2 interface {
+		io.Closer
+		Hello() fp.Try[int]
+	}
 }
 
 type NoValue struct {

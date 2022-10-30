@@ -9,6 +9,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/hello"
+	"io"
 	"net/http"
 	"os"
 	"reflect"
@@ -177,23 +178,35 @@ func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
 type AllKindTypesBuilder AllKindTypes
 
 type AllKindTypesMutable struct {
-	Embed Embed
-	Hi    fp.Option[int]
-	Tpe   reflect.Type
-	Arr   []os.File
-	M     map[string]int
-	A     any
-	P     *int
-	L     Local
-	T     fp.Try[fp.Option[Local]]
-	M2    map[string]atomic.Bool
-	Mm    fp.Map[string, int]
-	Intf  fp.Future[int]
-	Ch    chan fp.Try[fp.Either[int, string]]
-	Fn3   fp.Func1[int, fp.Try[string]]
-	Fn    func(a string) fp.Try[int]
-	Fn2   func(fp.Try[string]) (result int, err error)
-	Arr2  [2]int
+	Embed
+	Hi  fp.Option[int]
+	Tpe reflect.Type
+	Arr []os.File
+	M   map[string]int
+	A   interface {
+	}
+	P    *int
+	L    Local
+	T    fp.Try[fp.Option[Local]]
+	M2   map[string]atomic.Bool
+	Mm   fp.Map[string, int]
+	Intf fp.Future[int]
+	Ch   chan fp.Try[fp.Either[int, string]]
+	Ch2  chan<- int
+	Ch3  <-chan int
+	Fn3  fp.Func1[int, fp.Try[string]]
+	Fn   func(a string) fp.Try[int]
+	Fn2  func(fp.Try[string]) (result int, err error)
+	Arr2 [2]int
+	St   struct {
+		Embed
+		A int
+		B fp.Option[string]
+	}
+	I2 interface {
+		io.Closer
+		Hello() fp.Try[int]
+	}
 }
 
 func (r AllKindTypesBuilder) Build() AllKindTypes {
@@ -280,16 +293,19 @@ func (r AllKindTypesBuilder) M(v map[string]int) AllKindTypesBuilder {
 	return r
 }
 
-func (r AllKindTypes) A() any {
+func (r AllKindTypes) A() interface {
+} {
 	return r.a
 }
 
-func (r AllKindTypes) WithA(v any) AllKindTypes {
+func (r AllKindTypes) WithA(v interface {
+}) AllKindTypes {
 	r.a = v
 	return r
 }
 
-func (r AllKindTypesBuilder) A(v any) AllKindTypesBuilder {
+func (r AllKindTypesBuilder) A(v interface {
+}) AllKindTypesBuilder {
 	r.a = v
 	return r
 }
@@ -392,6 +408,34 @@ func (r AllKindTypesBuilder) Ch(v chan fp.Try[fp.Either[int, string]]) AllKindTy
 	return r
 }
 
+func (r AllKindTypes) Ch2() chan<- int {
+	return r.ch2
+}
+
+func (r AllKindTypes) WithCh2(v chan<- int) AllKindTypes {
+	r.ch2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Ch2(v chan<- int) AllKindTypesBuilder {
+	r.ch2 = v
+	return r
+}
+
+func (r AllKindTypes) Ch3() <-chan int {
+	return r.ch3
+}
+
+func (r AllKindTypes) WithCh3(v <-chan int) AllKindTypes {
+	r.ch3 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Ch3(v <-chan int) AllKindTypesBuilder {
+	r.ch3 = v
+	return r
+}
+
 func (r AllKindTypes) Fn3() fp.Func1[int, fp.Try[string]] {
 	return r.fn3
 }
@@ -448,12 +492,69 @@ func (r AllKindTypesBuilder) Arr2(v [2]int) AllKindTypesBuilder {
 	return r
 }
 
-func (r AllKindTypes) String() string {
-	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, fn3=%v, arr2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.fn3, r.arr2)
+func (r AllKindTypes) St() struct {
+	Embed
+	A int
+	B fp.Option[string]
+} {
+	return r.st
 }
 
-func (r AllKindTypes) AsTuple() fp.Tuple16[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int] {
-	return as.Tuple16(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.fn3, r.fn, r.fn2, r.arr2)
+func (r AllKindTypes) WithSt(v struct {
+	Embed
+	A int
+	B fp.Option[string]
+}) AllKindTypes {
+	r.st = v
+	return r
+}
+
+func (r AllKindTypesBuilder) St(v struct {
+	Embed
+	A int
+	B fp.Option[string]
+}) AllKindTypesBuilder {
+	r.st = v
+	return r
+}
+
+func (r AllKindTypes) I2() interface {
+	io.Closer
+	Hello() fp.Try[int]
+} {
+	return r.i2
+}
+
+func (r AllKindTypes) WithI2(v interface {
+	io.Closer
+	Hello() fp.Try[int]
+}) AllKindTypes {
+	r.i2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) I2(v interface {
+	io.Closer
+	Hello() fp.Try[int]
+}) AllKindTypesBuilder {
+	r.i2 = v
+	return r
+}
+
+func (r AllKindTypes) String() string {
+	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, ch2=%v, ch3=%v, fn3=%v, arr2=%v, st=%v, i2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
+}
+
+func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, interface {
+}, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+	Embed
+	A int
+	B fp.Option[string]
+}, interface {
+	io.Closer
+	Hello() fp.Try[int]
+}] {
+	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
 }
 
 func (r AllKindTypes) AsMutable() AllKindTypesMutable {
@@ -470,10 +571,14 @@ func (r AllKindTypes) AsMutable() AllKindTypesMutable {
 		Mm:   r.mm,
 		Intf: r.intf,
 		Ch:   r.ch,
+		Ch2:  r.ch2,
+		Ch3:  r.ch3,
 		Fn3:  r.fn3,
 		Fn:   r.fn,
 		Fn2:  r.fn2,
 		Arr2: r.arr2,
+		St:   r.st,
+		I2:   r.i2,
 	}
 }
 
@@ -492,14 +597,26 @@ func (r AllKindTypesMutable) AsImmutable() AllKindTypes {
 		mm:    r.Mm,
 		intf:  r.Intf,
 		ch:    r.Ch,
+		ch2:   r.Ch2,
+		ch3:   r.Ch3,
 		fn3:   r.Fn3,
 		fn:    r.Fn,
 		fn2:   r.Fn2,
 		arr2:  r.Arr2,
+		st:    r.St,
+		i2:    r.I2,
 	}
 }
 
-func (r AllKindTypesBuilder) FromTuple(t fp.Tuple16[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int]) AllKindTypesBuilder {
+func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, interface {
+}, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+	Embed
+	A int
+	B fp.Option[string]
+}, interface {
+	io.Closer
+	Hello() fp.Try[int]
+}]) AllKindTypesBuilder {
 	r.hi = t.I1
 	r.tpe = t.I2
 	r.arr = t.I3
@@ -512,10 +629,14 @@ func (r AllKindTypesBuilder) FromTuple(t fp.Tuple16[fp.Option[int], reflect.Type
 	r.mm = t.I10
 	r.intf = t.I11
 	r.ch = t.I12
-	r.fn3 = t.I13
-	r.fn = t.I14
-	r.fn2 = t.I15
-	r.arr2 = t.I16
+	r.ch2 = t.I13
+	r.ch3 = t.I14
+	r.fn3 = t.I15
+	r.fn = t.I16
+	r.fn2 = t.I17
+	r.arr2 = t.I18
+	r.st = t.I19
+	r.i2 = t.I20
 	return r
 }
 
@@ -533,10 +654,14 @@ func (r AllKindTypes) AsMap() map[string]any {
 		"mm":   r.mm,
 		"intf": r.intf,
 		"ch":   r.ch,
+		"ch2":  r.ch2,
+		"ch3":  r.ch3,
 		"fn3":  r.fn3,
 		"fn":   r.fn,
 		"fn2":  r.fn2,
 		"arr2": r.arr2,
+		"st":   r.st,
+		"i2":   r.i2,
 	}
 }
 
@@ -558,7 +683,8 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 		r.m = v
 	}
 
-	if v, ok := m["a"].(any); ok {
+	if v, ok := m["a"].(interface {
+	}); ok {
 		r.a = v
 	}
 
@@ -590,6 +716,14 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 		r.ch = v
 	}
 
+	if v, ok := m["ch2"].(chan<- int); ok {
+		r.ch2 = v
+	}
+
+	if v, ok := m["ch3"].(<-chan int); ok {
+		r.ch3 = v
+	}
+
 	if v, ok := m["fn3"].(fp.Func1[int, fp.Try[string]]); ok {
 		r.fn3 = v
 	}
@@ -604,6 +738,21 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 
 	if v, ok := m["arr2"].([2]int); ok {
 		r.arr2 = v
+	}
+
+	if v, ok := m["st"].(struct {
+		Embed
+		A int
+		B fp.Option[string]
+	}); ok {
+		r.st = v
+	}
+
+	if v, ok := m["i2"].(interface {
+		io.Closer
+		Hello() fp.Try[int]
+	}); ok {
+		r.i2 = v
 	}
 
 	return r
@@ -951,9 +1100,15 @@ func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
 	return r
 }
 
-type EntryBuilder[A interface{ String() string }, B any] Entry[A, B]
+type EntryBuilder[A interface {
+	String() string
+}, B interface {
+}] Entry[A, B]
 
-type EntryMutable[A interface{ String() string }, B any] struct {
+type EntryMutable[A interface {
+	String() string
+}, B interface {
+}] struct {
 	Name  string
 	Value A
 	Tuple fp.Tuple2[A, B]

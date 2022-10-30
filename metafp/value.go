@@ -33,9 +33,10 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 			f := st.Field(i)
 			tn := typeInfo(l.Pkg(), f.Type())
 			return StructField{
-				Name: f.Name(),
-				Type: tn,
-				Tag:  st.Tag(i),
+				Name:     f.Name(),
+				Type:     tn,
+				Tag:      st.Tag(i),
+				Embedded: f.Embedded(),
 			}
 		}).ToSeq()
 
@@ -248,9 +249,10 @@ func (r TypeInfo) TypeParamIns(w ImportSet, cwd *types.Package) string {
 }
 
 type StructField struct {
-	Name string
-	Type TypeInfo
-	Tag  string
+	Name     string
+	Type     TypeInfo
+	Tag      string
+	Embedded bool
 }
 
 func (r StructField) Public() bool {
