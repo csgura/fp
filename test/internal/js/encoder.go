@@ -7,61 +7,108 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/seq"
 )
 
 type Encoder[T any] interface {
-	Encode(T) string
+	Encode(T) fp.Option[string]
 }
 
-type EncoderFunc[T any] func(T) string
+type EncoderFunc[T any] func(T) fp.Option[string]
 
-func (r EncoderFunc[T]) Encode(t T) string {
+func (r EncoderFunc[T]) Encode(t T) fp.Option[string] {
 	return r(t)
 }
 
 type Derives[T any] interface {
 }
 
-func NewEncoder[T any](f func(a T) string) Encoder[T] {
+func NewEncoder[T any](f func(a T) fp.Option[string]) Encoder[T] {
 	return EncoderFunc[T](f)
 }
 
-var EncoderString = NewEncoder(func(a string) string {
-	return fmt.Sprintf(`"%s"`, a)
+var EncoderString = NewEncoder(func(a string) fp.Option[string] {
+	if a != "" {
+		return option.Some(fmt.Sprintf(`"%s"`, a))
+	}
+	return option.None[string]()
 })
 
 func EncoderNumber[T fp.ImplicitNum]() Encoder[T] {
-	return NewEncoder(func(a T) string {
-		return fmt.Sprintf("%v", a)
+	return NewEncoder(func(a T) fp.Option[string] {
+		return option.Some(fmt.Sprintf("%v", a))
 	})
 }
 
-var EncoderTime = NewEncoder(func(a time.Time) string {
+var EncoderTime = NewEncoder(func(a time.Time) fp.Option[string] {
 	return EncoderString.Encode(a.Format(time.RFC3339))
 })
 
-var EncoderUnit = NewEncoder(func(a fp.Unit) string {
-	return "null"
+var EncoderUnit = NewEncoder(func(a fp.Unit) fp.Option[string] {
+	return option.None[string]()
 })
 
-var EncoderHNil Encoder[hlist.Nil] = NewEncoder(func(a hlist.Nil) string {
-	return ""
+var EncoderHNil Encoder[hlist.Nil] = NewEncoder(func(a hlist.Nil) fp.Option[string] {
+	return option.None[string]()
 })
+
+func EncoderSlice[T any](enc Encoder[T]) Encoder[[]T] {
+	return NewEncoder(func(s []T) fp.Option[string] {
+		if len(s) == 0 {
+			return option.None[string]()
+		}
+		return option.Some("[" + seq.Map(s, func(v T) string {
+			return enc.Encode(v).OrElse("null")
+		}).MakeString(",") + "]")
+	})
+}
+func EncoderOption[T any](enc Encoder[T]) Encoder[fp.Option[T]] {
+	return NewEncoder(func(opt fp.Option[T]) fp.Option[string] {
+		if opt.IsDefined() {
+			return enc.Encode(opt.Get())
+
+		}
+		return option.None[string]()
+	})
+}
 
 func EncoderHCons[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[H, T]] {
-	return NewEncoder(func(a hlist.Cons[H, T]) string {
-		return heq.Encode(a.Head()) + "," + teq.Encode(a.Tail())
+	return NewEncoder(func(a hlist.Cons[H, T]) fp.Option[string] {
+		head := heq.Encode(a.Head()).OrElse("null")
+		tail := teq.Encode(a.Tail()).OrElse("null")
+
+		return option.Some(head + "," + tail)
+	})
+}
+
+func EncoderNamed[T fp.NamedField[A], A any](enc Encoder[A]) Encoder[T] {
+	return NewEncoder(func(a T) fp.Option[string] {
+
+		return option.Map(enc.Encode(a.Value()), func(v string) string {
+			return fmt.Sprintf(`"%s":%s`, a.Name(), v)
+		})
 	})
 }
 
 func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[H, T]] {
-	return NewEncoder(func(a hlist.Cons[H, T]) string {
-		if a.Tail().IsNil() {
-			return fmt.Sprintf(`{"%s":%s}`, a.Head().Name(), heq.Encode(a.Head()))
+	return NewEncoder(func(a hlist.Cons[H, T]) fp.Option[string] {
+
+		head := heq.Encode(a.Head())
+		tail := teq.Encode(a.Tail())
+
+		if head.IsDefined() && tail.IsDefined() {
+			return option.Some(fmt.Sprintf(`{%s,%s}`, head.Get(),
+				strings.Trim(tail.Get(), "{}")))
 		}
-		return fmt.Sprintf(`{"%s":%s,%s}`, a.Head().Name(), heq.Encode(a.Head()),
-			strings.Trim(teq.Encode(a.Tail()), "{}"),
-		)
+
+		if head.IsDefined() {
+			return option.Some(fmt.Sprintf("{%s}", head.Get()))
+		}
+
+		return option.Map(tail, func(v string) string {
+			return fmt.Sprintf("{%s}", v)
+		})
 	})
 }
 
@@ -72,33 +119,40 @@ func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder
 // }
 
 func EncoderContraMap[T, U any](instance Encoder[T], fn func(U) T) Encoder[U] {
-	return NewEncoder(func(a U) string {
+	return NewEncoder(func(a U) fp.Option[string] {
 		return instance.Encode(fn(a))
 	})
 }
 
 func EncoderLabelled1[A fp.Named](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
 	return NewEncoder(
-		func(a fp.Labelled1[A]) string {
-			return fmt.Sprintf(`{"%s" : %s}`, a.I1.Name(), ins1.Encode(a.I1))
+		func(a fp.Labelled1[A]) fp.Option[string] {
+			return option.Map(ins1.Encode(a.I1), func(v string) string {
+				return fmt.Sprintf(`{"%s"}`, v)
+			})
+
 		},
 	)
-}
-
-func EncoderNamed[T fp.NamedField[A], A any](enc Encoder[A]) Encoder[T] {
-	return NewEncoder(func(a T) string {
-		return enc.Encode(a.Value())
-	})
 }
 
 func EncoderLabelled2[A1, A2 fp.Named](ins1 Encoder[A1], ins2 Encoder[A2]) Encoder[fp.Labelled2[A1, A2]] {
 
 	return NewEncoder(
-		func(a fp.Labelled2[A1, A2]) string {
-			return fmt.Sprintf(`{"%s":%s,"%s":%s}`,
-				a.I1.Name(), ins1.Encode(a.I1),
-				a.I2.Name(), ins2.Encode(a.I2),
-			)
+		func(a fp.Labelled2[A1, A2]) fp.Option[string] {
+			i1 := ins1.Encode(a.I1)
+			i2 := ins2.Encode(a.I2)
+
+			if i1.IsDefined() && i2.IsDefined() {
+				return option.Some(fmt.Sprintf(`{%s,%s}`, i1.Get(), i2.Get()))
+			}
+
+			if i1.IsDefined() {
+				return option.Some(fmt.Sprintf("{%s}", i1.Get()))
+			}
+
+			return option.Map(i2, func(v string) string {
+				return fmt.Sprintf("{%s}", v)
+			})
 		},
 	)
 }

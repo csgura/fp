@@ -58,7 +58,7 @@ func TestJson(t *testing.T) {
 		Language: "En",
 	}.AsImmutable()
 
-	res := value.EncoderGreeting.Encode(g)
+	res := value.EncoderGreeting.Encode(g).Get()
 	fmt.Println(res)
 
 	parsedG := value.DecoderGreeting.Decode(res)
@@ -85,7 +85,7 @@ func TestJson(t *testing.T) {
 		Three: 3,
 	}.AsImmutable()
 
-	res = value.EncoderThree.Encode(t3)
+	res = value.EncoderThree.Encode(t3).Get()
 	fmt.Println(res)
 
 	parsedT3 := value.DecoderThree.Decode(res)

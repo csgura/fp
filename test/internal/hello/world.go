@@ -26,3 +26,15 @@ var _ js.Derives[js.Encoder[World]]
 
 // @fp.Derive
 var _ js.Derives[js.Decoder[World]]
+
+// @fp.Value
+// @fp.GenLabelled
+type HasOption struct {
+	message  string
+	addr     fp.Option[string]
+	phone    []string
+	emptySeq []int
+}
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[HasOption]]

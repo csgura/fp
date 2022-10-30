@@ -15,3 +15,9 @@ var EncoderWorld = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameI
 
 var DecoderWorld = js.DecoderMap(js.DecoderLabelled2(js.DecoderNamed[NameIsMessage[string]](js.DecoderString), js.DecoderNamed[NameIsTimestamp[time.Time]](js.DecoderTime)), fp.Compose(
 	as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}), WorldBuilder.Build))
+
+var EncoderHasOption = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNamed[NameIsMessage[string]](js.EncoderString),
+	js.EncoderHConsLabelled(js.EncoderNamed[NameIsAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
+		js.EncoderHConsLabelled(js.EncoderNamed[NameIsPhone[[]string]](js.EncoderSlice(js.EncoderString)),
+			js.EncoderHConsLabelled(js.EncoderNamed[NameIsEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+				js.EncoderHNil)))), as.HList4Labelled[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]]), HasOption.AsLabelled)
