@@ -1039,7 +1039,40 @@ func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
 		return r.exprTypeClassInstance(result.available.Get())
 	}
 
-	instance := r.lookupTypeClassMember("Number")
+	instance := r.lookupTypeClassMember("UInt")
+	if instance.IsDefined() {
+		if _, ok := instance.Get().Type().(*types.Signature); ok {
+			ctx := types.NewContext()
+			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
+			if err == nil {
+				return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, t.Type))
+			}
+		}
+	}
+
+	instance = r.lookupTypeClassMember("Int")
+	if instance.IsDefined() {
+		if _, ok := instance.Get().Type().(*types.Signature); ok {
+			ctx := types.NewContext()
+			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
+			if err == nil {
+				return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, t.Type))
+			}
+		}
+	}
+
+	instance = r.lookupTypeClassMember("Float")
+	if instance.IsDefined() {
+		if _, ok := instance.Get().Type().(*types.Signature); ok {
+			ctx := types.NewContext()
+			_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
+			if err == nil {
+				return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, t.Type))
+			}
+		}
+	}
+
+	instance = r.lookupTypeClassMember("Number")
 	if instance.IsDefined() {
 		if _, ok := instance.Get().Type().(*types.Signature); ok {
 			ctx := types.NewContext()

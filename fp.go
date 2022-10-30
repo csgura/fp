@@ -108,6 +108,19 @@ func TypeName[T any]() string {
 	return reflect.TypeOf(zero).Elem().String()
 }
 
+type ImplicitUInt interface {
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+}
+
+type ImplicitInt interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+}
+
+type ImplicitFloat interface {
+	~float32 | ~float64
+}
+
 type ImplicitNum interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
