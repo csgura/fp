@@ -12,6 +12,8 @@ import (
 	"path"
 	"strings"
 	"text/template"
+
+	"github.com/csgura/fp/iterator"
 )
 
 var OrdinalName = []string{
@@ -203,7 +205,7 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	case *types.Named:
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
-		if realtp.Obj().Pkg().Path() != pk.Path() {
+		if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
 			alias := r.GetImportedName(realtp.Obj().Pkg())
 
 			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
@@ -239,6 +241,22 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	case *types.Pointer:
 		elemType := r.TypeName(pk, realtp.Elem())
 		return "*" + elemType
+	case *types.Chan:
+		elemType := r.TypeName(pk, realtp.Elem())
+		return "chan " + elemType
+	case *types.Signature:
+		args := iterator.Map(iterator.Range(0, realtp.Params().Len()), realtp.Params().At)
+		argsstr := iterator.Map(args, func(v *types.Var) string {
+
+			return v.Name() + " " + r.TypeName(pk, v.Type())
+		}).MakeString(",")
+
+		result := iterator.Map(iterator.Range(0, realtp.Results().Len()), realtp.Results().At)
+		resultstr := iterator.Map(result, func(v *types.Var) string {
+			return v.Name() + " " + r.TypeName(pk, v.Type())
+		}).MakeString(",")
+
+		return fmt.Sprintf("func (%s) (%s)", argsstr, resultstr)
 
 	}
 

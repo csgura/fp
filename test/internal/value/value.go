@@ -34,19 +34,25 @@ type Local interface {
 }
 
 // @fp.Value
-type MyMy struct { // what the
+type AllKindTypes struct { // what the
 	Embed
 	hi fp.Option[int]
 
-	tpe rf.Type
-	arr []os.File
-	m   map[string]int
-	a   any
-	p   *int
-	l   Local
-	t   fp.Try[fp.Option[Local]]
-	m2  map[string]atomic.Bool
-	mm  fp.Map[string, int]
+	tpe  rf.Type
+	arr  []os.File
+	m    map[string]int
+	a    any
+	p    *int
+	l    Local
+	t    fp.Try[fp.Option[Local]]
+	m2   map[string]atomic.Bool
+	mm   fp.Map[string, int]
+	intf fp.Future[int]
+	ch   chan fp.Try[fp.Either[int, string]]
+	fn3  fp.Func1[int, fp.Try[string]]
+	fn   func(a string) fp.Try[int]
+	fn2  func(fp.Try[string]) (result int, err error)
+	arr2 [2]int
 }
 
 type NoValue struct {

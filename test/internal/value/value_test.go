@@ -9,9 +9,22 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/hello"
 	"github.com/csgura/fp/test/internal/value"
+	"github.com/csgura/fp/try"
 )
+
+func TestString(t *testing.T) {
+	a := fp.New(value.AllKindTypes.Builder).
+		A("world").
+		T(try.Success(option.None[value.Local]())).
+		Fn3(func(a1 int) fp.Try[string] {
+			return try.Success("success")
+		}).
+		Build()
+	fmt.Println(a)
+}
 
 func TestBuilder(t *testing.T) {
 	a := fp.New(value.Hello.Builder).World("world").Hi(0).Build()

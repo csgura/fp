@@ -273,18 +273,21 @@ func genValue() {
 
 			})
 
-			fm := seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf("%s=%%v", f.Name)
-			}).Iterator().MakeString(", ")
-
-			fields := seq.Map(privateFields, func(f metafp.StructField) string {
-				return fmt.Sprintf("r.%s", f.Name)
-			}).Iterator().MakeString(",")
-
 			m := ts.Info.Method.Get("String")
 
 			if m.IsEmpty() {
 				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+
+				printable := privateFields.Filter(func(v metafp.StructField) bool {
+					return v.Type.IsPrintable()
+				})
+				fm := seq.Map(printable, func(f metafp.StructField) string {
+					return fmt.Sprintf("%s=%%v", f.Name)
+				}).Iterator().MakeString(", ")
+
+				fields := seq.Map(printable, func(f metafp.StructField) string {
+					return fmt.Sprintf("r.%s", f.Name)
+				}).Iterator().MakeString(",")
 
 				fmt.Fprintf(w, `
 					func(r %s) String() string {
@@ -299,7 +302,7 @@ func genValue() {
 				return w.TypeName(workingPackage, v.Type.Type)
 			}).MakeString(",")
 
-			fields = seq.Map(privateFields, func(f metafp.StructField) string {
+			fields := seq.Map(privateFields, func(f metafp.StructField) string {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Iterator().Take(max.Product).MakeString(",")
 

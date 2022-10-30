@@ -174,9 +174,9 @@ func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
 	return r
 }
 
-type MyMyBuilder MyMy
+type AllKindTypesBuilder AllKindTypes
 
-type MyMyMutable struct {
+type AllKindTypesMutable struct {
 	Embed Embed
 	Hi    fp.Option[int]
 	Tpe   reflect.Type
@@ -188,191 +188,287 @@ type MyMyMutable struct {
 	T     fp.Try[fp.Option[Local]]
 	M2    map[string]atomic.Bool
 	Mm    fp.Map[string, int]
+	Intf  fp.Future[int]
+	Ch    chan fp.Try[fp.Either[int, string]]
+	Fn3   fp.Func1[int, fp.Try[string]]
+	Fn    func(a string) fp.Try[int]
+	Fn2   func(fp.Try[string]) (result int, err error)
+	Arr2  [2]int
 }
 
-func (r MyMyBuilder) Build() MyMy {
-	return MyMy(r)
+func (r AllKindTypesBuilder) Build() AllKindTypes {
+	return AllKindTypes(r)
 }
 
-func (r MyMy) Builder() MyMyBuilder {
-	return MyMyBuilder(r)
+func (r AllKindTypes) Builder() AllKindTypesBuilder {
+	return AllKindTypesBuilder(r)
 }
 
-func (r MyMy) Hi() fp.Option[int] {
+func (r AllKindTypes) Hi() fp.Option[int] {
 	return r.hi
 }
 
-func (r MyMy) WithHi(v fp.Option[int]) MyMy {
+func (r AllKindTypes) WithHi(v fp.Option[int]) AllKindTypes {
 	r.hi = v
 	return r
 }
 
-func (r MyMyBuilder) Hi(v fp.Option[int]) MyMyBuilder {
+func (r AllKindTypesBuilder) Hi(v fp.Option[int]) AllKindTypesBuilder {
 	r.hi = v
 	return r
 }
 
-func (r MyMyBuilder) SomeHi(v int) MyMyBuilder {
+func (r AllKindTypesBuilder) SomeHi(v int) AllKindTypesBuilder {
 	r.hi = option.Some(v)
 	return r
 }
 
-func (r MyMyBuilder) NoneHi() MyMyBuilder {
+func (r AllKindTypesBuilder) NoneHi() AllKindTypesBuilder {
 	r.hi = option.None[int]()
 	return r
 }
 
-func (r MyMy) Tpe() reflect.Type {
+func (r AllKindTypes) Tpe() reflect.Type {
 	return r.tpe
 }
 
-func (r MyMy) WithTpe(v reflect.Type) MyMy {
+func (r AllKindTypes) WithTpe(v reflect.Type) AllKindTypes {
 	r.tpe = v
 	return r
 }
 
-func (r MyMyBuilder) Tpe(v reflect.Type) MyMyBuilder {
+func (r AllKindTypesBuilder) Tpe(v reflect.Type) AllKindTypesBuilder {
 	r.tpe = v
 	return r
 }
 
-func (r MyMy) Arr() []os.File {
+func (r AllKindTypes) Arr() []os.File {
 	return r.arr
 }
 
-func (r MyMy) WithArr(v []os.File) MyMy {
+func (r AllKindTypes) WithArr(v []os.File) AllKindTypes {
 	r.arr = v
 	return r
 }
 
-func (r MyMyBuilder) Arr(v []os.File) MyMyBuilder {
+func (r AllKindTypesBuilder) Arr(v []os.File) AllKindTypesBuilder {
 	r.arr = v
 	return r
 }
 
-func (r MyMy) M() map[string]int {
+func (r AllKindTypes) M() map[string]int {
 	return r.m
 }
 
-func (r MyMy) WithM(v map[string]int) MyMy {
+func (r AllKindTypes) WithM(v map[string]int) AllKindTypes {
 	r.m = v
 	return r
 }
 
-func (r MyMyBuilder) M(v map[string]int) MyMyBuilder {
+func (r AllKindTypesBuilder) M(v map[string]int) AllKindTypesBuilder {
 	r.m = v
 	return r
 }
 
-func (r MyMy) A() any {
+func (r AllKindTypes) A() any {
 	return r.a
 }
 
-func (r MyMy) WithA(v any) MyMy {
+func (r AllKindTypes) WithA(v any) AllKindTypes {
 	r.a = v
 	return r
 }
 
-func (r MyMyBuilder) A(v any) MyMyBuilder {
+func (r AllKindTypesBuilder) A(v any) AllKindTypesBuilder {
 	r.a = v
 	return r
 }
 
-func (r MyMy) P() *int {
+func (r AllKindTypes) P() *int {
 	return r.p
 }
 
-func (r MyMy) WithP(v *int) MyMy {
+func (r AllKindTypes) WithP(v *int) AllKindTypes {
 	r.p = v
 	return r
 }
 
-func (r MyMyBuilder) P(v *int) MyMyBuilder {
+func (r AllKindTypesBuilder) P(v *int) AllKindTypesBuilder {
 	r.p = v
 	return r
 }
 
-func (r MyMy) L() Local {
+func (r AllKindTypes) L() Local {
 	return r.l
 }
 
-func (r MyMy) WithL(v Local) MyMy {
+func (r AllKindTypes) WithL(v Local) AllKindTypes {
 	r.l = v
 	return r
 }
 
-func (r MyMyBuilder) L(v Local) MyMyBuilder {
+func (r AllKindTypesBuilder) L(v Local) AllKindTypesBuilder {
 	r.l = v
 	return r
 }
 
-func (r MyMy) T() fp.Try[fp.Option[Local]] {
+func (r AllKindTypes) T() fp.Try[fp.Option[Local]] {
 	return r.t
 }
 
-func (r MyMy) WithT(v fp.Try[fp.Option[Local]]) MyMy {
+func (r AllKindTypes) WithT(v fp.Try[fp.Option[Local]]) AllKindTypes {
 	r.t = v
 	return r
 }
 
-func (r MyMyBuilder) T(v fp.Try[fp.Option[Local]]) MyMyBuilder {
+func (r AllKindTypesBuilder) T(v fp.Try[fp.Option[Local]]) AllKindTypesBuilder {
 	r.t = v
 	return r
 }
 
-func (r MyMy) M2() map[string]atomic.Bool {
+func (r AllKindTypes) M2() map[string]atomic.Bool {
 	return r.m2
 }
 
-func (r MyMy) WithM2(v map[string]atomic.Bool) MyMy {
+func (r AllKindTypes) WithM2(v map[string]atomic.Bool) AllKindTypes {
 	r.m2 = v
 	return r
 }
 
-func (r MyMyBuilder) M2(v map[string]atomic.Bool) MyMyBuilder {
+func (r AllKindTypesBuilder) M2(v map[string]atomic.Bool) AllKindTypesBuilder {
 	r.m2 = v
 	return r
 }
 
-func (r MyMy) Mm() fp.Map[string, int] {
+func (r AllKindTypes) Mm() fp.Map[string, int] {
 	return r.mm
 }
 
-func (r MyMy) WithMm(v fp.Map[string, int]) MyMy {
+func (r AllKindTypes) WithMm(v fp.Map[string, int]) AllKindTypes {
 	r.mm = v
 	return r
 }
 
-func (r MyMyBuilder) Mm(v fp.Map[string, int]) MyMyBuilder {
+func (r AllKindTypesBuilder) Mm(v fp.Map[string, int]) AllKindTypesBuilder {
 	r.mm = v
 	return r
 }
 
-func (r MyMy) String() string {
-	return fmt.Sprintf("MyMy(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm)
+func (r AllKindTypes) Intf() fp.Future[int] {
+	return r.intf
 }
 
-func (r MyMy) AsTuple() fp.Tuple10[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int]] {
-	return as.Tuple10(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm)
+func (r AllKindTypes) WithIntf(v fp.Future[int]) AllKindTypes {
+	r.intf = v
+	return r
 }
 
-func (r MyMy) AsMutable() MyMyMutable {
-	return MyMyMutable{
-		Hi:  r.hi,
-		Tpe: r.tpe,
-		Arr: r.arr,
-		M:   r.m,
-		A:   r.a,
-		P:   r.p,
-		L:   r.l,
-		T:   r.t,
-		M2:  r.m2,
-		Mm:  r.mm,
+func (r AllKindTypesBuilder) Intf(v fp.Future[int]) AllKindTypesBuilder {
+	r.intf = v
+	return r
+}
+
+func (r AllKindTypes) Ch() chan fp.Try[fp.Either[int, string]] {
+	return r.ch
+}
+
+func (r AllKindTypes) WithCh(v chan fp.Try[fp.Either[int, string]]) AllKindTypes {
+	r.ch = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Ch(v chan fp.Try[fp.Either[int, string]]) AllKindTypesBuilder {
+	r.ch = v
+	return r
+}
+
+func (r AllKindTypes) Fn3() fp.Func1[int, fp.Try[string]] {
+	return r.fn3
+}
+
+func (r AllKindTypes) WithFn3(v fp.Func1[int, fp.Try[string]]) AllKindTypes {
+	r.fn3 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Fn3(v fp.Func1[int, fp.Try[string]]) AllKindTypesBuilder {
+	r.fn3 = v
+	return r
+}
+
+func (r AllKindTypes) Fn() func(a string) fp.Try[int] {
+	return r.fn
+}
+
+func (r AllKindTypes) WithFn(v func(a string) fp.Try[int]) AllKindTypes {
+	r.fn = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Fn(v func(a string) fp.Try[int]) AllKindTypesBuilder {
+	r.fn = v
+	return r
+}
+
+func (r AllKindTypes) Fn2() func(fp.Try[string]) (result int, err error) {
+	return r.fn2
+}
+
+func (r AllKindTypes) WithFn2(v func(fp.Try[string]) (result int, err error)) AllKindTypes {
+	r.fn2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Fn2(v func(fp.Try[string]) (result int, err error)) AllKindTypesBuilder {
+	r.fn2 = v
+	return r
+}
+
+func (r AllKindTypes) Arr2() [2]int {
+	return r.arr2
+}
+
+func (r AllKindTypes) WithArr2(v [2]int) AllKindTypes {
+	r.arr2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Arr2(v [2]int) AllKindTypesBuilder {
+	r.arr2 = v
+	return r
+}
+
+func (r AllKindTypes) String() string {
+	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, fn3=%v, arr2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.fn3, r.arr2)
+}
+
+func (r AllKindTypes) AsTuple() fp.Tuple16[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int] {
+	return as.Tuple16(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.fn3, r.fn, r.fn2, r.arr2)
+}
+
+func (r AllKindTypes) AsMutable() AllKindTypesMutable {
+	return AllKindTypesMutable{
+		Hi:   r.hi,
+		Tpe:  r.tpe,
+		Arr:  r.arr,
+		M:    r.m,
+		A:    r.a,
+		P:    r.p,
+		L:    r.l,
+		T:    r.t,
+		M2:   r.m2,
+		Mm:   r.mm,
+		Intf: r.intf,
+		Ch:   r.ch,
+		Fn3:  r.fn3,
+		Fn:   r.fn,
+		Fn2:  r.fn2,
+		Arr2: r.arr2,
 	}
 }
 
-func (r MyMyMutable) AsImmutable() MyMy {
-	return MyMy{
+func (r AllKindTypesMutable) AsImmutable() AllKindTypes {
+	return AllKindTypes{
 		Embed: r.Embed,
 		hi:    r.Hi,
 		tpe:   r.Tpe,
@@ -384,10 +480,16 @@ func (r MyMyMutable) AsImmutable() MyMy {
 		t:     r.T,
 		m2:    r.M2,
 		mm:    r.Mm,
+		intf:  r.Intf,
+		ch:    r.Ch,
+		fn3:   r.Fn3,
+		fn:    r.Fn,
+		fn2:   r.Fn2,
+		arr2:  r.Arr2,
 	}
 }
 
-func (r MyMyBuilder) FromTuple(t fp.Tuple10[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int]]) MyMyBuilder {
+func (r AllKindTypesBuilder) FromTuple(t fp.Tuple16[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int]) AllKindTypesBuilder {
 	r.hi = t.I1
 	r.tpe = t.I2
 	r.arr = t.I3
@@ -398,25 +500,37 @@ func (r MyMyBuilder) FromTuple(t fp.Tuple10[fp.Option[int], reflect.Type, []os.F
 	r.t = t.I8
 	r.m2 = t.I9
 	r.mm = t.I10
+	r.intf = t.I11
+	r.ch = t.I12
+	r.fn3 = t.I13
+	r.fn = t.I14
+	r.fn2 = t.I15
+	r.arr2 = t.I16
 	return r
 }
 
-func (r MyMy) AsMap() map[string]any {
+func (r AllKindTypes) AsMap() map[string]any {
 	return map[string]any{
-		"hi":  r.hi,
-		"tpe": r.tpe,
-		"arr": r.arr,
-		"m":   r.m,
-		"a":   r.a,
-		"p":   r.p,
-		"l":   r.l,
-		"t":   r.t,
-		"m2":  r.m2,
-		"mm":  r.mm,
+		"hi":   r.hi,
+		"tpe":  r.tpe,
+		"arr":  r.arr,
+		"m":    r.m,
+		"a":    r.a,
+		"p":    r.p,
+		"l":    r.l,
+		"t":    r.t,
+		"m2":   r.m2,
+		"mm":   r.mm,
+		"intf": r.intf,
+		"ch":   r.ch,
+		"fn3":  r.fn3,
+		"fn":   r.fn,
+		"fn2":  r.fn2,
+		"arr2": r.arr2,
 	}
 }
 
-func (r MyMyBuilder) FromMap(m map[string]any) MyMyBuilder {
+func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 
 	if v, ok := m["hi"].(fp.Option[int]); ok {
 		r.hi = v
@@ -456,6 +570,30 @@ func (r MyMyBuilder) FromMap(m map[string]any) MyMyBuilder {
 
 	if v, ok := m["mm"].(fp.Map[string, int]); ok {
 		r.mm = v
+	}
+
+	if v, ok := m["intf"].(fp.Future[int]); ok {
+		r.intf = v
+	}
+
+	if v, ok := m["ch"].(chan fp.Try[fp.Either[int, string]]); ok {
+		r.ch = v
+	}
+
+	if v, ok := m["fn3"].(fp.Func1[int, fp.Try[string]]); ok {
+		r.fn3 = v
+	}
+
+	if v, ok := m["fn"].(func(a string) fp.Try[int]); ok {
+		r.fn = v
+	}
+
+	if v, ok := m["fn2"].(func(fp.Try[string]) (result int, err error)); ok {
+		r.fn2 = v
+	}
+
+	if v, ok := m["arr2"].([2]int); ok {
+		r.arr2 = v
 	}
 
 	return r

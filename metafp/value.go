@@ -130,6 +130,22 @@ type TypeParam struct {
 	Constraint types.Type
 }
 
+type TypeInfo struct {
+	Pkg       *types.Package
+	Type      types.Type
+	TypeArgs  fp.Seq[TypeInfo]
+	TypeParam fp.Seq[TypeParam]
+	Method    fp.Map[string, *types.Func]
+}
+
+func (r TypeInfo) IsPrintable() bool {
+	switch r.Type.(type) {
+	case *types.Signature:
+		return false
+	}
+	return true
+}
+
 func (r TypeInfo) IsTypeParam() bool {
 	switch r.Type.(type) {
 	case *types.TypeParam:
@@ -196,14 +212,6 @@ func (r TypeInfo) IsOption() bool {
 		}
 	}
 	return false
-}
-
-type TypeInfo struct {
-	Pkg       *types.Package
-	Type      types.Type
-	TypeArgs  fp.Seq[TypeInfo]
-	TypeParam fp.Seq[TypeParam]
-	Method    fp.Map[string, *types.Func]
 }
 
 func (r TypeInfo) TypeParamDecl(w ImportSet, cwd *types.Package) string {
