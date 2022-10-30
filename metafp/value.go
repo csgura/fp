@@ -214,6 +214,26 @@ func (r TypeInfo) IsOption() bool {
 	return false
 }
 
+func (r TypeInfo) IsNilable() bool {
+	switch atp := r.Type.(type) {
+	case *types.Pointer:
+		return true
+	case *types.Slice:
+		return true
+	case *types.Map:
+		return true
+	case *types.Chan:
+		return true
+	case *types.Signature:
+		return true
+	case *types.Interface:
+		return true
+	case *types.Basic:
+		return atp.Kind() == types.String
+	}
+	return false
+}
+
 func (r TypeInfo) TypeParamDecl(w ImportSet, cwd *types.Package) string {
 	return iterator.Map(r.TypeParam.Iterator(), func(v TypeParam) string {
 		tn := w.TypeName(cwd, v.Constraint)
@@ -223,7 +243,7 @@ func (r TypeInfo) TypeParamDecl(w ImportSet, cwd *types.Package) string {
 
 func (r TypeInfo) TypeParamIns(w ImportSet, cwd *types.Package) string {
 	return iterator.Map(r.TypeParam.Iterator(), func(v TypeParam) string {
-		return fmt.Sprintf("%s", v.Name)
+		return v.Name
 	}).MakeString(",")
 }
 

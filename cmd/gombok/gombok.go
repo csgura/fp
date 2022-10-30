@@ -198,7 +198,12 @@ func genValue() {
 						if tag != "" {
 							tag = tag + " "
 						}
-						tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
+						if v.Type.IsNilable() {
+							tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
+						} else {
+							tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
+						}
+
 					}
 				}
 				if tag != "" {

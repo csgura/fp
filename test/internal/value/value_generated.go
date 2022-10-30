@@ -86,7 +86,7 @@ func (r NotIgnoredBuilder) FromMap(m map[string]any) NotIgnoredBuilder {
 type HelloBuilder Hello
 
 type HelloMutable struct {
-	World string `json:"world"`
+	World string `json:"world,omitempty"`
 	Hi    int    `bson:"hi" json:"merong"`
 }
 
@@ -1273,7 +1273,7 @@ type GreetingBuilder Greeting
 
 type GreetingMutable struct {
 	Hello    hello.World `json:"hello"`
-	Language string      `json:"language"`
+	Language string      `json:"language,omitempty"`
 }
 
 func (r GreetingBuilder) Build() Greeting {
