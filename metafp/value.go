@@ -234,7 +234,7 @@ type StructField struct {
 }
 
 func (r StructField) Public() bool {
-	return unicode.IsUpper([]rune(r.Name)[0])
+	return !unicode.IsLower([]rune(r.Name)[0])
 }
 
 func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {

@@ -60,14 +60,15 @@ type NoValue struct {
 
 // @fp.Value
 type Person struct {
-	name   string
-	age    int
-	height float64
-	phone  fp.Option[string]
-	addr   []string
-	list   hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
-	seq    fp.Seq[float64]
-	blob   []byte
+	name       string
+	age        int
+	height     float64
+	phone      fp.Option[string]
+	addr       []string
+	list       hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
+	seq        fp.Seq[float64]
+	blob       []byte
+	_notExport string
 }
 
 func EqFpSeq[T any](e fp.Eq[T]) fp.Eq[fp.Seq[T]] {

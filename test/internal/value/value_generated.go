@@ -602,14 +602,15 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 type PersonBuilder Person
 
 type PersonMutable struct {
-	Name   string
-	Age    int
-	Height float64
-	Phone  fp.Option[string]
-	Addr   []string
-	List   hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
-	Seq    fp.Seq[float64]
-	Blob   []byte
+	Name       string
+	Age        int
+	Height     float64
+	Phone      fp.Option[string]
+	Addr       []string
+	List       hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
+	Seq        fp.Seq[float64]
+	Blob       []byte
+	_notExport string
 }
 
 func (r PersonBuilder) Build() Person {
@@ -765,14 +766,15 @@ func (r Person) AsMutable() PersonMutable {
 
 func (r PersonMutable) AsImmutable() Person {
 	return Person{
-		name:   r.Name,
-		age:    r.Age,
-		height: r.Height,
-		phone:  r.Phone,
-		addr:   r.Addr,
-		list:   r.List,
-		seq:    r.Seq,
-		blob:   r.Blob,
+		name:       r.Name,
+		age:        r.Age,
+		height:     r.Height,
+		phone:      r.Phone,
+		addr:       r.Addr,
+		list:       r.List,
+		seq:        r.Seq,
+		blob:       r.Blob,
+		_notExport: r._notExport,
 	}
 }
 
