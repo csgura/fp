@@ -3,6 +3,7 @@ package hello_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/hello"
@@ -16,4 +17,13 @@ func TestEncoderOption(t *testing.T) {
 	}.AsImmutable())
 
 	fmt.Println(str)
+}
+
+func TestShow(t *testing.T) {
+	v := hello.WorldMutable{
+		Message:   "hello",
+		Timestamp: time.Now(),
+	}.AsImmutable()
+
+	fmt.Println(hello.ShowWorld.Show(v))
 }

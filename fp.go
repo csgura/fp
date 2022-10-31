@@ -280,3 +280,9 @@ func New[F, T any](nf func(F) T) T {
 	var zero F
 	return nf(zero)
 }
+
+// shapeless generic trait
+type Generic[T, Repr any] struct {
+	To   func(T) Repr
+	From func(Repr) T
+}

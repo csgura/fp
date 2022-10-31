@@ -737,8 +737,10 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 			publicName(v),
 		)
 		if f.Pkg != nil {
-			return seq.Of(r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v)).
-				Concat(ret)
+			return seq.Of(
+				r.tc.TypeClass.Name+publicName(f.Pkg.Name())+publicName(v),
+				publicName(f.Pkg.Name())+publicName(v),
+			).Concat(ret)
 		}
 		return ret
 	}).Iterator()
@@ -1155,10 +1157,6 @@ func genDerive() {
 				return summonCtx.summonTuple(typeArgs)
 			})
 
-			convExpr := option.Map(labelledExpr, func(v string) string {
-				return "AsLabelled"
-			}).OrElse("AsTuple")
-
 			valuetpdec := ""
 			valuetp := ""
 			if v.DeriveFor.Info.TypeParam.Size() > 0 {
@@ -1175,7 +1173,13 @@ func genDerive() {
 			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.Name, valuetp)
 			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.Name, valuetp)
 
-			mapExpr := option.Map(summonCtx.lookupTypeClassMember("IMap"), func(imapfunc typeClassMember) string {
+			toExpr := func() string {
+				convExpr := option.Map(labelledExpr, func(v string) string {
+					return "AsLabelled"
+				}).OrElse("AsTuple")
+				return fmt.Sprintf(`%s.%s`, valuereceiver, convExpr)
+			}
+			fromExpr := func() string {
 				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
@@ -1183,35 +1187,37 @@ func genDerive() {
 					return "FromLabelled"
 				}).OrElse("FromTuple")
 
-				return fmt.Sprintf(`%s( %s, %s.Compose(
-							%s.Curried2(%s.%s)(%s{}), %s.Build),  
-							%s.%s )`,
-					imapfunc.PackagedName(w, workingPackage), summonExpr, fppk,
-					aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
-					valuereceiver, convExpr)
+				return fmt.Sprintf(`%s.Compose(
+					%s.Curried2(%s.%s)(%s{}),
+					%s.Build,
+					)`,
+					fppk, aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
+				)
+			}
+
+			mapExpr := option.Map(summonCtx.lookupTypeClassMember("Generic"), func(generic typeClassMember) string {
+				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+				return fmt.Sprintf(`%s(%s.Generic(%s,%s), %s)`, generic.PackagedName(w, workingPackage), aspk, toExpr(), fromExpr(), summonExpr)
+			}).Or(func() fp.Option[string] {
+				return option.Map(summonCtx.lookupTypeClassMember("IMap"), func(imapfunc typeClassMember) string {
+
+					return fmt.Sprintf(`%s( %s, %s , %s )`,
+						imapfunc.PackagedName(w, workingPackage), summonExpr, fromExpr(), toExpr())
+				})
 			}).Or(func() fp.Option[string] {
 				functor := summonCtx.lookupTypeClassMember("Map")
-
 				return option.Map(functor, func(v typeClassMember) string {
-					fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-					aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-					revExpr := option.Map(labelledExpr, func(v string) string {
-						return "FromLabelled"
-					}).OrElse("FromTuple")
-
-					return fmt.Sprintf(`%s( %s, %s.Compose(
-							%s.Curried2(%s.%s)(%s{}), %s.Build))`,
-						v.PackagedName(w, workingPackage), summonExpr, fppk,
-						aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
+					return fmt.Sprintf(`%s( %s, %s)`,
+						v.PackagedName(w, workingPackage), summonExpr, fromExpr(),
 					)
 				})
 
 			}).OrElseGet(func() string {
 				contrmap := summonCtx.lookupTypeClassMemberMust("ContraMap")
 
-				return fmt.Sprintf(`%s( %s , %s.%s )`,
-					contrmap.PackagedName(w, workingPackage), summonExpr, valuereceiver, convExpr,
+				return fmt.Sprintf(`%s( %s , %s)`,
+					contrmap.PackagedName(w, workingPackage), summonExpr, toExpr(),
 				)
 			})
 

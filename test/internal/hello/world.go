@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/test/internal/show"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -26,6 +27,9 @@ var _ js.Derives[js.Encoder[World]]
 
 // @fp.Derive
 var _ js.Derives[js.Decoder[World]]
+
+// @fp.Derive
+var _ show.Derives[fp.Show[World]]
 
 // @fp.Value
 // @fp.GenLabelled
@@ -77,3 +81,9 @@ func (r CustomValueBuilder) B(v int) CustomValueBuilder {
 // var _ monoid.Derives[fp.Monoid[NotDerivable]]
 
 // var MonoidInt = monoid.Sum[int]()
+
+// @fp.Value
+type AliasedStruct World
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[AliasedStruct]]

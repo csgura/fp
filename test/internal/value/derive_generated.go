@@ -28,22 +28,26 @@ func MonoidEntry[A interface {
 }, B interface {
 }](monoidA fp.Monoid[A], monoidB fp.Monoid[B]) fp.Monoid[Entry[A, B]] {
 	return monoid.IMap(monoid.Tuple3(monoid.String, monoidA, monoid.Tuple2(monoidA, monoidB)), fp.Compose(
-		as.Curried2(EntryBuilder[A, B].FromTuple)(EntryBuilder[A, B]{}), EntryBuilder[A, B].Build),
-		Entry[A, B].AsTuple)
+		as.Curried2(EntryBuilder[A, B].FromTuple)(EntryBuilder[A, B]{}),
+		EntryBuilder[A, B].Build,
+	), Entry[A, B].AsTuple)
 }
 
 var HashableKey = hash.ContraMap(hash.Tuple3(hash.Number[int](), hash.Number[float32](), hash.Bytes), Key.AsTuple)
 
 var MonoidPoint = monoid.IMap(monoid.Tuple3(MonoidInt, MonoidInt, monoid.Tuple2(MonoidInt, MonoidInt)), fp.Compose(
-	as.Curried2(PointBuilder.FromTuple)(PointBuilder{}), PointBuilder.Build),
-	Point.AsTuple)
+	as.Curried2(PointBuilder.FromTuple)(PointBuilder{}),
+	PointBuilder.Build,
+), Point.AsTuple)
 
 var EqGreeting = eq.ContraMap(eq.Tuple2(hello.EqWorld, eq.String), Greeting.AsTuple)
 
 var EncoderGreeting = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameIsHello[hello.World]](hello.EncoderWorld), js.EncoderNamed[NameIsLanguage[string]](js.EncoderString)), Greeting.AsLabelled)
 
 var DecoderGreeting = js.DecoderMap(js.DecoderLabelled2(js.DecoderNamed[NameIsHello[hello.World]](hello.DecoderWorld), js.DecoderNamed[NameIsLanguage[string]](js.DecoderString)), fp.Compose(
-	as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}), GreetingBuilder.Build))
+	as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}),
+	GreetingBuilder.Build,
+))
 
 var EncoderThree = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
 	js.EncoderHConsLabelled(js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
@@ -55,4 +59,6 @@ var DecoderThree = js.DecoderMap(js.DecoderMap(js.DecoderHConsLabelled(js.Decode
 		js.DecoderHConsLabelled(js.DecoderNamed[NameIsThree[float64]](js.DecoderNumber[float64]()),
 			js.DecoderHNil))),
 	as.Func2(hlist.Case3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64], hlist.Nil, fp.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]]]).ApplyLast(as.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]])), fp.Compose(
-	as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}), ThreeBuilder.Build))
+	as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
+	ThreeBuilder.Build,
+))

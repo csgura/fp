@@ -373,6 +373,97 @@ func (r CustomValueBuilder) FromMap(m map[string]any) CustomValueBuilder {
 	return r
 }
 
+type AliasedStructBuilder AliasedStruct
+
+type AliasedStructMutable struct {
+	Message   string
+	Timestamp time.Time
+}
+
+func (r AliasedStructBuilder) Build() AliasedStruct {
+	return AliasedStruct(r)
+}
+
+func (r AliasedStruct) Builder() AliasedStructBuilder {
+	return AliasedStructBuilder(r)
+}
+
+func (r AliasedStruct) Message() string {
+	return r.message
+}
+
+func (r AliasedStruct) WithMessage(v string) AliasedStruct {
+	r.message = v
+	return r
+}
+
+func (r AliasedStructBuilder) Message(v string) AliasedStructBuilder {
+	r.message = v
+	return r
+}
+
+func (r AliasedStruct) Timestamp() time.Time {
+	return r.timestamp
+}
+
+func (r AliasedStruct) WithTimestamp(v time.Time) AliasedStruct {
+	r.timestamp = v
+	return r
+}
+
+func (r AliasedStructBuilder) Timestamp(v time.Time) AliasedStructBuilder {
+	r.timestamp = v
+	return r
+}
+
+func (r AliasedStruct) String() string {
+	return fmt.Sprintf("AliasedStruct(message=%v, timestamp=%v)", r.message, r.timestamp)
+}
+
+func (r AliasedStruct) AsTuple() fp.Tuple2[string, time.Time] {
+	return as.Tuple2(r.message, r.timestamp)
+}
+
+func (r AliasedStruct) AsMutable() AliasedStructMutable {
+	return AliasedStructMutable{
+		Message:   r.message,
+		Timestamp: r.timestamp,
+	}
+}
+
+func (r AliasedStructMutable) AsImmutable() AliasedStruct {
+	return AliasedStruct{
+		message:   r.Message,
+		timestamp: r.Timestamp,
+	}
+}
+
+func (r AliasedStructBuilder) FromTuple(t fp.Tuple2[string, time.Time]) AliasedStructBuilder {
+	r.message = t.I1
+	r.timestamp = t.I2
+	return r
+}
+
+func (r AliasedStruct) AsMap() map[string]any {
+	return map[string]any{
+		"message":   r.message,
+		"timestamp": r.timestamp,
+	}
+}
+
+func (r AliasedStructBuilder) FromMap(m map[string]any) AliasedStructBuilder {
+
+	if v, ok := m["message"].(string); ok {
+		r.message = v
+	}
+
+	if v, ok := m["timestamp"].(time.Time); ok {
+		r.timestamp = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

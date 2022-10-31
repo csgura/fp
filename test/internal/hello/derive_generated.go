@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/test/internal/show"
 	"time"
 )
 
@@ -14,10 +15,21 @@ var EqWorld = eq.ContraMap(eq.Tuple2(eq.String, eq.Given[time.Time]()), World.As
 var EncoderWorld = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameIsMessage[string]](js.EncoderString), js.EncoderNamed[NameIsTimestamp[time.Time]](js.EncoderTime)), World.AsLabelled)
 
 var DecoderWorld = js.DecoderMap(js.DecoderLabelled2(js.DecoderNamed[NameIsMessage[string]](js.DecoderString), js.DecoderNamed[NameIsTimestamp[time.Time]](js.DecoderTime)), fp.Compose(
-	as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}), WorldBuilder.Build))
+	as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
+	WorldBuilder.Build,
+))
+
+var ShowWorld = show.Generic(as.Generic(World.AsTuple, fp.Compose(
+	as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
+	WorldBuilder.Build,
+)), show.ContraMap(show.HCons(show.Given[string](),
+	show.HCons(show.Time,
+		show.HNil)), as.HList2[string, time.Time]))
 
 var EncoderHasOption = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNamed[NameIsMessage[string]](js.EncoderString),
 	js.EncoderHConsLabelled(js.EncoderNamed[NameIsAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
 		js.EncoderHConsLabelled(js.EncoderNamed[NameIsPhone[[]string]](js.EncoderSlice(js.EncoderString)),
 			js.EncoderHConsLabelled(js.EncoderNamed[NameIsEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
 				js.EncoderHNil)))), as.HList4Labelled[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]]), HasOption.AsLabelled)
+
+var EqAliasedStruct = eq.ContraMap(eq.Tuple2(eq.String, eq.Given[time.Time]()), AliasedStruct.AsTuple)
