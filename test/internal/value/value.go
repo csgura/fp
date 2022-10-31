@@ -14,6 +14,8 @@ import (
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/test/internal/hello"
 	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/test/internal/read"
+	"github.com/csgura/fp/test/internal/show"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -175,3 +177,9 @@ var _ js.Derives[js.Encoder[Three]]
 
 // @fp.Derive
 var _ js.Derives[js.Decoder[Three]]
+
+// @fp.Derive
+var _ show.Derives[fp.Show[Three]]
+
+// @fp.Derive
+var _ read.Derives[read.Read[Three]]

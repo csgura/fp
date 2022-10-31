@@ -10,6 +10,8 @@ import (
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/test/internal/hello"
 	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/test/internal/read"
+	"github.com/csgura/fp/test/internal/show"
 )
 
 var EqPerson = eq.ContraMap(eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Given[int](), eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes), Person.AsTuple)
@@ -62,3 +64,20 @@ var DecoderThree = js.DecoderMap(js.DecoderMap(js.DecoderHConsLabelled(js.Decode
 	as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
 	ThreeBuilder.Build,
 ))
+
+var ShowThree = show.Generic(as.Generic(Three.AsTuple, fp.Compose(
+	as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+	ThreeBuilder.Build,
+)), show.ContraMap(show.HCons(show.Given[int](),
+	show.HCons(show.String,
+		show.HCons(show.Given[float64](),
+			show.HNil))), as.HList3[int, string, float64]))
+
+var ReadThree = read.Generic(as.Generic(Three.AsTuple, fp.Compose(
+	as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+	ThreeBuilder.Build,
+)), read.Map(read.HCons(read.Int[int](),
+	read.HCons(read.String,
+		read.HCons(read.Float[float64](),
+			read.HNil))),
+	as.Func2(hlist.Case3[int, string, float64, hlist.Nil, fp.Tuple3[int, string, float64]]).ApplyLast(as.Tuple3[int, string, float64])))

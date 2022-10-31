@@ -607,19 +607,34 @@ func genValue() {
 }
 
 type lookupTarget struct {
-	pk        *types.Package
-	name      string
-	typeArgs  fp.Seq[metafp.TypeInfo]
-	typeParam bool
+	instanceOf metafp.TypeInfo
+	pk         *types.Package
+	name       string
+	typeArgs   fp.Seq[metafp.TypeInfo]
+	typeParam  bool
+	instance   types.Object
 	// tc       *TypeClass
+}
+
+func (r lookupTarget) isFunc() bool {
+	if r.instance != nil {
+		switch r.instance.Type().(type) {
+		case *types.Signature:
+			return true
+		}
+	}
+	return false
+}
+func (r lookupTarget) lookup() lookupTarget {
+	r.instance = r.pk.Scope().Lookup(r.name)
+	return r
 }
 
 func (r lookupTarget) available(genSet mutable.Set[string]) bool {
 	if r.typeParam {
 		return true
 	}
-	ins := r.pk.Scope().Lookup(r.name)
-	if ins != nil {
+	if r.instance != nil {
 		return true
 	}
 
@@ -646,9 +661,10 @@ func (r lookupTarget) instanceExpr(w metafp.Writer, workingPkg *types.Package) s
 
 func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name string) lookupTarget {
 	return lookupTarget{
-		pk:       r.tc.Package,
-		name:     r.tc.TypeClass.Name + publicName(name),
-		typeArgs: f.TypeArgs,
+		instanceOf: f,
+		pk:         r.tc.Package,
+		name:       r.tc.TypeClass.Name + publicName(name),
+		typeArgs:   f.TypeArgs,
 	}
 }
 
@@ -667,10 +683,11 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 
 	return iterator.Map(itr, func(v string) lookupTarget {
 		return lookupTarget{
-			pk:       r.tc.Package,
-			name:     v,
-			typeArgs: f.TypeArgs,
-		}
+			instanceOf: f,
+			pk:         r.tc.Package,
+			name:       v,
+			typeArgs:   f.TypeArgs,
+		}.lookup()
 	}).Filter(func(lt lookupTarget) bool {
 		return lt.available(r.genSet)
 	}).Head()
@@ -747,10 +764,11 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 
 	return iterator.Map(itr, func(v string) lookupTarget {
 		return lookupTarget{
-			pk:       r.tc.PrimitiveInstancePkg,
-			name:     v,
-			typeArgs: f.TypeArgs,
-		}
+			instanceOf: f,
+			pk:         r.tc.PrimitiveInstancePkg,
+			name:       v,
+			typeArgs:   f.TypeArgs,
+		}.lookup()
 	}).Filter(func(lt lookupTarget) bool {
 		return lt.available(r.genSet)
 	}).Head()
@@ -761,10 +779,11 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceTypePkg(f metafp.TypeInfo
 
 	if f.Pkg != nil && f.Pkg.Path() != r.tc.Package.Path() {
 		ret := lookupTarget{
-			pk:       f.Pkg,
-			name:     r.tc.TypeClass.Name + publicName(name),
-			typeArgs: f.TypeArgs,
-		}
+			instanceOf: f,
+			pk:         f.Pkg,
+			name:       r.tc.TypeClass.Name + publicName(name),
+			typeArgs:   f.TypeArgs,
+		}.lookup()
 
 		if ret.available(r.genSet) {
 			return option.Some(ret)
@@ -798,6 +817,10 @@ func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
 			return r.summon(t)
 		}).MakeString(",")
 		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w, r.tc.Package), list)
+	}
+
+	if lt.isFunc() && len(lt.typeArgs) == 0 {
+		return fmt.Sprintf("%s[%s]()", lt.instanceExpr(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, lt.instanceOf.Type))
 	}
 
 	return lt.instanceExpr(r.w, r.tc.Package)
@@ -844,8 +867,9 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeC
 	switch at := f.Type.(type) {
 	case *types.TypeParam:
 		return newTypeClassInstance(lookupTarget{
-			name:      privateName(r.tc.TypeClass.Name) + at.Obj().Name(),
-			typeParam: true,
+			instanceOf: f,
+			name:       privateName(r.tc.TypeClass.Name) + at.Obj().Name(),
+			typeParam:  true,
 		})
 	case *types.Named:
 		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {

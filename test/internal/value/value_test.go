@@ -107,3 +107,21 @@ func TestJson(t *testing.T) {
 	assert.Equal(parsedT3.Get().Two(), "2")
 
 }
+
+func TestRead(t *testing.T) {
+	t3 := value.ThreeMutable{
+		One:   12,
+		Two:   "hello world",
+		Three: 13.5,
+	}.AsImmutable()
+
+	str := value.ShowThree.Show(t3)
+	fmt.Println(str)
+
+	res := value.ReadThree.Read(str)
+	res.Failed().Foreach(fp.Println[error])
+	assert.True(res.IsSuccess())
+	assert.Equal(res.Get().Three(), 13.5)
+	assert.Equal(res.Get().Two(), "hello world")
+
+}
