@@ -7,11 +7,9 @@ import (
 	"github.com/csgura/fp/as"
 )
 
-type ResultBuilder[T interface {
-}] Result[T]
+type ResultBuilder[T any] Result[T]
 
-type ResultMutable[T interface {
-}] struct {
+type ResultMutable[T any] struct {
 	Value   T
 	Remains string
 }

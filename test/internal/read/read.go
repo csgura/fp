@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/csgura/fp"
@@ -64,6 +65,17 @@ func readTokens(s string) Result[string] {
 		}
 	}
 
+	if len(r) > 0 && r[0] == '(' {
+		for i := 1; i < len(r); i++ {
+			if r[i] == ')' {
+				return ResultMutable[string]{
+					Value:   string(r[1:i]),
+					Remains: string(r[i+1:]),
+				}.AsImmutable()
+			}
+		}
+	}
+
 	for i := 0; i < len(r); i++ {
 		if unicode.IsSpace(r[i]) || r[i] == ',' || r[i] == '(' || r[i] == ')' || r[i] == ':' {
 			return ResultMutable[string]{
@@ -80,6 +92,18 @@ func readTokens(s string) Result[string] {
 
 var String = New(func(s string) fp.Try[Result[string]] {
 	return try.Success(readTokens(s))
+})
+
+var Time = New(func(s string) fp.Try[Result[time.Time]] {
+	t := readTokens(s)
+	ret, err := time.Parse(time.RFC3339, t.Value())
+	if err != nil {
+		return try.Failure[Result[time.Time]](err)
+	}
+	return try.Success(Result[time.Time]{
+		value:   ret,
+		remains: t.remains,
+	})
 })
 
 func UInt[T fp.ImplicitUInt]() Read[T] {
@@ -147,8 +171,11 @@ func skipColonColon(s string) string {
 
 func HCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.Cons[H, T]] {
 	return New(func(s string) fp.Try[Result[hlist.Cons[H, T]]] {
+		//var h H
+		//fmt.Printf("read hcons %s, htype = %T\n", s, h)
 		hres := hread.Reads(s)
 		return try.FlatMap(hres, func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
+			//fmt.Printf("remains = %s\n", hr.remains)
 			nextHead := skipColonColon(hr.Remains())
 			return try.Map(tread.Reads(nextHead), func(tr Result[T]) Result[hlist.Cons[H, T]] {
 				return Result[hlist.Cons[H, T]]{
@@ -173,8 +200,8 @@ func Generic[T, Repr any](gen fp.Generic[T, Repr], reprRead Read[Repr]) Read[T] 
 		var t T
 		tpname := fmt.Sprintf("%T", t)
 		s = strings.TrimSpace(s)
-		if strings.HasPrefix(s, tpname) {
-			s = strings.Trim(s[len(tpname)+1:], "()")
+		if strings.HasPrefix(s, tpname+"(") && strings.HasSuffix(s, ")") {
+			s = s[len(tpname)+1 : len(s)-1]
 			res := reprRead.Reads(s)
 			return try.Map(res, func(r Result[Repr]) Result[T] {
 				return MapResult(r, gen.From)

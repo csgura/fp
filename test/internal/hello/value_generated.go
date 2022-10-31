@@ -464,6 +464,120 @@ func (r AliasedStructBuilder) FromMap(m map[string]any) AliasedStructBuilder {
 	return r
 }
 
+type HListInsideHListBuilder HListInsideHList
+
+type HListInsideHListMutable struct {
+	Tp    fp.Tuple2[string, int]
+	Value string
+	Hello World
+}
+
+func (r HListInsideHListBuilder) Build() HListInsideHList {
+	return HListInsideHList(r)
+}
+
+func (r HListInsideHList) Builder() HListInsideHListBuilder {
+	return HListInsideHListBuilder(r)
+}
+
+func (r HListInsideHList) Tp() fp.Tuple2[string, int] {
+	return r.tp
+}
+
+func (r HListInsideHList) WithTp(v fp.Tuple2[string, int]) HListInsideHList {
+	r.tp = v
+	return r
+}
+
+func (r HListInsideHListBuilder) Tp(v fp.Tuple2[string, int]) HListInsideHListBuilder {
+	r.tp = v
+	return r
+}
+
+func (r HListInsideHList) Value() string {
+	return r.value
+}
+
+func (r HListInsideHList) WithValue(v string) HListInsideHList {
+	r.value = v
+	return r
+}
+
+func (r HListInsideHListBuilder) Value(v string) HListInsideHListBuilder {
+	r.value = v
+	return r
+}
+
+func (r HListInsideHList) Hello() World {
+	return r.hello
+}
+
+func (r HListInsideHList) WithHello(v World) HListInsideHList {
+	r.hello = v
+	return r
+}
+
+func (r HListInsideHListBuilder) Hello(v World) HListInsideHListBuilder {
+	r.hello = v
+	return r
+}
+
+func (r HListInsideHList) String() string {
+	return fmt.Sprintf("HListInsideHList(tp=%v, value=%v, hello=%v)", r.tp, r.value, r.hello)
+}
+
+func (r HListInsideHList) AsTuple() fp.Tuple3[fp.Tuple2[string, int], string, World] {
+	return as.Tuple3(r.tp, r.value, r.hello)
+}
+
+func (r HListInsideHList) AsMutable() HListInsideHListMutable {
+	return HListInsideHListMutable{
+		Tp:    r.tp,
+		Value: r.value,
+		Hello: r.hello,
+	}
+}
+
+func (r HListInsideHListMutable) AsImmutable() HListInsideHList {
+	return HListInsideHList{
+		tp:    r.Tp,
+		value: r.Value,
+		hello: r.Hello,
+	}
+}
+
+func (r HListInsideHListBuilder) FromTuple(t fp.Tuple3[fp.Tuple2[string, int], string, World]) HListInsideHListBuilder {
+	r.tp = t.I1
+	r.value = t.I2
+	r.hello = t.I3
+	return r
+}
+
+func (r HListInsideHList) AsMap() map[string]any {
+	return map[string]any{
+		"tp":    r.tp,
+		"value": r.value,
+		"hello": r.hello,
+	}
+}
+
+func (r HListInsideHListBuilder) FromMap(m map[string]any) HListInsideHListBuilder {
+
+	if v, ok := m["tp"].(fp.Tuple2[string, int]); ok {
+		r.tp = v
+	}
+
+	if v, ok := m["value"].(string); ok {
+		r.value = v
+	}
+
+	if v, ok := m["hello"].(World); ok {
+		r.hello = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

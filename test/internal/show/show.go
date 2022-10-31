@@ -33,6 +33,7 @@ var HNil = New(func(hlist.Nil) string {
 
 func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
 	return New(func(list hlist.Cons[H, T]) string {
+
 		hstr := hshow.Show(list.Head())
 		tstr := tshow.Show(list.Tail())
 

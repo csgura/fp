@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/hello"
 )
@@ -26,4 +28,20 @@ func TestShow(t *testing.T) {
 	}.AsImmutable()
 
 	fmt.Println(hello.ShowWorld.Show(v))
+}
+
+func TestHListInsideHList(t *testing.T) {
+	v := hello.HListInsideHListMutable{
+		Tp:    as.Tuple("10", 10),
+		Value: "20",
+	}.AsImmutable()
+
+	str := hello.ShowHListInsideHList.Show(v)
+
+	fmt.Println(str)
+	res := hello.ReadHListInsideHList.Read(str)
+
+	res.Failed().Foreach(fp.Println[error])
+	//assert.True(res.IsSuccess())
+	fmt.Println(res)
 }

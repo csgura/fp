@@ -5,31 +5,168 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
 	"time"
 )
 
-var EqWorld = eq.ContraMap(eq.Tuple2(eq.String, eq.Given[time.Time]()), World.AsTuple)
+var EqWorld = eq.ContraMap(
+	eq.Tuple2(eq.String, eq.Given[time.Time]()),
+	World.AsTuple,
+)
 
-var EncoderWorld = js.EncoderContraMap(js.EncoderLabelled2(js.EncoderNamed[NameIsMessage[string]](js.EncoderString), js.EncoderNamed[NameIsTimestamp[time.Time]](js.EncoderTime)), World.AsLabelled)
+var EncoderWorld = js.EncoderContraMap(
+	js.EncoderLabelled2(js.EncoderNamed[NameIsMessage[string]](js.EncoderString), js.EncoderNamed[NameIsTimestamp[time.Time]](js.EncoderTime)),
+	World.AsLabelled,
+)
 
-var DecoderWorld = js.DecoderMap(js.DecoderLabelled2(js.DecoderNamed[NameIsMessage[string]](js.DecoderString), js.DecoderNamed[NameIsTimestamp[time.Time]](js.DecoderTime)), fp.Compose(
-	as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
-	WorldBuilder.Build,
-))
+var DecoderWorld = js.DecoderMap(
+	js.DecoderLabelled2(js.DecoderNamed[NameIsMessage[string]](js.DecoderString), js.DecoderNamed[NameIsTimestamp[time.Time]](js.DecoderTime)),
+	fp.Compose(
+		as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
+		WorldBuilder.Build,
+	),
+)
 
-var ShowWorld = show.Generic(as.Generic(World.AsTuple, fp.Compose(
-	as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
-	WorldBuilder.Build,
-)), show.ContraMap(show.HCons(show.Given[string](),
-	show.HCons(show.Time,
-		show.HNil)), as.HList2[string, time.Time]))
+var ShowWorld = show.Generic(
+	as.Generic(
+		World.AsTuple,
+		fp.Compose(
+			as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
+			WorldBuilder.Build,
+		),
+	),
+	show.ContraMap(
+		show.HCons(
+			show.String,
+			show.HCons(
+				show.Time,
+				show.HNil,
+			),
+		),
+		as.HList2[string, time.Time],
+	),
+)
 
-var EncoderHasOption = js.EncoderContraMap(js.EncoderContraMap(js.EncoderHConsLabelled(js.EncoderNamed[NameIsMessage[string]](js.EncoderString),
-	js.EncoderHConsLabelled(js.EncoderNamed[NameIsAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
-		js.EncoderHConsLabelled(js.EncoderNamed[NameIsPhone[[]string]](js.EncoderSlice(js.EncoderString)),
-			js.EncoderHConsLabelled(js.EncoderNamed[NameIsEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
-				js.EncoderHNil)))), as.HList4Labelled[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]]), HasOption.AsLabelled)
+var EncoderHasOption = js.EncoderContraMap(
+	js.EncoderContraMap(
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NameIsMessage[string]](js.EncoderString),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NameIsAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NameIsPhone[[]string]](js.EncoderSlice(js.EncoderString)),
+					js.EncoderHConsLabelled(
+						js.EncoderNamed[NameIsEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+						js.EncoderHNil,
+					),
+				),
+			),
+		),
+		as.HList4Labelled[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]],
+	),
+	HasOption.AsLabelled,
+)
 
-var EqAliasedStruct = eq.ContraMap(eq.Tuple2(eq.String, eq.Given[time.Time]()), AliasedStruct.AsTuple)
+var EqAliasedStruct = eq.ContraMap(
+	eq.Tuple2(eq.String, eq.Given[time.Time]()),
+	AliasedStruct.AsTuple,
+)
+
+var ShowHListInsideHList = show.Generic(
+	as.Generic(
+		HListInsideHList.AsTuple,
+		fp.Compose(
+			as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
+			HListInsideHListBuilder.Build,
+		),
+	),
+	show.ContraMap(
+		show.HCons(
+			show.ContraMap(
+				show.HCons(
+					show.String,
+					show.HCons(
+						show.Given[int](),
+						show.HNil,
+					),
+				),
+				as.HList2[string, int],
+			),
+			show.HCons(
+				show.String,
+				show.HCons(
+					ShowWorld,
+					show.HNil,
+				),
+			),
+		),
+		as.HList3[fp.Tuple2[string, int], string, World],
+	),
+)
+
+var ReadHListInsideHList = read.Generic(
+	as.Generic(
+		HListInsideHList.AsTuple,
+		fp.Compose(
+			as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
+			HListInsideHListBuilder.Build,
+		),
+	),
+	read.Map(
+		read.HCons(
+			read.Map(
+				read.HCons(
+					read.String,
+					read.HCons(
+						read.Int[int](),
+						read.HNil,
+					),
+				),
+				as.Func2(
+					hlist.Case2[string, int, hlist.Nil, fp.Tuple2[string, int]],
+				).ApplyLast(
+					as.Tuple2[string, int],
+				),
+			),
+			read.HCons(
+				read.String,
+				read.HCons(
+					ReadWorld,
+					read.HNil,
+				),
+			),
+		),
+		as.Func2(
+			hlist.Case3[fp.Tuple2[string, int], string, World, hlist.Nil, fp.Tuple3[fp.Tuple2[string, int], string, World]],
+		).ApplyLast(
+			as.Tuple3[fp.Tuple2[string, int], string, World],
+		),
+	),
+)
+
+var ReadWorld = read.Generic(
+	as.Generic(
+		World.AsTuple,
+		fp.Compose(
+			as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
+			WorldBuilder.Build,
+		),
+	),
+	read.Map(
+		read.HCons(
+			read.String,
+			read.HCons(
+				read.Time,
+				read.HNil,
+			),
+		),
+		as.Func2(
+			hlist.Case2[string, time.Time, hlist.Nil, fp.Tuple2[string, time.Time]],
+		).ApplyLast(
+			as.Tuple2[string, time.Time],
+		),
+	),
+)
