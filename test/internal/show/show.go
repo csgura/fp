@@ -49,6 +49,6 @@ func ContraMap[A, B any](ashow fp.Show[A], fba func(B) A) fp.Show[B] {
 
 func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Show[A] {
 	return New(func(a A) string {
-		return fmt.Sprintf("%T(%s)", a, reprShow.Show(gen.To(a)))
+		return fmt.Sprintf("%s(%s)", gen.Type, reprShow.Show(gen.To(a)))
 	})
 }

@@ -38,8 +38,9 @@ func Endo[T any](f fp.Func1[T, T]) fp.Endo[T] {
 	return fp.Endo[T](f)
 }
 
-func Generic[T, Repr any](to func(T) Repr, from func(Repr) T) fp.Generic[T, Repr] {
+func Generic[T, Repr any](tpe string, to func(T) Repr, from func(Repr) T) fp.Generic[T, Repr] {
 	return fp.Generic[T, Repr]{
+		Type: tpe,
 		To:   to,
 		From: from,
 	}

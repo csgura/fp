@@ -79,92 +79,107 @@ var DecoderGreeting = js.DecoderMap(
 )
 
 var EncoderThree = js.EncoderContraMap(
-	js.EncoderContraMap(
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
+			js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
-				js.EncoderHConsLabelled(
-					js.EncoderNamed[NameIsThree[float64]](js.EncoderNumber[float64]()),
-					js.EncoderHNil,
-				),
+				js.EncoderNamed[NameIsThree[float64]](js.EncoderNumber[float64]()),
+				js.EncoderHNil,
 			),
 		),
+	),
+	fp.Compose(
+		Three.AsLabelled,
 		as.HList3Labelled[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]],
 	),
-	Three.AsLabelled,
 )
 
 var DecoderThree = js.DecoderMap(
-	js.DecoderMap(
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[NameIsOne[int]](js.DecoderNumber[int]()),
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NameIsOne[int]](js.DecoderNumber[int]()),
+			js.DecoderNamed[NameIsTwo[string]](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NameIsTwo[string]](js.DecoderString),
-				js.DecoderHConsLabelled(
-					js.DecoderNamed[NameIsThree[float64]](js.DecoderNumber[float64]()),
-					js.DecoderHNil,
-				),
+				js.DecoderNamed[NameIsThree[float64]](js.DecoderNumber[float64]()),
+				js.DecoderHNil,
 			),
 		),
+	),
+
+	fp.Compose(
 		as.Func2(
 			hlist.Case3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64], hlist.Nil, fp.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]]],
 		).ApplyLast(
 			as.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]],
 		),
-	),
-	fp.Compose(
-		as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
-		ThreeBuilder.Build,
+		fp.Compose(
+			as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
+			ThreeBuilder.Build,
+		),
 	),
 )
 
 var ShowThree = show.Generic(
 	as.Generic(
-		Three.AsTuple,
+		"value.Three",
 		fp.Compose(
-			as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
-			ThreeBuilder.Build,
+			Three.AsTuple,
+			as.HList3[int, string, float64],
 		),
-	),
-	show.ContraMap(
-		show.HCons(
-			show.Given[int](),
-			show.HCons(
-				show.String,
-				show.HCons(
-					show.Given[float64](),
-					show.HNil,
-				),
+
+		fp.Compose(
+			as.Func2(
+				hlist.Case3[int, string, float64, hlist.Nil, fp.Tuple3[int, string, float64]],
+			).ApplyLast(
+				as.Tuple3[int, string, float64],
+			),
+			fp.Compose(
+				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+				ThreeBuilder.Build,
 			),
 		),
-		as.HList3[int, string, float64],
+	),
+	show.HCons(
+		show.Given[int](),
+		show.HCons(
+			show.String,
+			show.HCons(
+				show.Given[float64](),
+				show.HNil,
+			),
+		),
 	),
 )
 
 var ReadThree = read.Generic(
 	as.Generic(
-		Three.AsTuple,
+		"value.Three",
 		fp.Compose(
-			as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
-			ThreeBuilder.Build,
+			Three.AsTuple,
+			as.HList3[int, string, float64],
 		),
-	),
-	read.Map(
-		read.HCons(
-			read.Int[int](),
-			read.HCons(
-				read.String,
-				read.HCons(
-					read.Float[float64](),
-					read.HNil,
-				),
+
+		fp.Compose(
+			as.Func2(
+				hlist.Case3[int, string, float64, hlist.Nil, fp.Tuple3[int, string, float64]],
+			).ApplyLast(
+				as.Tuple3[int, string, float64],
+			),
+			fp.Compose(
+				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+				ThreeBuilder.Build,
 			),
 		),
-		as.Func2(
-			hlist.Case3[int, string, float64, hlist.Nil, fp.Tuple3[int, string, float64]],
-		).ApplyLast(
-			as.Tuple3[int, string, float64],
+	),
+	read.HCons(
+		read.Int[int](),
+		read.HCons(
+			read.String,
+			read.HCons(
+				read.Float[float64](),
+				read.HNil,
+			),
 		),
 	),
 )

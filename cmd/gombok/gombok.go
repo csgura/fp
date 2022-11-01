@@ -932,85 +932,244 @@ type TypeClassSummonContext struct {
 	genSet mutable.Set[string]
 }
 
-func (r TypeClassSummonContext) summonLabelled(names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfo]) fp.Option[string] {
+type GenericRepr struct {
+	//	ReprType     func() string
+	ToReprExpr   func() string
+	FromReprExpr func() string
+	ReprExpr     func() string
+}
+
+func (r TypeClassSummonContext) summonLabelledGenericRepr(receiver string, receiverType string, builderreceiver string, names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfo]) fp.Option[GenericRepr] {
 	result := r.lookupTypeClassMember(fmt.Sprintf("Labelled%d", typeArgs.Size()))
 
-	res := option.Map(result, as.Func3(r.exprTypeClassMemberLabelled).ApplyLast2(names, typeArgs))
+	return option.Map(result, func(tm typeClassMember) GenericRepr {
+		return GenericRepr{
+			// ReprType: func() string {
+			// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
+			// },
+			ToReprExpr: func() string {
+				return fmt.Sprintf("%s.AsLabelled", receiver)
+			},
+			FromReprExpr: func() string {
+				fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+				aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-	if res.IsDefined() {
-		return res
-	}
+				return fmt.Sprintf(`%s.Compose(
+					%s.Curried2(%s.FromLabelled)(%s{}),
+					%s.Build,
+					)`,
+					fppk,
+					aspk, builderreceiver, builderreceiver, builderreceiver,
+				)
+			},
+			ReprExpr: func() string {
+				return r.exprTypeClassMemberLabelled(tm, names, typeArgs)
+			},
+		}
+	}).Or(func() fp.Option[GenericRepr] {
+		return option.Map(r.lookupTypeClassMember("HConsLabelled"), func(hcons typeClassMember) GenericRepr {
+			return GenericRepr{
+				// ReprType: func() string {
+				// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
+				// },
+				ToReprExpr: func() string {
+					fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-	result = r.lookupTypeClassMember("HConsLabelled")
+					namedTypeArgs := seq.Zip(names, typeArgs)
+
+					tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
+						return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
+					}).MakeString(",")
+
+					return fmt.Sprintf(`%s.Compose(
+						%s.AsLabelled,
+						%s.HList%dLabelled[%s],
+					)`, fppk,
+						receiver,
+						aspk, typeArgs.Size(), tp,
+					)
+
+				},
+				FromReprExpr: func() string {
+					fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+					hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+					namedTypeArgs := seq.Zip(names, typeArgs)
+
+					tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
+						return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
+					}).MakeString(",")
+
+					hlisttp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
+						return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
+					}).MakeString(",")
+
+					hlistToTuple := fmt.Sprintf(`%s.Func2(
+						%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]],
+					).ApplyLast( 
+						%s.Labelled%d[%s] ,
+					)`,
+						aspk,
+						hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp,
+						aspk, typeArgs.Size(), tp,
+					)
+
+					tupleToStruct := fmt.Sprintf(`%s.Compose(
+						%s.Curried2(%s.FromLabelled)(%s{}),
+						%s.Build,
+						)`,
+						fppk,
+						aspk, builderreceiver, builderreceiver, builderreceiver,
+					)
+					return fmt.Sprintf(`
+						fp.Compose(
+							%s, 
+							%s ,
+						)`, hlistToTuple, tupleToStruct)
+				},
+				ReprExpr: func() string {
+					hnil := r.lookupHNilMust()
+					namedTypeArgs := seq.Zip(names, typeArgs)
+					hlist := seq.Fold(namedTypeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti fp.Tuple2[string, metafp.TypeInfo]) string {
+						instance := r.summonNamed(ti.Unapply())
+						return fmt.Sprintf(`%s(
+							%s,
+						%s,
+						)`, hcons.PackagedName(r.w, r.tc.Package), instance, tail)
+					})
+
+					return hlist
+				},
+			}
+		})
+	})
+}
+
+func (r TypeClassSummonContext) summonGenericRepr(receiver string, receiverType string, builderreceiver string, typeArgs fp.Seq[metafp.TypeInfo]) GenericRepr {
+	result := r.lookupTypeClassMember(fmt.Sprintf("Tuple%d", typeArgs.Size()))
 
 	if result.IsDefined() {
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-		//fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-		hnil := r.lookupHNilMust()
-		namedTypeArgs := seq.Zip(names, typeArgs)
-		hlist := seq.Fold(namedTypeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti fp.Tuple2[string, metafp.TypeInfo]) string {
-			instance := r.summonNamed(ti.Unapply())
-			return fmt.Sprintf(`%s(
-				%s,
-			%s,
-			)`, result.Get().PackagedName(r.w, r.tc.Package), instance, tail)
-		})
+		// tp := iterator.Map(typeArgs.Iterator(), func(v metafp.TypeInfo) string {
+		// 	return r.w.TypeName(r.tc.Package, v.Type)
+		// }).MakeString(",")
+		return GenericRepr{
+			// ReprType: func() string {
+			// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
+			// },
+			ToReprExpr: func() string {
+				return fmt.Sprintf("%s.AsTuple", receiver)
+			},
+			FromReprExpr: func() string {
+				fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+				aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-		tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-			return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
-		}).MakeString(",")
-
-		hlisttp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-			return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(r.tc.Package, f.I2.Type))
-		}).MakeString(",")
-
-		if imap := r.lookupTypeClassMember("IMap"); imap.IsDefined() {
-			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
-
-			ret := fmt.Sprintf(`%s(
-					%s , 
-					%s.Func2(
-						%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]],
-					).ApplyLast( 
-						%s.Labelled%d[%s] ,
-					),
-					%s.HList%dLabelled[%s],
-				)`,
-				imap.Get().PackagedName(r.w, r.tc.Package), hlist,
-				aspk, hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
-				aspk, typeArgs.Size(), tp)
-
-			return option.Some(ret)
+				return fmt.Sprintf(`%s.Compose(
+					%s.Curried2(%s.FromTuple)(%s{}),
+					%s.Build,
+					)`,
+					fppk,
+					aspk, builderreceiver, builderreceiver, builderreceiver,
+				)
+			},
+			ReprExpr: func() string {
+				return r.exprTypeClassMember(result.Get(), typeArgs)
+			},
 		}
+	}
 
-		if functor := r.lookupTypeClassMember("Map"); functor.IsDefined() {
-			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+	tupleGeneric := r.summonTupleGenericRepr(typeArgs)
 
-			ret := fmt.Sprintf(`%s(
-					%s , 
-					%s.Func2(
-						%s.Case%d[%s,%s.Nil,fp.Labelled%d[%s]],
-					).ApplyLast( 
-						%s.Labelled%d[%s] ,
-					),
-				)`,
-				functor.Get().PackagedName(r.w, r.tc.Package), hlist,
-				aspk, hlistpk, typeArgs.Size(), hlisttp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
+	return GenericRepr{
+		// ReprType: func() string {
+		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
+		// },
+		ToReprExpr: func() string {
+			fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+			return fmt.Sprintf(`%s.Compose(
+				%s.AsTuple,
+				%s, 
+			)`, fppk,
+				receiver,
+				tupleGeneric.ToReprExpr(),
 			)
 
-			return option.Some(ret)
-		}
+		},
+		FromReprExpr: func() string {
+			fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-		contrmap := r.lookupTypeClassMemberMust("ContraMap")
-
-		ret := fmt.Sprintf(`%s( 
-			%s,  
-			%s.HList%dLabelled[%s],
-			)`, contrmap.PackagedName(r.w, r.tc.Package), hlist, aspk, typeArgs.Size(), tp)
-		return option.Some(ret)
+			tupleToStruct := fmt.Sprintf(`%s.Compose(
+					%s.Curried2(%s.FromTuple)(%s{}),
+					%s.Build,
+					)`,
+				fppk,
+				aspk, builderreceiver, builderreceiver, builderreceiver,
+			)
+			return fmt.Sprintf(`
+				fp.Compose(
+					%s, 
+					%s ,
+				)`, tupleGeneric.FromReprExpr(), tupleToStruct)
+		},
+		ReprExpr: func() string {
+			return tupleGeneric.ReprExpr()
+		},
 	}
-	return option.None[string]()
+}
+func (r TypeClassSummonContext) summonTupleGenericRepr(typeArgs fp.Seq[metafp.TypeInfo]) GenericRepr {
+	return GenericRepr{
+		// ReprType: func() string {
+		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
+		// },
+		ToReprExpr: func() string {
+			aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+			tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
+				return r.w.TypeName(r.tc.Package, f.Type)
+			}).MakeString(",")
+
+			return fmt.Sprintf(`%s.HList%d[%s]`,
+				aspk, typeArgs.Size(), tp,
+			)
+
+		},
+		FromReprExpr: func() string {
+			aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+			hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+
+			tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
+				return r.w.TypeName(r.tc.Package, f.Type)
+			}).MakeString(",")
+
+			hlistToTuple := fmt.Sprintf(`%s.Func2(
+					%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]],
+				).ApplyLast( 
+					%s.Tuple%d[%s] ,
+				)`,
+				aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
+			)
+
+			return hlistToTuple
+		},
+		ReprExpr: func() string {
+			hcons := r.lookupTypeClassMemberMust("HCons")
+
+			hnil := r.lookupHNilMust()
+
+			hlist := seq.Fold(typeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti metafp.TypeInfo) string {
+				instance := r.summon(ti)
+				return fmt.Sprintf(`%s(
+					%s,
+					%s,
+				)`, hcons.PackagedName(r.w, r.tc.Package), instance, tail)
+			})
+			return hlist
+		},
+	}
 }
 
 func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) string {
@@ -1021,46 +1180,13 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 		return r.exprTypeClassMember(result.Get(), typeArgs)
 	}
 
-	hcons := r.lookupTypeClassMemberMust("HCons")
+	tupleGeneric := r.summonTupleGenericRepr(typeArgs)
 
-	hnil := r.lookupHNilMust()
-
-	hlist := seq.Fold(typeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti metafp.TypeInfo) string {
-		instance := r.summon(ti)
-		return fmt.Sprintf(`%s(
-			%s,
-			%s,
-			)`, hcons.PackagedName(r.w, r.tc.Package), instance, tail)
-	})
-
-	tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-		return r.w.TypeName(r.tc.Package, f.Type)
-	}).MakeString(",")
-
-	toExpr := func() string {
+	if generic := r.lookupTypeClassMember("Generic"); generic.IsDefined() {
 		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-		return fmt.Sprintf("%s.HList%d[%s]", aspk, typeArgs.Size(), tp)
+		return fmt.Sprintf(`%s(%s.Generic("", %s,%s), %s)`, generic.Get().PackagedName(r.w, r.tc.Package), aspk, tupleGeneric.ToReprExpr(), tupleGeneric.FromReprExpr(), tupleGeneric.ReprExpr())
 	}
-
-	fromExpr := func() string {
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-		hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
-
-		return fmt.Sprintf(`%s.Func2(
-			%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]],
-			).ApplyLast( 
-				%s.Tuple%d[%s] ,
-			)`,
-			aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
-		)
-	}
-
-	// if generic := r.lookupTypeClassMember("Generic"); generic.IsDefined() {
-	// 	aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-
-	// 	return fmt.Sprintf(`%s(%s.Generic(%s,%s), %s)`, generic.Get().PackagedName(r.w, r.tc.Package), aspk, toExpr(), fromExpr(), hlist)
-	// }
 
 	if imap := r.lookupTypeClassMember("IMap"); imap.IsDefined() {
 		return fmt.Sprintf(`%s(
@@ -1068,7 +1194,7 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 			%s, 
 			%s,
 			)`,
-			imap.Get().PackagedName(r.w, r.tc.Package), hlist, fromExpr(), toExpr())
+			imap.Get().PackagedName(r.w, r.tc.Package), tupleGeneric.ReprExpr(), tupleGeneric.FromReprExpr(), tupleGeneric.ToReprExpr())
 	}
 
 	if functor := r.lookupTypeClassMember("Map"); functor.IsDefined() {
@@ -1076,7 +1202,7 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 			%s , 
 			%s,
 			)`,
-			functor.Get().PackagedName(r.w, r.tc.Package), hlist, fromExpr(),
+			functor.Get().PackagedName(r.w, r.tc.Package), tupleGeneric.ReprExpr(), tupleGeneric.FromReprExpr(),
 		)
 	}
 
@@ -1084,7 +1210,7 @@ func (r TypeClassSummonContext) summonTuple(typeArgs fp.Seq[metafp.TypeInfo]) st
 	return fmt.Sprintf(`%s( 
 		%s, 
 		%s,
-		)`, contrmap.PackagedName(r.w, r.tc.Package), hlist, toExpr())
+		)`, contrmap.PackagedName(r.w, r.tc.Package), tupleGeneric.ReprExpr(), tupleGeneric.ToReprExpr())
 }
 
 func (r TypeClassSummonContext) summonNamed(name string, t metafp.TypeInfo) string {
@@ -1224,11 +1350,6 @@ func genDerive() {
 				genSet: genSet,
 			}
 
-			labelledExpr := summonCtx.summonLabelled(names, typeArgs)
-			summonExpr := labelledExpr.OrElseGet(func() string {
-				return summonCtx.summonTuple(typeArgs)
-			})
-
 			valuetpdec := ""
 			valuetp := ""
 			if v.DeriveFor.Info.TypeParam.Size() > 0 {
@@ -1245,37 +1366,26 @@ func genDerive() {
 			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.Name, valuetp)
 			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.Name, valuetp)
 
-			toExpr := func() string {
-				convExpr := option.Map(labelledExpr, func(v string) string {
-					return "AsLabelled"
-				}).OrElse("AsTuple")
-				return fmt.Sprintf(`%s.%s`, valuereceiver, convExpr)
-			}
-			fromExpr := func() string {
-				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-
-				revExpr := option.Map(labelledExpr, func(v string) string {
-					return "FromLabelled"
-				}).OrElse("FromTuple")
-
-				return fmt.Sprintf(`%s.Compose(
-					%s.Curried2(%s.%s)(%s{}),
-					%s.Build,
-					)`,
-					fppk, aspk, builderreceiver, revExpr, builderreceiver, builderreceiver,
-				)
-			}
+			labelledExpr := summonCtx.summonLabelledGenericRepr(valuereceiver, valuetp, builderreceiver, names, typeArgs)
+			summonExpr := labelledExpr.OrElseGet(func() GenericRepr {
+				return summonCtx.summonGenericRepr(valuereceiver, valuetp, builderreceiver, typeArgs)
+			})
 
 			mapExpr := option.Map(summonCtx.lookupTypeClassMember("Generic"), func(generic typeClassMember) string {
+
 				aspk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 				return fmt.Sprintf(`%s(
 					%s.Generic(
+							"%s.%s",
 							%s,
 							%s,
 						), 
 						%s, 
-					)`, generic.PackagedName(w, workingPackage), aspk, toExpr(), fromExpr(), summonExpr)
+					)`, generic.PackagedName(w, workingPackage), aspk,
+					pack, v.DeriveFor.Name,
+					summonExpr.ToReprExpr(),
+					summonExpr.FromReprExpr(),
+					summonExpr.ReprExpr())
 			}).Or(func() fp.Option[string] {
 				return option.Map(summonCtx.lookupTypeClassMember("IMap"), func(imapfunc typeClassMember) string {
 
@@ -1284,7 +1394,7 @@ func genDerive() {
 						%s , 
 						%s,
 						)`,
-						imapfunc.PackagedName(w, workingPackage), summonExpr, fromExpr(), toExpr())
+						imapfunc.PackagedName(w, workingPackage), summonExpr.ReprExpr(), summonExpr.FromReprExpr(), summonExpr.ToReprExpr())
 				})
 			}).Or(func() fp.Option[string] {
 				functor := summonCtx.lookupTypeClassMember("Map")
@@ -1294,7 +1404,7 @@ func genDerive() {
 						%s, 
 						%s,
 						)`,
-						v.PackagedName(w, workingPackage), summonExpr, fromExpr(),
+						v.PackagedName(w, workingPackage), summonExpr.ReprExpr(), summonExpr.FromReprExpr(),
 					)
 				})
 
@@ -1305,7 +1415,7 @@ func genDerive() {
 					%s , 
 					%s,
 					)`,
-					contrmap.PackagedName(w, workingPackage), summonExpr, toExpr(),
+					contrmap.PackagedName(w, workingPackage), summonExpr.ReprExpr(), summonExpr.ToReprExpr(),
 				)
 			})
 

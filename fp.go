@@ -283,6 +283,7 @@ func New[F, T any](nf func(F) T) T {
 
 // shapeless generic trait
 type Generic[T, Repr any] struct {
+	Type string
 	To   func(T) Repr
 	From func(Repr) T
 }
