@@ -157,7 +157,7 @@ func isMethodDefined(pk *types.Package, tpeName string, method string) bool {
 func genValue() {
 	pack := os.Getenv("GOPACKAGE")
 
-	metafp.Generate(pack, "value_generated.go", func(w metafp.Writer) {
+	metafp.Generate(pack, pack+"_value_generated.go", func(w metafp.Writer) {
 
 		cwd, _ := os.Getwd()
 
@@ -1298,31 +1298,32 @@ func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
 func genDerive() {
 	pack := os.Getenv("GOPACKAGE")
 
-	cwd, _ := os.Getwd()
+	metafp.Generate(pack, pack+"_derive_generated.go", func(w metafp.Writer) {
 
-	//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
+		cwd, _ := os.Getwd()
 
-	//packages.LoadFiles()
+		//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
 
-	cfg := &packages.Config{
-		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
-	}
+		//packages.LoadFiles()
 
-	pkgs, err := packages.Load(cfg, cwd)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+		cfg := &packages.Config{
+			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+		}
 
-	// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
-	// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		pkgs, err := packages.Load(cfg, cwd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-	d := findTypeClassDerive(pkgs)
+		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-	if d.Size() == 0 {
-		return
-	}
-	metafp.Generate(pack, "derive_generated.go", func(w metafp.Writer) {
+		d := findTypeClassDerive(pkgs)
+
+		if d.Size() == 0 {
+			return
+		}
 
 		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v TypeClassDerive) string {
 			return fmt.Sprintf("%s%s", v.TypeClass.Name, v.DeriveFor.Name)

@@ -1,4 +1,4 @@
-package value
+package testpk2
 
 import (
 	"fmt"
@@ -12,10 +12,10 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
-	"github.com/csgura/fp/test/internal/hello"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
+	"github.com/csgura/fp/test/internal/testpk1"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -105,17 +105,17 @@ type Wallet struct {
 var _ eq.Derives[fp.Eq[Wallet]]
 
 // @fp.Value
-type Entry[A interface{ String() string }, B any] struct {
+type Entry[A comparable, B any, C fmt.Stringer, D interface{ Hello() string }] struct {
 	name  string
 	value A
 	tuple fp.Tuple2[A, B]
 }
 
 // @fp.Derive
-var _ eq.Derives[fp.Eq[Entry[interface{ String() string }, any]]]
+var _ eq.Derives[fp.Eq[Entry[string, any, fmt.Stringer, interface{ Hello() string }]]]
 
 // @fp.Derive
-var _ monoid.Derives[fp.Monoid[Entry[interface{ String() string }, any]]]
+var _ monoid.Derives[fp.Monoid[Entry[string, any, fmt.Stringer, interface{ Hello() string }]]]
 
 // @fp.Value
 type Key struct {
@@ -151,7 +151,7 @@ var _ monoid.Derives[fp.Monoid[Point]]
 // @fp.Json
 // @fp.GenLabelled
 type Greeting struct {
-	hello    hello.World
+	hello    testpk1.World
 	language string
 }
 

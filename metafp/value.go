@@ -28,6 +28,11 @@ type TaggedStruct struct {
 
 func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	l := pk.Scope().Lookup(name)
+
+	if l == nil || l.Type().Underlying() == nil {
+		return option.None[TaggedStruct]()
+	}
+
 	if st, ok := l.Type().Underlying().(*types.Struct); ok {
 		fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
 			f := st.Field(i)

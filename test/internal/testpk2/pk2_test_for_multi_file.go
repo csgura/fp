@@ -1,4 +1,4 @@
-package value
+package testpk2
 
 // @fp.Value
 type NotIgnored struct {

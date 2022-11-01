@@ -1,4 +1,4 @@
-package hello_test
+package testpk1_test
 
 import (
 	"fmt"
@@ -9,12 +9,12 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/test/internal/hello"
+	"github.com/csgura/fp/test/internal/testpk1"
 )
 
 func TestEncoderOption(t *testing.T) {
-	str := hello.EncoderHasOption.Encode(hello.HasOptionMutable{
-		Message: "hello",
+	str := testpk1.EncoderHasOption.Encode(testpk1.HasOptionMutable{
+		Message: "testpk1",
 		Addr:    option.None[string](),
 		Phone:   []string{"1234", "2345"},
 	}.AsImmutable())
@@ -23,28 +23,28 @@ func TestEncoderOption(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	v := hello.WorldMutable{
-		Message:   "hello",
+	v := testpk1.WorldMutable{
+		Message:   "testpk1",
 		Timestamp: time.Now(),
 	}.AsImmutable()
 
-	fmt.Println(hello.ShowWorld.Show(v))
+	fmt.Println(testpk1.ShowWorld.Show(v))
 }
 
 func TestHListInsideHList(t *testing.T) {
-	v := hello.HListInsideHListMutable{
+	v := testpk1.HListInsideHListMutable{
 		Tp:    as.Tuple("10", 10),
 		Value: "20",
-		Hello: hello.WorldMutable{
+		Hello: testpk1.WorldMutable{
 			Message:   "message is sparta",
 			Timestamp: time.Now(),
 		}.AsImmutable(),
 	}.AsImmutable()
 
-	str := hello.ShowHListInsideHList.Show(v)
+	str := testpk1.ShowHListInsideHList.Show(v)
 
 	fmt.Println(str)
-	res := hello.ReadHListInsideHList.Read(str)
+	res := testpk1.ReadHListInsideHList.Read(str)
 
 	res.Failed().Foreach(fp.Println[error])
 	assert.True(res.IsSuccess())

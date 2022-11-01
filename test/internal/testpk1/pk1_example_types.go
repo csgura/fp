@@ -1,4 +1,4 @@
-package hello
+package testpk1
 
 import (
 	"time"
