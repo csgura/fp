@@ -49,6 +49,48 @@ func New[T any](f func(string) fp.Try[Result[T]]) Read[T] {
 	return ReadFunc[T](f)
 }
 
+func readTuple(s string) Result[string] {
+	s = strings.TrimSpace(s)
+
+	r := []rune(s)
+	if len(r) > 0 && r[0] == '(' {
+		depth := 1
+		inString := false
+
+		for i := 1; i < len(r); i++ {
+
+			ch := r[i]
+			if ch == '\\' && inString {
+				i++
+				continue
+			}
+
+			if ch == '(' && !inString {
+				depth++
+			}
+
+			if ch == '"' {
+				inString = !inString
+			}
+
+			if ch == ')' && !inString {
+				depth--
+
+				if depth == 0 {
+					return ResultMutable[string]{
+						Value:   string(r[1:i]),
+						Remains: string(r[i+1:]),
+					}.AsImmutable()
+				}
+			}
+		}
+	}
+	return ResultMutable[string]{
+		Value:   s,
+		Remains: "",
+	}.AsImmutable()
+}
+
 func readTokens(s string) Result[string] {
 	s = strings.TrimSpace(s)
 
@@ -76,8 +118,25 @@ func readTokens(s string) Result[string] {
 		}
 	}
 
+	inString := false
+
 	for i := 0; i < len(r); i++ {
-		if unicode.IsSpace(r[i]) || r[i] == ',' || r[i] == '(' || r[i] == ')' || r[i] == ':' {
+
+		ch := r[i]
+		if ch == '\\' && inString {
+			i++
+			continue
+		}
+
+		if ch == '"' {
+			inString = !inString
+		}
+
+		if inString {
+			continue
+		}
+
+		if unicode.IsSpace(ch) || ch == ',' || ch == '(' || ch == ')' {
 			return ResultMutable[string]{
 				Value:   string(r[:i]),
 				Remains: string(r[i:]),
@@ -197,16 +256,17 @@ func Map[A, B any](aread Read[A], fab func(A) B) Read[B] {
 
 func Generic[T, Repr any](gen fp.Generic[T, Repr], reprRead Read[Repr]) Read[T] {
 	return New(func(s string) fp.Try[Result[T]] {
-		var t T
-		tpname := fmt.Sprintf("%T", t)
 		s = strings.TrimSpace(s)
-		if strings.HasPrefix(s, tpname+"(") && strings.HasSuffix(s, ")") {
-			s = s[len(tpname)+1 : len(s)-1]
-			res := reprRead.Reads(s)
+		if strings.HasPrefix(s, gen.Type+"(") {
+			tupleStr := readTuple(s[len(gen.Type):])
+			res := reprRead.Reads(tupleStr.value)
 			return try.Map(res, func(r Result[Repr]) Result[T] {
-				return MapResult(r, gen.From)
+				return Result[T]{
+					value:   gen.From(r.value),
+					remains: tupleStr.remains,
+				}
 			})
 		}
-		return try.Failure[Result[T]](fmt.Errorf("expected type name %s but %s", tpname, s))
+		return try.Failure[Result[T]](fmt.Errorf("expected type name %s but %s", gen.Type, s))
 	})
 }
