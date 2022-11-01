@@ -6,6 +6,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/seq"
 )
 
 type Derives[T any] interface {
@@ -30,6 +31,12 @@ func Given[T any]() fp.Show[T] {
 var HNil = New(func(hlist.Nil) string {
 	return "Nil"
 })
+
+func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
+	return New(func(s fp.Seq[T]) string {
+		return "[" + seq.Map(s, tshow.Show).MakeString(",") + "]"
+	})
+}
 
 func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
 	return New(func(list hlist.Cons[H, T]) string {
