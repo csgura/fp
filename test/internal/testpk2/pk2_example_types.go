@@ -183,3 +183,9 @@ var _ show.Derives[fp.Show[Three]]
 
 // @fp.Derive
 var _ read.Derives[read.Read[Three]]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[testpk1.World]]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[testpk1.Wrapper[any]]]

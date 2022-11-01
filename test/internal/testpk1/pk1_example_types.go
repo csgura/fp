@@ -104,3 +104,8 @@ var _ read.Derives[read.Read[HListInsideHList]]
 
 // @fp.Derive
 var _ read.Derives[read.Read[World]]
+
+// @fp.Value
+type Wrapper[T any] struct {
+	unwrap T
+}

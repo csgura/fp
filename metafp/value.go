@@ -26,6 +26,15 @@ type TaggedStruct struct {
 	Tags    mutable.Set[string]
 }
 
+func (r TaggedStruct) PackagedName(w ImportSet, workingPackage *types.Package) string {
+	if workingPackage.Path() == r.Package.Path() {
+		return r.Name
+	}
+
+	pk := w.GetImportedName(r.Package)
+	return fmt.Sprintf("%s.%s", pk, r.Name)
+}
+
 func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	l := pk.Scope().Lookup(name)
 
@@ -142,6 +151,16 @@ type TypeInfo struct {
 	TypeArgs  fp.Seq[TypeInfo]
 	TypeParam fp.Seq[TypeParam]
 	Method    fp.Map[string, *types.Func]
+}
+
+func (r TypeInfo) Name() fp.Option[string] {
+	switch at := r.Type.(type) {
+	case *types.Named:
+		return option.Some(at.Obj().Name())
+	case *types.Basic:
+		return option.Some(at.Name())
+	}
+	return option.None[string]()
 }
 
 func (r TypeInfo) IsPrintable() bool {

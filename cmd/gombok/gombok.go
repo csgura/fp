@@ -42,6 +42,13 @@ type TypeClassDerive struct {
 	DeriveFor            metafp.TaggedStruct
 }
 
+func (r TypeClassDerive) GeneratedInstanceName() string {
+	if r.DeriveFor.Package != nil && r.Package.Path() != r.DeriveFor.Package.Path() {
+		return fmt.Sprintf("%s%s%s", r.TypeClass.Name, publicName(r.DeriveFor.Package.Name()), r.DeriveFor.Name)
+	}
+	return fmt.Sprintf("%s%s", r.TypeClass.Name, r.DeriveFor.Name)
+}
+
 type typeClassMember struct {
 	pack   *types.Package
 	name   string
@@ -685,13 +692,31 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 		return []string{r.tc.TypeClass.Name + publicName(v)}
 	}).Iterator()
 
-	return iterator.Map(itr, func(v string) lookupTarget {
-		return lookupTarget{
+	return iterator.FlatMap(itr, func(v string) fp.Iterator[lookupTarget] {
+		ret := iterator.Of(lookupTarget{
 			instanceOf: f,
 			pk:         r.tc.Package,
 			name:       v,
 			typeArgs:   f.TypeArgs,
-		}.lookup()
+		}.lookup())
+
+		if f.TypeArgs.Size() > 0 {
+			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
+				return v.Name()
+			})
+
+			if tnames.ForAll(fp.Option[string].IsDefined) {
+				n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
+				return iterator.Concat(lookupTarget{
+					instanceOf: f,
+					pk:         r.tc.Package,
+					name:       v + n,
+				}.lookup(), ret)
+			}
+		}
+
+		return ret
+
 	}).Filter(func(lt lookupTarget) bool {
 		return lt.available(r.genSet)
 	}).Head()
@@ -1326,7 +1351,7 @@ func genDerive() {
 		}
 
 		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v TypeClassDerive) string {
-			return fmt.Sprintf("%s%s", v.TypeClass.Name, v.DeriveFor.Name)
+			return fmt.Sprintf("%s", v.GeneratedInstanceName())
 		}))
 
 		d.Foreach(func(v TypeClassDerive) {
@@ -1364,8 +1389,8 @@ func genDerive() {
 				}).MakeString(",") + "]"
 			}
 
-			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.Name, valuetp)
-			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.Name, valuetp)
+			builderreceiver := fmt.Sprintf("%sBuilder%s", v.DeriveFor.PackagedName(w, workingPackage), valuetp)
+			valuereceiver := fmt.Sprintf("%s%s", v.DeriveFor.PackagedName(w, workingPackage), valuetp)
 
 			labelledExpr := summonCtx.summonLabelledGenericRepr(valuereceiver, valuetp, builderreceiver, names, typeArgs)
 			summonExpr := labelledExpr.OrElseGet(func() GenericRepr {
@@ -1428,16 +1453,16 @@ func genDerive() {
 				}).MakeString(",")
 
 				fmt.Fprintf(w, `
-					func %s%s%s( %s ) %s[%s%s] {
+					func %s%s( %s ) %s[%s%s] {
 						return %s
 					}
-					`, v.TypeClass.Name, v.DeriveFor.Name, valuetpdec, fargs, tcname, v.DeriveFor.Name, valuetp,
+					`, v.GeneratedInstanceName(), valuetpdec, fargs, tcname, v.DeriveFor.PackagedName(w, workingPackage), valuetp,
 					mapExpr)
 
 			} else {
 				fmt.Fprintf(w, `
-				var %s%s = %s
-			`, v.TypeClass.Name, v.DeriveFor.Name, mapExpr)
+				var %s = %s
+			`, v.GeneratedInstanceName(), mapExpr)
 			}
 
 		})

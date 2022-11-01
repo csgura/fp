@@ -578,6 +578,74 @@ func (r HListInsideHListBuilder) FromMap(m map[string]any) HListInsideHListBuild
 	return r
 }
 
+type WrapperBuilder[T any] Wrapper[T]
+
+type WrapperMutable[T any] struct {
+	Unwrap T
+}
+
+func (r WrapperBuilder[T]) Build() Wrapper[T] {
+	return Wrapper[T](r)
+}
+
+func (r Wrapper[T]) Builder() WrapperBuilder[T] {
+	return WrapperBuilder[T](r)
+}
+
+func (r Wrapper[T]) Unwrap() T {
+	return r.unwrap
+}
+
+func (r Wrapper[T]) WithUnwrap(v T) Wrapper[T] {
+	r.unwrap = v
+	return r
+}
+
+func (r WrapperBuilder[T]) Unwrap(v T) WrapperBuilder[T] {
+	r.unwrap = v
+	return r
+}
+
+func (r Wrapper[T]) String() string {
+	return fmt.Sprintf("Wrapper(unwrap=%v)", r.unwrap)
+}
+
+func (r Wrapper[T]) AsTuple() fp.Tuple1[T] {
+	return as.Tuple1(r.unwrap)
+}
+
+func (r Wrapper[T]) AsMutable() WrapperMutable[T] {
+	return WrapperMutable[T]{
+		Unwrap: r.unwrap,
+	}
+}
+
+func (r WrapperMutable[T]) AsImmutable() Wrapper[T] {
+	return Wrapper[T]{
+		unwrap: r.Unwrap,
+	}
+}
+
+func (r WrapperBuilder[T]) FromTuple(t fp.Tuple1[T]) WrapperBuilder[T] {
+	r.unwrap = t.I1
+	return r
+}
+
+func (r Wrapper[T]) AsMap() map[string]any {
+	return map[string]any{
+		"unwrap": r.unwrap,
+	}
+}
+
+func (r WrapperBuilder[T]) FromMap(m map[string]any) WrapperBuilder[T] {
+
+	if v, ok := m["unwrap"].(T); ok {
+		r.unwrap = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

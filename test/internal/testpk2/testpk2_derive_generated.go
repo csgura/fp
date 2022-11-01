@@ -13,6 +13,7 @@ import (
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
 	"github.com/csgura/fp/test/internal/testpk1"
+	"time"
 )
 
 var EqPerson = eq.ContraMap(
@@ -62,7 +63,7 @@ var MonoidPoint = monoid.IMap(
 )
 
 var EqGreeting = eq.ContraMap(
-	eq.Tuple2(testpk1.EqWorld, eq.String),
+	eq.Tuple2(EqTestpk1World, eq.String),
 	Greeting.AsTuple,
 )
 
@@ -184,3 +185,15 @@ var ReadThree = read.Generic(
 		),
 	),
 )
+
+var EqTestpk1World = eq.ContraMap(
+	eq.Tuple2(eq.String, eq.Given[time.Time]()),
+	testpk1.World.AsTuple,
+)
+
+func EqTestpk1Wrapper[T any](eqT fp.Eq[T]) fp.Eq[testpk1.Wrapper[T]] {
+	return eq.ContraMap(
+		eq.Tuple1(eqT),
+		testpk1.Wrapper[T].AsTuple,
+	)
+}
