@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
 
@@ -85,3 +86,6 @@ type User struct {
 
 // @fp.Derive
 var _ show.Derives[fp.Show[Address]]
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[Car]]

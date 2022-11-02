@@ -38,3 +38,14 @@ func TestShow(t *testing.T) {
 
 	fmt.Println(docexample.ShowAddress.Show(addr))
 }
+
+func TestEncoder(t *testing.T) {
+	car := docexample.CarMutable{
+		Company: "Kia",
+		Model:   "Sorento",
+		Year:    2023,
+	}.AsImmutable()
+
+	fmt.Println(docexample.EncoderCar.Encode(car))
+
+}

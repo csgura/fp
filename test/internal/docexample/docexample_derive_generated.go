@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
 
@@ -59,5 +60,22 @@ var ShowAddress = show.Generic(
 				show.HNil,
 			),
 		),
+	),
+)
+
+var EncoderCar = js.EncoderContraMap(
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[NameIsCompany[string]](js.EncoderString),
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NameIsModel[string]](js.EncoderString),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NameIsYear[int]](js.EncoderNumber[int]()),
+				js.EncoderHNil,
+			),
+		),
+	),
+	fp.Compose(
+		Car.AsLabelled,
+		as.HList3Labelled[NameIsCompany[string], NameIsModel[string], NameIsYear[int]],
 	),
 )
