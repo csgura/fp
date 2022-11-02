@@ -93,3 +93,23 @@ type Derives[T any] interface {
 }
 
 var String = Given[string]()
+
+// for import test
+
+// var SeqTuple2 = New(func(a, b fp.Seq[fp.Tuple2[int, int]]) bool {
+// 	return a.Size() == b.Size()
+// })
+
+// var SeqTuple3 = New(func(a, b fp.Seq[fp.Tuple3[int, int, int]]) bool {
+// 	return a.Size() == b.Size()
+// })
+
+// func SeqTupleFunc[A, B any]() fp.Eq[fp.Seq[fp.Tuple2[A, B]]] {
+// 	return New(func(a, b fp.Seq[fp.Tuple2[A, B]]) bool {
+// 		return a.Size() == b.Size()
+// 	})
+// }
+
+// func Hello[A interface{ Hello() string }]() fp.Eq[A] {
+// 	panic("")
+// }

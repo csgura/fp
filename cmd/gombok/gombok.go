@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"go/ast"
 	"go/types"
 	"os"
 	"strings"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
@@ -21,33 +19,6 @@ import (
 	// . "github.com/dave/jennifer/jen"
 	"golang.org/x/tools/go/packages"
 )
-
-type TypeClass struct {
-	Name    string
-	Package *types.Package
-}
-
-func (r TypeClass) expr(w metafp.Writer, pk *types.Package) string {
-	if r.Package != nil && r.Package.Path() != pk.Path() {
-		pk := w.GetImportedName(r.Package)
-		return fmt.Sprintf("%s.%s", pk, r.Name)
-	}
-	return r.Name
-}
-
-type TypeClassDerive struct {
-	Package              *types.Package
-	PrimitiveInstancePkg *types.Package
-	TypeClass            TypeClass
-	DeriveFor            metafp.TaggedStruct
-}
-
-func (r TypeClassDerive) GeneratedInstanceName() string {
-	if r.DeriveFor.Package != nil && r.Package.Path() != r.DeriveFor.Package.Path() {
-		return fmt.Sprintf("%s%s%s", r.TypeClass.Name, publicName(r.DeriveFor.Package.Name()), r.DeriveFor.Name)
-	}
-	return fmt.Sprintf("%s%s", r.TypeClass.Name, r.DeriveFor.Name)
-}
 
 type typeClassMember struct {
 	pack   *types.Package
@@ -70,66 +41,6 @@ func (r typeClassMember) PackagedName(importSet metafp.ImportSet, workingPackage
 
 func (r typeClassMember) Type() types.Type {
 	return r.object.Type()
-}
-
-func findTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
-	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TypeClassDerive] {
-		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
-
-			return v.Decls
-		})
-
-		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
-			switch r := v.(type) {
-			case *ast.GenDecl:
-				return seq.Of(r)
-			}
-			return seq.Of[*ast.GenDecl]()
-		})
-
-		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[TypeClassDerive] {
-			gdDoc := option.Of(gd.Doc)
-
-			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TypeClassDerive] {
-				if vs, ok := v.(*ast.ValueSpec); ok {
-					doc := option.Map(option.Of(vs.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
-					if doc.Filter(as.Func2(strings.Contains).ApplyLast("@fp.Derive")).IsDefined() {
-
-						info := &types.Info{
-							Types: make(map[ast.Expr]types.TypeAndValue),
-						}
-						types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
-						ti := info.Types[vs.Type]
-						if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
-							if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() == 1 {
-								if deriveFor, ok := tt.TypeArgs().At(0).(*types.Named); ok {
-
-									//fmt.Printf("lookup %s from %s\n", deriveFor.Obj().Name(), deriveFor.Obj().Pkg())
-									vt := metafp.LookupStruct(deriveFor.Obj().Pkg(), deriveFor.Obj().Name())
-									if vt.IsDefined() {
-										return seq.Of(TypeClassDerive{
-											Package:              pk.Types,
-											PrimitiveInstancePkg: nt.Obj().Pkg(),
-											TypeClass: TypeClass{
-												Name:    tt.Obj().Name(),
-												Package: tt.Obj().Pkg(),
-											},
-											DeriveFor: vt.Get(),
-										})
-									} else {
-										fmt.Println("can't lookup")
-									}
-								}
-
-							}
-
-						}
-					}
-				}
-				return seq.Of[TypeClassDerive]()
-			})
-		})
-	})
 }
 
 func publicName(name string) string {
@@ -953,7 +864,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeC
 
 type TypeClassSummonContext struct {
 	w      metafp.Writer
-	tc     TypeClassDerive
+	tc     metafp.TypeClassDerive
 	genSet mutable.Set[string]
 }
 
@@ -1344,17 +1255,17 @@ func genDerive() {
 		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-		d := findTypeClassDerive(pkgs)
+		d := metafp.FindTypeClassDerive(pkgs)
 
 		if d.Size() == 0 {
 			return
 		}
 
-		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v TypeClassDerive) string {
+		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v metafp.TypeClassDerive) string {
 			return fmt.Sprintf("%s", v.GeneratedInstanceName())
 		}))
 
-		d.Foreach(func(v TypeClassDerive) {
+		d.Foreach(func(v metafp.TypeClassDerive) {
 
 			workingPackage := v.Package
 
@@ -1447,7 +1358,7 @@ func genDerive() {
 
 			if v.DeriveFor.Info.TypeParam.Size() > 0 {
 
-				tcname := v.TypeClass.expr(w, workingPackage)
+				tcname := v.TypeClass.PackagedName(w, workingPackage)
 				fargs := seq.Map(v.DeriveFor.Info.TypeParam, func(p metafp.TypeParam) string {
 					return fmt.Sprintf("%s%s %s[%s] ", privateName(v.TypeClass.Name), p.Name, tcname, p.Name)
 				}).MakeString(",")

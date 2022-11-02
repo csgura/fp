@@ -59,9 +59,3 @@ func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Sh
 		return fmt.Sprintf("%s(%s)", gen.Type, reprShow.Show(gen.To(a)))
 	})
 }
-
-func Tuple2[A1, A2 any](eqa1 fp.Show[A1], eqa2 fp.Show[A2]) fp.Show[fp.Tuple2[A1, A2]] {
-	return New(func(t fp.Tuple2[A1, A2]) string {
-		return fmt.Sprintf("(%s :: %s)", eqa1.Show(t.I1), eqa2.Show(t.I2))
-	})
-}

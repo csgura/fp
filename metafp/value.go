@@ -45,7 +45,7 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	if st, ok := l.Type().Underlying().(*types.Struct); ok {
 		fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
 			f := st.Field(i)
-			tn := typeInfo(l.Pkg(), f.Type())
+			tn := typeInfo(f.Type())
 			return StructField{
 				Name:     f.Name(),
 				Type:     tn,
@@ -54,7 +54,7 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 			}
 		}).ToSeq()
 
-		info := typeInfo(l.Pkg(), l.Type())
+		info := typeInfo(l.Type())
 
 		return option.Some(TaggedStruct{
 			Name:    name,
@@ -153,12 +153,127 @@ type TypeInfo struct {
 	Method    fp.Map[string, *types.Func]
 }
 
+func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
+	if p1 == nil && p2 == nil {
+		return true
+	}
+	if p1 == nil || p2 == nil {
+		return false
+	}
+
+	return p1.Path() == p2.Path()
+}
+
+func (r TypeInfo) IsInstantiatedOf(hasTypeParam TypeInfo) bool {
+
+	if !isSamePkg(r.Pkg, hasTypeParam.Pkg) {
+		return false
+	}
+
+	if r.Name().OrZero() != hasTypeParam.Name().OrZero() {
+		return false
+	}
+
+	if r.TypeArgs.Size() != hasTypeParam.TypeArgs.Size() {
+		return false
+	}
+
+	return seq.Zip(r.TypeArgs, hasTypeParam.TypeArgs).ForAll(func(t fp.Tuple2[TypeInfo, TypeInfo]) bool {
+		if t.I2.IsTypeParam() {
+			ctx := types.NewContext()
+
+			_, err := types.Instantiate(ctx, hasTypeParam.Type, []types.Type{r.Type}, true)
+			if err == nil {
+				return true
+			}
+			return false
+		}
+		return t.I1.IsInstantiatedOf(t.I2)
+	})
+	// fmt.Printf("this args = %v\n", r.TypeArgs)
+	// fmt.Printf("that args = %v\n", hasTypeParam.TypeArgs)
+
+	// fmt.Printf("that type = %v\n", hasTypeParam.Type.String())
+
+	// return true
+}
+
+func (r TypeInfo) PkgName() string {
+	if r.Pkg != nil {
+		return r.Pkg.Name()
+	}
+	return ""
+}
+func (r TypeInfo) String() string {
+	name := r.Name().OrZero()
+	if r.Pkg != nil {
+		if r.TypeParam.Size() > 0 {
+			return fmt.Sprintf("%s.%s%s%v", r.PkgName(), name, r.TypeParam, r.TypeArgs)
+		}
+		return fmt.Sprintf("%s.%s", r.PkgName(), name)
+	}
+	if r.TypeParam.Size() > 0 {
+		return fmt.Sprintf("%s%s%v", name, r.TypeParam, r.TypeArgs)
+	}
+	if name == "" {
+		return r.Type.String()
+	}
+	return name
+
+}
+func (r TypeInfo) ResultType() TypeInfo {
+	switch at := r.Type.(type) {
+
+	case *types.Signature:
+		if at.Results().Len() == 1 {
+			rtype := at.Results().At(0)
+			rtypeInfo := typeInfo(rtype.Type())
+			return rtypeInfo
+		}
+	}
+
+	return r
+}
+
+func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
+
+	switch at := r.Type.(type) {
+	case *types.Named:
+		if at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
+			return true
+		}
+	}
+
+	return false
+
+}
+
+func (r TypeInfo) IsFunc() bool {
+	switch r.Type.(type) {
+	case *types.Signature:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) NumArgs() int {
+	switch at := r.Type.(type) {
+	case *types.Signature:
+		if at.Params() == nil {
+			return 0
+		}
+		return at.Params().Len()
+	}
+	return 0
+}
+
 func (r TypeInfo) Name() fp.Option[string] {
 	switch at := r.Type.(type) {
 	case *types.Named:
 		return option.Some(at.Obj().Name())
 	case *types.Basic:
 		return option.Some(at.Name())
+	case *types.Signature:
 	}
 	return option.None[string]()
 }
@@ -283,31 +398,41 @@ func (r StructField) Public() bool {
 	return !unicode.IsLower([]rune(r.Name)[0])
 }
 
-func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {
+func typeArgs(args *types.TypeList) fp.Seq[TypeInfo] {
+	if args == nil {
+		return seq.Empty[TypeInfo]()
+	}
+	ret := iterator.Map(iterator.Range(0, args.Len()), func(i int) TypeInfo {
+		return typeInfo(args.At(i))
+	}).ToSeq()
+	return ret
+}
+func typeParam(args *types.TypeParamList) fp.Seq[TypeParam] {
+	if args == nil {
+		return seq.Empty[TypeParam]()
+	}
+	params := iterator.Map(iterator.Range(0, args.Len()), func(i int) TypeParam {
+		return TypeParam{
+			Name:       args.At(i).Obj().Name(),
+			Constraint: args.At(i).Constraint(),
+		}
+	}).ToSeq()
+	return params
+}
+
+func GetTypeInfo(tpe types.Type) TypeInfo {
+	return typeInfo(tpe)
+}
+
+func typeInfo(tpe types.Type) TypeInfo {
 	switch realtp := tpe.(type) {
 	case *types.TypeParam:
 		return TypeInfo{
 			Type: tpe,
 		}
 	case *types.Named:
-		args := fp.Seq[TypeInfo]{}
-		params := fp.Seq[TypeParam]{}
-
-		if realtp.TypeArgs() != nil {
-			args = iterator.Map(iterator.Range(0, realtp.TypeArgs().Len()), func(i int) TypeInfo {
-				return typeInfo(pk, realtp.TypeArgs().At(i))
-			}).ToSeq()
-
-		}
-
-		if realtp.TypeParams() != nil {
-			params = iterator.Map(iterator.Range(0, realtp.TypeParams().Len()), func(i int) TypeParam {
-				return TypeParam{
-					Name:       realtp.TypeParams().At(i).Obj().Name(),
-					Constraint: realtp.TypeParams().At(i).Constraint(),
-				}
-			}).ToSeq()
-		}
+		args := typeArgs(realtp.TypeArgs())
+		params := typeParam(realtp.TypeParams())
 
 		method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
 			m := realtp.Method(v)
@@ -324,18 +449,18 @@ func typeInfo(pk *types.Package, tpe types.Type) TypeInfo {
 	case *types.Array:
 		return TypeInfo{
 			Type:     tpe,
-			TypeArgs: []TypeInfo{typeInfo(pk, realtp.Elem())},
+			TypeArgs: []TypeInfo{typeInfo(realtp.Elem())},
 		}
 	case *types.Map:
 
 		return TypeInfo{
 			Type:     tpe,
-			TypeArgs: []TypeInfo{typeInfo(pk, realtp.Key()), typeInfo(pk, realtp.Elem())},
+			TypeArgs: []TypeInfo{typeInfo(realtp.Key()), typeInfo(realtp.Elem())},
 		}
 	case *types.Slice:
 		return TypeInfo{
 			Type:     tpe,
-			TypeArgs: []TypeInfo{typeInfo(pk, realtp.Elem())},
+			TypeArgs: []TypeInfo{typeInfo(realtp.Elem())},
 		}
 	}
 
