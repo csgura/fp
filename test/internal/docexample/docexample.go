@@ -3,8 +3,10 @@ package docexample
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/test/internal/show"
 )
 
 //go:generate gombok
@@ -13,6 +15,20 @@ import (
 type Person struct {
 	name string
 	age  int
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Person]]
+
+// @fp.Derive
+var _ hash.Derives[fp.Hashable[Person]]
+
+func (r Person) Eq(other Person) bool {
+	return HashablePerson.Eqv(r, other)
+}
+
+func (r Person) Hashcode() uint32 {
+	return HashablePerson.Hash(r)
 }
 
 // @fp.Value
@@ -38,9 +54,6 @@ type Entry[A comparable, B any] struct {
 }
 
 // @fp.Derive
-var _ eq.Derives[fp.Eq[Person]]
-
-// @fp.Derive
 var _ eq.Derives[fp.Eq[Car]]
 
 // @fp.Value
@@ -62,3 +75,13 @@ var EqFpSeqCar = eq.New(func(a, b fp.Seq[Car]) bool {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[CarsOwned]]
+
+// @fp.Value
+type User struct {
+	name   string
+	email  fp.Option[string]
+	active bool
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[Address]]

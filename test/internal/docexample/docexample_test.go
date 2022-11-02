@@ -27,3 +27,14 @@ func TestJson(t *testing.T) {
 
 	fmt.Println(target)
 }
+
+func TestShow(t *testing.T) {
+
+	addr := docexample.AddressMutable{
+		Country: "Korea",
+		City:    "Seoul",
+		Street:  "Teheran",
+	}.AsImmutable()
+
+	fmt.Println(docexample.ShowAddress.Show(addr))
+}

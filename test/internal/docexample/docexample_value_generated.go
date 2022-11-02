@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/option"
 	"net/http"
 )
 
@@ -533,6 +534,140 @@ func (r CarsOwnedBuilder) FromMap(m map[string]any) CarsOwnedBuilder {
 
 	if v, ok := m["cars"].(fp.Seq[Car]); ok {
 		r.cars = v
+	}
+
+	return r
+}
+
+type UserBuilder User
+
+type UserMutable struct {
+	Name   string
+	Email  fp.Option[string]
+	Active bool
+}
+
+func (r UserBuilder) Build() User {
+	return User(r)
+}
+
+func (r User) Builder() UserBuilder {
+	return UserBuilder(r)
+}
+
+func (r User) Name() string {
+	return r.name
+}
+
+func (r User) WithName(v string) User {
+	r.name = v
+	return r
+}
+
+func (r UserBuilder) Name(v string) UserBuilder {
+	r.name = v
+	return r
+}
+
+func (r User) Email() fp.Option[string] {
+	return r.email
+}
+
+func (r User) WithEmail(v fp.Option[string]) User {
+	r.email = v
+	return r
+}
+
+func (r UserBuilder) Email(v fp.Option[string]) UserBuilder {
+	r.email = v
+	return r
+}
+
+func (r User) WithSomeEmail(v string) User {
+	r.email = option.Some(v)
+	return r
+}
+
+func (r User) WithNoneEmail() User {
+	r.email = option.None[string]()
+	return r
+}
+
+func (r UserBuilder) SomeEmail(v string) UserBuilder {
+	r.email = option.Some(v)
+	return r
+}
+
+func (r UserBuilder) NoneEmail() UserBuilder {
+	r.email = option.None[string]()
+	return r
+}
+
+func (r User) Active() bool {
+	return r.active
+}
+
+func (r User) WithActive(v bool) User {
+	r.active = v
+	return r
+}
+
+func (r UserBuilder) Active(v bool) UserBuilder {
+	r.active = v
+	return r
+}
+
+func (r User) String() string {
+	return fmt.Sprintf("User(name=%v, email=%v, active=%v)", r.name, r.email, r.active)
+}
+
+func (r User) AsTuple() fp.Tuple3[string, fp.Option[string], bool] {
+	return as.Tuple3(r.name, r.email, r.active)
+}
+
+func (r User) AsMutable() UserMutable {
+	return UserMutable{
+		Name:   r.name,
+		Email:  r.email,
+		Active: r.active,
+	}
+}
+
+func (r UserMutable) AsImmutable() User {
+	return User{
+		name:   r.Name,
+		email:  r.Email,
+		active: r.Active,
+	}
+}
+
+func (r UserBuilder) FromTuple(t fp.Tuple3[string, fp.Option[string], bool]) UserBuilder {
+	r.name = t.I1
+	r.email = t.I2
+	r.active = t.I3
+	return r
+}
+
+func (r User) AsMap() map[string]any {
+	return map[string]any{
+		"name":   r.name,
+		"email":  r.email,
+		"active": r.active,
+	}
+}
+
+func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["email"].(fp.Option[string]); ok {
+		r.email = v
+	}
+
+	if v, ok := m["active"].(bool); ok {
+		r.active = v
 	}
 
 	return r
