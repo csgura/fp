@@ -614,7 +614,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 	}).Iterator()
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		ret := option.Iterator(scope.WorkingScope.FindByName(v))
+		ret := option.Iterator(scope.WorkingScope.FindByName(v, f))
 
 		if f.TypeArgs.Size() > 0 {
 			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {

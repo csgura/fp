@@ -183,8 +183,8 @@ type TypeClassInstancesOfPackage struct {
 	All         fp.Seq[TypeClassInstance]
 }
 
-func (r TypeClassInstancesOfPackage) FindByName(name string) fp.Option[TypeClassInstance] {
-	return r.ByName.Get(name)
+func (r TypeClassInstancesOfPackage) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
+	return option.FlatMap(r.ByName.Get(name), as.Func2(TypeClassInstance.Check).ApplyLast(t))
 }
 
 type typeCompare struct {
@@ -311,7 +311,9 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 }
 
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
+
 	argType := r.Result.TypeArgs.Head().Get()
+
 	if argType.IsTypeParam() {
 
 		// func[T any]() Eq[T] 인 경우
@@ -343,7 +345,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	}
 
-	if argType.String() == t.Type.String() {
+	if argType.Type.String() == t.Type.String() {
 		return option.Some(r)
 	}
 	return option.None[TypeClassInstance]()
