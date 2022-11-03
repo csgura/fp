@@ -96,7 +96,11 @@ var String = Given[string]()
 
 // for import test
 
-// var SeqTuple2 = New(func(a, b fp.Seq[fp.Tuple2[int, int]]) bool {
+// var SeqTuple2Correct = New(func(a, b fp.Seq[fp.Tuple2[string, int]]) bool {
+// 	return a.Size() == b.Size()
+// })
+
+// var SeqTuple2False = New(func(a, b fp.Seq[fp.Tuple2[int, int]]) bool {
 // 	return a.Size() == b.Size()
 // })
 
@@ -104,8 +108,14 @@ var String = Given[string]()
 // 	return a.Size() == b.Size()
 // })
 
-// func SeqTupleFunc[A, B any]() fp.Eq[fp.Seq[fp.Tuple2[A, B]]] {
+// func SeqTupleFuncCorrect[A, B any]() fp.Eq[fp.Seq[fp.Tuple2[A, B]]] {
 // 	return New(func(a, b fp.Seq[fp.Tuple2[A, B]]) bool {
+// 		return a.Size() == b.Size()
+// 	})
+// }
+
+// func SeqTupleFuncFalse[B any]() fp.Eq[fp.Seq[fp.Tuple2[int, B]]] {
+// 	return New(func(a, b fp.Seq[fp.Tuple2[int, B]]) bool {
 // 		return a.Size() == b.Size()
 // 	})
 // }

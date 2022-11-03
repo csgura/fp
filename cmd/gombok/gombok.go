@@ -863,9 +863,10 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeC
 }
 
 type TypeClassSummonContext struct {
-	w      metafp.Writer
-	tc     metafp.TypeClassDerive
-	genSet mutable.Set[string]
+	w       metafp.Writer
+	tc      metafp.TypeClassDerive
+	genSet  mutable.Set[string]
+	tcCache *metafp.TypeClassInstanceCache
 }
 
 type GenericRepr struct {
@@ -1261,7 +1262,10 @@ func genDerive() {
 			return
 		}
 
+		tccache := metafp.TypeClassInstanceCache{}
+
 		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v metafp.TypeClassDerive) string {
+			tccache.WillGenerated(v)
 			return fmt.Sprintf("%s", v.GeneratedInstanceName())
 		}))
 
@@ -1282,9 +1286,10 @@ func genDerive() {
 			})
 
 			summonCtx := TypeClassSummonContext{
-				w:      w,
-				tc:     v,
-				genSet: genSet,
+				w:       w,
+				tc:      v,
+				genSet:  genSet,
+				tcCache: &tccache,
 			}
 
 			valuetpdec := ""

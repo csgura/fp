@@ -165,26 +165,26 @@ func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
 	return p1.Path() == p2.Path()
 }
 
-func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], hasTypeParam TypeInfo) bool {
+// Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
+func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) bool {
 
-	if !isSamePkg(r.Pkg, hasTypeParam.Pkg) {
+	// package가 동일해야 함
+	if !isSamePkg(r.Pkg, genericType.Pkg) {
 		return false
 	}
 
-	if r.Name().OrZero() != hasTypeParam.Name().OrZero() {
+	// 타입 이름이 동일해야 함
+	if r.Name().OrZero() != genericType.Name().OrZero() {
 		return false
 	}
 
-	if r.TypeArgs.Size() != hasTypeParam.TypeArgs.Size() {
+	// 타입 아규먼트 개수가 동일해야 함
+	if r.TypeArgs.Size() != genericType.TypeArgs.Size() {
 		return false
 	}
 
-	return seq.Zip(r.TypeArgs, hasTypeParam.TypeArgs).ForAll(func(t fp.Tuple2[TypeInfo, TypeInfo]) bool {
-		if t.I2.IsTypeParam() {
-			return ConstraintCheck(typeParam, hasTypeParam, r)
-		}
-		return t.I1.IsInstantiatedOf(typeParam, t.I2)
-	})
+	return ConstraintCheck(typeParam, genericType, r.TypeArgs)
+
 	// fmt.Printf("this args = %v\n", r.TypeArgs)
 	// fmt.Printf("that args = %v\n", hasTypeParam.TypeArgs)
 

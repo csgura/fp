@@ -22,12 +22,12 @@ func TestImport(t *testing.T) {
 		return
 	}
 
-	t1Type := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("i1").Type())
+	t1Type := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("t1").Type())
 	fmt.Printf("typeArgs = %v\n", t1Type.TypeArgs)
 	metafp.FindTypeClassImport(pkgs).Foreach(func(v metafp.TypeClassDirective) {
-		index := metafp.ImportTypeClassInstance(v.PrimitiveInstancePkg, v.TypeClass)
+		index := metafp.LoadTypeClassInstance(v.PrimitiveInstancePkg, v.TypeClass)
 
-		res := index.Summon(t1Type)
+		res := index.Find(t1Type)
 		fmt.Printf("len res = %d\n", res.Size())
 		res.Foreach(func(v metafp.TypeClassInstance) {
 			fmt.Println(v.Name)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
@@ -18,6 +19,13 @@ type TypeClass struct {
 	Name      string
 	Package   *types.Package
 	TypeParam fp.Seq[TypeParam]
+}
+
+func (r TypeClass) Id() string {
+	if r.Package != nil {
+		return fmt.Sprintf("%s.%s", r.Package.Path(), r.Name)
+	}
+	return r.Name
 }
 
 func (r TypeClass) PackagedName(w ImportSet, workingPackage *types.Package) string {
@@ -142,45 +150,108 @@ type TypeClassInstance struct {
 	Result   TypeInfo
 }
 
-type TypeClassInstanceIndex struct {
+type TypeClassInstancesOfPackage struct {
 	Package     *types.Package
 	TypeClass   TypeClass
+	ByName      fp.Map[string, TypeClassInstance]
 	FixedByType fp.Map[string, TypeClassInstance]
 	All         fp.Seq[TypeClassInstance]
 }
 
-func ConstraintCheck(param fp.Seq[TypeParam], tcType TypeInfo, instanceType TypeInfo) bool {
-	ta := tcType.TypeArgs.Head()
-	if ta.IsEmpty() {
+type typeCompare struct {
+	genericType TypeInfo
+	actualType  TypeInfo
+}
+
+type paramVar struct {
+	typeParam  *types.TypeParam
+	actualType TypeInfo
+}
+
+//	func[T constraint]() Eq[T]  에서
+//
+// instanceType 이 T 자리에 들어갈 수 있는지 체크하는 함수
+//
+// func[T constraint]() Eq[Seq[T]]  같은 경우는 해당 사항 없음 .
+func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) bool {
+
+	// size 가 동일하지 않은 경우
+	if genericType.TypeArgs.Size() != typeArgs.Size() {
 		return false
 	}
 
-	if ta.Get().IsTypeParam() {
-		paramName := ta.Get().Name().Get()
-		paramCons := param.Filter(func(v TypeParam) bool {
-			return v.Name == paramName
-		}).Head()
-		if paramCons.IsDefined() {
-			sig := types.NewSignatureType(nil,
-				nil,
-				[]*types.TypeParam{types.NewTypeParam(paramCons.Get().TypeName, paramCons.Get().Constraint)},
-				types.NewTuple(),
-				types.NewTuple(types.NewVar(0, tcType.Pkg, "ret", tcType.Type)),
-				false,
-			)
-
-			ctx := types.NewContext()
-
-			_, err := types.Instantiate(ctx, sig, []types.Type{instanceType.Type}, true)
-			if err == nil {
-				return true
-			}
+	zipped := iterator.Map(iterator.Zip(genericType.TypeArgs.Iterator(), typeArgs.Iterator()), func(t fp.Tuple2[TypeInfo, TypeInfo]) typeCompare {
+		return typeCompare{
+			genericType: t.I1,
+			actualType:  t.I2,
 		}
+	})
+
+	// Eq[T] 가 아니고,  Eq[Seq[T]]  같은 경우는  체크 불가능
+	paramArgs, actualArgs := zipped.Partition(func(t typeCompare) bool {
+		return t.genericType.IsTypeParam()
+	})
+
+	actualAllMatch := actualArgs.ForAll(func(v typeCompare) bool {
+		return v.actualType.IsInstantiatedOf(param, v.genericType)
+	})
+
+	if !actualAllMatch {
+		return false
 	}
+
+	paramFound := iterator.Map(paramArgs, func(v typeCompare) fp.Option[paramVar] {
+		paramName := v.genericType.Name().Get()
+
+		// func[T constraint]() Eq[A] 혹은 func() Eq[A] 처럼. type parameter 목록이 잘못된 경우도 불가능
+		paramCons := option.Map(param.Filter(func(p TypeParam) bool {
+			return p.Name == paramName
+		}).Head(), func(p TypeParam) paramVar {
+			//fmt.Printf("param %s -> %s\n", p.TypeName, v.actualType)
+			return paramVar{
+				typeParam:  types.NewTypeParam(p.TypeName, p.Constraint),
+				actualType: v.actualType,
+			}
+		})
+
+		return paramCons
+	}).ToSeq()
+
+	if paramFound.IsEmpty() {
+		return true
+	}
+
+	if !paramFound.ForAll(fp.Option[paramVar].IsDefined) {
+		return false
+	}
+
+	paramCons := seq.Map(paramFound, func(v fp.Option[paramVar]) *types.TypeParam {
+		return v.Get().typeParam
+	})
+
+	paramIns := seq.Map(paramFound, func(v fp.Option[paramVar]) types.Type {
+		return v.Get().actualType.Type
+	})
+
+	sig := types.NewSignatureType(nil,
+		nil,
+		paramCons,
+		types.NewTuple(),
+		types.NewTuple(types.NewVar(0, genericType.Pkg, "ret", genericType.Type)),
+		false,
+	)
+
+	ctx := types.NewContext()
+
+	_, err := types.Instantiate(ctx, sig, paramIns, true)
+	if err == nil {
+		return true
+	}
+
 	return false
 }
 
-func (r TypeClassInstanceIndex) Summon(t TypeInfo) fp.Seq[TypeClassInstance] {
+func (r TypeClassInstancesOfPackage) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
 	// ret := r.FixedByType.Get(t.Type.String())
 	// if ret.IsDefined() {
 	// 	return ret
@@ -193,7 +264,7 @@ func (r TypeClassInstanceIndex) Summon(t TypeInfo) fp.Seq[TypeClassInstance] {
 
 			// func[T any]() Eq[T] 인 경우
 			// t 가 T constraint 인지 체크해야 함
-			return ConstraintCheck(v.Type.TypeParam, v.Result, t)
+			return ConstraintCheck(v.Type.TypeParam, v.Result, seq.Of(t))
 		}
 
 		// func[T any]() Eq[Tuple[T]] 인경우
@@ -206,8 +277,91 @@ func (r TypeClassInstanceIndex) Summon(t TypeInfo) fp.Seq[TypeClassInstance] {
 	})
 }
 
-func ImportTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstanceIndex {
-	ret := TypeClassInstanceIndex{
+type TypeClassInstanceCache struct {
+	tcMap   fp.Map[string, fp.Seq[TypeClassInstancesOfPackage]]
+	willGen fp.Map[string, fp.Seq[TypeClassInstancesOfPackage]]
+}
+
+func (r *TypeClassInstanceCache) Load(pk *types.Package, tc TypeClass) TypeClassInstancesOfPackage {
+
+	list := r.tcMap.Get(tc.Id()).OrElseGet(seq.Empty[TypeClassInstancesOfPackage])
+
+	found := list.Find(func(v TypeClassInstancesOfPackage) bool {
+		return v.Package.Path() == pk.Path()
+	})
+
+	if found.IsEmpty() {
+		loaded := LoadTypeClassInstance(pk, tc)
+
+		list = list.Append(loaded)
+		r.tcMap = r.tcMap.Updated(tc.Id(), list)
+		return loaded
+	}
+
+	return found.Get()
+}
+
+func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInstancesOfPackage {
+	list := r.willGen.Get(tc.TypeClass.Id()).OrZero()
+
+	found := list.Find(func(v TypeClassInstancesOfPackage) bool {
+		return v.Package.Path() == tc.Package.Path()
+	}).OrElseGet(func() TypeClassInstancesOfPackage {
+
+		return TypeClassInstancesOfPackage{
+			Package:   tc.Package,
+			TypeClass: tc.TypeClass,
+		}
+	})
+
+	ins := TypeClassInstance{
+		Package:  tc.Package,
+		Name:     tc.GeneratedInstanceName(),
+		Static:   true,
+		Implicit: false,
+	}
+
+	found.ByName = found.ByName.Updated(ins.Name, ins)
+
+	return found
+}
+
+type TypeClassScope struct {
+	Cache          *TypeClassInstanceCache
+	Target         TypeClassDerive
+	WorkingScope   TypeClassInstancesOfPackage
+	PrimitiveScope TypeClassInstancesOfPackage
+	TargetScope    fp.Option[TypeClassInstancesOfPackage]
+	Others         fp.Seq[TypeClassInstancesOfPackage]
+}
+
+func (r *TypeClassInstanceCache) Get(tc TypeClassDerive) TypeClassScope {
+
+	working := r.Load(tc.Package, tc.TypeClass)
+	prim := r.Load(tc.PrimitiveInstancePkg, tc.TypeClass)
+	target := option.Map(option.Of(tc.DeriveFor.Package), as.Func2(r.Load).ApplyLast(tc.TypeClass))
+
+	others := r.tcMap.Get(tc.TypeClass.Id()).OrZero().FilterNot(func(v TypeClassInstancesOfPackage) bool {
+		return v.Package.Path() == working.Package.Path()
+	}).FilterNot(func(v TypeClassInstancesOfPackage) bool {
+		return v.Package.Path() == prim.Package.Path()
+	}).FilterNot(func(v TypeClassInstancesOfPackage) bool {
+		return target.IsDefined() && target.Get().Package.Path() == v.Package.Path()
+	})
+
+	return TypeClassScope{
+		Cache:          r,
+		Target:         tc,
+		WorkingScope:   working,
+		PrimitiveScope: prim,
+		TargetScope:    target,
+		Others:         others,
+	}
+
+}
+
+func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOfPackage {
+	ret := TypeClassInstancesOfPackage{
 		Package:     pk,
 		TypeClass:   tc,
 		FixedByType: mutable.EmptyMap[string, TypeClassInstance](),
@@ -231,6 +385,7 @@ func ImportTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstanceI
 						Type:     insType,
 						Result:   rType,
 					}
+					ret.ByName = ret.ByName.Updated(name, tins)
 					ret.All = ret.All.Append(tins)
 				} else {
 					tins := TypeClassInstance{
@@ -241,6 +396,7 @@ func ImportTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstanceI
 						Type:     insType,
 						Result:   rType,
 					}
+					ret.ByName = ret.ByName.Updated(name, tins)
 					ret.All = ret.All.Append(tins)
 				}
 			} else {
@@ -252,9 +408,9 @@ func ImportTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstanceI
 					Type:     insType,
 					Result:   insType,
 				}
+				ret.ByName = ret.ByName.Updated(name, tins)
 				ret.FixedByType = ret.FixedByType.Updated(rType.Type.String(), tins)
-				ret.All = ret.All.Append(tins)
-
+				//ret.All = ret.All.Append(tins)
 			}
 		}
 
