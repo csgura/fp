@@ -17,7 +17,7 @@ import (
 )
 
 var EqPerson = eq.ContraMap(
-	eq.Tuple8(eq.Given[string](), eq.Given[int](), EqFloat64, eq.Given[fp.Option[string]](), EqSlice(eq.Given[string]()), eq.Given[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]](), EqFpSeq(EqFloat64), EqSlice(eq.Given[byte]())),
+	eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Given[fp.Option[string]](), eq.Slice(eq.String), eq.Given[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]](), EqFpSeq(EqFloat64), eq.Bytes),
 	Person.AsTuple,
 )
 
@@ -30,7 +30,7 @@ func EqEntry[A comparable, B any, C fmt.Stringer, D interface {
 	Hello() string
 }](eqA fp.Eq[A], eqB fp.Eq[B], eqC fp.Eq[C], eqD fp.Eq[D]) fp.Eq[Entry[A, B, C, D]] {
 	return eq.ContraMap(
-		eq.Tuple3(eq.Given[string](), eqA, eq.Tuple2(eqA, eqB)),
+		eq.Tuple3(eq.String, eqA, eq.Tuple2(eqA, eqB)),
 		Entry[A, B, C, D].AsTuple,
 	)
 }
@@ -39,7 +39,7 @@ func MonoidEntry[A comparable, B any, C fmt.Stringer, D interface {
 	Hello() string
 }](monoidA fp.Monoid[A], monoidB fp.Monoid[B], monoidC fp.Monoid[C], monoidD fp.Monoid[D]) fp.Monoid[Entry[A, B, C, D]] {
 	return monoid.IMap(
-		monoid.Tuple3(MonoidString, monoidA, monoid.Tuple2(monoidA, monoidB)),
+		monoid.Tuple3(monoid.String, monoidA, monoid.Tuple2(monoidA, monoidB)),
 		fp.Compose(
 			as.Curried2(EntryBuilder[A, B, C, D].FromTuple)(EntryBuilder[A, B, C, D]{}),
 			EntryBuilder[A, B, C, D].Build,
@@ -49,7 +49,7 @@ func MonoidEntry[A comparable, B any, C fmt.Stringer, D interface {
 }
 
 var HashableKey = hash.ContraMap(
-	hash.Tuple3(hash.Number[int](), hash.Number[float32](), HashableSlice(hash.Number[byte]())),
+	hash.Tuple3(hash.Number[int](), hash.Number[float32](), hash.Bytes),
 	Key.AsTuple,
 )
 
@@ -63,17 +63,17 @@ var MonoidPoint = monoid.IMap(
 )
 
 var EqGreeting = eq.ContraMap(
-	eq.Tuple2(EqTestpk1World, eq.Given[string]()),
+	eq.Tuple2(EqTestpk1World, eq.String),
 	Greeting.AsTuple,
 )
 
 var EncoderGreeting = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NameIsHello[testpk1.World]](testpk1.EncoderWorld), js.EncoderNamed[NameIsLanguage[string]](EncoderString)),
+	js.EncoderLabelled2(js.EncoderNamed[NameIsHello[testpk1.World]](testpk1.EncoderWorld), js.EncoderNamed[NameIsLanguage[string]](js.EncoderString)),
 	Greeting.AsLabelled,
 )
 
 var DecoderGreeting = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[NameIsHello[testpk1.World]](testpk1.DecoderWorld), js.DecoderNamed[NameIsLanguage[string]](DecoderString)),
+	js.DecoderLabelled2(js.DecoderNamed[NameIsHello[testpk1.World]](testpk1.DecoderWorld), js.DecoderNamed[NameIsLanguage[string]](js.DecoderString)),
 	fp.Compose(
 		as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}),
 		GreetingBuilder.Build,
@@ -84,7 +84,7 @@ var EncoderThree = js.EncoderContraMap(
 	js.EncoderHConsLabelled(
 		js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NameIsTwo[string]](EncoderString),
+			js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
 				js.EncoderNamed[NameIsThree[float64]](js.EncoderNumber[float64]()),
 				js.EncoderHNil,
@@ -101,7 +101,7 @@ var DecoderThree = js.DecoderMap(
 	js.DecoderHConsLabelled(
 		js.DecoderNamed[NameIsOne[int]](js.DecoderNumber[int]()),
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NameIsTwo[string]](DecoderString),
+			js.DecoderNamed[NameIsTwo[string]](js.DecoderString),
 			js.DecoderHConsLabelled(
 				js.DecoderNamed[NameIsThree[float64]](js.DecoderNumber[float64]()),
 				js.DecoderHNil,
@@ -145,7 +145,7 @@ var ShowThree = show.Generic(
 	show.HCons(
 		show.Given[int](),
 		show.HCons(
-			show.Given[string](),
+			show.String,
 			show.HCons(
 				show.Given[float64](),
 				show.HNil,
@@ -177,7 +177,7 @@ var ReadThree = read.Generic(
 	read.HCons(
 		read.Int[int](),
 		read.HCons(
-			ReadString,
+			read.String,
 			read.HCons(
 				read.Float[float64](),
 				read.HNil,
@@ -187,7 +187,7 @@ var ReadThree = read.Generic(
 )
 
 var EqTestpk1World = eq.ContraMap(
-	eq.Tuple2(eq.Given[string](), eq.Given[time.Time]()),
+	eq.Tuple2(eq.String, eq.Given[time.Time]()),
 	testpk1.World.AsTuple,
 )
 

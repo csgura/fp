@@ -65,9 +65,9 @@ var EncoderHasOption = js.EncoderContraMap(
 		js.EncoderHConsLabelled(
 			js.EncoderNamed[NameIsAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NameIsPhone[[]string]](EncoderSlice(js.EncoderString)),
+				js.EncoderNamed[NameIsPhone[[]string]](js.EncoderSlice(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NameIsEmptySeq[[]int]](EncoderSlice(js.EncoderNumber[int]())),
+					js.EncoderNamed[NameIsEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
 					js.EncoderHNil,
 				),
 			),

@@ -334,7 +334,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	// func[T any]() Eq[Tuple[T]] 인경우
 	// Tuple[T] 와  t 를 비교해야 함
-	if argType.TypeParam.Size() > 0 {
+	if argType.TypeArgs.Size() > 0 {
 
 		check := t.IsInstantiatedOf(r.Type.TypeParam, argType)
 		if check.Ok {
