@@ -9,6 +9,7 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
@@ -110,11 +111,7 @@ var DecoderThree = js.DecoderMap(
 	),
 
 	fp.Compose(
-		as.Func2(
-			hlist.Case3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64], hlist.Nil, fp.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]]],
-		).ApplyLast(
-			as.Labelled3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]],
-		),
+		product.LabelledFromHList3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]],
 		fp.Compose(
 			as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
 			ThreeBuilder.Build,
@@ -131,11 +128,7 @@ var ShowThree = show.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case3[int, string, float64, hlist.Nil, fp.Tuple3[int, string, float64]],
-			).ApplyLast(
-				as.Tuple3[int, string, float64],
-			),
+			product.TupleFromHList3[int, string, float64],
 			fp.Compose(
 				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
 				ThreeBuilder.Build,
@@ -163,11 +156,7 @@ var ReadThree = read.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case3[int, string, float64, hlist.Nil, fp.Tuple3[int, string, float64]],
-			).ApplyLast(
-				as.Tuple3[int, string, float64],
-			),
+			product.TupleFromHList3[int, string, float64],
 			fp.Compose(
 				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
 				ThreeBuilder.Build,

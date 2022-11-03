@@ -5,7 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
-	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
@@ -39,11 +39,7 @@ var ShowWorld = show.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case2[string, time.Time, hlist.Nil, fp.Tuple2[string, time.Time]],
-			).ApplyLast(
-				as.Tuple2[string, time.Time],
-			),
+			product.TupleFromHList2[string, time.Time],
 			fp.Compose(
 				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 				WorldBuilder.Build,
@@ -93,11 +89,7 @@ var ShowHListInsideHList = show.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case3[fp.Tuple2[string, int], string, World, hlist.Nil, fp.Tuple3[fp.Tuple2[string, int], string, World]],
-			).ApplyLast(
-				as.Tuple3[fp.Tuple2[string, int], string, World],
-			),
+			product.TupleFromHList3[fp.Tuple2[string, int], string, World],
 			fp.Compose(
 				as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
 				HListInsideHListBuilder.Build,
@@ -105,11 +97,7 @@ var ShowHListInsideHList = show.Generic(
 		),
 	),
 	show.HCons(
-		show.Generic(as.Generic("", as.HList2[string, int], as.Func2(
-			hlist.Case2[string, int, hlist.Nil, fp.Tuple2[string, int]],
-		).ApplyLast(
-			as.Tuple2[string, int],
-		)), show.HCons(
+		show.Generic(as.Generic("", as.HList2[string, int], product.TupleFromHList2[string, int]), show.HCons(
 			show.String,
 			show.HCons(
 				show.Given[int](),
@@ -135,11 +123,7 @@ var ReadHListInsideHList = read.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case3[fp.Tuple2[string, int], string, World, hlist.Nil, fp.Tuple3[fp.Tuple2[string, int], string, World]],
-			).ApplyLast(
-				as.Tuple3[fp.Tuple2[string, int], string, World],
-			),
+			product.TupleFromHList3[fp.Tuple2[string, int], string, World],
 			fp.Compose(
 				as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
 				HListInsideHListBuilder.Build,
@@ -147,11 +131,7 @@ var ReadHListInsideHList = read.Generic(
 		),
 	),
 	read.HCons(
-		read.Generic(as.Generic("", as.HList2[string, int], as.Func2(
-			hlist.Case2[string, int, hlist.Nil, fp.Tuple2[string, int]],
-		).ApplyLast(
-			as.Tuple2[string, int],
-		)), read.HCons(
+		read.Generic(as.Generic("", as.HList2[string, int], product.TupleFromHList2[string, int]), read.HCons(
 			read.String,
 			read.HCons(
 				read.Int[int](),
@@ -177,11 +157,7 @@ var ReadWorld = read.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case2[string, time.Time, hlist.Nil, fp.Tuple2[string, time.Time]],
-			).ApplyLast(
-				as.Tuple2[string, time.Time],
-			),
+			product.TupleFromHList2[string, time.Time],
 			fp.Compose(
 				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 				WorldBuilder.Build,

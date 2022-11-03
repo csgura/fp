@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go/types"
 
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/metafp"
@@ -9,13 +10,11 @@ import (
 
 func main() {
 	metafp.Generate("product", "tuple_gen.go", func(f metafp.Writer) {
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-		fmt.Fprintln(f, `
-	import (
-		"github.com/csgura/fp"
-	)`)
-
-		for i := 2; i < max.Product; i++ {
+		for i := 3; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Tuple%d[%s] { ", i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.FuncTypeArgs(1, i))
 
@@ -25,8 +24,31 @@ func main() {
 			}
 			fmt.Fprintf(f, `}
 		}
+		`)
 
-`)
+		}
+
+		for i := 2; i < max.Product; i++ {
+
+			fmt.Fprintf(f, "func TupleFromHList%d [%s any]( list %s ) fp.Tuple%d[%s] { ", i, metafp.FuncTypeArgs(1, i), metafp.ConsType(1, i, "hlist.Nil"), i, metafp.FuncTypeArgs(1, i))
+
+			fmt.Fprintf(f, `
+				tail := TupleFromHList%d( list.Tail() )
+				return Tuple%d( list.Head(), %s)
+			}
+			`, i-1, i, metafp.FuncCallArgs(1, i-1, "tail.I"))
+
+		}
+
+		for i := 2; i < max.Product; i++ {
+
+			fmt.Fprintf(f, "func LabelledFromHList%d [%s fp.Named]( list %s ) fp.Labelled%d[%s] { ", i, metafp.FuncTypeArgs(1, i), metafp.ConsType(1, i, "hlist.Nil"), i, metafp.FuncTypeArgs(1, i))
+
+			fmt.Fprintf(f, `
+				tail := LabelledFromHList%d( list.Tail() )
+				return as.Labelled%d( list.Head(), %s)
+			}
+			`, i-1, i, metafp.FuncCallArgs(1, i-1, "tail.I"))
 
 		}
 

@@ -59,7 +59,7 @@ func main() {
 	})
 
 	metafp.Generate("hlist", "case_gen.go", func(f metafp.Writer) {
-		for i := 2; i < max.Func; i++ {
+		for i := 2; i < max.Product; i++ {
 
 			fmt.Fprintf(f, "func Case%d [%s any, T HList, R any](hl %s,  f func(%s) R ) R { ", i, metafp.FuncTypeArgs(1, i), consType(1, i, "T"), metafp.FuncDeclArgs(1, i))
 
