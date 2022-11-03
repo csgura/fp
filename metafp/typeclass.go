@@ -149,6 +149,37 @@ type TypeClassInstanceIndex struct {
 	All         fp.Seq[TypeClassInstance]
 }
 
+func ConstraintCheck(param fp.Seq[TypeParam], tcType TypeInfo, instanceType TypeInfo) bool {
+	ta := tcType.TypeArgs.Head()
+	if ta.IsEmpty() {
+		return false
+	}
+
+	if ta.Get().IsTypeParam() {
+		paramName := ta.Get().Name().Get()
+		paramCons := param.Filter(func(v TypeParam) bool {
+			return v.Name == paramName
+		}).Head()
+		if paramCons.IsDefined() {
+			sig := types.NewSignatureType(nil,
+				nil,
+				[]*types.TypeParam{types.NewTypeParam(paramCons.Get().TypeName, paramCons.Get().Constraint)},
+				types.NewTuple(),
+				types.NewTuple(types.NewVar(0, tcType.Pkg, "ret", tcType.Type)),
+				false,
+			)
+
+			ctx := types.NewContext()
+
+			_, err := types.Instantiate(ctx, sig, []types.Type{instanceType.Type}, true)
+			if err == nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (r TypeClassInstanceIndex) Summon(t TypeInfo) fp.Seq[TypeClassInstance] {
 	// ret := r.FixedByType.Get(t.Type.String())
 	// if ret.IsDefined() {
@@ -159,20 +190,18 @@ func (r TypeClassInstanceIndex) Summon(t TypeInfo) fp.Seq[TypeClassInstance] {
 	return r.All.Filter(func(v TypeClassInstance) bool {
 		argType := v.Result.TypeArgs.Head().Get()
 		if argType.IsTypeParam() {
-			ctx := types.NewContext()
 
-			_, err := types.Instantiate(ctx, v.Result.Type, []types.Type{t.Type}, true)
-			if err == nil {
-				return true
-			}
-			return false
+			// func[T any]() Eq[T] 인 경우
+			// t 가 T constraint 인지 체크해야 함
+			return ConstraintCheck(v.Type.TypeParam, v.Result, t)
 		}
 
+		// func[T any]() Eq[Tuple[T]] 인경우
+		// Tuple[T] 와  t 를 비교해야 함
 		if argType.TypeParam.Size() > 0 {
-			return t.IsInstantiatedOf(argType)
+			return t.IsInstantiatedOf(v.Type.TypeParam, argType)
 		}
 
-		fmt.Printf("%s result Type = %s\n", v.Name, argType.String())
 		return argType.String() == t.Type.String()
 	})
 }

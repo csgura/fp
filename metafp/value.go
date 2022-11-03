@@ -143,6 +143,7 @@ func FindTaggedStruct(p []*packages.Package, tag string) fp.Seq[TaggedStruct] {
 type TypeParam struct {
 	Name       string
 	Constraint types.Type
+	TypeName   *types.TypeName
 }
 
 type TypeInfo struct {
@@ -164,7 +165,7 @@ func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
 	return p1.Path() == p2.Path()
 }
 
-func (r TypeInfo) IsInstantiatedOf(hasTypeParam TypeInfo) bool {
+func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], hasTypeParam TypeInfo) bool {
 
 	if !isSamePkg(r.Pkg, hasTypeParam.Pkg) {
 		return false
@@ -180,15 +181,9 @@ func (r TypeInfo) IsInstantiatedOf(hasTypeParam TypeInfo) bool {
 
 	return seq.Zip(r.TypeArgs, hasTypeParam.TypeArgs).ForAll(func(t fp.Tuple2[TypeInfo, TypeInfo]) bool {
 		if t.I2.IsTypeParam() {
-			ctx := types.NewContext()
-
-			_, err := types.Instantiate(ctx, hasTypeParam.Type, []types.Type{r.Type}, true)
-			if err == nil {
-				return true
-			}
-			return false
+			return ConstraintCheck(typeParam, hasTypeParam, r)
 		}
-		return t.I1.IsInstantiatedOf(t.I2)
+		return t.I1.IsInstantiatedOf(typeParam, t.I2)
 	})
 	// fmt.Printf("this args = %v\n", r.TypeArgs)
 	// fmt.Printf("that args = %v\n", hasTypeParam.TypeArgs)
@@ -273,6 +268,8 @@ func (r TypeInfo) Name() fp.Option[string] {
 		return option.Some(at.Obj().Name())
 	case *types.Basic:
 		return option.Some(at.Name())
+	case *types.TypeParam:
+		return option.Some(at.Obj().Name())
 	case *types.Signature:
 	}
 	return option.None[string]()
@@ -415,6 +412,7 @@ func typeParam(args *types.TypeParamList) fp.Seq[TypeParam] {
 		return TypeParam{
 			Name:       args.At(i).Obj().Name(),
 			Constraint: args.At(i).Constraint(),
+			TypeName:   args.At(i).Obj(),
 		}
 	}).ToSeq()
 	return params
@@ -445,6 +443,19 @@ func typeInfo(tpe types.Type) TypeInfo {
 			TypeArgs:  args,
 			TypeParam: params,
 			Method:    mutable.MapOf(iterator.ToGoMap(method)),
+		}
+	case *types.Signature:
+		params := typeParam(realtp.TypeParams())
+
+		var pk *types.Package
+		if realtp.Recv() != nil {
+			pk = realtp.Recv().Pkg()
+		}
+
+		return TypeInfo{
+			Pkg:       pk,
+			Type:      tpe,
+			TypeParam: params,
 		}
 	case *types.Array:
 		return TypeInfo{
