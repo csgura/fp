@@ -53,6 +53,17 @@ var EncoderHNil Encoder[hlist.Nil] = NewEncoder(func(a hlist.Nil) fp.Option[stri
 	return option.None[string]()
 })
 
+func EncoderSeq[T any](enc Encoder[T]) Encoder[fp.Seq[T]] {
+	return NewEncoder(func(s fp.Seq[T]) fp.Option[string] {
+		if len(s) == 0 {
+			return option.None[string]()
+		}
+		return option.Some("[" + seq.Map(s, func(v T) string {
+			return enc.Encode(v).OrElse("null")
+		}).MakeString(",") + "]")
+	})
+}
+
 func EncoderSlice[T any](enc Encoder[T]) Encoder[[]T] {
 	return NewEncoder(func(s []T) fp.Option[string] {
 		if len(s) == 0 {

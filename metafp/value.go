@@ -462,6 +462,8 @@ func GetTypeInfo(tpe types.Type) TypeInfo {
 }
 
 func typeInfo(tpe types.Type) TypeInfo {
+	//	fmt.Printf("get info of %s\n", tpe.String())
+
 	switch realtp := tpe.(type) {
 	case *types.TypeParam:
 		return TypeInfo{
@@ -508,9 +510,13 @@ func typeInfo(tpe types.Type) TypeInfo {
 			TypeArgs: []TypeInfo{typeInfo(realtp.Key()), typeInfo(realtp.Elem())},
 		}
 	case *types.Slice:
+		elemTp := typeInfo(realtp.Elem())
+
+		//fmt.Printf("slice elemTp = %s, istypeParam = %t\n", elemTp, elemTp.IsTypeParam())
+
 		return TypeInfo{
 			Type:     tpe,
-			TypeArgs: []TypeInfo{typeInfo(realtp.Elem())},
+			TypeArgs: []TypeInfo{elemTp},
 		}
 	}
 

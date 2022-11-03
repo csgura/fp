@@ -600,8 +600,6 @@ func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name st
 // Eq[T] 같은거 아님
 func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.TypeInfo, name ...string) fp.Option[lookupTarget] {
 
-	scope := r.tcCache.Get(r.tc)
-
 	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
 		if f.Pkg != nil && r.tc.Package.Path() != f.Pkg.Path() {
 			return []string{
@@ -614,7 +612,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 	}).Iterator()
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		ret := option.Iterator(scope.WorkingScope.FindByName(v, f))
+		ret := option.Iterator(r.scope.WorkingScope.FindByName(v, f))
 
 		if f.TypeArgs.Size() > 0 {
 			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
@@ -623,7 +621,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 
 			if tnames.ForAll(fp.Option[string].IsDefined) {
 				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
-				r := scope.WorkingScope.Find(f)
+				r := r.scope.WorkingScope.Find(f)
 				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
 				//fixed := option.Iterator(r)
 				return r.Iterator().Concat(ret)
@@ -637,6 +635,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 			instanceOf: f,
 			pk:         r.tc.Package,
 			name:       v.Name,
+			instance:   v.Instance,
 
 			// 함수의 아규먼트는 Eq 가 포함 되어 있음.
 			required: v.RequiredInstance,
@@ -714,20 +713,33 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 		return ret
 	}).Iterator()
 
-	return iterator.Map(itr, func(v string) lookupTarget {
+	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
+		ret := option.Iterator(r.scope.PrimitiveScope.FindByName(v, f))
+
+		if f.TypeArgs.Size() > 0 {
+			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
+				return v.Name()
+			})
+
+			if tnames.ForAll(fp.Option[string].IsDefined) {
+				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
+				r := r.scope.PrimitiveScope.Find(f)
+				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
+				//fixed := option.Iterator(r)
+				return r.Iterator().Concat(ret)
+			}
+		}
+		return ret
+	})
+
+	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{
 			instanceOf: f,
 			pk:         r.tc.PrimitiveInstancePkg,
-			name:       v,
-			required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
-				return metafp.RequiredInstance{
-					TypeClass: r.tc.TypeClass,
-					Type:      v,
-				}
-			}),
-		}.lookup()
-	}).Filter(func(lt lookupTarget) bool {
-		return lt.available(r.genSet)
+			name:       v.Name,
+			required:   v.RequiredInstance,
+			instance:   v.Instance,
+		}
 	}).Head()
 
 }
@@ -889,6 +901,7 @@ type TypeClassSummonContext struct {
 	tc      metafp.TypeClassDerive
 	genSet  mutable.Set[string]
 	tcCache *metafp.TypeClassInstanceCache
+	scope   metafp.TypeClassScope
 }
 
 type GenericRepr struct {
@@ -1312,6 +1325,7 @@ func genDerive() {
 				tc:      v,
 				genSet:  genSet,
 				tcCache: &tccache,
+				scope:   tccache.Get(v),
 			}
 
 			valuetpdec := ""

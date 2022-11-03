@@ -167,6 +167,7 @@ type TypeClassInstance struct {
 	Name     string
 	Static   bool
 	Implicit bool
+	Instance types.Object
 	Type     TypeInfo
 	Result   TypeInfo
 	Under    TypeInfo
@@ -313,6 +314,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
+	// fmt.Printf("check %s.%s : %t, %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType.TypeParam.Size())
 
 	if argType.IsTypeParam() {
 
@@ -333,6 +335,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 	// func[T any]() Eq[Tuple[T]] 인경우
 	// Tuple[T] 와  t 를 비교해야 함
 	if argType.TypeParam.Size() > 0 {
+
 		check := t.IsInstantiatedOf(r.Type.TypeParam, argType)
 		if check.Ok {
 			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
@@ -415,9 +418,8 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 
 	found.ByName = found.ByName.Updated(ins.Name, ins)
 
-	r.tcMap = r.tcMap.Updated(tc.TypeClass.Id(),
-		list.FilterNot(pkPred).Append(found),
-	)
+	newList := list.FilterNot(pkPred).Append(found)
+	r.tcMap = r.tcMap.Updated(tc.TypeClass.Id(), newList)
 
 	return found
 }
@@ -427,7 +429,6 @@ type TypeClassScope struct {
 	Target         TypeClassDerive
 	WorkingScope   TypeClassInstancesOfPackage
 	PrimitiveScope TypeClassInstancesOfPackage
-	TargetScope    fp.Option[TypeClassInstancesOfPackage]
 	Others         fp.Seq[TypeClassInstancesOfPackage]
 }
 
@@ -435,14 +436,11 @@ func (r *TypeClassInstanceCache) Get(tc TypeClassDerive) TypeClassScope {
 
 	working := r.Load(tc.Package, tc.TypeClass)
 	prim := r.Load(tc.PrimitiveInstancePkg, tc.TypeClass)
-	target := option.Map(option.Of(tc.DeriveFor.Package), as.Func2(r.Load).ApplyLast(tc.TypeClass))
 
 	others := r.tcMap.Get(tc.TypeClass.Id()).OrZero().FilterNot(func(v TypeClassInstancesOfPackage) bool {
 		return v.Package.Path() == working.Package.Path()
 	}).FilterNot(func(v TypeClassInstancesOfPackage) bool {
 		return v.Package.Path() == prim.Package.Path()
-	}).FilterNot(func(v TypeClassInstancesOfPackage) bool {
-		return target.IsDefined() && target.Get().Package.Path() == v.Package.Path()
 	})
 
 	return TypeClassScope{
@@ -450,7 +448,6 @@ func (r *TypeClassInstanceCache) Get(tc TypeClassDerive) TypeClassScope {
 		Target:         tc,
 		WorkingScope:   working,
 		PrimitiveScope: prim,
-		TargetScope:    target,
 		Others:         others,
 	}
 
@@ -464,6 +461,8 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 
 		All: seq.Empty[TypeClassInstance](),
 	}
+	// fmt.Printf("Searching instances of %s from %s", tc.Name, pk.Path())
+	// fmt.Println()
 	for _, name := range pk.Scope().Names() {
 		ins := pk.Scope().Lookup(name)
 
@@ -484,6 +483,7 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 						Type:     insType,
 						Result:   rType,
 						Under:    under,
+						Instance: ins,
 					}
 					ret.ByName = ret.ByName.Updated(name, tins)
 					ret.All = ret.All.Append(tins)
@@ -518,6 +518,7 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 							TypeParam:        insType.TypeParam,
 							RequiredInstance: required,
 							Under:            under,
+							Instance:         ins,
 						}
 						ret.ByName = ret.ByName.Updated(name, tins)
 						ret.All = ret.All.Append(tins)
@@ -532,6 +533,7 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 					Type:     insType,
 					Result:   insType,
 					Under:    under,
+					Instance: ins,
 				}
 				ret.ByName = ret.ByName.Updated(name, tins)
 				//fmt.Printf("add fixed type %s -> %s\n", name, under.Type.String())
