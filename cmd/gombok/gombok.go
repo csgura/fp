@@ -532,7 +532,7 @@ type lookupTarget struct {
 	instanceOf metafp.TypeInfo
 	pk         *types.Package
 	name       string
-	typeArgs   fp.Seq[metafp.TypeInfo]
+	required   fp.Seq[metafp.RequiredInstance]
 	typeParam  bool
 	instance   types.Object
 	// tc       *TypeClass
@@ -582,15 +582,25 @@ func (r lookupTarget) instanceExpr(w metafp.Writer, workingPkg *types.Package) s
 }
 
 func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name string) lookupTarget {
+
 	return lookupTarget{
 		instanceOf: f,
 		pk:         r.tc.Package,
 		name:       r.tc.TypeClass.Name + publicName(name),
-		typeArgs:   f.TypeArgs,
+		required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
+			return metafp.RequiredInstance{
+				TypeClass: r.tc.TypeClass,
+				Type:      v,
+			}
+		}),
 	}
 }
 
+// f 는 Eq 쌓이지 않은 타입
+// Eq[T] 같은거 아님
 func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.TypeInfo, name ...string) fp.Option[lookupTarget] {
+
+	scope := r.tcCache.Get(r.tc)
 
 	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
 		if f.Pkg != nil && r.tc.Package.Path() != f.Pkg.Path() {
@@ -603,13 +613,8 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 		return []string{r.tc.TypeClass.Name + publicName(v)}
 	}).Iterator()
 
-	return iterator.FlatMap(itr, func(v string) fp.Iterator[lookupTarget] {
-		ret := iterator.Of(lookupTarget{
-			instanceOf: f,
-			pk:         r.tc.Package,
-			name:       v,
-			typeArgs:   f.TypeArgs,
-		}.lookup())
+	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
+		ret := option.Iterator(scope.WorkingScope.FindByName(v))
 
 		if f.TypeArgs.Size() > 0 {
 			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
@@ -617,19 +622,26 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 			})
 
 			if tnames.ForAll(fp.Option[string].IsDefined) {
-				n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
-				return iterator.Concat(lookupTarget{
-					instanceOf: f,
-					pk:         r.tc.Package,
-					name:       v + n,
-				}.lookup(), ret)
+				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
+				r := scope.WorkingScope.Find(f)
+				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
+				//fixed := option.Iterator(r)
+				return r.Iterator().Concat(ret)
 			}
 		}
-
 		return ret
+	})
 
-	}).Filter(func(lt lookupTarget) bool {
-		return lt.available(r.genSet)
+	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
+		return lookupTarget{
+			instanceOf: f,
+			pk:         r.tc.Package,
+			name:       v.Name,
+
+			// 함수의 아규먼트는 Eq 가 포함 되어 있음.
+			required: v.RequiredInstance,
+		}
+
 	}).Head()
 
 }
@@ -707,7 +719,12 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 			instanceOf: f,
 			pk:         r.tc.PrimitiveInstancePkg,
 			name:       v,
-			typeArgs:   f.TypeArgs,
+			required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
+				return metafp.RequiredInstance{
+					TypeClass: r.tc.TypeClass,
+					Type:      v,
+				}
+			}),
 		}.lookup()
 	}).Filter(func(lt lookupTarget) bool {
 		return lt.available(r.genSet)
@@ -722,7 +739,12 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceTypePkg(f metafp.TypeInfo
 			instanceOf: f,
 			pk:         f.Pkg,
 			name:       r.tc.TypeClass.Name + publicName(name),
-			typeArgs:   f.TypeArgs,
+			required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
+				return metafp.RequiredInstance{
+					TypeClass: r.tc.TypeClass,
+					Type:      v,
+				}
+			}),
 		}.lookup()
 
 		if ret.available(r.genSet) {
@@ -752,14 +774,14 @@ func (r TypeClassSummonContext) lookupPrimitiveTypeClassInstance(f metafp.TypeIn
 }
 
 func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
-	if len(lt.typeArgs) > 0 {
-		list := seq.Map(lt.typeArgs, func(t metafp.TypeInfo) string {
-			return r.summon(t)
+	if len(lt.required) > 0 {
+		list := seq.Map(lt.required, func(t metafp.RequiredInstance) string {
+			return r.summon(t.Type)
 		}).MakeString(",")
 		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w, r.tc.Package), list)
 	}
 
-	if lt.isFunc() && len(lt.typeArgs) == 0 {
+	if lt.isFunc() && len(lt.required) == 0 {
 		return fmt.Sprintf("%s[%s]()", lt.instanceExpr(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, lt.instanceOf.Type))
 	}
 

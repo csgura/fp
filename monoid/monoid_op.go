@@ -173,3 +173,11 @@ func IMap[A, B any](instance fp.Monoid[A], fab func(A) B, fba func(B) A) fp.Mono
 type Derives[T any] interface {
 	Target() T
 }
+
+func MergeMap[K, V any]() fp.Monoid[fp.Map[K, V]] {
+	return New(func() fp.Map[K, V] {
+		return fp.Map[K, V]{}
+	}, func(a, b fp.Map[K, V]) fp.Map[K, V] {
+		return a.Concat(b)
+	})
+}

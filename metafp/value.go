@@ -154,6 +154,20 @@ type TypeInfo struct {
 	Method    fp.Map[string, *types.Func]
 }
 
+func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) TypeInfo {
+
+	if r.IsTypeParam() {
+		return mapping.Get(r.Name().Get()).OrElse(r)
+	}
+
+	newArgs := seq.Map(r.TypeArgs, func(v TypeInfo) TypeInfo {
+		return v.ReplaceTypeParam(mapping)
+	})
+
+	r.TypeArgs = newArgs
+	return r
+}
+
 func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
 	if p1 == nil && p2 == nil {
 		return true
@@ -166,21 +180,21 @@ func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
 }
 
 // Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
-func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) bool {
+func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
 
 	// package가 동일해야 함
 	if !isSamePkg(r.Pkg, genericType.Pkg) {
-		return false
+		return ConstraintCheckResult{}
 	}
 
 	// 타입 이름이 동일해야 함
 	if r.Name().OrZero() != genericType.Name().OrZero() {
-		return false
+		return ConstraintCheckResult{}
 	}
 
 	// 타입 아규먼트 개수가 동일해야 함
 	if r.TypeArgs.Size() != genericType.TypeArgs.Size() {
-		return false
+		return ConstraintCheckResult{}
 	}
 
 	return ConstraintCheck(typeParam, genericType, r.TypeArgs)
@@ -260,6 +274,31 @@ func (r TypeInfo) NumArgs() int {
 		return at.Params().Len()
 	}
 	return 0
+}
+
+type atLen[T any] interface {
+	Len() int
+	At(int) T
+}
+
+func atLenToSeq[T any, A atLen[T]](a A) fp.Seq[T] {
+	return iterator.Map(iterator.Range(0, a.Len()), func(idx int) T {
+		return a.At(idx)
+	}).ToSeq()
+}
+
+func (r TypeInfo) FuncArgs() fp.Seq[TypeInfo] {
+	switch at := r.Type.(type) {
+	case *types.Signature:
+		if at.Params() == nil {
+			return nil
+		}
+		ret := atLenToSeq[*types.Var](at.Params())
+		return seq.Map(ret, func(v *types.Var) TypeInfo {
+			return typeInfo(v.Type())
+		})
+	}
+	return nil
 }
 
 func (r TypeInfo) Name() fp.Option[string] {

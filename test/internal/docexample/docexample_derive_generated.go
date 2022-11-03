@@ -27,7 +27,7 @@ var EqCar = eq.ContraMap(
 )
 
 var EqCarsOwned = eq.ContraMap(
-	eq.Tuple2(EqPerson, eq.Seq(EqCar)),
+	eq.Tuple2(EqPerson, EqFpSeqCar),
 	CarsOwned.AsTuple,
 )
 
