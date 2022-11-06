@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
@@ -171,4 +172,9 @@ var ReadWorld = read.Generic(
 			read.HNil,
 		),
 	),
+)
+
+var EqTestOrderedEq = eq.ContraMap(
+	eq.Tuple1(EqSeq(eq.Given[int](), ord.Int)),
+	TestOrderedEq.AsTuple,
 )

@@ -5,6 +5,8 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/ord"
+	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
@@ -109,3 +111,22 @@ var _ read.Derives[read.Read[World]]
 type Wrapper[T any] struct {
 	unwrap T
 }
+
+// @fp.Value
+type TestOrderedEq struct {
+	list fp.Seq[int]
+}
+
+func EqSeq[T any](eqT fp.Eq[T], ordT fp.Ord[T]) fp.Eq[fp.Seq[T]] {
+	return eq.New(func(a, b fp.Seq[T]) bool {
+		asorted := seq.Sort(a, ordT)
+		bsorted := seq.Sort(b, ordT)
+		return eq.Seq(eqT).Eqv(asorted, bsorted)
+	})
+}
+
+// @fp.ImportGiven
+var _ ord.Derives[fp.Ord[any]]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[TestOrderedEq]]

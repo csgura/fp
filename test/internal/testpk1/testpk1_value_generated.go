@@ -646,6 +646,74 @@ func (r WrapperBuilder[T]) FromMap(m map[string]any) WrapperBuilder[T] {
 	return r
 }
 
+type TestOrderedEqBuilder TestOrderedEq
+
+type TestOrderedEqMutable struct {
+	List fp.Seq[int]
+}
+
+func (r TestOrderedEqBuilder) Build() TestOrderedEq {
+	return TestOrderedEq(r)
+}
+
+func (r TestOrderedEq) Builder() TestOrderedEqBuilder {
+	return TestOrderedEqBuilder(r)
+}
+
+func (r TestOrderedEq) List() fp.Seq[int] {
+	return r.list
+}
+
+func (r TestOrderedEq) WithList(v fp.Seq[int]) TestOrderedEq {
+	r.list = v
+	return r
+}
+
+func (r TestOrderedEqBuilder) List(v fp.Seq[int]) TestOrderedEqBuilder {
+	r.list = v
+	return r
+}
+
+func (r TestOrderedEq) String() string {
+	return fmt.Sprintf("TestOrderedEq(list=%v)", r.list)
+}
+
+func (r TestOrderedEq) AsTuple() fp.Tuple1[fp.Seq[int]] {
+	return as.Tuple1(r.list)
+}
+
+func (r TestOrderedEq) AsMutable() TestOrderedEqMutable {
+	return TestOrderedEqMutable{
+		List: r.list,
+	}
+}
+
+func (r TestOrderedEqMutable) AsImmutable() TestOrderedEq {
+	return TestOrderedEq{
+		list: r.List,
+	}
+}
+
+func (r TestOrderedEqBuilder) FromTuple(t fp.Tuple1[fp.Seq[int]]) TestOrderedEqBuilder {
+	r.list = t.I1
+	return r
+}
+
+func (r TestOrderedEq) AsMap() map[string]any {
+	return map[string]any{
+		"list": r.list,
+	}
+}
+
+func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
+
+	if v, ok := m["list"].(fp.Seq[int]); ok {
+		r.list = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

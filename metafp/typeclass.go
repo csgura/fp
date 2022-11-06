@@ -185,7 +185,8 @@ type TypeClassInstancesOfPackage struct {
 }
 
 func (r TypeClassInstancesOfPackage) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
-	return option.FlatMap(r.ByName.Get(name), as.Func2(TypeClassInstance.Check).ApplyLast(t))
+	ret := option.FlatMap(r.ByName.Get(name), as.Func2(TypeClassInstance.Check).ApplyLast(t))
+	return ret
 }
 
 type typeCompare struct {
@@ -425,13 +426,32 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 }
 
 type TypeClassScope struct {
-	Cache   *TypeClassInstanceCache
-	Package TypeClassInstancesOfPackage
-	Others  fp.Seq[TypeClassInstancesOfPackage]
+	Cache     *TypeClassInstanceCache
+	Typeclass TypeClass
+	List      fp.Seq[TypeClassInstancesOfPackage]
 }
 
-func (r *TypeClassInstanceCache) GetImported(tc TypeClass) fp.Seq[TypeClassInstancesOfPackage] {
-	return r.tcMap.Get(tc.Id()).OrZero()
+func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
+
+	ret := iterator.Map(r.List.Iterator(), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+		return p.FindByName(name, t)
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).Head()
+
+	return option.Flatten(ret)
+}
+
+func (r TypeClassScope) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
+	return seq.FlatMap(r.List, func(p TypeClassInstancesOfPackage) fp.Seq[TypeClassInstance] {
+		return p.Find(t)
+	})
+}
+
+func (r *TypeClassInstanceCache) GetImported(tc TypeClass) TypeClassScope {
+	return TypeClassScope{
+		Cache:     r,
+		Typeclass: tc,
+		List:      r.tcMap.Get(tc.Id()).OrZero(),
+	}
 }
 
 func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassScope {
@@ -443,9 +463,9 @@ func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassS
 	})
 
 	return TypeClassScope{
-		Cache:   r,
-		Package: working,
-		Others:  others,
+		Cache:     r,
+		Typeclass: tc,
+		List:      seq.Concat(working, others),
 	}
 
 }
