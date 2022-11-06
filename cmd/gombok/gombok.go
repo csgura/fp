@@ -581,15 +581,16 @@ func (r lookupTarget) instanceExpr(w metafp.Writer, workingPkg *types.Package) s
 
 }
 
-func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name string) lookupTarget {
+func (r TypeClassSummonContext) typeclassInstanceMust(req metafp.RequiredInstance, name string) lookupTarget {
 
+	f := req.Type
 	return lookupTarget{
 		instanceOf: f,
 		pk:         r.tc.Package,
-		name:       r.tc.TypeClass.Name + publicName(name),
+		name:       req.TypeClass.Name + publicName(name),
 		required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
-				TypeClass: r.tc.TypeClass,
+				TypeClass: req.TypeClass,
 				Type:      v,
 			}
 		}),
@@ -598,21 +599,27 @@ func (r TypeClassSummonContext) typeclassInstanceMust(f metafp.TypeInfo, name st
 
 // f 는 Eq 쌓이지 않은 타입
 // Eq[T] 같은거 아님
-func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.TypeInfo, name ...string) fp.Option[lookupTarget] {
+func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(req metafp.RequiredInstance, name ...string) fp.Option[lookupTarget] {
 
+	f := req.Type
+
+	scope := r.workingScope
+	if req.TypeClass.Id() != r.tc.TypeClass.Id() {
+		scope = r.tcCache.Get(r.tc.Package, req.TypeClass)
+	}
 	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
 		if f.Pkg != nil && r.tc.Package.Path() != f.Pkg.Path() {
 			return []string{
-				r.tc.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v),
-				r.tc.TypeClass.Name + publicName(v),
+				req.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v),
+				req.TypeClass.Name + publicName(v),
 			}
 
 		}
-		return []string{r.tc.TypeClass.Name + publicName(v)}
+		return []string{req.TypeClass.Name + publicName(v)}
 	}).Iterator()
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		ret := option.Iterator(r.scope.WorkingScope.FindByName(v, f))
+		ret := option.Iterator(scope.Package.FindByName(v, f))
 
 		if f.TypeArgs.Size() > 0 {
 			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
@@ -621,7 +628,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(f metafp.Ty
 
 			if tnames.ForAll(fp.Option[string].IsDefined) {
 				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
-				r := r.scope.WorkingScope.Find(f)
+				r := scope.Package.Find(f)
 				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
 				//fixed := option.Iterator(r)
 				return r.Iterator().Concat(ret)
@@ -691,22 +698,23 @@ func (r TypeClassSummonContext) lookupTypeClassMemberMust(name string) typeClass
 	return typeClassMember{r.tc.Package, nameWithTc, nil}
 }
 
-func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(f metafp.TypeInfo, name ...string) func() fp.Option[lookupTarget] {
+func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(req metafp.RequiredInstance, name ...string) func() fp.Option[lookupTarget] {
 	return func() fp.Option[lookupTarget] {
-		return r.lookupTypeClassInstancePrimitivePkg(f, name...)
+		return r.lookupTypeClassInstancePrimitivePkg(req, name...)
 	}
 }
 
-func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.TypeInfo, name ...string) fp.Option[lookupTarget] {
+func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(req metafp.RequiredInstance, name ...string) fp.Option[lookupTarget] {
 
+	f := req.Type
 	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
 		ret := seq.Of(
-			r.tc.TypeClass.Name+publicName(v),
+			req.TypeClass.Name+publicName(v),
 			publicName(v),
 		)
 		if f.Pkg != nil {
 			return seq.Of(
-				r.tc.TypeClass.Name+publicName(f.Pkg.Name())+publicName(v),
+				req.TypeClass.Name+publicName(f.Pkg.Name())+publicName(v),
 				publicName(f.Pkg.Name())+publicName(v),
 			).Concat(ret)
 		}
@@ -714,7 +722,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 	}).Iterator()
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		ret := option.Iterator(r.scope.PrimitiveScope.FindByName(v, f))
+		ret := option.Iterator(r.primScope.Package.FindByName(v, f))
 
 		if f.TypeArgs.Size() > 0 {
 			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
@@ -723,7 +731,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 
 			if tnames.ForAll(fp.Option[string].IsDefined) {
 				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
-				r := r.scope.PrimitiveScope.Find(f)
+				r := r.primScope.Package.Find(f)
 				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
 				//fixed := option.Iterator(r)
 				return r.Iterator().Concat(ret)
@@ -744,16 +752,17 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(f metafp.Typ
 
 }
 
-func (r TypeClassSummonContext) lookupTypeClassInstanceTypePkg(f metafp.TypeInfo, name string) fp.Option[lookupTarget] {
+func (r TypeClassSummonContext) lookupTypeClassInstanceTypePkg(req metafp.RequiredInstance, name string) fp.Option[lookupTarget] {
 
+	f := req.Type
 	if f.Pkg != nil && f.Pkg.Path() != r.tc.Package.Path() {
 		ret := lookupTarget{
 			instanceOf: f,
 			pk:         f.Pkg,
-			name:       r.tc.TypeClass.Name + publicName(name),
+			name:       req.TypeClass.Name + publicName(name),
 			required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
 				return metafp.RequiredInstance{
-					TypeClass: r.tc.TypeClass,
+					TypeClass: req.TypeClass,
 					Type:      v,
 				}
 			}),
@@ -767,28 +776,28 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceTypePkg(f metafp.TypeInfo
 	return option.None[lookupTarget]()
 }
 
-func (r TypeClassSummonContext) namedLookup(f metafp.TypeInfo, name string) typeClassInstance {
-	ret := r.lookupTypeClassInstanceLocalDeclared(f, name).Or(lazy.Func2(r.lookupTypeClassInstanceTypePkg)(f, name)).Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, name))
+func (r TypeClassSummonContext) namedLookup(req metafp.RequiredInstance, name string) typeClassInstance {
+	ret := r.lookupTypeClassInstanceLocalDeclared(req, name).Or(lazy.Func2(r.lookupTypeClassInstanceTypePkg)(req, name)).Or(r.lookupTypeClassInstancePrimitivePkgLazy(req, name))
 
 	return typeClassInstance{
 		ret,
-		r.typeclassInstanceMust(f, name),
+		r.typeclassInstanceMust(req, name),
 	}
 }
 
-func (r TypeClassSummonContext) lookupPrimitiveTypeClassInstance(f metafp.TypeInfo, name ...string) typeClassInstance {
-	ret := r.lookupTypeClassInstanceLocalDeclared(f, name...).Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, name...))
+func (r TypeClassSummonContext) lookupPrimitiveTypeClassInstance(req metafp.RequiredInstance, name ...string) typeClassInstance {
+	ret := r.lookupTypeClassInstanceLocalDeclared(req, name...).Or(r.lookupTypeClassInstancePrimitivePkgLazy(req, name...))
 
 	return typeClassInstance{
 		ret,
-		r.typeclassInstanceMust(f, name[0]),
+		r.typeclassInstanceMust(req, name[0]),
 	}
 }
 
 func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
 	if len(lt.required) > 0 {
 		list := seq.Map(lt.required, func(t metafp.RequiredInstance) string {
-			return r.summon(t.Type)
+			return r.summon(t)
 		}).MakeString(",")
 		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w, r.tc.Package), list)
 	}
@@ -804,7 +813,10 @@ func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
 func (r TypeClassSummonContext) exprTypeClassMember(lt typeClassMember, typeArgs fp.Seq[metafp.TypeInfo]) string {
 	if len(typeArgs) > 0 {
 		list := seq.Map(typeArgs, func(t metafp.TypeInfo) string {
-			return r.summon(t)
+			return r.summon(metafp.RequiredInstance{
+				TypeClass: r.tc.TypeClass,
+				Type:      t,
+			})
 		}).MakeString(",")
 		return fmt.Sprintf("%s(%s)", lt.PackagedName(r.w, r.tc.Package), list)
 	}
@@ -837,54 +849,60 @@ func newTypeClassInstance(t lookupTarget) typeClassInstance {
 	}
 }
 
-func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeClassInstance {
+func (r TypeClassSummonContext) lookupTypeClassInstance(req metafp.RequiredInstance) typeClassInstance {
+	f := req.Type
+
 	switch at := f.Type.(type) {
 	case *types.TypeParam:
 		return newTypeClassInstance(lookupTarget{
 			instanceOf: f,
-			name:       privateName(r.tc.TypeClass.Name) + at.Obj().Name(),
+			name:       privateName(req.TypeClass.Name) + at.Obj().Name(),
 			typeParam:  true,
 		})
 	case *types.Named:
 		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
 			if at.Obj().Name() == "Nil" {
-				return typeClassInstance{r.lookupTypeClassInstanceLocalDeclared(f, "HNil", "HListNil").
-					Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, "HNil", "HListNil")),
-					r.typeclassInstanceMust(f, "HNil"),
+				return typeClassInstance{r.lookupTypeClassInstanceLocalDeclared(req, "HNil", "HListNil").
+					Or(r.lookupTypeClassInstancePrimitivePkgLazy(req, "HNil", "HListNil")),
+					r.typeclassInstanceMust(req, "HNil"),
 				}
 
 			} else if at.Obj().Name() == "Cons" {
 				return typeClassInstance{
-					r.lookupTypeClassInstanceLocalDeclared(f, "HCons", "HListCons").
-						Or(r.lookupTypeClassInstancePrimitivePkgLazy(f, "HCons", "HListCons")),
+					r.lookupTypeClassInstanceLocalDeclared(req, "HCons", "HListCons").
+						Or(r.lookupTypeClassInstancePrimitivePkgLazy(req, "HCons", "HListCons")),
 
-					r.typeclassInstanceMust(f, "HCons"),
+					r.typeclassInstanceMust(req, "HCons"),
 				}
 			}
 		}
-		return r.namedLookup(f, at.Obj().Name())
+		return r.namedLookup(req, at.Obj().Name())
 	case *types.Array:
-		panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
+		panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", req.TypeClass.Name, r.tc.DeriveFor.Name))
 		//return r.namedLookup(f, "Array")
 	case *types.Slice:
 		if at.Elem().String() == "byte" {
-			bytesInstance := r.namedLookup(metafp.TypeInfo{
-				Pkg:      f.Pkg,
-				Type:     f.Type,
-				TypeArgs: nil,
-			}, "Bytes")
+			bytesInstance := r.namedLookup(
+				metafp.RequiredInstance{
+					TypeClass: req.TypeClass,
+					Type: metafp.TypeInfo{
+						Pkg:      f.Pkg,
+						Type:     f.Type,
+						TypeArgs: nil,
+					}}, "Bytes")
+
 			if bytesInstance.available.IsDefined() {
 				return bytesInstance
 			}
-			return r.namedLookup(f, "Slice")
+			return r.namedLookup(req, "Slice")
 		}
-		return r.namedLookup(f, "Slice")
+		return r.namedLookup(req, "Slice")
 	case *types.Map:
-		return r.namedLookup(f, "GoMap")
+		return r.namedLookup(req, "GoMap")
 	case *types.Pointer:
-		return r.namedLookup(f, "Ptr")
+		return r.namedLookup(req, "Ptr")
 	case *types.Basic:
-		return r.namedLookup(f, at.Name())
+		return r.namedLookup(req, at.Name())
 	case *types.Struct:
 		panic(fmt.Sprintf("can't summon unnamed struct type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
 	case *types.Interface:
@@ -893,15 +911,16 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(f metafp.TypeInfo) typeC
 		panic(fmt.Sprintf("can't summon unnamed chan type, while deriving %s[%s]", r.tc.TypeClass.Name, r.tc.DeriveFor.Name))
 
 	}
-	return r.namedLookup(f, f.Type.String())
+	return r.namedLookup(req, f.Type.String())
 }
 
 type TypeClassSummonContext struct {
-	w       metafp.Writer
-	tc      metafp.TypeClassDerive
-	genSet  mutable.Set[string]
-	tcCache *metafp.TypeClassInstanceCache
-	scope   metafp.TypeClassScope
+	w            metafp.Writer
+	tc           metafp.TypeClassDerive
+	genSet       mutable.Set[string]
+	tcCache      *metafp.TypeClassInstanceCache
+	primScope    metafp.TypeClassScope
+	workingScope metafp.TypeClassScope
 }
 
 type GenericRepr struct {
@@ -1142,7 +1161,10 @@ func (r TypeClassSummonContext) summonTupleGenericRepr(typeArgs fp.Seq[metafp.Ty
 			hnil := r.lookupHNilMust()
 
 			hlist := seq.Fold(typeArgs.Reverse(), hnil.PackagedName(r.w, r.tc.Package), func(tail string, ti metafp.TypeInfo) string {
-				instance := r.summon(ti)
+				instance := r.summon(metafp.RequiredInstance{
+					TypeClass: r.tc.TypeClass,
+					Type:      ti,
+				})
 				return fmt.Sprintf(`%s(
 					%s,
 					%s,
@@ -1199,19 +1221,24 @@ func (r TypeClassSummonContext) summonNamed(name string, t metafp.TypeInfo) stri
 	instance := r.lookupTypeClassMemberMust("Named")
 
 	return fmt.Sprintf("%s[NameIs%s[%s]](%s)", instance.PackagedName(r.w, r.tc.Package), publicName(name),
-		r.w.TypeName(r.tc.Package, t.Type), r.summon(t))
+		r.w.TypeName(r.tc.Package, t.Type), r.summon(metafp.RequiredInstance{
+			TypeClass: r.tc.TypeClass,
+			Type:      t,
+		}))
 
 	// pk := r.w.GetImportedName(r.tc.Package)
 	// return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
 }
 
-func (r TypeClassSummonContext) summon(t metafp.TypeInfo) string {
+func (r TypeClassSummonContext) summon(req metafp.RequiredInstance) string {
+
+	t := req.Type
 
 	if t.IsTuple() {
 		return r.summonTuple(t.TypeArgs)
 	}
 
-	result := r.lookupTypeClassInstance(t)
+	result := r.lookupTypeClassInstance(req)
 
 	if result.available.IsDefined() {
 		return r.exprTypeClassInstance(result.available.Get())
@@ -1308,6 +1335,10 @@ func genDerive() {
 
 		tccache := metafp.TypeClassInstanceCache{}
 
+		metafp.FindTypeClassImport(pkgs).Foreach(func(v metafp.TypeClassDirective) {
+			tccache.Load(v.Package, v.TypeClass)
+		})
+
 		genSet := iterator.ToGoSet(iterator.Map(d.Iterator(), func(v metafp.TypeClassDerive) string {
 			tccache.WillGenerated(v)
 			return fmt.Sprintf("%s", v.GeneratedInstanceName())
@@ -1330,11 +1361,12 @@ func genDerive() {
 			})
 
 			summonCtx := TypeClassSummonContext{
-				w:       w,
-				tc:      v,
-				genSet:  genSet,
-				tcCache: &tccache,
-				scope:   tccache.Get(v),
+				w:            w,
+				tc:           v,
+				genSet:       genSet,
+				tcCache:      &tccache,
+				workingScope: tccache.Get(v.Package, v.TypeClass),
+				primScope:    tccache.Get(v.PrimitiveInstancePkg, v.TypeClass),
 			}
 
 			valuetpdec := ""

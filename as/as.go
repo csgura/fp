@@ -45,3 +45,7 @@ func Generic[T, Repr any](tpe string, to func(T) Repr, from func(Repr) T) fp.Gen
 		From: from,
 	}
 }
+
+func Ord[T any](less fp.LessFunc[T]) fp.Ord[T] {
+	return less
+}

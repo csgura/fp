@@ -425,30 +425,27 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 }
 
 type TypeClassScope struct {
-	Cache          *TypeClassInstanceCache
-	Target         TypeClassDerive
-	WorkingScope   TypeClassInstancesOfPackage
-	PrimitiveScope TypeClassInstancesOfPackage
-	Others         fp.Seq[TypeClassInstancesOfPackage]
+	Cache   *TypeClassInstanceCache
+	Package TypeClassInstancesOfPackage
+	Others  fp.Seq[TypeClassInstancesOfPackage]
 }
 
-func (r *TypeClassInstanceCache) Get(tc TypeClassDerive) TypeClassScope {
+func (r *TypeClassInstanceCache) GetImported(tc TypeClass) fp.Seq[TypeClassInstancesOfPackage] {
+	return r.tcMap.Get(tc.Id()).OrZero()
+}
 
-	working := r.Load(tc.Package, tc.TypeClass)
-	prim := r.Load(tc.PrimitiveInstancePkg, tc.TypeClass)
+func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassScope {
 
-	others := r.tcMap.Get(tc.TypeClass.Id()).OrZero().FilterNot(func(v TypeClassInstancesOfPackage) bool {
+	working := r.Load(pk, tc)
+
+	others := r.tcMap.Get(tc.Id()).OrZero().FilterNot(func(v TypeClassInstancesOfPackage) bool {
 		return v.Package.Path() == working.Package.Path()
-	}).FilterNot(func(v TypeClassInstancesOfPackage) bool {
-		return v.Package.Path() == prim.Package.Path()
 	})
 
 	return TypeClassScope{
-		Cache:          r,
-		Target:         tc,
-		WorkingScope:   working,
-		PrimitiveScope: prim,
-		Others:         others,
+		Cache:   r,
+		Package: working,
+		Others:  others,
 	}
 
 }
@@ -543,5 +540,8 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		}
 
 	}
+	ret.All = seq.Sort(ret.All, as.Ord(func(a, b TypeClassInstance) bool {
+		return a.RequiredInstance.Size() < b.RequiredInstance.Size()
+	}))
 	return ret
 }
