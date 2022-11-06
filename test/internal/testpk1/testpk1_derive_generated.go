@@ -175,6 +175,6 @@ var ReadWorld = read.Generic(
 )
 
 var EqTestOrderedEq = eq.ContraMap(
-	eq.Tuple1(EqSeq(eq.Given[int](), ord.Int)),
+	eq.Tuple1(EqSeq(eq.Given[int](), ord.Given[int]())),
 	TestOrderedEq.AsTuple,
 )

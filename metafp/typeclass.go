@@ -454,6 +454,18 @@ func (r *TypeClassInstanceCache) GetImported(tc TypeClass) TypeClassScope {
 	}
 }
 
+func (r *TypeClassInstanceCache) GetLocal(pk *types.Package, tc TypeClass) TypeClassScope {
+
+	working := r.Load(pk, tc)
+
+	return TypeClassScope{
+		Cache:     r,
+		Typeclass: tc,
+		List:      seq.Of(working),
+	}
+
+}
+
 func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassScope {
 
 	working := r.Load(pk, tc)

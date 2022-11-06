@@ -88,8 +88,6 @@ func Given[T fp.ImplicitOrd]() fp.Ord[T] {
 	return fp.LessGiven[T]()
 }
 
-var Int = Given[int]()
-
 func ContraMap[T, U any](instance fp.Ord[T], fn func(U) T) fp.Ord[U] {
 	return New(eq.ContraMap[T](instance, fn), func(a, b U) bool {
 		return instance.Less(fn(a), fn(b))

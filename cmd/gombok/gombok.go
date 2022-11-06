@@ -622,20 +622,11 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(req metafp.
 		ret := option.Iterator(scope.FindByName(v, f))
 
 		if f.TypeArgs.Size() > 0 {
-			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
-				return v.Name()
-			})
-
-			if tnames.ForAll(fp.Option[string].IsDefined) {
-				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
-				r := scope.Find(f)
-				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
-				//fixed := option.Iterator(r)
-				return r.Iterator().Concat(ret)
-			}
+			r := scope.Find(f)
+			return r.Iterator().Concat(ret)
 		}
 		return ret
-	})
+	}).Concat(scope.Find(f).Iterator())
 
 	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{
@@ -729,20 +720,11 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(req metafp.R
 		ret := option.Iterator(scope.FindByName(v, f))
 
 		if f.TypeArgs.Size() > 0 {
-			tnames := seq.Map(f.TypeArgs, func(v metafp.TypeInfo) fp.Option[string] {
-				return v.Name()
-			})
-
-			if tnames.ForAll(fp.Option[string].IsDefined) {
-				//n := iterator.Map(tnames.Iterator(), fp.Option[string].Get).MakeString("")
-				r := scope.Find(f)
-				//fmt.Printf("find %s , type = %s , result = %v\n", v+n, f.Type.String(), r)
-				//fixed := option.Iterator(r)
-				return r.Iterator().Concat(ret)
-			}
+			r := scope.Find(f)
+			return r.Iterator().Concat(ret)
 		}
 		return ret
-	})
+	}).Concat(scope.Find(f).Iterator())
 
 	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{
@@ -1370,7 +1352,7 @@ func genDerive() {
 				tc:           v,
 				genSet:       genSet,
 				tcCache:      &tccache,
-				workingScope: tccache.Get(v.Package, v.TypeClass),
+				workingScope: tccache.GetLocal(v.Package, v.TypeClass),
 				primScope:    tccache.Get(v.PrimitiveInstancePkg, v.TypeClass),
 			}
 
