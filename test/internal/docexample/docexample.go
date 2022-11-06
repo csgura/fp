@@ -63,16 +63,19 @@ type CarsOwned struct {
 	cars  fp.Seq[Car]
 }
 
-var EqFpSeqCar = eq.New(func(a, b fp.Seq[Car]) bool {
-	ordCar := ord.New(EqCar, func(a, b Car) bool {
-		return a.year < b.year
+// @fp.Derive
+var _ ord.Derives[fp.Ord[Car]]
+
+func EqSortSeq[T any](eqT fp.Eq[T], ordT fp.Ord[T]) fp.Eq[fp.Seq[T]] {
+	return eq.New(func(a, b fp.Seq[T]) bool {
+
+		asorted := seq.Sort(a, ordT)
+
+		bsorted := seq.Sort(a, ordT)
+
+		return eq.Seq(eqT).Eqv(asorted, bsorted)
 	})
-	asorted := seq.Sort(a, ordCar)
-
-	bsorted := seq.Sort(a, ordCar)
-
-	return eq.Seq(EqCar).Eqv(asorted, bsorted)
-})
+}
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[CarsOwned]]
