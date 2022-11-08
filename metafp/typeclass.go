@@ -503,7 +503,7 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 
 			if insType.IsFunc() {
 
-				if insType.NumArgs() == 0 {
+				if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 					tins := TypeClassInstance{
 						Package:  pk,
 						Name:     name,
@@ -573,7 +573,11 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 
 	}
 	ret.All = seq.Sort(ret.All, as.Ord(func(a, b TypeClassInstance) bool {
+		if !a.Implicit && b.Implicit {
+			return false
+		}
 		return a.RequiredInstance.Size() < b.RequiredInstance.Size()
+
 	}))
 	return ret
 }

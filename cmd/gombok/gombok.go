@@ -619,14 +619,14 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(req metafp.
 	}).Iterator()
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		ret := option.Iterator(scope.FindByName(v, f))
+		return option.Iterator(scope.FindByName(v, f))
+	})
 
-		if f.TypeArgs.Size() > 0 {
-			r := scope.Find(f)
-			return r.Iterator().Concat(ret)
-		}
-		return ret
-	}).Concat(scope.Find(f).Iterator())
+	if f.TypeArgs.Size() > 0 {
+		ins = scope.Find(f).Iterator().Concat(ins)
+	} else {
+		ins = ins.Concat(scope.Find(f).Iterator())
+	}
 
 	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{
@@ -717,14 +717,14 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(req metafp.R
 	}).Iterator()
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		ret := option.Iterator(scope.FindByName(v, f))
-
-		if f.TypeArgs.Size() > 0 {
-			r := scope.Find(f)
-			return r.Iterator().Concat(ret)
-		}
-		return ret
+		return option.Iterator(scope.FindByName(v, f))
 	}).Concat(scope.Find(f).Iterator())
+
+	if f.TypeArgs.Size() > 0 {
+		ins = scope.Find(f).Iterator().Concat(ins)
+	} else {
+		ins = ins.Concat(scope.Find(f).Iterator())
+	}
 
 	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{

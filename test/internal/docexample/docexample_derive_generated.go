@@ -6,8 +6,8 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/ord"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
@@ -33,7 +33,7 @@ var OrdCar = ord.ContraMap(
 )
 
 var EqCarsOwned = eq.ContraMap(
-	eq.Tuple2(EqPerson, EqSortSeq(EqCar, OrdCar)),
+	eq.Tuple2(EqPerson, eq.Seq(EqCar)),
 	CarsOwned.AsTuple,
 )
 
@@ -46,7 +46,11 @@ var ShowAddress = show.Generic(
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[string, string, string],
+			as.Func2(
+				hlist.Case3[string, string, string, hlist.Nil, fp.Tuple3[string, string, string]],
+			).ApplyLast(
+				as.Tuple3[string, string, string],
+			),
 			fp.Compose(
 				as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
 				AddressBuilder.Build,
