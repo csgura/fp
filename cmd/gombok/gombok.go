@@ -576,6 +576,10 @@ func (r TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(req metafp.
 		return option.Iterator(scope.FindByName(v, f))
 	})
 
+	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+		return r.checkRequired(tci.RequiredInstance)
+	})
+
 	if f.TypeArgs.Size() > 0 {
 		ins = scope.Find(f).Iterator().Concat(ins)
 	} else {
@@ -661,6 +665,20 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(req meta
 	}
 }
 
+func (r TypeClassSummonContext) checkRequired(required fp.Seq[metafp.RequiredInstance]) bool {
+	for _, v := range required {
+		if v.Type.IsTuple() {
+
+		} else {
+			res := r.lookupTypeClassInstance(v)
+			if res.available.IsEmpty() {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(req metafp.RequiredInstance, name ...string) fp.Option[lookupTarget] {
 
 	scope := r.primScope
@@ -691,6 +709,10 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(req metafp.R
 	} else {
 		ins = ins.Concat(scope.Find(f).Iterator())
 	}
+
+	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+		return r.checkRequired(tci.RequiredInstance)
+	})
 
 	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{

@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
-	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -18,7 +17,7 @@ import (
 )
 
 var EqPerson = eq.ContraMap(
-	eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Given[fp.Option[string]](), eq.Slice(eq.String), eq.Given[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]](), EqFpSeq(EqFloat64), eq.Bytes),
+	eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Given[int](), eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes),
 	Person.AsTuple,
 )
 
@@ -136,11 +135,11 @@ var ShowThree = show.Generic(
 		),
 	),
 	show.HCons(
-		show.Given[int](),
+		show.Int[int](),
 		show.HCons(
 			show.String,
 			show.HCons(
-				show.Given[float64](),
+				show.Number[float64](),
 				show.HNil,
 			),
 		),

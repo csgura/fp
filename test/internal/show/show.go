@@ -24,6 +24,14 @@ var String = New(func(t string) string {
 	return fmt.Sprintf(`"%s"`, t)
 })
 
+func Int[T fp.ImplicitInt]() fp.Show[T] {
+	return fp.Sprint[T]()
+}
+
+func Number[T fp.ImplicitNum]() fp.Show[T] {
+	return fp.Sprint[T]()
+}
+
 func Given[T any]() fp.Show[T] {
 	return fp.Sprint[T]()
 }

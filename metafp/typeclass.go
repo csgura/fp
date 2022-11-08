@@ -620,10 +620,26 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 	}
 	ret.All = seq.Sort(ret.All, as.Ord(func(a, b TypeClassInstance) bool {
 		if !a.Implicit && b.Implicit {
+			return true
+		}
+
+		if a.Implicit && !b.Implicit {
 			return false
+		}
+
+		if a.Implicit && b.Implicit {
+			consA := a.Type.TypeParam.Head().Get().Constraint.Underlying()
+			consB := b.Type.TypeParam.Head().Get().Constraint.Underlying()
+
+			return types.Implements(consA, consB.(*types.Interface))
+
 		}
 		return a.RequiredInstance.Size() < b.RequiredInstance.Size()
 
 	}))
+	// ord := seq.Map(ret.All, func(v TypeClassInstance) string {
+	// 	return v.Name
+	// }).MakeString(",")
+	// fmt.Printf("%s sorted =%s\n", tc.Name, ord)
 	return ret
 }

@@ -101,7 +101,7 @@ var ShowHListInsideHList = show.Generic(
 		show.Generic(as.Generic("", as.HList2[string, int], product.TupleFromHList2[string, int]), show.HCons(
 			show.String,
 			show.HCons(
-				show.Given[int](),
+				show.Int[int](),
 				show.HNil,
 			),
 		)),
