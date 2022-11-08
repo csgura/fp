@@ -260,7 +260,7 @@ func (r *Address) UnmarshalJSON(b []byte) error {
 ```
 As above, MarshalJSON and UnmarshalJSON methods are generated.
 
-## 4. @fp.GenLabelled
+# 4. @fp.GenLabelled
 ```go
 // @fp.Value
 // @fp.GenLabelled
@@ -304,7 +304,7 @@ func (r NameIsCompany[T]) WithValue(v T) NameIsCompany[T] {
 }
 ```
 
-## 5. Types that have type parameters.
+# 5. Types that have type parameters.
 ```go
 // @fp.Value
 type Entry[A comparable, B any] struct {
@@ -331,7 +331,7 @@ func (r Entry[A, B]) WithKey(v A) Entry[A, B] {
 }
 ```
 
-## 6. @fp.Derive
+# 6. @fp.Derive
 ```go
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Person]]
@@ -438,7 +438,7 @@ type Generic[T, Repr any] struct {
 }
 ```
 
-## 7. @fp.ImportGiven
+# 7. @fp.ImportGiven
 ```go
 // @fp.ImportGiven
 var _ ord.Derives[fp.Ord[any]]
