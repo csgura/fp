@@ -3,6 +3,7 @@ package monoid
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/future"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
@@ -74,7 +75,7 @@ func Future[T any](m fp.Monoid[T]) fp.Monoid[fp.Future[T]] {
 	)
 }
 
-func Seq[T any]() fp.Monoid[fp.Seq[T]] {
+func MergeSeq[T any]() fp.Monoid[fp.Seq[T]] {
 	return New(
 		func() fp.Seq[T] {
 			return seq.Of[T]()
@@ -83,6 +84,12 @@ func Seq[T any]() fp.Monoid[fp.Seq[T]] {
 			return a.Concat(b)
 		},
 	)
+}
+
+func MergeSlice[T any]() fp.Monoid[[]T] {
+	return IMap(MergeSeq[T](), func(b fp.Seq[T]) []T {
+		return b
+	}, as.Seq[T])
 }
 
 var HNil fp.Monoid[hlist.Nil] = fp.SemigroupFunc[hlist.Nil](func(a, b hlist.Nil) hlist.Nil {

@@ -3,6 +3,7 @@ package ord
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/option"
@@ -66,6 +67,10 @@ func Seq[T any](ord fp.Ord[T]) fp.Ord[fp.Seq[T]] {
 		}
 		return a.Size() < b.Size()
 	})
+}
+
+func Slice[T any](ord fp.Ord[T]) fp.Ord[[]T] {
+	return ContraMap(Seq(ord), as.Seq[T])
 }
 
 var HNil fp.Ord[hlist.Nil] = New(fp.EqGiven[hlist.Nil](), func(a, b hlist.Nil) bool { return false })

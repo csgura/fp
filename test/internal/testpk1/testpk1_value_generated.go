@@ -805,6 +805,97 @@ func (r MapEqBuilder) FromMap(m map[string]any) MapEqBuilder {
 	return r
 }
 
+type SeqMonoidBuilder SeqMonoid
+
+type SeqMonoidMutable struct {
+	V string
+	S fp.Seq[string]
+}
+
+func (r SeqMonoidBuilder) Build() SeqMonoid {
+	return SeqMonoid(r)
+}
+
+func (r SeqMonoid) Builder() SeqMonoidBuilder {
+	return SeqMonoidBuilder(r)
+}
+
+func (r SeqMonoid) V() string {
+	return r.v
+}
+
+func (r SeqMonoid) WithV(v string) SeqMonoid {
+	r.v = v
+	return r
+}
+
+func (r SeqMonoidBuilder) V(v string) SeqMonoidBuilder {
+	r.v = v
+	return r
+}
+
+func (r SeqMonoid) S() fp.Seq[string] {
+	return r.s
+}
+
+func (r SeqMonoid) WithS(v fp.Seq[string]) SeqMonoid {
+	r.s = v
+	return r
+}
+
+func (r SeqMonoidBuilder) S(v fp.Seq[string]) SeqMonoidBuilder {
+	r.s = v
+	return r
+}
+
+func (r SeqMonoid) String() string {
+	return fmt.Sprintf("SeqMonoid(v=%v, s=%v)", r.v, r.s)
+}
+
+func (r SeqMonoid) AsTuple() fp.Tuple2[string, fp.Seq[string]] {
+	return as.Tuple2(r.v, r.s)
+}
+
+func (r SeqMonoid) AsMutable() SeqMonoidMutable {
+	return SeqMonoidMutable{
+		V: r.v,
+		S: r.s,
+	}
+}
+
+func (r SeqMonoidMutable) AsImmutable() SeqMonoid {
+	return SeqMonoid{
+		v: r.V,
+		s: r.S,
+	}
+}
+
+func (r SeqMonoidBuilder) FromTuple(t fp.Tuple2[string, fp.Seq[string]]) SeqMonoidBuilder {
+	r.v = t.I1
+	r.s = t.I2
+	return r
+}
+
+func (r SeqMonoid) AsMap() map[string]any {
+	return map[string]any{
+		"v": r.v,
+		"s": r.s,
+	}
+}
+
+func (r SeqMonoidBuilder) FromMap(m map[string]any) SeqMonoidBuilder {
+
+	if v, ok := m["v"].(string); ok {
+		r.v = v
+	}
+
+	if v, ok := m["s"].(fp.Seq[string]); ok {
+		r.s = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

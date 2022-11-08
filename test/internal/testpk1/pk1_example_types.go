@@ -5,6 +5,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/test/internal/js"
@@ -139,3 +140,12 @@ type MapEq struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[MapEq]]
+
+// @fp.Value
+type SeqMonoid struct {
+	v string
+	s fp.Seq[string]
+}
+
+// @fp.Derive
+var _ monoid.Derives[fp.Monoid[SeqMonoid]]

@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -182,4 +183,13 @@ var EqTestOrderedEq = eq.ContraMap(
 var EqMapEq = eq.ContraMap(
 	eq.Tuple1(eq.GoMap[string, World](EqWorld)),
 	MapEq.AsTuple,
+)
+
+var MonoidSeqMonoid = monoid.IMap(
+	monoid.Tuple2(monoid.String, monoid.MergeSeq[fp.Seq[string]]()),
+	fp.Compose(
+		as.Curried2(SeqMonoidBuilder.FromTuple)(SeqMonoidBuilder{}),
+		SeqMonoidBuilder.Build,
+	),
+	SeqMonoid.AsTuple,
 )
