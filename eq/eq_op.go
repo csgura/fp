@@ -113,3 +113,20 @@ func GoMap[K comparable, V any](eqV fp.Eq[V]) fp.Eq[map[K]V] {
 		return true
 	})
 }
+
+func FpMap[K, V any](eqV fp.Eq[V]) fp.Eq[fp.Map[K, V]] {
+	return New(func(a, b fp.Map[K, V]) bool {
+		if a.Size() != b.Size() {
+			return false
+		}
+
+		return a.Iterator().ForAll(func(v fp.Tuple2[K, V]) bool {
+			bv := b.Get(v.I1)
+			if bv.IsEmpty() {
+				return false
+			}
+
+			return eqV.Eqv(v.I2, bv.Get())
+		})
+	})
+}

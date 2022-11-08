@@ -196,3 +196,21 @@ func MergeSet[V any]() fp.Monoid[fp.Set[V]] {
 		return a.Concat(b)
 	})
 }
+
+func MergeGoMap[K comparable, V any]() fp.Monoid[map[K]V] {
+	return New(func() map[K]V {
+		return map[K]V{}
+	}, func(a, b map[K]V) map[K]V {
+		ret := map[K]V{}
+
+		for k, v := range a {
+			ret[k] = v
+		}
+
+		for k, v := range b {
+			ret[k] = v
+		}
+
+		return ret
+	})
+}

@@ -22,7 +22,7 @@ func TestMonoid(t *testing.T) {
 	assert.Equal(s2.Reduce(monoid.Sum[string]()), "hello world")
 
 	seqseq := seq.Of(seq.Of(1, 2), seq.Of(3, 4), seq.Of(5, 6))
-	flatten := seqseq.Reduce(monoid.Seq[int]())
+	flatten := seqseq.Reduce(monoid.MergeSeq[int]())
 	fmt.Println(flatten)
 
 	optseq := seq.Of(option.Some(1), option.Some(2))

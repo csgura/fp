@@ -740,7 +740,8 @@ func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
 type MapEqBuilder MapEq
 
 type MapEqMutable struct {
-	M map[string]World
+	M  map[string]World
+	M2 fp.Map[string, World]
 }
 
 func (r MapEqBuilder) Build() MapEq {
@@ -765,34 +766,52 @@ func (r MapEqBuilder) M(v map[string]World) MapEqBuilder {
 	return r
 }
 
-func (r MapEq) String() string {
-	return fmt.Sprintf("MapEq(m=%v)", r.m)
+func (r MapEq) M2() fp.Map[string, World] {
+	return r.m2
 }
 
-func (r MapEq) AsTuple() fp.Tuple1[map[string]World] {
-	return as.Tuple1(r.m)
+func (r MapEq) WithM2(v fp.Map[string, World]) MapEq {
+	r.m2 = v
+	return r
+}
+
+func (r MapEqBuilder) M2(v fp.Map[string, World]) MapEqBuilder {
+	r.m2 = v
+	return r
+}
+
+func (r MapEq) String() string {
+	return fmt.Sprintf("MapEq(m=%v, m2=%v)", r.m, r.m2)
+}
+
+func (r MapEq) AsTuple() fp.Tuple2[map[string]World, fp.Map[string, World]] {
+	return as.Tuple2(r.m, r.m2)
 }
 
 func (r MapEq) AsMutable() MapEqMutable {
 	return MapEqMutable{
-		M: r.m,
+		M:  r.m,
+		M2: r.m2,
 	}
 }
 
 func (r MapEqMutable) AsImmutable() MapEq {
 	return MapEq{
-		m: r.M,
+		m:  r.M,
+		m2: r.M2,
 	}
 }
 
-func (r MapEqBuilder) FromTuple(t fp.Tuple1[map[string]World]) MapEqBuilder {
+func (r MapEqBuilder) FromTuple(t fp.Tuple2[map[string]World, fp.Map[string, World]]) MapEqBuilder {
 	r.m = t.I1
+	r.m2 = t.I2
 	return r
 }
 
 func (r MapEq) AsMap() map[string]any {
 	return map[string]any{
-		"m": r.m,
+		"m":  r.m,
+		"m2": r.m2,
 	}
 }
 
@@ -802,14 +821,20 @@ func (r MapEqBuilder) FromMap(m map[string]any) MapEqBuilder {
 		r.m = v
 	}
 
+	if v, ok := m["m2"].(fp.Map[string, World]); ok {
+		r.m2 = v
+	}
+
 	return r
 }
 
 type SeqMonoidBuilder SeqMonoid
 
 type SeqMonoidMutable struct {
-	V string
-	S fp.Seq[string]
+	V  string
+	S  fp.Seq[string]
+	M  map[string]int
+	M2 fp.Map[string, World]
 }
 
 func (r SeqMonoidBuilder) Build() SeqMonoid {
@@ -848,38 +873,74 @@ func (r SeqMonoidBuilder) S(v fp.Seq[string]) SeqMonoidBuilder {
 	return r
 }
 
-func (r SeqMonoid) String() string {
-	return fmt.Sprintf("SeqMonoid(v=%v, s=%v)", r.v, r.s)
+func (r SeqMonoid) M() map[string]int {
+	return r.m
 }
 
-func (r SeqMonoid) AsTuple() fp.Tuple2[string, fp.Seq[string]] {
-	return as.Tuple2(r.v, r.s)
+func (r SeqMonoid) WithM(v map[string]int) SeqMonoid {
+	r.m = v
+	return r
+}
+
+func (r SeqMonoidBuilder) M(v map[string]int) SeqMonoidBuilder {
+	r.m = v
+	return r
+}
+
+func (r SeqMonoid) M2() fp.Map[string, World] {
+	return r.m2
+}
+
+func (r SeqMonoid) WithM2(v fp.Map[string, World]) SeqMonoid {
+	r.m2 = v
+	return r
+}
+
+func (r SeqMonoidBuilder) M2(v fp.Map[string, World]) SeqMonoidBuilder {
+	r.m2 = v
+	return r
+}
+
+func (r SeqMonoid) String() string {
+	return fmt.Sprintf("SeqMonoid(v=%v, s=%v, m=%v, m2=%v)", r.v, r.s, r.m, r.m2)
+}
+
+func (r SeqMonoid) AsTuple() fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]] {
+	return as.Tuple4(r.v, r.s, r.m, r.m2)
 }
 
 func (r SeqMonoid) AsMutable() SeqMonoidMutable {
 	return SeqMonoidMutable{
-		V: r.v,
-		S: r.s,
+		V:  r.v,
+		S:  r.s,
+		M:  r.m,
+		M2: r.m2,
 	}
 }
 
 func (r SeqMonoidMutable) AsImmutable() SeqMonoid {
 	return SeqMonoid{
-		v: r.V,
-		s: r.S,
+		v:  r.V,
+		s:  r.S,
+		m:  r.M,
+		m2: r.M2,
 	}
 }
 
-func (r SeqMonoidBuilder) FromTuple(t fp.Tuple2[string, fp.Seq[string]]) SeqMonoidBuilder {
+func (r SeqMonoidBuilder) FromTuple(t fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]]) SeqMonoidBuilder {
 	r.v = t.I1
 	r.s = t.I2
+	r.m = t.I3
+	r.m2 = t.I4
 	return r
 }
 
 func (r SeqMonoid) AsMap() map[string]any {
 	return map[string]any{
-		"v": r.v,
-		"s": r.s,
+		"v":  r.v,
+		"s":  r.s,
+		"m":  r.m,
+		"m2": r.m2,
 	}
 }
 
@@ -891,6 +952,14 @@ func (r SeqMonoidBuilder) FromMap(m map[string]any) SeqMonoidBuilder {
 
 	if v, ok := m["s"].(fp.Seq[string]); ok {
 		r.s = v
+	}
+
+	if v, ok := m["m"].(map[string]int); ok {
+		r.m = v
+	}
+
+	if v, ok := m["m2"].(fp.Map[string, World]); ok {
+		r.m2 = v
 	}
 
 	return r

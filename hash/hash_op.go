@@ -5,8 +5,10 @@ import (
 	"hash/fnv"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/seq"
 )
 
 func hashUint64(value uint64) uint32 {
@@ -79,6 +81,18 @@ func HCons[H any, T hlist.HList](heq fp.Hashable[H], teq fp.Hashable[T]) fp.Hash
 		}
 		return heq.Hash(a.Head())*31 + teq.Hash(a.Tail())
 	})
+}
+
+func Seq[T any](hashT fp.Hashable[T]) fp.Hashable[fp.Seq[T]] {
+	return New(eq.Seq[T](hashT), func(a fp.Seq[T]) uint32 {
+		return seq.Fold(a, 0, func(h uint32, t T) uint32 {
+			return h*31 + hashT.Hash(t)
+		})
+	})
+}
+
+func Slice[T any](eq fp.Hashable[T]) fp.Hashable[[]T] {
+	return ContraMap(Seq(eq), as.Seq[T])
 }
 
 func ContraMap[T, U any](teq fp.Hashable[T], fn func(U) T) fp.Hashable[U] {

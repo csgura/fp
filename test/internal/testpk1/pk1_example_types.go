@@ -135,7 +135,8 @@ var _ eq.Derives[fp.Eq[TestOrderedEq]]
 
 // @fp.Value
 type MapEq struct {
-	m map[string]World
+	m  map[string]World
+	m2 fp.Map[string, World]
 }
 
 // @fp.Derive
@@ -143,8 +144,10 @@ var _ eq.Derives[fp.Eq[MapEq]]
 
 // @fp.Value
 type SeqMonoid struct {
-	v string
-	s fp.Seq[string]
+	v  string
+	s  fp.Seq[string]
+	m  map[string]int
+	m2 fp.Map[string, World]
 }
 
 // @fp.Derive

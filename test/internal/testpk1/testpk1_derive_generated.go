@@ -181,12 +181,12 @@ var EqTestOrderedEq = eq.ContraMap(
 )
 
 var EqMapEq = eq.ContraMap(
-	eq.Tuple1(eq.GoMap[string, World](EqWorld)),
+	eq.Tuple2(eq.GoMap[string, World](EqWorld), eq.FpMap[string, World](EqWorld)),
 	MapEq.AsTuple,
 )
 
 var MonoidSeqMonoid = monoid.IMap(
-	monoid.Tuple2(monoid.String, monoid.MergeSeq[string]()),
+	monoid.Tuple4(monoid.String, monoid.MergeSeq[string](), monoid.MergeGoMap[string, int](), monoid.MergeMap[string, World]()),
 	fp.Compose(
 		as.Curried2(SeqMonoidBuilder.FromTuple)(SeqMonoidBuilder{}),
 		SeqMonoidBuilder.Build,
