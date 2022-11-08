@@ -1,6 +1,6 @@
 # github.com/csgura/fp
 
-This package is inspired by Haskell, Scala, Hhapeless, and Scala Cats.
+This package is inspired by Haskell, Scala, Hhapeless, and Scala Cats.  
 This package provides algebraic data types such as Tuple and Option.
 
 cmd/gombok is a lombok-like code generator that generates getter and builder methods.
@@ -340,6 +340,14 @@ var _ eq.Derives[fp.Eq[Person]]
 
 `eq.Derives` means eq package has type class instances of primitive types ( e.g. Tuple, String , HCons , HNil ) , 
 and these instances will be used to generate `fp.Eq[Person]`
+
+`eq.Derives` is a phantom type and has no functionality.
+```go
+package eq
+type Derives[T any] interface {
+	
+}
+```
 
 The generated codes is like this:
 ```go
