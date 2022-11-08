@@ -9,6 +9,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
@@ -26,7 +27,7 @@ type TaggedStruct struct {
 	Tags    mutable.Set[string]
 }
 
-func (r TaggedStruct) PackagedName(w ImportSet, workingPackage *types.Package) string {
+func (r TaggedStruct) PackagedName(w genfp.ImportSet, workingPackage *types.Package) string {
 	if workingPackage.Path() == r.Package.Path() {
 		return r.Name
 	}
@@ -410,14 +411,14 @@ func (r TypeInfo) IsNilable() bool {
 	return false
 }
 
-func (r TypeInfo) TypeParamDecl(w ImportSet, cwd *types.Package) string {
+func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd *types.Package) string {
 	return iterator.Map(r.TypeParam.Iterator(), func(v TypeParam) string {
 		tn := w.TypeName(cwd, v.Constraint)
 		return fmt.Sprintf("%s %s", v.Name, tn)
 	}).MakeString(",")
 }
 
-func (r TypeInfo) TypeParamIns(w ImportSet, cwd *types.Package) string {
+func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd *types.Package) string {
 	return iterator.Map(r.TypeParam.Iterator(), func(v TypeParam) string {
 		return v.Name
 	}).MakeString(",")

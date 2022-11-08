@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
@@ -52,7 +53,7 @@ func isMethodDefined(pk *types.Package, tpeName string, method string) bool {
 func genValue() {
 	pack := os.Getenv("GOPACKAGE")
 
-	metafp.Generate(pack, pack+"_value_generated.go", func(w metafp.Writer) {
+	genfp.Generate(pack, pack+"_value_generated.go", func(w genfp.Writer) {
 
 		cwd, _ := os.Getwd()
 
@@ -523,7 +524,7 @@ func (r lookupTarget) isFunc() bool {
 	return false
 }
 
-func (r lookupTarget) instanceExpr(w metafp.Writer, workingPkg *types.Package) string {
+func (r lookupTarget) instanceExpr(w genfp.Writer, workingPkg *types.Package) string {
 	if r.pk == nil || r.pk.Path() == workingPkg.Path() {
 		return r.name
 	}
@@ -871,7 +872,7 @@ func (r TypeClassSummonContext) lookupTypeClassInstance(req metafp.RequiredInsta
 }
 
 type TypeClassSummonContext struct {
-	w            metafp.Writer
+	w            genfp.Writer
 	tc           metafp.TypeClassDerive
 	genSet       mutable.Set[string]
 	tcCache      *metafp.TypeClassInstanceCache
@@ -1262,7 +1263,7 @@ func (r TypeClassSummonContext) summon(req metafp.RequiredInstance) string {
 func genDerive() {
 	pack := os.Getenv("GOPACKAGE")
 
-	metafp.Generate(pack, pack+"_derive_generated.go", func(w metafp.Writer) {
+	genfp.Generate(pack, pack+"_derive_generated.go", func(w genfp.Writer) {
 
 		cwd, _ := os.Getwd()
 

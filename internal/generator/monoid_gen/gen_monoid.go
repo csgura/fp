@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"go/types"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/metafp"
 )
 
 // func generate(packname string, filename string, writeFunc func(w io.Writer)) {
@@ -132,16 +132,16 @@ func noTypeclassArgs(n int) string {
 }
 func main() {
 
-	metafp.Generate("monoid", "tuple_gen.go", func(f metafp.Writer) {
+	genfp.Generate("monoid", "tuple_gen.go", func(f genfp.Writer) {
 
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/product", "product"))
 
 		for i := 2; i < max.Product; i++ {
 
-			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Monoid[fp.Tuple%d[%s]] { ", i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclTypeClassArgs(1, i, "fp.Monoid"), i, metafp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "func Tuple%d [%s any]( %s ) fp.Monoid[fp.Tuple%d[%s]] { ", i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclTypeClassArgs(1, i, "fp.Monoid"), i, genfp.FuncTypeArgs(1, i))
 
-			tuple := fmt.Sprintf("fp.Tuple%d[%s]", i, metafp.FuncTypeArgs(1, i))
+			tuple := fmt.Sprintf("fp.Tuple%d[%s]", i, genfp.FuncTypeArgs(1, i))
 
 			fmt.Fprintf(f, `
 	return New( 

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"go/types"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/metafp"
 )
 
 func main() {
 
-	metafp.Generate("unit", "func_gen.go", func(f metafp.Writer) {
+	genfp.Generate("unit", "func_gen.go", func(f genfp.Writer) {
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
 		for i := 1; i < max.Func; i++ {
@@ -21,7 +21,7 @@ func Func%d[%s any]( f func(%s) ) fp.Func%d[%s,fp.Unit] {
 		return fp.Unit{}
 	}
 }
-`, i, metafp.FuncTypeArgs(1, i), metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), metafp.FuncCallArgs(1, i))
+`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
 
 		}
 

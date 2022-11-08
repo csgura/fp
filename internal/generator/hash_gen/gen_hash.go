@@ -3,13 +3,13 @@ package main
 import (
 	"go/types"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/metafp"
 )
 
 func main() {
 
-	metafp.Generate("hash", "tuple_gen.go", func(f metafp.Writer) {
+	genfp.Generate("hash", "tuple_gen.go", func(f genfp.Writer) {
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/eq", "eq"))
 

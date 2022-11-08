@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"go/types"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/metafp"
 )
 
 func main() {
-	metafp.Generate("curried", "curried_gen.go", func(f metafp.Writer) {
+	genfp.Generate("curried", "curried_gen.go", func(f genfp.Writer) {
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
 		for i := 2; i < max.Func; i++ {
@@ -22,7 +22,7 @@ func main() {
 				}
 				args = args + fmt.Sprintf("A%d", j)
 			}
-			fmt.Fprintf(f, "func Func%d [%s, R any]( f func(%s) R ) %s { ", i, args, args, metafp.CurriedType(1, i, "R"))
+			fmt.Fprintf(f, "func Func%d [%s, R any]( f func(%s) R ) %s { ", i, args, args, genfp.CurriedType(1, i, "R"))
 
 			fmt.Fprintf(f, `
 	return func(a1 A1) %s {
@@ -31,16 +31,16 @@ func main() {
 		})
 	}	
 }	
-`, metafp.CurriedType(2, i, "R"), i-1, metafp.FuncDeclArgs(2, i), metafp.FuncCallArgs(1, i))
+`, genfp.CurriedType(2, i, "R"), i-1, genfp.FuncDeclArgs(2, i), genfp.FuncCallArgs(1, i))
 
-			fmt.Fprintf(f, "func Revert%d [%s, R any]( f %s ) fp.Func%d[%s,R] { ", i, args, metafp.CurriedType(1, i, "R"), i, args)
+			fmt.Fprintf(f, "func Revert%d [%s, R any]( f %s ) fp.Func%d[%s,R] { ", i, args, genfp.CurriedType(1, i, "R"), i, args)
 
 			fmt.Fprintf(f, `
 	return func(%s) R {
 		return f%s
 	}	
 }	
-`, metafp.FuncDeclArgs(1, i), metafp.CurriedCallArgs(1, i))
+`, genfp.FuncDeclArgs(1, i), genfp.CurriedCallArgs(1, i))
 
 		}
 		for i := 3; i < max.Func; i++ {
@@ -52,8 +52,8 @@ func Flip%d[%s,R any](f  %s) %s {
 		}, 
 	)
 }
-`, i-1, metafp.FuncTypeArgs(1, i), metafp.CurriedType(1, i, "R"), metafp.CurriedType(2, i, "fp.Func1[A1, R]"),
-				i, metafp.FuncDeclArgs(2, i), metafp.CurriedCallArgs(1, i),
+`, i-1, genfp.FuncTypeArgs(1, i), genfp.CurriedType(1, i, "R"), genfp.CurriedType(2, i, "fp.Func1[A1, R]"),
+				i, genfp.FuncDeclArgs(2, i), genfp.CurriedCallArgs(1, i),
 			)
 
 			fmt.Fprintf(f, `
@@ -62,8 +62,8 @@ func Flip%d[%s,R any](f  %s) %s {
 					return Compose%d(f(a1), g)
 				}
 			}
-		`, i, metafp.FuncTypeArgs(1, i), metafp.CurriedType(1, i, "GA"), metafp.CurriedType(1, i, "GR"),
-				metafp.CurriedType(2, i, "GR"),
+		`, i, genfp.FuncTypeArgs(1, i), genfp.CurriedType(1, i, "GA"), genfp.CurriedType(1, i, "GR"),
+				genfp.CurriedType(2, i, "GR"),
 				i-1,
 			)
 		}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"go/types"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/metafp"
 )
 
 func flipTypeArgs(start, until int) string {
@@ -29,7 +29,7 @@ func flipTypeArgs(start, until int) string {
 
 func main() {
 
-	metafp.Generate("try", "applicative_gen.go", func(f metafp.Writer) {
+	genfp.Generate("try", "applicative_gen.go", func(f genfp.Writer) {
 
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/curried", "curried"))
@@ -44,12 +44,12 @@ type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 }
 `,
 				i,
-				metafp.FuncTypeArgs(1, i),
-				metafp.CurriedType(1, i, "R"),
+				genfp.FuncTypeArgs(1, i),
+				genfp.CurriedType(1, i, "R"),
 			)
 
-			receiver := fmt.Sprintf("func (r MonadChain%d[H,HT,%s,R])", i, metafp.FuncTypeArgs(1, i))
-			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", metafp.FuncTypeArgs(1, i))
+			receiver := fmt.Sprintf("func (r MonadChain%d[H,HT,%s,R])", i, genfp.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[hlist.Cons[A1,H], %s, R]", genfp.FuncTypeArgs(1, i))
 
 			if i < max.Flip {
 
@@ -61,7 +61,7 @@ type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 	}
 
 }
-`, i, flipTypeArgs(1, i), metafp.CurriedType(3, i, "R"))
+`, i, flipTypeArgs(1, i), genfp.CurriedType(3, i, "R"))
 			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Try[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
@@ -139,8 +139,8 @@ type MonadChain%d [H hlist.Header[HT], HT , %s , R any] struct {
 	return r.ApTry(av)
 }`)
 
-			fmt.Fprintf(f, "func Chain%d[%s , R any](fn fp.Func%d[%s,R]) MonadChain%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i))
-			fmt.Fprintf(f, "    return MonadChain%d[hlist.Nil, hlist.Nil, %s,R]{Success(hlist.Empty()), Success(curried.Func%d(fn))}\n", i, metafp.FuncTypeArgs(1, i), i)
+			fmt.Fprintf(f, "func Chain%d[%s , R any](fn fp.Func%d[%s,R]) MonadChain%d[hlist.Nil, hlist.Nil, %s,R] {\n", i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "    return MonadChain%d[hlist.Nil, hlist.Nil, %s,R]{Success(hlist.Empty()), Success(curried.Func%d(fn))}\n", i, genfp.FuncTypeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")
 		}
 
@@ -152,12 +152,12 @@ type ApplicativeFunctor%d [%s , R any] struct {
 }
 `,
 				i,
-				metafp.FuncTypeArgs(1, i),
-				metafp.CurriedType(1, i, "R"),
+				genfp.FuncTypeArgs(1, i),
+				genfp.CurriedType(1, i, "R"),
 			)
 
-			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[%s,R])", i, metafp.FuncTypeArgs(1, i))
-			nexttp := fmt.Sprintf("[%s, R]", metafp.FuncTypeArgs(2, i))
+			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d[%s,R])", i, genfp.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[%s, R]", genfp.FuncTypeArgs(2, i))
 
 			if i < max.Flip {
 
@@ -168,7 +168,7 @@ type ApplicativeFunctor%d [%s , R any] struct {
 	}
 
 }
-`, i, flipTypeArgs(1, i), metafp.CurriedType(3, i, "R"))
+`, i, flipTypeArgs(1, i), genfp.CurriedType(3, i, "R"))
 			}
 
 			fmt.Fprintf(f, "%s ApTry( a fp.Try[A1]) ApplicativeFunctor%d%s {\n", receiver, i-1, nexttp)
@@ -211,14 +211,14 @@ return r.ApTryFunc(func() fp.Try[A1] {
 	})
 }`)
 
-			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[%s,R] {\n", i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i))
-			fmt.Fprintf(f, "    return ApplicativeFunctor%d[%s,R]{Success(curried.Func%d(fn))}\n", i, metafp.FuncTypeArgs(1, i), i)
+			fmt.Fprintf(f, "func Applicative%d[%s , R any](fn fp.Func%d[%s,R]) ApplicativeFunctor%d[%s,R] {\n", i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "    return ApplicativeFunctor%d[%s,R]{Success(curried.Func%d(fn))}\n", i, genfp.FuncTypeArgs(1, i), i)
 			fmt.Fprintf(f, "}\n")
 		}
 
 	})
 
-	metafp.Generate("try", "func_gen.go", func(f metafp.Writer) {
+	genfp.Generate("try", "func_gen.go", func(f genfp.Writer) {
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
@@ -236,11 +236,11 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Try"),
-				metafp.FuncDeclTypeClassArgs(1, i, "fp.Try"),
-				i-1, metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
-				metafp.FuncCallArgs(2, i, "ins"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.TypeClassArgs(1, i, "fp.Try"),
+				genfp.FuncDeclTypeClassArgs(1, i, "fp.Try"),
+				i-1, genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
+				genfp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -254,11 +254,11 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Try"),
-				metafp.FuncDeclTypeClassArgs(1, i, "fp.Try"),
-				i-1, metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
-				metafp.FuncCallArgs(2, i, "ins"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.TypeClassArgs(1, i, "fp.Try"),
+				genfp.FuncDeclTypeClassArgs(1, i, "fp.Try"),
+				i-1, genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
+				genfp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -267,8 +267,8 @@ import (
 						return Flap%d(Ap(tf, Success(a1)))
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.CurriedType(1, i, "R"), metafp.CurriedType(1, i, "fp.Try[R]"),
-				metafp.CurriedType(2, i, "fp.Try[R]"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.CurriedType(1, i, "R"), genfp.CurriedType(1, i, "fp.Try[R]"),
+				genfp.CurriedType(2, i, "fp.Try[R]"),
 				i-1,
 			)
 
@@ -280,9 +280,9 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
-				metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i-1, genfp.FuncTypeArgs(2, i),
+				genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
 			)
 
 			fmt.Fprintf(f, `
@@ -293,9 +293,9 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
-				metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i-1, genfp.FuncTypeArgs(2, i),
+				genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
 			)
 		}
 
@@ -307,7 +307,7 @@ func Func%d[%s,R any]( f func(%s) (R,error)) fp.Func%d[%s,fp.Try[R]] {
 		return Apply(ret,err)
 	}
 }
-`, i, metafp.FuncTypeArgs(1, i), metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), metafp.FuncCallArgs(1, i))
+`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
 
 			fmt.Fprintf(f, `
 func Unit%d[%s any]( f func(%s) error) fp.Func%d[%s,fp.Try[fp.Unit]] {
@@ -316,7 +316,7 @@ func Unit%d[%s any]( f func(%s) error) fp.Func%d[%s,fp.Try[fp.Unit]] {
 		return Apply(fp.Unit{},err)
 	}
 }
-`, i, metafp.FuncTypeArgs(1, i), metafp.FuncTypeArgs(1, i), i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), metafp.FuncCallArgs(1, i))
+`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
 
 		}
 
@@ -325,7 +325,7 @@ func Unit%d[%s any]( f func(%s) error) fp.Func%d[%s,fp.Try[fp.Unit]] {
 func Compose%d[%s,R any] ( %s ) fp.Func1[A1,fp.Try[R]] {
 	return Compose2(f1, Compose%d(%s))
 }
-			`, i, metafp.FuncTypeArgs(1, i), metafp.Monad("fp.Try").FuncChain(1, i), i-1, metafp.Args("f").Call(2, i))
+			`, i, genfp.FuncTypeArgs(1, i), genfp.Monad("fp.Try").FuncChain(1, i), i-1, genfp.Args("f").Call(2, i))
 		}
 
 	})

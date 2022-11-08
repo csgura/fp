@@ -8,6 +8,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/mutable"
@@ -44,7 +45,7 @@ func (r TypeClass) Id() string {
 	return r.Name
 }
 
-func (r TypeClass) PackagedName(w ImportSet, workingPackage *types.Package) string {
+func (r TypeClass) PackagedName(w genfp.ImportSet, workingPackage *types.Package) string {
 	if r.Package != nil && r.Package.Path() != workingPackage.Path() {
 		pk := w.GetImportedName(r.Package)
 		return fmt.Sprintf("%s.%s", pk, r.Name)
@@ -176,7 +177,7 @@ type TypeClassInstance struct {
 	RequiredInstance fp.Seq[RequiredInstance]
 }
 
-func (r TypeClassInstance) PackagedName(importSet ImportSet, working *types.Package) string {
+func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *types.Package) string {
 	if r.Package.Path() == working.Path() {
 		return r.Name
 	}

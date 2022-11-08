@@ -1,4 +1,4 @@
-package metafp
+package genfp
 
 import (
 	"bytes"
@@ -12,8 +12,6 @@ import (
 	"path"
 	"strings"
 	"text/template"
-
-	"github.com/csgura/fp/iterator"
 )
 
 var OrdinalName = []string{
@@ -200,6 +198,14 @@ func (r *writer) ImportList() []string {
 	return ret
 }
 
+func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) []string {
+	ret := []string{}
+	for i := 0; i < len; i++ {
+		ret = append(ret, fn(i, getter(i)))
+	}
+	return ret
+}
+
 func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:
@@ -253,53 +259,50 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 
 		}
 	case *types.Signature:
-		args := iterator.Map(iterator.Range(0, realtp.Params().Len()), realtp.Params().At)
-		argsstr := iterator.Map(args, func(v *types.Var) string {
-
+		argsstr := iterate(realtp.Params().Len(), realtp.Params().At, func(idx int, v *types.Var) string {
 			return v.Name() + " " + r.TypeName(pk, v.Type())
-		}).MakeString(",")
+		})
 
-		result := iterator.Map(iterator.Range(0, realtp.Results().Len()), realtp.Results().At)
-		resultstr := iterator.Map(result, func(v *types.Var) string {
+		resultstr := iterate(realtp.Results().Len(), realtp.Results().At, func(idx int, v *types.Var) string {
 			return v.Name() + " " + r.TypeName(pk, v.Type())
-		}).MakeString(",")
+		})
 
-		return fmt.Sprintf("func (%s) (%s)", argsstr, resultstr)
+		return fmt.Sprintf("func (%s) (%s)", strings.Join(argsstr, ","), strings.Join(resultstr, ","))
 	case *types.Struct:
-		fields := iterator.Map(iterator.Range(0, realtp.NumFields()), func(idx int) string {
-			if realtp.Field(idx).Embedded() {
+		fields := iterate(realtp.NumFields(), realtp.Field, func(idx int, v *types.Var) string {
+			if v.Embedded() {
 				return fmt.Sprintf("%s %s",
-					r.TypeName(pk, realtp.Field(idx).Type()),
+					r.TypeName(pk, v.Type()),
 					realtp.Tag(idx),
 				)
 			}
 			return fmt.Sprintf("%s %s %s",
-				realtp.Field(idx).Name(),
-				r.TypeName(pk, realtp.Field(idx).Type()),
+				v.Name(),
+				r.TypeName(pk, v.Type()),
 				realtp.Tag(idx),
 			)
-
-		}).MakeString("\n")
+		})
 		return fmt.Sprintf(`struct {
 			%s
-		}`, fields)
+		}`, strings.Join(fields, "\n"))
 	case *types.Interface:
 		if realtp.NumMethods() == 0 {
 			return "any"
 		}
-		embeded := iterator.Map(iterator.Range(0, realtp.NumEmbeddeds()), func(idx int) string {
+		embeded := iterate(realtp.NumEmbeddeds(), realtp.EmbeddedType, func(idx int, v types.Type) string {
 			return r.TypeName(pk, realtp.EmbeddedType(idx))
-		}).MakeString("\n")
-		fields := iterator.Map(iterator.Range(0, realtp.NumExplicitMethods()), func(idx int) string {
+		})
+
+		fields := iterate(realtp.NumExplicitMethods(), realtp.ExplicitMethod, func(idx int, v *types.Func) string {
 			m := realtp.ExplicitMethod(idx)
 
 			return fmt.Sprintf("%s%s", m.Name(), r.TypeName(pk, m.Type())[4:])
 
-		}).MakeString("\n")
+		})
 		return fmt.Sprintf(`interface {
 			%s
 			%s
-		}`, embeded, fields)
+		}`, strings.Join(embeded, "\n"), strings.Join(fields, "\n"))
 	}
 
 	return tpe.String()

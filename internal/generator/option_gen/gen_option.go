@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"go/types"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/metafp"
 )
 
 func flipTypeArgs(start, until int) string {
@@ -28,7 +28,7 @@ func flipTypeArgs(start, until int) string {
 }
 
 func main() {
-	metafp.Generate("option", "applicative_gen.go", func(f metafp.Writer) {
+	genfp.Generate("option", "applicative_gen.go", func(f genfp.Writer) {
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/curried", "curried"))
 		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
@@ -75,7 +75,7 @@ func main() {
 	}
 
 }
-`, i, flipTypeArgs(1, i), metafp.CurriedType(3, i, "R"))
+`, i, flipTypeArgs(1, i), genfp.CurriedType(3, i, "R"))
 			}
 
 			fmt.Fprintf(f, "%s FlatMap( a func(HT) fp.Option[A1]) MonadChain%d%s {\n", receiver, i-1, nexttp)
@@ -181,8 +181,8 @@ func main() {
 
 			fmt.Fprintf(f, "}\n")
 
-			typeparams := fmt.Sprintf("[%s,R]", metafp.FuncTypeArgs(1, i))
-			nexttp := fmt.Sprintf("[%s,R]", metafp.FuncTypeArgs(2, i))
+			typeparams := fmt.Sprintf("[%s,R]", genfp.FuncTypeArgs(1, i))
+			nexttp := fmt.Sprintf("[%s,R]", genfp.FuncTypeArgs(2, i))
 
 			receiver := fmt.Sprintf("func (r ApplicativeFunctor%d%s)", i, typeparams)
 
@@ -238,7 +238,7 @@ func main() {
 
 	})
 
-	metafp.Generate("option", "func_gen.go", func(f metafp.Writer) {
+	genfp.Generate("option", "func_gen.go", func(f genfp.Writer) {
 		fmt.Fprintln(f, `
 import (
 	"github.com/csgura/fp"
@@ -256,11 +256,11 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Option"),
-				metafp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
-				i-1, metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
-				metafp.FuncCallArgs(2, i, "ins"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.TypeClassArgs(1, i, "fp.Option"),
+				genfp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
+				i-1, genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
+				genfp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -274,11 +274,11 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i, metafp.TypeClassArgs(1, i, "fp.Option"),
-				metafp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
-				i-1, metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
-				metafp.FuncCallArgs(2, i, "ins"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.TypeClassArgs(1, i, "fp.Option"),
+				genfp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
+				i-1, genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
+				genfp.FuncCallArgs(2, i, "ins"),
 			)
 
 			fmt.Fprintf(f, `
@@ -287,8 +287,8 @@ import (
 						return Flap%d(Ap(tf, Some(a1)))
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.CurriedType(1, i, "R"), metafp.CurriedType(1, i, "fp.Option[R]"),
-				metafp.CurriedType(2, i, "fp.Option[R]"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.CurriedType(1, i, "R"), genfp.CurriedType(1, i, "fp.Option[R]"),
+				genfp.CurriedType(2, i, "fp.Option[R]"),
 				i-1,
 			)
 
@@ -300,9 +300,9 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
-				metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i-1, genfp.FuncTypeArgs(2, i),
+				genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
 			)
 
 			fmt.Fprintf(f, `
@@ -313,9 +313,9 @@ import (
 						})
 					}
 				}
-			`, i, metafp.FuncTypeArgs(1, i), metafp.FuncDeclArgs(1, i), i-1, metafp.FuncTypeArgs(2, i),
-				metafp.FuncDeclArgs(2, i),
-				metafp.FuncCallArgs(1, i),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i-1, genfp.FuncTypeArgs(2, i),
+				genfp.FuncDeclArgs(2, i),
+				genfp.FuncCallArgs(1, i),
 			)
 		}
 
@@ -324,7 +324,7 @@ import (
 func Compose%d[%s,R any] ( %s ) fp.Func1[A1,fp.Option[R]] {
 	return Compose2(f1, Compose%d(%s))
 }
-			`, i, metafp.FuncTypeArgs(1, i), metafp.Monad("fp.Option").FuncChain(1, i), i-1, metafp.Args("f").Call(2, i))
+			`, i, genfp.FuncTypeArgs(1, i), genfp.Monad("fp.Option").FuncChain(1, i), i-1, genfp.Args("f").Call(2, i))
 		}
 	})
 }
