@@ -1,6 +1,6 @@
 # github.com/csgura/fp
 
-This package is inspired by Haskell, Scala, Hhapeless, and Scala Cats.  
+This package is inspired by Haskell, Scala, Shapeless, and Scala Cats.  
 This package provides algebraic data types such as Tuple and Option.
 
 cmd/gombok is a lombok-like code generator that generates getter and builder methods.
@@ -445,3 +445,14 @@ var _ ord.Derives[fp.Ord[any]]
 ```
 
 You can import type class instances defined in other packages.
+
+# 8. Type class example
+* Show : https://github.com/csgura/fp/blob/master/test/internal/show/show.go
+* Read : https://github.com/csgura/fp/blob/master/test/internal/read/read.go
+* Json Encoder : https://github.com/csgura/fp/blob/master/test/internal/js/encoder.go
+* Json Decoder : https://github.com/csgura/fp/blob/master/test/internal/js/decoder.go
+* Eq : https://github.com/csgura/fp/blob/master/eq/eq_op.go
+* Ord : https://github.com/csgura/fp/blob/master/ord/ord_op.go
+* Monoid : https://github.com/csgura/fp/blob/master/monoid/monoid_op.go
+* Hashable : https://github.com/csgura/fp/blob/master/hash/hash_op.go
+
