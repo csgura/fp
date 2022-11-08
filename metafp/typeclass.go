@@ -340,7 +340,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	// fmt.Printf("check %s.%s : %t, %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType.TypeParam.Size())
+	//fmt.Printf("check %s.%s : %t, %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType.TypeArgs.Size())
 
 	if argType.IsTypeParam() {
 
@@ -374,6 +374,8 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 				return v
 			})
 			r.ParamMapping = check.ParamMapping
+			//fmt.Printf("check %s.%s : %v\n", r.Package.Name(), r.Name, check.ParamMapping)
+
 			return option.Some(r)
 		}
 		return option.None[TypeClassInstance]()
@@ -546,14 +548,15 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 
 				if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 					tins := TypeClassInstance{
-						Package:  pk,
-						Name:     name,
-						Static:   false,
-						Implicit: true,
-						Type:     insType,
-						Result:   rType,
-						Under:    under,
-						Instance: ins,
+						Package:   pk,
+						Name:      name,
+						Static:    false,
+						Implicit:  true,
+						Type:      insType,
+						Result:    rType,
+						Under:     under,
+						Instance:  ins,
+						TypeParam: insType.TypeParam,
 					}
 					ret.ByName = ret.ByName.Updated(name, tins)
 					ret.All = ret.All.Append(tins)

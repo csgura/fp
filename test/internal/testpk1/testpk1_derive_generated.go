@@ -186,7 +186,7 @@ var EqMapEq = eq.ContraMap(
 )
 
 var MonoidSeqMonoid = monoid.IMap(
-	monoid.Tuple2(monoid.String, monoid.MergeSeq[fp.Seq[string]]()),
+	monoid.Tuple2(monoid.String, monoid.MergeSeq[string]()),
 	fp.Compose(
 		as.Curried2(SeqMonoidBuilder.FromTuple)(SeqMonoidBuilder{}),
 		SeqMonoidBuilder.Build,

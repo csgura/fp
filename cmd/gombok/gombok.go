@@ -825,7 +825,14 @@ func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
 	}
 
 	if lt.isFunc() && len(lt.required) == 0 {
-		return fmt.Sprintf("%s[%s]()", lt.instanceExpr(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, lt.instanceOf.Type))
+		tpstr := r.typeParamString(lt)
+		if tpstr.IsDefined() {
+			return fmt.Sprintf("%s[%s]()", lt.instanceExpr(r.w, r.tc.Package), tpstr.Get())
+
+		} else {
+			return fmt.Sprintf("%s[%s]()", lt.instanceExpr(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, lt.instanceOf.Type))
+		}
+
 	}
 
 	return lt.instanceExpr(r.w, r.tc.Package)
