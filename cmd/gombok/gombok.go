@@ -668,6 +668,16 @@ func (r TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(req meta
 func (r TypeClassSummonContext) checkRequired(required fp.Seq[metafp.RequiredInstance]) bool {
 	for _, v := range required {
 		if v.Type.IsTuple() {
+			req := seq.Map(v.Type.TypeArgs, func(t metafp.TypeInfo) metafp.RequiredInstance {
+				return metafp.RequiredInstance{
+					TypeClass: v.TypeClass,
+					Type:      t,
+				}
+			})
+			res := r.checkRequired(req)
+			if res == false {
+				return false
+			}
 
 		} else {
 			res := r.lookupTypeClassInstance(v)
