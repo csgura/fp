@@ -737,6 +737,74 @@ func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
 	return r
 }
 
+type MapEqBuilder MapEq
+
+type MapEqMutable struct {
+	M map[string]World
+}
+
+func (r MapEqBuilder) Build() MapEq {
+	return MapEq(r)
+}
+
+func (r MapEq) Builder() MapEqBuilder {
+	return MapEqBuilder(r)
+}
+
+func (r MapEq) M() map[string]World {
+	return r.m
+}
+
+func (r MapEq) WithM(v map[string]World) MapEq {
+	r.m = v
+	return r
+}
+
+func (r MapEqBuilder) M(v map[string]World) MapEqBuilder {
+	r.m = v
+	return r
+}
+
+func (r MapEq) String() string {
+	return fmt.Sprintf("MapEq(m=%v)", r.m)
+}
+
+func (r MapEq) AsTuple() fp.Tuple1[map[string]World] {
+	return as.Tuple1(r.m)
+}
+
+func (r MapEq) AsMutable() MapEqMutable {
+	return MapEqMutable{
+		M: r.m,
+	}
+}
+
+func (r MapEqMutable) AsImmutable() MapEq {
+	return MapEq{
+		m: r.M,
+	}
+}
+
+func (r MapEqBuilder) FromTuple(t fp.Tuple1[map[string]World]) MapEqBuilder {
+	r.m = t.I1
+	return r
+}
+
+func (r MapEq) AsMap() map[string]any {
+	return map[string]any{
+		"m": r.m,
+	}
+}
+
+func (r MapEqBuilder) FromMap(m map[string]any) MapEqBuilder {
+
+	if v, ok := m["m"].(map[string]World); ok {
+		r.m = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

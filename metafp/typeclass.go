@@ -175,6 +175,8 @@ type TypeClassInstance struct {
 
 	TypeParam        fp.Seq[TypeParam]
 	RequiredInstance fp.Seq[RequiredInstance]
+	UsedParam        fp.Set[string]
+	ParamMapping     fp.Map[string, TypeInfo]
 }
 
 func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *types.Package) string {
@@ -348,9 +350,12 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 		if check.Ok {
 
 			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
-				v.Type = v.Type.ReplaceTypeParam(check.ParamMapping)
+				res := v.Type.ReplaceTypeParam(check.ParamMapping)
+				r.UsedParam = r.UsedParam.Concat(res.I1)
+				v.Type = res.I2
 				return v
 			})
+			r.ParamMapping = check.ParamMapping
 			return option.Some(r)
 		}
 		return option.None[TypeClassInstance]()
@@ -363,9 +368,12 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 		check := t.IsInstantiatedOf(r.Type.TypeParam, argType)
 		if check.Ok {
 			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
-				v.Type = v.Type.ReplaceTypeParam(check.ParamMapping)
+				res := v.Type.ReplaceTypeParam(check.ParamMapping)
+				r.UsedParam = r.UsedParam.Concat(res.I1)
+				v.Type = res.I2
 				return v
 			})
+			r.ParamMapping = check.ParamMapping
 			return option.Some(r)
 		}
 		return option.None[TypeClassInstance]()

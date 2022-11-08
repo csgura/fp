@@ -783,12 +783,45 @@ func (r TypeClassSummonContext) lookupPrimitiveTypeClassInstance(req metafp.Requ
 	}
 }
 
+func (r TypeClassSummonContext) typeParamString(lt lookupTarget) fp.Option[string] {
+
+	if lt.instance.IsDefined() {
+		ins := lt.instance.Get()
+
+		possible := ins.TypeParam.ForAll(func(v metafp.TypeParam) bool {
+			return ins.UsedParam.Contains(v.Name)
+		})
+
+		if !possible {
+			ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
+				return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+					return r.w.TypeName(r.tc.Package, v.Type)
+				}).OrElse(v.Name)
+			}).MakeString(",")
+			return option.Some(ret)
+		}
+
+	}
+
+	return option.None[string]()
+}
+
 func (r TypeClassSummonContext) exprTypeClassInstance(lt lookupTarget) string {
 	if len(lt.required) > 0 {
 		list := seq.Map(lt.required, func(t metafp.RequiredInstance) string {
 			return r.summon(t)
 		}).MakeString(",")
-		return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w, r.tc.Package), list)
+
+		tpstr := r.typeParamString(lt)
+		if tpstr.IsDefined() {
+			//fmt.Printf("%s param infer not possible = %s \n", lt.name, lt.instance.Get().ParamMapping)
+
+			return fmt.Sprintf("%s[%s](%s)", lt.instanceExpr(r.w, r.tc.Package), tpstr.Get(), list)
+
+		} else {
+			return fmt.Sprintf("%s(%s)", lt.instanceExpr(r.w, r.tc.Package), list)
+
+		}
 	}
 
 	if lt.isFunc() && len(lt.required) == 0 {

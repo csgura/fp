@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
@@ -155,18 +156,28 @@ type TypeInfo struct {
 	Method    fp.Map[string, *types.Func]
 }
 
-func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) TypeInfo {
+func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) fp.Tuple2[fp.Set[string], TypeInfo] {
 
 	if r.IsTypeParam() {
-		return mapping.Get(r.Name().Get()).OrElse(r)
+		mapped := mapping.Get(r.Name().Get())
+		if mapped.IsEmpty() {
+			return as.Tuple2(mutable.EmptySet[string](), r)
+		} else {
+			return as.Tuple2(mutable.SetOf(r.Name().Get()), mapped.Get())
+		}
 	}
 
-	newArgs := seq.Map(r.TypeArgs, func(v TypeInfo) TypeInfo {
+	newArgs := seq.Map(r.TypeArgs, func(v TypeInfo) fp.Tuple2[fp.Set[string], TypeInfo] {
 		return v.ReplaceTypeParam(mapping)
 	})
 
-	r.TypeArgs = newArgs
-	return r
+	r.TypeArgs = seq.Map(newArgs, func(v fp.Tuple2[fp.Set[string], TypeInfo]) TypeInfo {
+		return v.I2
+	})
+
+	usedParam := seq.Map(newArgs, fp.Tuple2[fp.Set[string], TypeInfo].Head).Reduce(monoid.MergeSet[string]())
+
+	return as.Tuple2(usedParam, r)
 }
 
 func isSamePkg(p1 *types.Package, p2 *types.Package) bool {

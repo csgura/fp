@@ -94,32 +94,22 @@ type Derives[T any] interface {
 
 var String = Given[string]()
 
-// for import test
+func GoMap[K comparable, V any](eqV fp.Eq[V]) fp.Eq[map[K]V] {
+	return New(func(a, b map[K]V) bool {
+		if len(a) != len(b) {
+			return false
+		}
 
-// var SeqTuple2Correct = New(func(a, b fp.Seq[fp.Tuple2[string, int]]) bool {
-// 	return a.Size() == b.Size()
-// })
+		for k, av := range a {
+			bv, ok := b[k]
+			if !ok {
+				return false
+			}
 
-// var SeqTuple2False = New(func(a, b fp.Seq[fp.Tuple2[int, int]]) bool {
-// 	return a.Size() == b.Size()
-// })
-
-// var SeqTuple3 = New(func(a, b fp.Seq[fp.Tuple3[int, int, int]]) bool {
-// 	return a.Size() == b.Size()
-// })
-
-// func SeqTupleFuncCorrect[A, B any]() fp.Eq[fp.Seq[fp.Tuple2[A, B]]] {
-// 	return New(func(a, b fp.Seq[fp.Tuple2[A, B]]) bool {
-// 		return a.Size() == b.Size()
-// 	})
-// }
-
-// func SeqTupleFuncFalse[B any]() fp.Eq[fp.Seq[fp.Tuple2[int, B]]] {
-// 	return New(func(a, b fp.Seq[fp.Tuple2[int, B]]) bool {
-// 		return a.Size() == b.Size()
-// 	})
-// }
-
-// func Hello[A interface{ Hello() string }]() fp.Eq[A] {
-// 	panic("")
-// }
+			if !eqV.Eqv(av, bv) {
+				return false
+			}
+		}
+		return true
+	})
+}

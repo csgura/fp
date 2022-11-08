@@ -181,3 +181,11 @@ func MergeMap[K, V any]() fp.Monoid[fp.Map[K, V]] {
 		return a.Concat(b)
 	})
 }
+
+func MergeSet[V any]() fp.Monoid[fp.Set[V]] {
+	return New(func() fp.Set[V] {
+		return fp.Set[V]{}
+	}, func(a, b fp.Set[V]) fp.Set[V] {
+		return a.Concat(b)
+	})
+}

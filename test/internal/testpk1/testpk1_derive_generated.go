@@ -178,3 +178,8 @@ var EqTestOrderedEq = eq.ContraMap(
 	eq.Tuple2(EqSeq(eq.Given[int](), ord.Given[int]()), EqSeq(eq.Tuple2(eq.Given[int](), eq.Given[int]()), ord.Tuple2(ord.Given[int](), ord.Given[int]()))),
 	TestOrderedEq.AsTuple,
 )
+
+var EqMapEq = eq.ContraMap(
+	eq.Tuple1(eq.GoMap[string, World](EqWorld)),
+	MapEq.AsTuple,
+)

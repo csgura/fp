@@ -131,3 +131,11 @@ var _ ord.Derives[fp.Ord[any]]
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[TestOrderedEq]]
+
+// @fp.Value
+type MapEq struct {
+	m map[string]World
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[MapEq]]
