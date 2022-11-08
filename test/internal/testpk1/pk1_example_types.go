@@ -114,7 +114,8 @@ type Wrapper[T any] struct {
 
 // @fp.Value
 type TestOrderedEq struct {
-	list fp.Seq[int]
+	list  fp.Seq[int]
+	tlist fp.Seq[fp.Tuple2[int, int]]
 }
 
 func EqSeq[T any](eqT fp.Eq[T], ordT fp.Ord[T]) fp.Eq[fp.Seq[T]] {

@@ -176,12 +176,34 @@ type TypeClassInstance struct {
 	RequiredInstance fp.Seq[RequiredInstance]
 }
 
+func (r TypeClassInstance) PackagedName(importSet ImportSet, working *types.Package) string {
+	if r.Package.Path() == working.Path() {
+		return r.Name
+	}
+	pk := importSet.GetImportedName(r.Package)
+	return fmt.Sprintf("%s.%s", pk, r.Name)
+}
+
+func (r TypeClassInstance) IsFunc() bool {
+	return r.Type.IsFunc()
+}
+
 type TypeClassInstancesOfPackage struct {
 	Package     *types.Package
 	TypeClass   TypeClass
 	ByName      fp.Map[string, TypeClassInstance]
 	FixedByType fp.Map[string, TypeClassInstance]
+	OtherFuncs  fp.Map[string, TypeClassInstance]
 	All         fp.Seq[TypeClassInstance]
+}
+
+func (r TypeClassInstancesOfPackage) FindFunc(name string) fp.Option[TypeClassInstance] {
+
+	ret := r.ByName.Get(name)
+	if ret.IsDefined() {
+		return ret
+	}
+	return r.OtherFuncs.Get(name)
 }
 
 func (r TypeClassInstancesOfPackage) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
@@ -440,6 +462,15 @@ func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassI
 	return option.Flatten(ret)
 }
 
+func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
+
+	ret := iterator.Map(r.List.Iterator(), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+		return p.FindFunc(name)
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).Head()
+
+	return option.Flatten(ret)
+}
+
 func (r TypeClassScope) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
 	return seq.FlatMap(r.List, func(p TypeClassInstancesOfPackage) fp.Seq[TypeClassInstance] {
 		return p.Find(t)
@@ -487,8 +518,9 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		Package:     pk,
 		TypeClass:   tc,
 		FixedByType: mutable.EmptyMap[string, TypeClassInstance](),
-
-		All: seq.Empty[TypeClassInstance](),
+		OtherFuncs:  mutable.EmptyMap[string, TypeClassInstance](),
+		ByName:      mutable.EmptyMap[string, TypeClassInstance](),
+		All:         seq.Empty[TypeClassInstance](),
 	}
 	// fmt.Printf("Searching instances of %s from %s", tc.Name, pk.Path())
 	// fmt.Println()
@@ -551,6 +583,19 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 						}
 						ret.ByName = ret.ByName.Updated(name, tins)
 						ret.All = ret.All.Append(tins)
+					} else {
+						tins := TypeClassInstance{
+							Package:   pk,
+							Name:      name,
+							Static:    false,
+							Implicit:  false,
+							Type:      insType,
+							Result:    rType,
+							TypeParam: insType.TypeParam,
+							Under:     under,
+							Instance:  ins,
+						}
+						ret.OtherFuncs = ret.OtherFuncs.Updated(name, tins)
 					}
 				}
 			} else {

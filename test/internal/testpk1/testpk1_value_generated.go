@@ -649,7 +649,8 @@ func (r WrapperBuilder[T]) FromMap(m map[string]any) WrapperBuilder[T] {
 type TestOrderedEqBuilder TestOrderedEq
 
 type TestOrderedEqMutable struct {
-	List fp.Seq[int]
+	List  fp.Seq[int]
+	Tlist fp.Seq[fp.Tuple2[int, int]]
 }
 
 func (r TestOrderedEqBuilder) Build() TestOrderedEq {
@@ -674,34 +675,52 @@ func (r TestOrderedEqBuilder) List(v fp.Seq[int]) TestOrderedEqBuilder {
 	return r
 }
 
-func (r TestOrderedEq) String() string {
-	return fmt.Sprintf("TestOrderedEq(list=%v)", r.list)
+func (r TestOrderedEq) Tlist() fp.Seq[fp.Tuple2[int, int]] {
+	return r.tlist
 }
 
-func (r TestOrderedEq) AsTuple() fp.Tuple1[fp.Seq[int]] {
-	return as.Tuple1(r.list)
+func (r TestOrderedEq) WithTlist(v fp.Seq[fp.Tuple2[int, int]]) TestOrderedEq {
+	r.tlist = v
+	return r
+}
+
+func (r TestOrderedEqBuilder) Tlist(v fp.Seq[fp.Tuple2[int, int]]) TestOrderedEqBuilder {
+	r.tlist = v
+	return r
+}
+
+func (r TestOrderedEq) String() string {
+	return fmt.Sprintf("TestOrderedEq(list=%v, tlist=%v)", r.list, r.tlist)
+}
+
+func (r TestOrderedEq) AsTuple() fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]] {
+	return as.Tuple2(r.list, r.tlist)
 }
 
 func (r TestOrderedEq) AsMutable() TestOrderedEqMutable {
 	return TestOrderedEqMutable{
-		List: r.list,
+		List:  r.list,
+		Tlist: r.tlist,
 	}
 }
 
 func (r TestOrderedEqMutable) AsImmutable() TestOrderedEq {
 	return TestOrderedEq{
-		list: r.List,
+		list:  r.List,
+		tlist: r.Tlist,
 	}
 }
 
-func (r TestOrderedEqBuilder) FromTuple(t fp.Tuple1[fp.Seq[int]]) TestOrderedEqBuilder {
+func (r TestOrderedEqBuilder) FromTuple(t fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]]) TestOrderedEqBuilder {
 	r.list = t.I1
+	r.tlist = t.I2
 	return r
 }
 
 func (r TestOrderedEq) AsMap() map[string]any {
 	return map[string]any{
-		"list": r.list,
+		"list":  r.list,
+		"tlist": r.tlist,
 	}
 }
 
@@ -709,6 +728,10 @@ func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
 
 	if v, ok := m["list"].(fp.Seq[int]); ok {
 		r.list = v
+	}
+
+	if v, ok := m["tlist"].(fp.Seq[fp.Tuple2[int, int]]); ok {
+		r.tlist = v
 	}
 
 	return r
