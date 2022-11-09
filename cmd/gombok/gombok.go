@@ -20,7 +20,6 @@ import (
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 
-	// . "github.com/dave/jennifer/jen"
 	"golang.org/x/tools/go/packages"
 )
 

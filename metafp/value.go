@@ -174,6 +174,7 @@ func (r NamedTypeInfo) GenericName() string {
 
 type TypeInfo struct {
 	Pkg       *types.Package
+	TypeName  string
 	Type      types.Type
 	TypeArgs  fp.Seq[TypeInfo]
 	TypeParam fp.Seq[TypeParam]
@@ -224,7 +225,8 @@ func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType Type
 	}
 
 	// 타입 이름이 동일해야 함
-	if r.Name().OrZero() != genericType.Name().OrZero() {
+	//	fmt.Printf("compare %s(%s), %s(%s)\n", r, r.TypeName, genericType, genericType.TypeName)
+	if r.TypeName != genericType.TypeName {
 		return ConstraintCheckResult{}
 	}
 
@@ -233,7 +235,9 @@ func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType Type
 		return ConstraintCheckResult{}
 	}
 
-	return ConstraintCheck(typeParam, genericType, r.TypeArgs)
+	ret := ConstraintCheck(typeParam, genericType, r.TypeArgs)
+	//	fmt.Printf("compare %s, %s  => %t\n", r, genericType, ret)
+	return ret
 
 	// fmt.Printf("this args = %v\n", r.TypeArgs)
 	// fmt.Printf("that args = %v\n", hasTypeParam.TypeArgs)
@@ -524,7 +528,8 @@ func typeInfo(tpe types.Type) TypeInfo {
 	switch realtp := tpe.(type) {
 	case *types.TypeParam:
 		return TypeInfo{
-			Type: tpe,
+			Type:     tpe,
+			TypeName: realtp.Obj().Name(),
 		}
 	case *types.Named:
 		args := typeArgs(realtp.TypeArgs())
@@ -538,6 +543,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 		return TypeInfo{
 			Pkg:       realtp.Obj().Pkg(),
 			Type:      tpe,
+			TypeName:  realtp.Obj().Name(),
 			TypeArgs:  args,
 			TypeParam: params,
 			Method:    mutable.MapOf(iterator.ToGoMap(method)),
@@ -553,17 +559,20 @@ func typeInfo(tpe types.Type) TypeInfo {
 		return TypeInfo{
 			Pkg:       pk,
 			Type:      tpe,
+			TypeName:  "func",
 			TypeParam: params,
 		}
 	case *types.Array:
 		return TypeInfo{
 			Type:     tpe,
+			TypeName: "[_]",
 			TypeArgs: []TypeInfo{typeInfo(realtp.Elem())},
 		}
 	case *types.Map:
 
 		return TypeInfo{
 			Type:     tpe,
+			TypeName: "map",
 			TypeArgs: []TypeInfo{typeInfo(realtp.Key()), typeInfo(realtp.Elem())},
 		}
 	case *types.Slice:
@@ -573,11 +582,20 @@ func typeInfo(tpe types.Type) TypeInfo {
 
 		return TypeInfo{
 			Type:     tpe,
+			TypeName: "[]",
+			TypeArgs: []TypeInfo{elemTp},
+		}
+	case *types.Pointer:
+		elemTp := typeInfo(realtp.Elem())
+		return TypeInfo{
+			Type:     tpe,
+			TypeName: "*",
 			TypeArgs: []TypeInfo{elemTp},
 		}
 	}
 
 	return TypeInfo{
-		Type: tpe,
+		Type:     tpe,
+		TypeName: tpe.String(),
 	}
 }

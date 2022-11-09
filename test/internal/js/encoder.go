@@ -64,6 +64,22 @@ func EncoderSeq[T any](enc Encoder[T]) Encoder[fp.Seq[T]] {
 	})
 }
 
+var EncoderBool = NewEncoder(func(a bool) fp.Option[string] {
+	if a {
+		return option.Some("true")
+	}
+	return option.Some("false")
+})
+
+func EncoderPtr[T any](encT Encoder[T]) Encoder[*T] {
+	return NewEncoder(func(a *T) fp.Option[string] {
+		if a != nil {
+			return encT.Encode(*a)
+		}
+		return option.Some("null")
+	})
+}
+
 func EncoderSlice[T any](enc Encoder[T]) Encoder[[]T] {
 	return NewEncoder(func(s []T) fp.Option[string] {
 		if len(s) == 0 {
@@ -81,15 +97,6 @@ func EncoderOption[T any](enc Encoder[T]) Encoder[fp.Option[T]] {
 
 		}
 		return option.None[string]()
-	})
-}
-
-func EncoderHCons[H any, T hlist.HList](heq Encoder[H], teq Encoder[T]) Encoder[hlist.Cons[H, T]] {
-	return NewEncoder(func(a hlist.Cons[H, T]) fp.Option[string] {
-		head := heq.Encode(a.Head()).OrElse("null")
-		tail := teq.Encode(a.Tail()).OrElse("null")
-
-		return option.Some(head + "," + tail)
 	})
 }
 
@@ -120,6 +127,23 @@ func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder
 		return option.Map(tail, func(v string) string {
 			return fmt.Sprintf("{%s}", v)
 		})
+	})
+}
+
+func EncoderGoMap[V any](encV Encoder[V]) Encoder[map[string]V] {
+	return NewEncoder(func(a map[string]V) fp.Option[string] {
+		list := fp.Seq[string]{}
+		for k, v := range a {
+			vstr := encV.Encode(v)
+			if vstr.IsDefined() {
+				list = list.Append(fmt.Sprintf(`"%s":%s`, k, vstr.Get()))
+			}
+		}
+
+		if list.Size() > 0 {
+			return option.Some("{" + list.MakeString(",") + "}")
+		}
+		return option.None[string]()
 	})
 }
 
