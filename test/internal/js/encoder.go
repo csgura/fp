@@ -2,7 +2,6 @@ package js
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/csgura/fp"
@@ -116,8 +115,9 @@ func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder
 		tail := teq.Encode(a.Tail())
 
 		if head.IsDefined() && tail.IsDefined() {
+			tstr := tail.Get()
 			return option.Some(fmt.Sprintf(`{%s,%s}`, head.Get(),
-				strings.Trim(tail.Get(), "{}")))
+				tstr[1:len(tstr)-1]))
 		}
 
 		if head.IsDefined() {

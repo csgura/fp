@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/testjson"
 )
 
@@ -21,5 +24,11 @@ func TestEncode(t *testing.T) {
 		},
 	}.AsImmutable()
 
-	fmt.Println(testjson.EncoderRoot.Encode(root))
+	str := testjson.EncoderRoot.Encode(root)
+	fmt.Println(str.Get())
+
+	rev := testjson.DecoderRoot.Decode(js.DecoderContext{}, str.Get())
+	rev.Failed().Foreach(fp.Println[error])
+	assert.True(rev.IsSuccess())
+	fmt.Println(rev.Get())
 }

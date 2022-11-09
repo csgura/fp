@@ -4,6 +4,7 @@ package testjson
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 )
 
@@ -33,5 +34,38 @@ var EncoderRoot = js.EncoderContraMap(
 	fp.Compose(
 		Root.AsLabelled,
 		as.HList7Labelled[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int]],
+	),
+)
+
+var DecoderRoot = js.DecoderMap(
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[NameIsA[int]](js.DecoderNumber[int]()),
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[NameIsB[string]](js.DecoderString),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[NameIsC[float64]](js.DecoderNumber[float64]()),
+				js.DecoderHConsLabelled(
+					js.DecoderNamed[NameIsD[bool]](js.DecoderBool),
+					js.DecoderHConsLabelled(
+						js.DecoderNamed[NameIsE[*int]](js.DecoderPtr(js.DecoderNumber[int]())),
+						js.DecoderHConsLabelled(
+							js.DecoderNamed[NameIsF[[]int]](js.DecoderSlice(js.DecoderNumber[int]())),
+							js.DecoderHConsLabelled(
+								js.DecoderNamed[NameIsG[map[string]int]](js.DecoderGoMap(js.DecoderNumber[int]())),
+								js.DecoderHNil,
+							),
+						),
+					),
+				),
+			),
+		),
+	),
+
+	fp.Compose(
+		product.LabelledFromHList7[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int]],
+		fp.Compose(
+			as.Curried2(RootBuilder.FromLabelled)(RootBuilder{}),
+			RootBuilder.Build,
+		),
 	),
 )

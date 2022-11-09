@@ -18,3 +18,6 @@ type Root struct {
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Root]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[Root]]
