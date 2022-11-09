@@ -28,7 +28,7 @@ var EqWallet = eq.ContraMap(
 
 func EqEntry[A comparable, B any, C fmt.Stringer, D interface {
 	Hello() string
-}](eqA fp.Eq[A], eqB fp.Eq[B], eqC fp.Eq[C], eqD fp.Eq[D]) fp.Eq[Entry[A, B, C, D]] {
+}](eqA fp.Eq[A], eqB fp.Eq[B]) fp.Eq[Entry[A, B, C, D]] {
 	return eq.ContraMap(
 		eq.Tuple3(eq.String, eqA, eq.Tuple2(eqA, eqB)),
 		Entry[A, B, C, D].AsTuple,
@@ -37,7 +37,7 @@ func EqEntry[A comparable, B any, C fmt.Stringer, D interface {
 
 func MonoidEntry[A comparable, B any, C fmt.Stringer, D interface {
 	Hello() string
-}](monoidA fp.Monoid[A], monoidB fp.Monoid[B], monoidC fp.Monoid[C], monoidD fp.Monoid[D]) fp.Monoid[Entry[A, B, C, D]] {
+}](monoidA fp.Monoid[A], monoidB fp.Monoid[B]) fp.Monoid[Entry[A, B, C, D]] {
 	return monoid.IMap(
 		monoid.Tuple3(monoid.String, monoidA, monoid.Tuple2(monoidA, monoidB)),
 		fp.Compose(

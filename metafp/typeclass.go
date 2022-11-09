@@ -57,7 +57,8 @@ type TypeClassDerive struct {
 	Package              *types.Package
 	PrimitiveInstancePkg *types.Package
 	TypeClass            TypeClass
-	DeriveFor            TaggedStruct
+	DeriveFor            NamedTypeInfo
+	StructInfo           fp.Option[TaggedStruct]
 }
 
 func publicName(name string) string {
@@ -136,20 +137,20 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 
 func FindTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 	return seq.FlatMap(findTypeClsssDirective(p, "@fp.Derive"), func(v TypeClassDirective) fp.Seq[TypeClassDerive] {
-		if v.TypeArgs.Size() == 1 && v.TypeArgs.Head().Get().Name().IsDefined() {
+		if v.TypeArgs.Size() == 1 && v.TypeArgs.Head().Get().IsNamed() {
 			deriveFor := v.TypeArgs.Head().Get()
 
+			obj := deriveFor.Pkg.Scope().Lookup(deriveFor.Name().Get())
 			vt := LookupStruct(deriveFor.Pkg, deriveFor.Name().Get())
-			if vt.IsDefined() {
-				return seq.Of(TypeClassDerive{
-					Package:              v.Package,
-					PrimitiveInstancePkg: v.PrimitiveInstancePkg,
-					TypeClass:            v.TypeClass,
-					DeriveFor:            vt.Get(),
-				})
-			} else {
-				fmt.Printf("can't lookup %s\n", deriveFor.Name().Get())
-			}
+
+			return seq.Of(TypeClassDerive{
+				Package:              v.Package,
+				PrimitiveInstancePkg: v.PrimitiveInstancePkg,
+				TypeClass:            v.TypeClass,
+				DeriveFor:            typeInfo(obj.Type()).AsNamed().Get(),
+				StructInfo:           vt,
+			})
+
 		}
 		return seq.Empty[TypeClassDerive]()
 	})

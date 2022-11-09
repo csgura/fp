@@ -152,3 +152,16 @@ type SeqMonoid struct {
 
 // @fp.Derive
 var _ monoid.Derives[fp.Monoid[SeqMonoid]]
+
+type MyInt int
+
+type MySeq[T any] fp.Seq[T]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[MyInt]]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[MySeq[any]]]
+
+// @fp.Derive
+var _ monoid.Derives[fp.Monoid[MySeq[any]]]

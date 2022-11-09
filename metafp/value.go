@@ -148,6 +148,30 @@ type TypeParam struct {
 	TypeName   *types.TypeName
 }
 
+type NamedTypeInfo struct {
+	Package    *types.Package
+	Name       string
+	Info       TypeInfo
+	Underlying TypeInfo
+}
+
+func (r NamedTypeInfo) PackagedName(w genfp.ImportSet, working *types.Package) string {
+	if r.Package != nil && r.Package.Path() != working.Path() {
+		pk := w.GetImportedName(r.Package)
+		return fmt.Sprintf("%s.%s", pk, r.Name)
+	}
+	return r.Name
+}
+
+func (r NamedTypeInfo) GenericName() string {
+
+	if r.Package != nil {
+		return fmt.Sprintf("%s.%s", r.Package.Name(), r.Name)
+	}
+
+	return r.Name
+}
+
 type TypeInfo struct {
 	Pkg       *types.Package
 	Type      types.Type
@@ -324,6 +348,27 @@ func (r TypeInfo) Name() fp.Option[string] {
 	case *types.Signature:
 	}
 	return option.None[string]()
+}
+
+func (r TypeInfo) IsNamed() bool {
+	switch r.Type.(type) {
+	case *types.Named:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) AsNamed() fp.Option[NamedTypeInfo] {
+	switch at := r.Type.(type) {
+	case *types.Named:
+		return option.Some(NamedTypeInfo{
+			Package:    r.Pkg,
+			Name:       r.Name().Get(),
+			Info:       r,
+			Underlying: typeInfo(at.Underlying()),
+		})
+	}
+	return option.None[NamedTypeInfo]()
 }
 
 func (r TypeInfo) IsPrintable() bool {

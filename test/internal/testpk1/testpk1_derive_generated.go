@@ -99,13 +99,20 @@ var ShowHListInsideHList = show.Generic(
 		),
 	),
 	show.HCons(
-		show.Generic(as.Generic("", as.HList2[string, int], product.TupleFromHList2[string, int]), show.HCons(
-			show.String,
-			show.HCons(
-				show.Int[int](),
-				show.HNil,
+		show.Generic(
+			as.Generic(
+				"",
+				as.HList2[string, int],
+				product.TupleFromHList2[string, int],
 			),
-		)),
+			show.HCons(
+				show.String,
+				show.HCons(
+					show.Int[int](),
+					show.HNil,
+				),
+			),
+		),
 		show.HCons(
 			show.String,
 			show.HCons(
@@ -133,13 +140,20 @@ var ReadHListInsideHList = read.Generic(
 		),
 	),
 	read.HCons(
-		read.Generic(as.Generic("", as.HList2[string, int], product.TupleFromHList2[string, int]), read.HCons(
-			read.String,
-			read.HCons(
-				read.Int[int](),
-				read.HNil,
+		read.Generic(
+			as.Generic(
+				"",
+				as.HList2[string, int],
+				product.TupleFromHList2[string, int],
 			),
-		)),
+			read.HCons(
+				read.String,
+				read.HCons(
+					read.Int[int](),
+					read.HNil,
+				),
+			),
+		),
 		read.HCons(
 			read.String,
 			read.HCons(
@@ -193,3 +207,31 @@ var MonoidSeqMonoid = monoid.IMap(
 	),
 	SeqMonoid.AsTuple,
 )
+
+var EqMyInt = eq.ContraMap(
+	eq.Given[int](),
+	func(v MyInt) int {
+		return int(v)
+	},
+)
+
+func EqMySeq[T any](eqT fp.Eq[T]) fp.Eq[MySeq[T]] {
+	return eq.ContraMap(
+		eq.Slice(eqT),
+		func(v MySeq[T]) []T {
+			return []T(v)
+		},
+	)
+}
+
+func MonoidMySeq[T any]() fp.Monoid[MySeq[T]] {
+	return monoid.IMap(
+		monoid.MergeSlice[T](),
+		func(v []T) MySeq[T] {
+			return MySeq[T](v)
+		},
+		func(v MySeq[T]) []T {
+			return []T(v)
+		},
+	)
+}

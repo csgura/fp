@@ -22,6 +22,10 @@ func Interface[T, I any](v T) I {
 	return a.(I)
 }
 
+func Any[T any](v T) any {
+	return v
+}
+
 func InstanceOf[T any](v any) T {
 	return v.(T)
 }
