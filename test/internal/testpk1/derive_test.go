@@ -7,6 +7,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/testpk1"
@@ -49,4 +50,11 @@ func TestHListInsideHList(t *testing.T) {
 	res.Failed().Foreach(fp.Println[error])
 	assert.True(res.IsSuccess())
 	fmt.Println(res)
+}
+
+func TestNamedType(t *testing.T) {
+	a := testpk1.MySeq[int]{1, 2, 3}
+	assert.True(testpk1.EqMySeq(eq.Given[int]()).Eqv(a, a))
+	d := testpk1.MonoidMySeq[int]().Combine(a, a)
+	assert.True(len(d) == 6)
 }
