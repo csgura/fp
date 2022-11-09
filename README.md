@@ -369,6 +369,7 @@ Here are the rules for names.
 | Slice             | `[]string`       | `EqSlice( Eq[string] )`        |                 | `eq.Slice(Eq[string))`                   |
 | Map               | `map[string]any` | `EqGoMap(Eq[string], Eq[any])` |                 | `eq.GoMap(Eq[string], Eq[any])` |
 | []byte            | `[]byte`         | `EqBytes`, `EqSlice(Eq[byte])`                      |                 |  `eq.Bytes`, `eq.Slice(Eq[byte])`                                           |
+| Pointer            | `*int`         | `EqPtr(Eq[int])`                      |                 |  `eq.Ptr(Eq[int])`                                           |
 | Basic             | `int`            | `EqInt`                        |                 |  `eq.Int`                                               |
 | number            | `float64`        | `EqNumber[~float64 \| ~int]()` |                 | `eq.Number[~float64 \| ~int]()` |
 | comparable or any | `comparable`     | `EqGiven[comparable]()`        |                 | `eq.Given[comparable]()`               |

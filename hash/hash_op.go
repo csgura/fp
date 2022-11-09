@@ -91,8 +91,18 @@ func Seq[T any](hashT fp.Hashable[T]) fp.Hashable[fp.Seq[T]] {
 	})
 }
 
-func Slice[T any](eq fp.Hashable[T]) fp.Hashable[[]T] {
-	return ContraMap(Seq(eq), as.Seq[T])
+func Slice[T any](hashT fp.Hashable[T]) fp.Hashable[[]T] {
+	return ContraMap(Seq(hashT), as.Seq[T])
+}
+
+func Ptr[T any](hashT fp.Hashable[T]) fp.Hashable[*T] {
+	return New(eq.Ptr[T](hashT), func(a *T) uint32 {
+		if a == nil {
+			return 0
+		}
+
+		return hashT.Hash(*a)
+	})
 }
 
 func ContraMap[T, U any](teq fp.Hashable[T], fn func(U) T) fp.Hashable[U] {

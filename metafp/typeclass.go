@@ -100,7 +100,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TypeClassDirective] {
 				if vs, ok := v.(*ast.ValueSpec); ok {
 
-					doc := option.Map(option.Of(vs.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+					doc := option.Map(option.Of(vs.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
 
 					if doc.Filter(as.Func2(strings.Contains).ApplyLast(directive)).IsDefined() {
 

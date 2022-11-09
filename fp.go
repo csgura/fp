@@ -59,6 +59,8 @@ func (r Labelled1[T1]) Tail() Unit {
 	return Unit{}
 }
 
+type Supplier[R any] func() R
+
 type Func0[R any] Func1[Unit, R]
 
 func (r Func0[R]) Apply() R {
@@ -270,12 +272,6 @@ func IsInstanceOf[T, I any](v I) bool {
 	return false
 }
 
-func Return[T any](v T) func() T {
-	return func() T {
-		return v
-	}
-}
-
 func New[F, T any](nf func(F) T) T {
 	var zero F
 	return nf(zero)
@@ -286,4 +282,9 @@ type Generic[T, Repr any] struct {
 	Type string
 	To   func(T) Repr
 	From func(Repr) T
+}
+
+func Zero[T any]() T {
+	var zero T
+	return zero
 }

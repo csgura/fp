@@ -53,7 +53,7 @@ func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
 		if !t1.IsDefined() && !t2.IsDefined() {
 			return false
 		}
-		return option.Map2(t1, t2, m.Less).OrElse(!t1.IsDefined())
+		return option.Map2(t1, t2, m.Less).OrElse(t1.IsEmpty())
 	})
 }
 
@@ -100,3 +100,19 @@ func ContraMap[T, U any](instance fp.Ord[T], fn func(U) T) fp.Ord[U] {
 }
 
 type Derives[T any] interface{ Target() T }
+
+// nil goes to first
+func Ptr[T any](ordT fp.Ord[T]) fp.Ord[*T] {
+	return New(eq.Ptr[T](ordT), func(a, b *T) bool {
+
+		if a != nil && b != nil {
+			return ordT.Less(*a, *b)
+		}
+
+		if a == nil && b == nil {
+			return false
+		}
+
+		return a == nil
+	})
+}

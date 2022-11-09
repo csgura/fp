@@ -9,7 +9,6 @@ import (
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/semigroup"
-	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
 
@@ -19,9 +18,7 @@ func New[T any](zero fp.EmptyFunc[T], combine fp.SemigroupFunc[T]) fp.Monoid[T] 
 	}
 }
 
-var String = New(func() string {
-	return ""
-}, func(a, b string) string {
+var String = New(fp.Zero[string], func(a, b string) string {
 	return a + b
 })
 
@@ -77,9 +74,7 @@ func Future[T any](m fp.Monoid[T]) fp.Monoid[fp.Future[T]] {
 
 func MergeSeq[T any]() fp.Monoid[fp.Seq[T]] {
 	return New(
-		func() fp.Seq[T] {
-			return seq.Of[T]()
-		},
+		fp.Zero[fp.Seq[T]],
 		func(a fp.Seq[T], b fp.Seq[T]) fp.Seq[T] {
 			return a.Concat(b)
 		},
@@ -133,7 +128,7 @@ func Endo[T any]() fp.Monoid[fp.Endo[T]] {
 		func() fp.Endo[T] {
 			return fp.Id[T]
 		},
-		semigroup.Endo[T](),
+		semigroup.Endo[T]().Combine,
 	)
 }
 
@@ -142,7 +137,7 @@ func Dual[T any](m fp.Monoid[T]) fp.Monoid[fp.Dual[T]] {
 		func() fp.Dual[T] {
 			return fp.Dual[T]{m.Empty()}
 		},
-		semigroup.Dual[T](m),
+		semigroup.Dual[T](m).Combine,
 	)
 }
 
@@ -151,7 +146,7 @@ func Eval[T any](m fp.Monoid[T]) fp.Monoid[lazy.Eval[T]] {
 		func() lazy.Eval[T] {
 			return lazy.Done(m.Empty())
 		},
-		semigroup.Eval[T](m),
+		semigroup.Eval[T](m).Combine,
 	)
 }
 
@@ -159,14 +154,14 @@ var Any fp.Monoid[bool] = New(
 	func() bool {
 		return false
 	},
-	semigroup.Any,
+	semigroup.Any.Combine,
 )
 
 var All fp.Monoid[bool] = New(
 	func() bool {
 		return true
 	},
-	semigroup.All,
+	semigroup.All.Combine,
 )
 
 func IMap[A, B any](instance fp.Monoid[A], fab func(A) B, fba func(B) A) fp.Monoid[B] {
@@ -182,19 +177,19 @@ type Derives[T any] interface {
 }
 
 func MergeMap[K, V any]() fp.Monoid[fp.Map[K, V]] {
-	return New(func() fp.Map[K, V] {
-		return fp.Map[K, V]{}
-	}, func(a, b fp.Map[K, V]) fp.Map[K, V] {
-		return a.Concat(b)
-	})
+	return New(
+		fp.Zero[fp.Map[K, V]],
+		func(a, b fp.Map[K, V]) fp.Map[K, V] {
+			return a.Concat(b)
+		})
 }
 
 func MergeSet[V any]() fp.Monoid[fp.Set[V]] {
-	return New(func() fp.Set[V] {
-		return fp.Set[V]{}
-	}, func(a, b fp.Set[V]) fp.Set[V] {
-		return a.Concat(b)
-	})
+	return New(
+		fp.Zero[fp.Set[V]],
+		func(a, b fp.Set[V]) fp.Set[V] {
+			return a.Concat(b)
+		})
 }
 
 func MergeGoMap[K comparable, V any]() fp.Monoid[map[K]V] {
@@ -213,4 +208,19 @@ func MergeGoMap[K comparable, V any]() fp.Monoid[map[K]V] {
 
 		return ret
 	})
+}
+
+func Ptr[T any](monoidT fp.Monoid[T]) fp.Monoid[*T] {
+	return New(
+		fp.Zero[*T],
+		func(a, b *T) *T {
+			if a != nil && b != nil {
+				ret := monoidT.Combine(*a, *b)
+				return &ret
+			}
+			if a == nil {
+				return b
+			}
+			return a
+		})
 }

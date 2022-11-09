@@ -95,7 +95,7 @@ func GetTagsOfType(p []*packages.Package, name string) mutable.Set[string] {
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[string] {
 				if ts, ok := v.(*ast.TypeSpec); ok && ts.Name.Name == name {
-					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
 					return doc.ToSeq()
 				}
 				return seq.Of[string]()
@@ -127,7 +127,7 @@ func FindTaggedStruct(p []*packages.Package, tag string) fp.Seq[TaggedStruct] {
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedStruct] {
 				if ts, ok := v.(*ast.TypeSpec); ok {
-					doc := option.Map(option.Of(ts.Doc).Or(fp.Return(gdDoc)), (*ast.CommentGroup).Text)
+					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
 					if doc.Filter(as.Func2(strings.Contains).ApplyLast(tag)).IsDefined() {
 						return option.Map(LookupStruct(pk.Types, ts.Name.Name), func(v TaggedStruct) TaggedStruct {
 							v.Tags = option.Map(doc, extractTag).OrZero()
