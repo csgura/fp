@@ -28,8 +28,7 @@ go:generate only needs to be specified once in a package.
  
 @fp.Value must be specified to each struct to generate getter method.
  
-Getters of fields that start with an uppercase letter will not generated.  
-Getters of fields starting with _ also will not generated.
+Getter method will not generated if fields name starts with an uppercase letter or starts with _ .  
  
 Running `go generate` will generate the `packname_value_generated.go` file.
 
@@ -163,7 +162,7 @@ func (r Person) AsMutable() PersonMutable {
 Unlike lombok,
 gombok doesn't generate equals and hashCode methods because they don't need.  
 If it required for some other reason,  
-You can use an instance of the fp.Eq or fp.Hashable type class which can be genereted by gombok to define equals and hashCode method.
+You can use an instance of the fp.Eq or fp.Hashable type class to define equals and hashCode method, which can be genereted by gombok
 ```go
 // @fp.Derive
 var _ hash.Derives[fp.Hashable[Person]]
@@ -369,7 +368,7 @@ Here are the rules for names.
 | Slice             | `[]string`       | `EqSlice( Eq[string] )`        |                 | `eq.Slice(Eq[string))`                   |
 | Map               | `map[string]any` | `EqGoMap(Eq[string], Eq[any])` |                 | `eq.GoMap(Eq[string], Eq[any])` |
 | []byte            | `[]byte`         | `EqBytes`, `EqSlice(Eq[byte])`                      |                 |  `eq.Bytes`, `eq.Slice(Eq[byte])`                                           |
-| Pointer            | `*int`         | `EqPtr(Eq[int])`                      |                 |  `eq.Ptr(Eq[int])`                                           |
+| Pointer            | `*int`         | `EqPtr(lazy.Eval[Eq[int]])`                      |                 |  `eq.Ptr(lazy.Eval[Eq[int]])`                                           |
 | Basic             | `int`            | `EqInt`                        |                 |  `eq.Int`                                               |
 | number            | `float64`        | `EqNumber[~float64 \| ~int]()` |                 | `eq.Number[~float64 \| ~int]()` |
 | comparable or any | `comparable`     | `EqGiven[comparable]()`        |                 | `eq.Given[comparable]()`               |
@@ -493,6 +492,42 @@ var _ ord.Derives[fp.Ord[any]]
 
 You can import type class instances defined in other packages.
 
+
+Example:
+```go
+// @fp.ImportGiven
+var _ ord.Derives[fp.Ord[any]]
+
+// EqSeq is an overrided instance of eq.Seq
+// as a result of importing, you can use fp.Ord while deriving fp.Eq[fp.Seq]
+func EqSeq[T any](eqT fp.Eq[T], ordT fp.Ord[T]) fp.Eq[fp.Seq[T]] {
+	return eq.New(func(a, b fp.Seq[T]) bool {
+		asorted := seq.Sort(a, ordT)
+		bsorted := seq.Sort(b, ordT)
+		return eq.Seq(eqT).Eqv(asorted, bsorted)
+	})
+}
+
+// @fp.Value
+type TestOrderedEq struct {
+	list  fp.Seq[int]
+	tlist fp.Seq[fp.Tuple2[int, int]]
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[TestOrderedEq]]
+```
+
+Generated Code:
+```go
+// as a result, 
+// EqSeq is summoned instead of eq.Seq,
+// and Given func is summoned, which defined in ord package.
+var EqTestOrderedEq = eq.ContraMap(
+	eq.Tuple2(EqSeq(eq.Given[int](), ord.Given[int]()), EqSeq(eq.Tuple2(eq.Given[int](), eq.Given[int]()), ord.Tuple2(ord.Given[int](), ord.Given[int]()))),
+	TestOrderedEq.AsTuple,
+)
+```
 # 8. Type class example
 * Show : https://github.com/csgura/fp/blob/master/test/internal/show/show.go
 * Read : https://github.com/csgura/fp/blob/master/test/internal/read/read.go
