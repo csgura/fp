@@ -194,6 +194,7 @@ type TypeClassInstance struct {
 	RequiredInstance fp.Seq[RequiredInstance]
 	UsedParam        fp.Set[string]
 	ParamMapping     fp.Map[string, TypeInfo]
+	WillGeneratedBy  fp.Option[TypeClassDerive]
 }
 
 func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *types.Package) string {
@@ -465,12 +466,13 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 	// 	fmt.Printf("will generate arg type = %s\n", t.TypeArgs.Head().Get().TypeArgs)
 	// }
 	ins := TypeClassInstance{
-		Package:  tc.Package,
-		Name:     tc.GeneratedInstanceName(),
-		Static:   true,
-		Implicit: false,
-		Type:     t,
-		Result:   t,
+		Package:         tc.Package,
+		Name:            tc.GeneratedInstanceName(),
+		Static:          true,
+		Implicit:        false,
+		Type:            t,
+		Result:          t,
+		WillGeneratedBy: option.Some(tc),
 	}
 
 	if tc.IsRecursive() {
@@ -479,6 +481,7 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 
 	if tc.DeriveFor.Info.TypeParam.Size() > 0 {
 		ins.Static = false
+		ins.TypeParam = tc.DeriveFor.Info.TypeParam
 		ins.RequiredInstance = seq.Map(tc.DeriveFor.Info.TypeParam, func(v TypeParam) RequiredInstance {
 			p := types.NewTypeParam(v.TypeName, v.Constraint)
 			return RequiredInstance{

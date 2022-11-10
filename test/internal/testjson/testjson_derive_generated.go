@@ -137,6 +137,18 @@ func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUse
 }
 
 var EncoderMovie = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NameIsName[string]](js.EncoderString), js.EncoderNamed[NameIsCasting[Entry[string]]](EncoderEntry(js.EncoderString))),
-	Movie.AsLabelled,
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[NameIsName[string]](js.EncoderString),
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NameIsCasting[Entry[string]]](EncoderEntry(js.EncoderString)),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NameIsNotUsed[NotUsedParam[int, string]]](EncoderNotUsedParam[int, string](js.EncoderString)),
+				js.EncoderHNil,
+			),
+		),
+	),
+	fp.Compose(
+		Movie.AsLabelled,
+		as.HList3Labelled[NameIsName[string], NameIsCasting[Entry[string]], NameIsNotUsed[NotUsedParam[int, string]]],
+	),
 )

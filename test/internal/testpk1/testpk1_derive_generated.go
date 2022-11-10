@@ -242,3 +242,8 @@ func EqMapEqParam[K any, V any](eqV fp.Eq[V]) fp.Eq[MapEqParam[K, V]] {
 		MapEqParam[K, V].AsTuple,
 	)
 }
+
+var EqNotUsedProblem = eq.ContraMap(
+	eq.Tuple1(EqMapEqParam[string, int](eq.Given[int]())),
+	NotUsedProblem.AsTuple,
+)

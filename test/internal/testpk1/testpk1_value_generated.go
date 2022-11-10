@@ -1033,6 +1033,74 @@ func (r MapEqParamBuilder[K, V]) FromMap(m map[string]any) MapEqParamBuilder[K, 
 	return r
 }
 
+type NotUsedProblemBuilder NotUsedProblem
+
+type NotUsedProblemMutable struct {
+	M MapEqParam[string, int]
+}
+
+func (r NotUsedProblemBuilder) Build() NotUsedProblem {
+	return NotUsedProblem(r)
+}
+
+func (r NotUsedProblem) Builder() NotUsedProblemBuilder {
+	return NotUsedProblemBuilder(r)
+}
+
+func (r NotUsedProblem) M() MapEqParam[string, int] {
+	return r.m
+}
+
+func (r NotUsedProblem) WithM(v MapEqParam[string, int]) NotUsedProblem {
+	r.m = v
+	return r
+}
+
+func (r NotUsedProblemBuilder) M(v MapEqParam[string, int]) NotUsedProblemBuilder {
+	r.m = v
+	return r
+}
+
+func (r NotUsedProblem) String() string {
+	return fmt.Sprintf("NotUsedProblem(m=%v)", r.m)
+}
+
+func (r NotUsedProblem) AsTuple() fp.Tuple1[MapEqParam[string, int]] {
+	return as.Tuple1(r.m)
+}
+
+func (r NotUsedProblem) AsMutable() NotUsedProblemMutable {
+	return NotUsedProblemMutable{
+		M: r.m,
+	}
+}
+
+func (r NotUsedProblemMutable) AsImmutable() NotUsedProblem {
+	return NotUsedProblem{
+		m: r.M,
+	}
+}
+
+func (r NotUsedProblemBuilder) FromTuple(t fp.Tuple1[MapEqParam[string, int]]) NotUsedProblemBuilder {
+	r.m = t.I1
+	return r
+}
+
+func (r NotUsedProblem) AsMap() map[string]any {
+	return map[string]any{
+		"m": r.m,
+	}
+}
+
+func (r NotUsedProblemBuilder) FromMap(m map[string]any) NotUsedProblemBuilder {
+
+	if v, ok := m["m"].(MapEqParam[string, int]); ok {
+		r.m = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

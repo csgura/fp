@@ -81,7 +81,7 @@ var _ js.Derives[js.Encoder[NotUsedParam[any, any]]]
 type Movie struct {
 	name    string
 	casting Entry[string]
-	//notUsed NotUsedParam[int, string]
+	notUsed NotUsedParam[int, string]
 }
 
 // @fp.Derive

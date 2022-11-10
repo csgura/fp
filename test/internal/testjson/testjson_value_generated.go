@@ -762,6 +762,7 @@ type MovieBuilder Movie
 type MovieMutable struct {
 	Name    string
 	Casting Entry[string]
+	NotUsed NotUsedParam[int, string]
 }
 
 func (r MovieBuilder) Build() Movie {
@@ -800,18 +801,33 @@ func (r MovieBuilder) Casting(v Entry[string]) MovieBuilder {
 	return r
 }
 
-func (r Movie) String() string {
-	return fmt.Sprintf("Movie(name=%v, casting=%v)", r.name, r.casting)
+func (r Movie) NotUsed() NotUsedParam[int, string] {
+	return r.notUsed
 }
 
-func (r Movie) AsTuple() fp.Tuple2[string, Entry[string]] {
-	return as.Tuple2(r.name, r.casting)
+func (r Movie) WithNotUsed(v NotUsedParam[int, string]) Movie {
+	r.notUsed = v
+	return r
+}
+
+func (r MovieBuilder) NotUsed(v NotUsedParam[int, string]) MovieBuilder {
+	r.notUsed = v
+	return r
+}
+
+func (r Movie) String() string {
+	return fmt.Sprintf("Movie(name=%v, casting=%v, notUsed=%v)", r.name, r.casting, r.notUsed)
+}
+
+func (r Movie) AsTuple() fp.Tuple3[string, Entry[string], NotUsedParam[int, string]] {
+	return as.Tuple3(r.name, r.casting, r.notUsed)
 }
 
 func (r Movie) AsMutable() MovieMutable {
 	return MovieMutable{
 		Name:    r.name,
 		Casting: r.casting,
+		NotUsed: r.notUsed,
 	}
 }
 
@@ -819,12 +835,14 @@ func (r MovieMutable) AsImmutable() Movie {
 	return Movie{
 		name:    r.Name,
 		casting: r.Casting,
+		notUsed: r.NotUsed,
 	}
 }
 
-func (r MovieBuilder) FromTuple(t fp.Tuple2[string, Entry[string]]) MovieBuilder {
+func (r MovieBuilder) FromTuple(t fp.Tuple3[string, Entry[string], NotUsedParam[int, string]]) MovieBuilder {
 	r.name = t.I1
 	r.casting = t.I2
+	r.notUsed = t.I3
 	return r
 }
 
@@ -832,6 +850,7 @@ func (r Movie) AsMap() map[string]any {
 	return map[string]any{
 		"name":    r.name,
 		"casting": r.casting,
+		"notUsed": r.notUsed,
 	}
 }
 
@@ -845,16 +864,21 @@ func (r MovieBuilder) FromMap(m map[string]any) MovieBuilder {
 		r.casting = v
 	}
 
+	if v, ok := m["notUsed"].(NotUsedParam[int, string]); ok {
+		r.notUsed = v
+	}
+
 	return r
 }
 
-func (r Movie) AsLabelled() fp.Labelled2[NameIsName[string], NameIsCasting[Entry[string]]] {
-	return as.Labelled2(NameIsName[string]{r.name}, NameIsCasting[Entry[string]]{r.casting})
+func (r Movie) AsLabelled() fp.Labelled3[NameIsName[string], NameIsCasting[Entry[string]], NameIsNotUsed[NotUsedParam[int, string]]] {
+	return as.Labelled3(NameIsName[string]{r.name}, NameIsCasting[Entry[string]]{r.casting}, NameIsNotUsed[NotUsedParam[int, string]]{r.notUsed})
 }
 
-func (r MovieBuilder) FromLabelled(t fp.Labelled2[NameIsName[string], NameIsCasting[Entry[string]]]) MovieBuilder {
+func (r MovieBuilder) FromLabelled(t fp.Labelled3[NameIsName[string], NameIsCasting[Entry[string]], NameIsNotUsed[NotUsedParam[int, string]]]) MovieBuilder {
 	r.name = t.I1.Value()
 	r.casting = t.I2.Value()
+	r.notUsed = t.I3.Value()
 	return r
 }
 
@@ -997,6 +1021,19 @@ func (r NameIsName[T]) Value() T {
 	return r.I1
 }
 func (r NameIsName[T]) WithValue(v T) NameIsName[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsNotUsed[T any] fp.Tuple1[T]
+
+func (r NameIsNotUsed[T]) Name() string {
+	return "notUsed"
+}
+func (r NameIsNotUsed[T]) Value() T {
+	return r.I1
+}
+func (r NameIsNotUsed[T]) WithValue(v T) NameIsNotUsed[T] {
 	r.I1 = v
 	return r
 }

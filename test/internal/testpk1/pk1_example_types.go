@@ -173,3 +173,11 @@ type MapEqParam[K, V any] struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[MapEqParam[any, any]]]
+
+// @fp.Value
+type NotUsedProblem struct {
+	m MapEqParam[string, int]
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[NotUsedProblem]]

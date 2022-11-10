@@ -177,3 +177,11 @@ func Func2[A, B, R any](f func(A, B) R) func(A, B) func() R {
 		}
 	}
 }
+
+func Func3[A, B, C, R any](f func(A, B, C) R) func(A, B, C) func() R {
+	return func(a A, b B, c C) func() R {
+		return func() R {
+			return f(a, b, c)
+		}
+	}
+}
