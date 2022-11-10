@@ -181,3 +181,13 @@ type NotUsedProblem struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[NotUsedProblem]]
+
+// @fp.Value
+type Node struct {
+	value string
+	left  *Node
+	right *Node
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Node]]

@@ -181,10 +181,12 @@ type RequiredInstance struct {
 	Lazy      bool
 }
 type TypeClassInstance struct {
-	Package  *types.Package
-	Name     string
-	Static   bool
-	Implicit bool
+	Package       *types.Package
+	Name          string
+	Static        bool
+	Implicit      bool
+	HasExplictArg bool
+
 	Instance types.Object
 	Type     TypeInfo
 	Result   TypeInfo
@@ -585,6 +587,97 @@ func asRequired(v TypeInfo) RequiredInstance {
 	}
 }
 
+func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInstance] {
+	insType := typeInfo(ins.Type())
+	rType := insType.ResultType()
+	name := ins.Name()
+
+	if rType.IsInstanceOf(tc) && rType.TypeArgs.Size() > 0 {
+		under := rType.TypeArgs.Head().Get()
+
+		if insType.IsFunc() {
+
+			if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
+				return option.Some(TypeClassInstance{
+					Package:   ins.Pkg(),
+					Name:      name,
+					Static:    false,
+					Implicit:  true,
+					Type:      insType,
+					Result:    rType,
+					Under:     under,
+					Instance:  ins,
+					TypeParam: insType.TypeParam,
+				})
+				// ret.ByName = ret.ByName.Updated(name, tins)
+				// ret.All = ret.All.Append(tins)
+			} else {
+
+				fargs := insType.FuncArgs()
+				allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
+					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
+						if v.Name().Get() == "Evel" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
+							realv := v.TypeArgs.Head().Get()
+							return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
+						}
+						return true
+					}
+					return false
+				})
+
+				if allArgTypeClass == true {
+
+					required := seq.Map(fargs, asRequired)
+
+					return option.Some(TypeClassInstance{
+						Package:          ins.Pkg(),
+						Name:             name,
+						Static:           false,
+						Implicit:         false,
+						Type:             insType,
+						Result:           rType,
+						TypeParam:        insType.TypeParam,
+						RequiredInstance: required,
+						Under:            under,
+						Instance:         ins,
+					})
+					// ret.ByName = ret.ByName.Updated(name, tins)
+					// ret.All = ret.All.Append(tins)
+				} else {
+					return option.Some(TypeClassInstance{
+						Package:       ins.Pkg(),
+						Name:          name,
+						Static:        false,
+						Implicit:      false,
+						HasExplictArg: true,
+						Type:          insType,
+						Result:        rType,
+						TypeParam:     insType.TypeParam,
+						Under:         under,
+						Instance:      ins,
+					})
+					//ret.OtherFuncs = ret.OtherFuncs.Updated(name, tins)
+				}
+			}
+		} else {
+			return option.Some(TypeClassInstance{
+				Package:  ins.Pkg(),
+				Name:     name,
+				Static:   true,
+				Implicit: false,
+				Type:     insType,
+				Result:   insType,
+				Under:    under,
+				Instance: ins,
+			})
+			// ret.ByName = ret.ByName.Updated(name, tins)
+			// ret.FixedByType = ret.FixedByType.Updated(under.Type.String(), tins)
+		}
+	}
+	return option.None[TypeClassInstance]()
+
+}
+
 func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOfPackage {
 	ret := TypeClassInstancesOfPackage{
 		Package:     pk,
@@ -598,93 +691,17 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 	// fmt.Println()
 	for _, name := range pk.Scope().Names() {
 		ins := pk.Scope().Lookup(name)
-
-		insType := typeInfo(ins.Type())
-		rType := insType.ResultType()
-
-		if rType.IsInstanceOf(tc) && rType.TypeArgs.Size() > 0 {
-			under := rType.TypeArgs.Head().Get()
-
-			if insType.IsFunc() {
-
-				if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
-					tins := TypeClassInstance{
-						Package:   pk,
-						Name:      name,
-						Static:    false,
-						Implicit:  true,
-						Type:      insType,
-						Result:    rType,
-						Under:     under,
-						Instance:  ins,
-						TypeParam: insType.TypeParam,
-					}
-					ret.ByName = ret.ByName.Updated(name, tins)
-					ret.All = ret.All.Append(tins)
-				} else {
-
-					fargs := insType.FuncArgs()
-					allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
-						if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
-							if v.Name().Get() == "Evel" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
-								realv := v.TypeArgs.Head().Get()
-								return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
-							}
-							return true
-						}
-						return false
-					})
-
-					if allArgTypeClass == true {
-
-						required := seq.Map(fargs, asRequired)
-
-						tins := TypeClassInstance{
-							Package:          pk,
-							Name:             name,
-							Static:           false,
-							Implicit:         false,
-							Type:             insType,
-							Result:           rType,
-							TypeParam:        insType.TypeParam,
-							RequiredInstance: required,
-							Under:            under,
-							Instance:         ins,
-						}
-						ret.ByName = ret.ByName.Updated(name, tins)
-						ret.All = ret.All.Append(tins)
-					} else {
-						tins := TypeClassInstance{
-							Package:   pk,
-							Name:      name,
-							Static:    false,
-							Implicit:  false,
-							Type:      insType,
-							Result:    rType,
-							TypeParam: insType.TypeParam,
-							Under:     under,
-							Instance:  ins,
-						}
-						ret.OtherFuncs = ret.OtherFuncs.Updated(name, tins)
-					}
-				}
+		AsTypeClassInstance(tc, ins).Foreach(func(tins TypeClassInstance) {
+			if tins.HasExplictArg {
+				ret.OtherFuncs = ret.OtherFuncs.Updated(name, tins)
 			} else {
-				tins := TypeClassInstance{
-					Package:  pk,
-					Name:     name,
-					Static:   true,
-					Implicit: false,
-					Type:     insType,
-					Result:   insType,
-					Under:    under,
-					Instance: ins,
-				}
+				ret.All = ret.All.Append(tins)
 				ret.ByName = ret.ByName.Updated(name, tins)
-				//fmt.Printf("add fixed type %s -> %s\n", name, under.Type.String())
-				ret.FixedByType = ret.FixedByType.Updated(under.Type.String(), tins)
-				//ret.All = ret.All.Append(tins)
 			}
-		}
+			if tins.Static {
+				ret.FixedByType = ret.FixedByType.Updated(tins.Under.Type.String(), tins)
+			}
+		})
 
 	}
 	ret.All = seq.Sort(ret.All, as.Ord(func(a, b TypeClassInstance) bool {

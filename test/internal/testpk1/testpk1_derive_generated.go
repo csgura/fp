@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
@@ -247,3 +248,14 @@ var EqNotUsedProblem = eq.ContraMap(
 	eq.Tuple1(EqMapEqParam[string, int](eq.Given[int]())),
 	NotUsedProblem.AsTuple,
 )
+
+func EqNode() fp.Eq[Node] {
+	return eq.ContraMap(
+		eq.Tuple3(eq.String, eq.Ptr(lazy.Call(func() fp.Eq[Node] {
+			return EqNode()
+		})), eq.Ptr(lazy.Call(func() fp.Eq[Node] {
+			return EqNode()
+		}))),
+		Node.AsTuple,
+	)
+}

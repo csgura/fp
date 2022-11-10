@@ -58,10 +58,10 @@ type Derives[T any] interface {
 	Target() T
 }
 
-func Ptr[T any](sgT fp.Semigroup[T]) fp.Semigroup[*T] {
+func Ptr[T any](sgT lazy.Eval[fp.Semigroup[T]]) fp.Semigroup[*T] {
 	return New(func(a, b *T) *T {
 		if a != nil && b != nil {
-			ret := sgT.Combine(*a, *b)
+			ret := sgT.Get().Combine(*a, *b)
 			return &ret
 		}
 		if a == nil {

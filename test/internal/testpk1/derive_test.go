@@ -58,3 +58,28 @@ func TestNamedType(t *testing.T) {
 	d := testpk1.MonoidMySeq[int]().Combine(a, a)
 	assert.True(len(d) == 6)
 }
+
+func TestRecursiveEq(t *testing.T) {
+
+	a := testpk1.NodeMutable{
+		Value: "root",
+		Left: as.Ptr(testpk1.NodeMutable{
+			Value: "left",
+		}.AsImmutable()),
+		Right: as.Ptr(testpk1.NodeMutable{
+			Value: "right",
+		}.AsImmutable()),
+	}.AsImmutable()
+
+	b := testpk1.NodeMutable{
+		Value: "root",
+		Left: as.Ptr(testpk1.NodeMutable{
+			Value: "left",
+		}.AsImmutable()),
+		Right: as.Ptr(testpk1.NodeMutable{
+			Value: "not right",
+		}.AsImmutable()),
+	}.AsImmutable()
+
+	assert.False(testpk1.EqNode().Eqv(a, b))
+}

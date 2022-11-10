@@ -393,6 +393,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx CurrentConte
 						Type:      v,
 					}
 				}),
+				instance: metafp.AsTypeClassInstance(req.TypeClass, obj),
 			}
 
 			return option.Some(ret)
@@ -460,7 +461,7 @@ func MergeSeqDistinct[T any](eqt fp.Eq[T]) fp.Monoid[fp.Seq[T]] {
 	)
 }
 
-func (r *TypeClassSummonContext) summArgs(ctx CurrentContext, args fp.Seq[metafp.RequiredInstance]) SummonExpr {
+func (r *TypeClassSummonContext) summonArgs(ctx CurrentContext, args fp.Seq[metafp.RequiredInstance]) SummonExpr {
 	list := seq.Map(args, func(t metafp.RequiredInstance) SummonExpr {
 		ret := r.summon(ctx, t)
 		if t.Lazy {
@@ -486,7 +487,7 @@ func newSummonExpr(expr string, params ...fp.Seq[ParamInstance]) SummonExpr {
 
 func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lookupTarget) SummonExpr {
 	if len(lt.required) > 0 {
-		list := r.summArgs(ctx, lt.required)
+		list := r.summonArgs(ctx, lt.required)
 
 		instanceExpr := lt.instanceExpr(r.w, ctx.working)
 		tpstr := r.typeParamString(ctx, lt)
@@ -520,7 +521,7 @@ func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lo
 
 func (r *TypeClassSummonContext) exprTypeClassMember(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typeArgs fp.Seq[metafp.TypeInfo]) SummonExpr {
 	if len(typeArgs) > 0 {
-		list := r.summArgs(ctx, seq.Map(typeArgs, func(t metafp.TypeInfo) metafp.RequiredInstance {
+		list := r.summonArgs(ctx, seq.Map(typeArgs, func(t metafp.TypeInfo) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
 				TypeClass: tc,
 				Type:      t,

@@ -439,6 +439,52 @@ type Generic[T, Repr any] struct {
 }
 ```
 
+## 6.3. Deriving instances for recursive types
+The Ptr instance should use lazy.Eval to avoid infinite loops.
+```go
+func Ptr[T any](eq lazy.Eval[fp.Eq[T]]) fp.Eq[*T] {
+	return New(func(a, b *T) bool {
+		if a == nil && b == nil {
+			return true
+		}
+
+		if a != nil && b != nil {
+			return eq.Get().Eqv(*a, *b)
+		}
+
+		return false
+	})
+}
+```
+
+Example Recursive type :
+```go
+// @fp.Value
+type Node struct {
+	value string
+	left  *Node
+	right *Node
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Node]]
+```
+
+Generated Code :
+```go
+func EqNode() fp.Eq[Node] {
+	return eq.ContraMap(
+		eq.Tuple3(eq.String, eq.Ptr(lazy.Call(func() fp.Eq[Node] {
+			return EqNode()
+		})), eq.Ptr(lazy.Call(func() fp.Eq[Node] {
+			return EqNode()
+		}))),
+		Node.AsTuple,
+	)
+}
+```
+EqNode summoned as func because it calls itself recursively.
+
 # 7. @fp.ImportGiven
 ```go
 // @fp.ImportGiven

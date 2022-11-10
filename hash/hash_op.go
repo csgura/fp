@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/seq"
 )
 
@@ -95,13 +96,15 @@ func Slice[T any](hashT fp.Hashable[T]) fp.Hashable[[]T] {
 	return ContraMap(Seq(hashT), as.Seq[T])
 }
 
-func Ptr[T any](hashT fp.Hashable[T]) fp.Hashable[*T] {
-	return New(eq.Ptr[T](hashT), func(a *T) uint32 {
+func Ptr[T any](hashT lazy.Eval[fp.Hashable[T]]) fp.Hashable[*T] {
+	return New(eq.Ptr(lazy.Call(func() fp.Eq[T] {
+		return hashT.Get()
+	})), func(a *T) uint32 {
 		if a == nil {
 			return 0
 		}
 
-		return hashT.Hash(*a)
+		return hashT.Get().Hash(*a)
 	})
 }
 

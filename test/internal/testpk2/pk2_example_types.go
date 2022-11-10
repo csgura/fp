@@ -189,3 +189,11 @@ var _ eq.Derives[fp.Eq[testpk1.World]]
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[testpk1.Wrapper[any]]]
+
+// @fp.Value
+type Tree struct {
+	root testpk1.Node
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[Tree]]

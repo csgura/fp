@@ -210,12 +210,12 @@ func MergeGoMap[K comparable, V any]() fp.Monoid[map[K]V] {
 	})
 }
 
-func Ptr[T any](monoidT fp.Monoid[T]) fp.Monoid[*T] {
+func Ptr[T any](monoidT lazy.Eval[fp.Monoid[T]]) fp.Monoid[*T] {
 	return New(
 		fp.Zero[*T],
 		func(a, b *T) *T {
 			if a != nil && b != nil {
-				ret := monoidT.Combine(*a, *b)
+				ret := monoidT.Get().Combine(*a, *b)
 				return &ret
 			}
 			if a == nil {

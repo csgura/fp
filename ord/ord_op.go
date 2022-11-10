@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 )
 
@@ -102,11 +103,13 @@ func ContraMap[T, U any](instance fp.Ord[T], fn func(U) T) fp.Ord[U] {
 type Derives[T any] interface{ Target() T }
 
 // nil goes to first
-func Ptr[T any](ordT fp.Ord[T]) fp.Ord[*T] {
-	return New(eq.Ptr[T](ordT), func(a, b *T) bool {
+func Ptr[T any](ordT lazy.Eval[fp.Ord[T]]) fp.Ord[*T] {
+	return New(eq.Ptr(lazy.Call(func() fp.Eq[T] {
+		return ordT.Get()
+	})), func(a, b *T) bool {
 
 		if a != nil && b != nil {
-			return ordT.Less(*a, *b)
+			return ordT.Get().Less(*a, *b)
 		}
 
 		if a == nil && b == nil {

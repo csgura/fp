@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 )
 
 func New[T any](f func(a, b T) bool) fp.Eq[T] {
@@ -68,14 +69,14 @@ func Given[T comparable]() fp.Eq[T] {
 	return fp.EqGiven[T]()
 }
 
-func Ptr[T any](eq fp.Eq[T]) fp.Eq[*T] {
+func Ptr[T any](eq lazy.Eval[fp.Eq[T]]) fp.Eq[*T] {
 	return New(func(a, b *T) bool {
 		if a == nil && b == nil {
 			return true
 		}
 
 		if a != nil && b != nil {
-			return eq.Eqv(*a, *b)
+			return eq.Get().Eqv(*a, *b)
 		}
 
 		return false

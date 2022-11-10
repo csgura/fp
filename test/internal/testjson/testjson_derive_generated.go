@@ -53,7 +53,9 @@ var DecoderRoot = js.DecoderMap(
 				js.DecoderHConsLabelled(
 					js.DecoderNamed[NameIsD[bool]](js.DecoderBool),
 					js.DecoderHConsLabelled(
-						js.DecoderNamed[NameIsE[*int]](js.DecoderPtr(js.DecoderNumber[int]())),
+						js.DecoderNamed[NameIsE[*int]](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
+							return js.DecoderNumber[int]()
+						}))),
 						js.DecoderHConsLabelled(
 							js.DecoderNamed[NameIsF[[]int]](js.DecoderSlice(js.DecoderNumber[int]())),
 							js.DecoderHConsLabelled(

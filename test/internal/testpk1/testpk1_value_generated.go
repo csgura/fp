@@ -1101,6 +1101,120 @@ func (r NotUsedProblemBuilder) FromMap(m map[string]any) NotUsedProblemBuilder {
 	return r
 }
 
+type NodeBuilder Node
+
+type NodeMutable struct {
+	Value string
+	Left  *Node
+	Right *Node
+}
+
+func (r NodeBuilder) Build() Node {
+	return Node(r)
+}
+
+func (r Node) Builder() NodeBuilder {
+	return NodeBuilder(r)
+}
+
+func (r Node) Value() string {
+	return r.value
+}
+
+func (r Node) WithValue(v string) Node {
+	r.value = v
+	return r
+}
+
+func (r NodeBuilder) Value(v string) NodeBuilder {
+	r.value = v
+	return r
+}
+
+func (r Node) Left() *Node {
+	return r.left
+}
+
+func (r Node) WithLeft(v *Node) Node {
+	r.left = v
+	return r
+}
+
+func (r NodeBuilder) Left(v *Node) NodeBuilder {
+	r.left = v
+	return r
+}
+
+func (r Node) Right() *Node {
+	return r.right
+}
+
+func (r Node) WithRight(v *Node) Node {
+	r.right = v
+	return r
+}
+
+func (r NodeBuilder) Right(v *Node) NodeBuilder {
+	r.right = v
+	return r
+}
+
+func (r Node) String() string {
+	return fmt.Sprintf("Node(value=%v, left=%v, right=%v)", r.value, r.left, r.right)
+}
+
+func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
+	return as.Tuple3(r.value, r.left, r.right)
+}
+
+func (r Node) AsMutable() NodeMutable {
+	return NodeMutable{
+		Value: r.value,
+		Left:  r.left,
+		Right: r.right,
+	}
+}
+
+func (r NodeMutable) AsImmutable() Node {
+	return Node{
+		value: r.Value,
+		left:  r.Left,
+		right: r.Right,
+	}
+}
+
+func (r NodeBuilder) FromTuple(t fp.Tuple3[string, *Node, *Node]) NodeBuilder {
+	r.value = t.I1
+	r.left = t.I2
+	r.right = t.I3
+	return r
+}
+
+func (r Node) AsMap() map[string]any {
+	return map[string]any{
+		"value": r.value,
+		"left":  r.left,
+		"right": r.right,
+	}
+}
+
+func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
+
+	if v, ok := m["value"].(string); ok {
+		r.value = v
+	}
+
+	if v, ok := m["left"].(*Node); ok {
+		r.left = v
+	}
+
+	if v, ok := m["right"].(*Node); ok {
+		r.right = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

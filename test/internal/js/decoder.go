@@ -9,6 +9,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/try"
 )
@@ -132,12 +133,12 @@ func DecoderGiven[T any]() Decoder[T] {
 	})
 }
 
-func DecoderPtr[T any](decT Decoder[T]) Decoder[*T] {
+func DecoderPtr[T any](decT lazy.Eval[Decoder[T]]) Decoder[*T] {
 	return NewDecoder(func(ctx DecoderContext, a string) fp.Try[*T] {
 		if a == "null" {
 			return try.Success[*T](nil)
 		}
-		ret := decT.Decode(ctx, a)
+		ret := decT.Get().Decode(ctx, a)
 		return try.Map(ret, func(v T) *T {
 			return &v
 		})

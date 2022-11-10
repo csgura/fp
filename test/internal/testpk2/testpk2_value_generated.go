@@ -1610,6 +1610,74 @@ func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NameIsOne[int], NameIsTwo[stri
 	return r
 }
 
+type TreeBuilder Tree
+
+type TreeMutable struct {
+	Root testpk1.Node
+}
+
+func (r TreeBuilder) Build() Tree {
+	return Tree(r)
+}
+
+func (r Tree) Builder() TreeBuilder {
+	return TreeBuilder(r)
+}
+
+func (r Tree) Root() testpk1.Node {
+	return r.root
+}
+
+func (r Tree) WithRoot(v testpk1.Node) Tree {
+	r.root = v
+	return r
+}
+
+func (r TreeBuilder) Root(v testpk1.Node) TreeBuilder {
+	r.root = v
+	return r
+}
+
+func (r Tree) String() string {
+	return fmt.Sprintf("Tree(root=%v)", r.root)
+}
+
+func (r Tree) AsTuple() fp.Tuple1[testpk1.Node] {
+	return as.Tuple1(r.root)
+}
+
+func (r Tree) AsMutable() TreeMutable {
+	return TreeMutable{
+		Root: r.root,
+	}
+}
+
+func (r TreeMutable) AsImmutable() Tree {
+	return Tree{
+		root: r.Root,
+	}
+}
+
+func (r TreeBuilder) FromTuple(t fp.Tuple1[testpk1.Node]) TreeBuilder {
+	r.root = t.I1
+	return r
+}
+
+func (r Tree) AsMap() map[string]any {
+	return map[string]any{
+		"root": r.root,
+	}
+}
+
+func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
+
+	if v, ok := m["root"].(testpk1.Node); ok {
+		r.root = v
+	}
+
+	return r
+}
+
 type NotIgnoredBuilder NotIgnored
 
 type NotIgnoredMutable struct {

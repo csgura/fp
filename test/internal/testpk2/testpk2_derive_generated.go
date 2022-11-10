@@ -185,3 +185,8 @@ func EqTestpk1Wrapper[T any](eqT fp.Eq[T]) fp.Eq[testpk1.Wrapper[T]] {
 		testpk1.Wrapper[T].AsTuple,
 	)
 }
+
+var EqTree = eq.ContraMap(
+	eq.Tuple1(testpk1.EqNode()),
+	Tree.AsTuple,
+)
