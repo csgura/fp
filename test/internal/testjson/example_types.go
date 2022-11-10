@@ -50,7 +50,7 @@ var _ js.Derives[js.Encoder[Node]]
 // @fp.Value
 // @fp.GenLabelled
 type Tree struct {
-	// root *Node
+	root *Node
 }
 
 // @fp.Derive

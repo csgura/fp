@@ -24,6 +24,10 @@ type TypeClass struct {
 	TypeParam fp.Seq[TypeParam]
 }
 
+func (r TypeClass) IsLazy() bool {
+	return r.Name == "Eval" && r.Package.Path() == "github.com/csgura/fp/lazy"
+}
+
 // int  =>  Eq[int]
 // Option[T any] =>   (T) -> Eq[Option[T]]
 func (r TypeClass) InstantiatedType(t TypeInfo) TypeInfo {
@@ -174,6 +178,7 @@ func FindTypeClassImport(p []*packages.Package) fp.Seq[TypeClassDirective] {
 type RequiredInstance struct {
 	TypeClass TypeClass
 	Type      TypeInfo
+	Lazy      bool
 }
 type TypeClassInstance struct {
 	Package  *types.Package
@@ -557,6 +562,26 @@ func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassS
 
 }
 
+func asRequired(v TypeInfo) RequiredInstance {
+	tc := TypeClass{
+		Name:      v.Name().Get(),
+		Package:   v.Pkg,
+		Type:      v,
+		TypeParam: v.TypeParam,
+	}
+
+	if tc.IsLazy() {
+		ret := asRequired(v.TypeArgs.Head().Get())
+		ret.Lazy = true
+		return ret
+	}
+
+	return RequiredInstance{
+		TypeClass: tc,
+		Type:      v.TypeArgs.Head().Get(),
+	}
+}
+
 func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOfPackage {
 	ret := TypeClassInstancesOfPackage{
 		Package:     pk,
@@ -597,22 +622,19 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 
 					fargs := insType.FuncArgs()
 					allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
-						return v.Name().IsDefined() && v.TypeArgs.Size() == 1
+						if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
+							if v.Name().Get() == "Evel" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
+								realv := v.TypeArgs.Head().Get()
+								return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
+							}
+							return true
+						}
+						return false
 					})
 
 					if allArgTypeClass == true {
 
-						required := seq.Map(fargs, func(v TypeInfo) RequiredInstance {
-							return RequiredInstance{
-								TypeClass: TypeClass{
-									Name:      v.Name().Get(),
-									Package:   v.Pkg,
-									Type:      v,
-									TypeParam: v.TypeParam,
-								},
-								Type: v.TypeArgs.Head().Get(),
-							}
-						})
+						required := seq.Map(fargs, asRequired)
 
 						tins := TypeClassInstance{
 							Package:          pk,

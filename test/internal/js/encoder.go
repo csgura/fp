@@ -7,6 +7,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 )
@@ -71,10 +72,10 @@ var EncoderBool = NewEncoder(func(a bool) fp.Option[string] {
 	return option.Some("false")
 })
 
-func EncoderPtr[T any](encT Encoder[T]) Encoder[*T] {
+func EncoderPtr[T any](encT lazy.Eval[Encoder[T]]) Encoder[*T] {
 	return NewEncoder(func(a *T) fp.Option[string] {
 		if a != nil {
-			return encT.Encode(*a)
+			return encT.Get().Encode(*a)
 		}
 		return option.Some("null")
 	})

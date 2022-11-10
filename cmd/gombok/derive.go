@@ -401,7 +401,16 @@ func MergeSeqDistinct[T any](eqt fp.Eq[T]) fp.Monoid[fp.Seq[T]] {
 
 func (r TypeClassSummonContext) summArgs(args fp.Seq[metafp.RequiredInstance]) SummonExpr {
 	list := seq.Map(args, func(t metafp.RequiredInstance) SummonExpr {
-		return r.summon(t)
+		ret := r.summon(t)
+		if t.Lazy {
+			lazypk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/lazy", "lazy"))
+			expr := fmt.Sprintf(`%s.Call( func() %s[%s] {
+				return %s
+			})`, lazypk, t.TypeClass.PackagedName(r.w, r.tc.Package), r.w.TypeName(r.tc.Package, t.Type.Type), ret.expr)
+
+			return newSummonExpr(expr, ret.paramInstance)
+		}
+		return ret
 	})
 
 	return collectSummonExpr(list)
@@ -832,6 +841,10 @@ func (r TypeClassSummonContext) summonFpNamed(tc metafp.TypeClass, name string, 
 func (r TypeClassSummonContext) summon(req metafp.RequiredInstance) SummonExpr {
 
 	t := req.Type
+
+	// if req.TypeClass.IsLazy() {
+	// 	expr := r.summon(req.Type.TypeArgs.Head().Get())
+	// }
 
 	if t.IsTuple() {
 		return r.summonTuple(req.TypeClass, t.TypeArgs)

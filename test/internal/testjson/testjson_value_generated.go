@@ -478,6 +478,83 @@ func (r NodeBuilder) FromLabelled(t fp.Labelled3[NameIsName[string], NameIsLeft[
 	return r
 }
 
+type TreeBuilder Tree
+
+type TreeMutable struct {
+	Root *Node
+}
+
+func (r TreeBuilder) Build() Tree {
+	return Tree(r)
+}
+
+func (r Tree) Builder() TreeBuilder {
+	return TreeBuilder(r)
+}
+
+func (r Tree) Root() *Node {
+	return r.root
+}
+
+func (r Tree) WithRoot(v *Node) Tree {
+	r.root = v
+	return r
+}
+
+func (r TreeBuilder) Root(v *Node) TreeBuilder {
+	r.root = v
+	return r
+}
+
+func (r Tree) String() string {
+	return fmt.Sprintf("Tree(root=%v)", r.root)
+}
+
+func (r Tree) AsTuple() fp.Tuple1[*Node] {
+	return as.Tuple1(r.root)
+}
+
+func (r Tree) AsMutable() TreeMutable {
+	return TreeMutable{
+		Root: r.root,
+	}
+}
+
+func (r TreeMutable) AsImmutable() Tree {
+	return Tree{
+		root: r.Root,
+	}
+}
+
+func (r TreeBuilder) FromTuple(t fp.Tuple1[*Node]) TreeBuilder {
+	r.root = t.I1
+	return r
+}
+
+func (r Tree) AsMap() map[string]any {
+	return map[string]any{
+		"root": r.root,
+	}
+}
+
+func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
+
+	if v, ok := m["root"].(*Node); ok {
+		r.root = v
+	}
+
+	return r
+}
+
+func (r Tree) AsLabelled() fp.Labelled1[NameIsRoot[*Node]] {
+	return as.Labelled1(NameIsRoot[*Node]{r.root})
+}
+
+func (r TreeBuilder) FromLabelled(t fp.Labelled1[NameIsRoot[*Node]]) TreeBuilder {
+	r.root = t.I1.Value()
+	return r
+}
+
 type EntryBuilder[V any] Entry[V]
 
 type EntryMutable[V any] struct {
@@ -946,6 +1023,19 @@ func (r NameIsRight[T]) Value() T {
 	return r.I1
 }
 func (r NameIsRight[T]) WithValue(v T) NameIsRight[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsRoot[T any] fp.Tuple1[T]
+
+func (r NameIsRoot[T]) Name() string {
+	return "root"
+}
+func (r NameIsRoot[T]) Value() T {
+	return r.I1
+}
+func (r NameIsRoot[T]) WithValue(v T) NameIsRoot[T] {
 	r.I1 = v
 	return r
 }

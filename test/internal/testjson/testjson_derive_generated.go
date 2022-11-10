@@ -4,7 +4,7 @@ package testjson
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 )
@@ -19,7 +19,9 @@ var EncoderRoot = js.EncoderContraMap(
 				js.EncoderHConsLabelled(
 					js.EncoderNamed[NameIsD[bool]](js.EncoderBool),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NameIsE[*int]](js.EncoderPtr(js.EncoderNumber[int]())),
+						js.EncoderNamed[NameIsE[*int]](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
+							return js.EncoderNumber[int]()
+						}))),
 						js.EncoderHConsLabelled(
 							js.EncoderNamed[NameIsF[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
 							js.EncoderHConsLabelled(
@@ -95,9 +97,13 @@ func EncoderNode() js.Encoder[Node] {
 		js.EncoderHConsLabelled(
 			js.EncoderNamed[NameIsName[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NameIsLeft[*Node]](js.EncoderPtr(EncoderNode())),
+				js.EncoderNamed[NameIsLeft[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+					return EncoderNode()
+				}))),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NameIsRight[*Node]](js.EncoderPtr(EncoderNode())),
+					js.EncoderNamed[NameIsRight[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+						return EncoderNode()
+					}))),
 					js.EncoderHNil,
 				),
 			),
@@ -110,10 +116,10 @@ func EncoderNode() js.Encoder[Node] {
 }
 
 var EncoderTree = js.EncoderContraMap(
-	js.EncoderHNil,
-	func(Tree) hlist.Nil {
-		return hlist.Empty()
-	},
+	js.EncoderLabelled1(js.EncoderNamed[NameIsRoot[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+		return EncoderNode()
+	})))),
+	Tree.AsLabelled,
 )
 
 func EncoderEntry[V any](encoderV js.Encoder[V]) js.Encoder[Entry[V]] {
