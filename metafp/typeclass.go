@@ -181,22 +181,44 @@ type RequiredInstance struct {
 	Lazy      bool
 }
 type TypeClassInstance struct {
-	Package       *types.Package
-	Name          string
-	Static        bool
-	Implicit      bool
+	Package *types.Package
+	Name    string
+
+	// var 인지 func 인지 여부
+	Static bool
+
+	// Given[comparable]() 형태인지 여부
+	Implicit bool
+
+	// ContraMap 처럼,  아규먼트가 타입클래스 인스턴스로만 이루어 진것이 아니라, 다른 아규먼트를 가지고 있음.
 	HasExplictArg bool
 
+	// lookup한 instance
 	Instance types.Object
-	Type     TypeInfo
-	Result   TypeInfo
-	Under    TypeInfo
 
-	TypeParam        fp.Seq[TypeParam]
+	// instance 의 타입
+	Type TypeInfo
+
+	// func 인 경우에 return 타입,  var 인 경우는 Type과 동일
+	Result TypeInfo
+
+	// type A int  와 같은 경우에 underlying 타입
+	Under TypeInfo
+
+	// func[A, B any]()  형태인 경우에  타입 파라미터 목록
+	TypeParam fp.Seq[TypeParam]
+
+	// func( a Eq[int], b Ord[int] ) 형태인 경우에 , Eq[int], Ord[int] 정보
 	RequiredInstance fp.Seq[RequiredInstance]
-	UsedParam        fp.Set[string]
-	ParamMapping     fp.Map[string, TypeInfo]
-	WillGeneratedBy  fp.Option[TypeClassDerive]
+
+	// func[A,B any]( b B ) 형태인 경우 , B 만 들어 있음
+	UsedParam fp.Set[string]
+
+	// Eq[int] 를 찾는데  func Given[T any]() Eq[T]  를 찾았으면  T -> int  정보가 저장됨
+	ParamMapping fp.Map[string, TypeInfo]
+
+	// 생성될 instance 여서  RequiredInstance 가 정확하지 않을 수 있음.
+	WillGeneratedBy fp.Option[TypeClassDerive]
 }
 
 func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *types.Package) string {

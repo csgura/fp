@@ -190,9 +190,17 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 
 	ins = iterator.Map(ins, func(tci metafp.TypeClassInstance) metafp.TypeClassInstance {
 		if tci.WillGeneratedBy.IsDefined() {
+			// 현재 생성 중인 인스턴스를 참조하는 경우에
+			// 만약 그게 함수라면, type param 개수와 , 실제 아규먼트 개수가 일치하지 않을 수 있다.
+			// 왜냐하면  Map[K,V] 같은 타입의 monoid 는 K의 monoid 가 필요 없기 때문.
+
+			// 그래서 이런 타입을 만난 경우에,   먼저 생성해 본다.
+			// 그런데,   A -> B -> A  순으로  순환 참조가 있다면,  생성을 해볼 수가 없다.
 			expr := r.summonVar(tci.WillGeneratedBy.Get())
 			if expr.IsDefined() && tci.RequiredInstance.Size() != expr.Get().paramInstance.Size() {
 
+				// paramInstance 에  실제 인스턴스의 아규먼트 목록이 있다.
+				// RequiredInstance 를  실제 아규먼트로 변경 해주어야 함.
 				tci.RequiredInstance = seq.Map(expr.Get().paramInstance, func(v ParamInstance) metafp.RequiredInstance {
 					return metafp.RequiredInstance{
 						TypeClass: v.TypeClass,
@@ -200,12 +208,14 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 					}
 				})
 
+				// 시용되지 않은 type param 추출
 				notused := tci.ParamMapping.Keys().FilterNot(func(name string) bool {
 					return expr.Get().paramInstance.Exists(func(v ParamInstance) bool {
 						return name == v.ParamName
 					})
 				}).ToSeq()
 
+				// 사용되지 않았다고 표시
 				notused.Foreach(func(v string) {
 					tci.UsedParam = tci.UsedParam.Excl(v)
 				})
@@ -422,15 +432,19 @@ func (r *TypeClassSummonContext) lookupPrimitiveTypeClassInstance(ctx CurrentCon
 	}
 }
 
+// 타입 추론이 가능한지 따지는 함수
 func (r *TypeClassSummonContext) typeParamString(ctx CurrentContext, lt lookupTarget) fp.Option[string] {
 
 	if lt.instance.IsDefined() {
 		ins := lt.instance.Get()
 
+		// 타입 추론이 가능하려면,  모든 타입 파라미터가, 아규먼트에서 사용되어야 한다.
 		possible := ins.TypeParam.ForAll(func(v metafp.TypeParam) bool {
 			return ins.UsedParam.Contains(v.Name)
 		})
 
+		// 전부 사용되지 않아 타입 추론이 불가능하다면
+		// 타입을 명시한다.
 		if !possible {
 			ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
 				return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
