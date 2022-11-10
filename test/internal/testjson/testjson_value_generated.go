@@ -17,6 +17,7 @@ type RootMutable struct {
 	E *int
 	F []int
 	G map[string]int
+	H Child
 }
 
 func (r RootBuilder) Build() Root {
@@ -125,12 +126,26 @@ func (r RootBuilder) G(v map[string]int) RootBuilder {
 	return r
 }
 
-func (r Root) String() string {
-	return fmt.Sprintf("Root(a=%v, b=%v, c=%v, d=%v, e=%v, f=%v, g=%v)", r.a, r.b, r.c, r.d, r.e, r.f, r.g)
+func (r Root) H() Child {
+	return r.h
 }
 
-func (r Root) AsTuple() fp.Tuple7[int, string, float64, bool, *int, []int, map[string]int] {
-	return as.Tuple7(r.a, r.b, r.c, r.d, r.e, r.f, r.g)
+func (r Root) WithH(v Child) Root {
+	r.h = v
+	return r
+}
+
+func (r RootBuilder) H(v Child) RootBuilder {
+	r.h = v
+	return r
+}
+
+func (r Root) String() string {
+	return fmt.Sprintf("Root(a=%v, b=%v, c=%v, d=%v, e=%v, f=%v, g=%v, h=%v)", r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
+}
+
+func (r Root) AsTuple() fp.Tuple8[int, string, float64, bool, *int, []int, map[string]int, Child] {
+	return as.Tuple8(r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
 }
 
 func (r Root) AsMutable() RootMutable {
@@ -142,6 +157,7 @@ func (r Root) AsMutable() RootMutable {
 		E: r.e,
 		F: r.f,
 		G: r.g,
+		H: r.h,
 	}
 }
 
@@ -154,10 +170,11 @@ func (r RootMutable) AsImmutable() Root {
 		e: r.E,
 		f: r.F,
 		g: r.G,
+		h: r.H,
 	}
 }
 
-func (r RootBuilder) FromTuple(t fp.Tuple7[int, string, float64, bool, *int, []int, map[string]int]) RootBuilder {
+func (r RootBuilder) FromTuple(t fp.Tuple8[int, string, float64, bool, *int, []int, map[string]int, Child]) RootBuilder {
 	r.a = t.I1
 	r.b = t.I2
 	r.c = t.I3
@@ -165,6 +182,7 @@ func (r RootBuilder) FromTuple(t fp.Tuple7[int, string, float64, bool, *int, []i
 	r.e = t.I5
 	r.f = t.I6
 	r.g = t.I7
+	r.h = t.I8
 	return r
 }
 
@@ -177,6 +195,7 @@ func (r Root) AsMap() map[string]any {
 		"e": r.e,
 		"f": r.f,
 		"g": r.g,
+		"h": r.h,
 	}
 }
 
@@ -210,14 +229,18 @@ func (r RootBuilder) FromMap(m map[string]any) RootBuilder {
 		r.g = v
 	}
 
+	if v, ok := m["h"].(Child); ok {
+		r.h = v
+	}
+
 	return r
 }
 
-func (r Root) AsLabelled() fp.Labelled7[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int]] {
-	return as.Labelled7(NameIsA[int]{r.a}, NameIsB[string]{r.b}, NameIsC[float64]{r.c}, NameIsD[bool]{r.d}, NameIsE[*int]{r.e}, NameIsF[[]int]{r.f}, NameIsG[map[string]int]{r.g})
+func (r Root) AsLabelled() fp.Labelled8[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int], NameIsH[Child]] {
+	return as.Labelled8(NameIsA[int]{r.a}, NameIsB[string]{r.b}, NameIsC[float64]{r.c}, NameIsD[bool]{r.d}, NameIsE[*int]{r.e}, NameIsF[[]int]{r.f}, NameIsG[map[string]int]{r.g}, NameIsH[Child]{r.h})
 }
 
-func (r RootBuilder) FromLabelled(t fp.Labelled7[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int]]) RootBuilder {
+func (r RootBuilder) FromLabelled(t fp.Labelled8[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int], NameIsH[Child]]) RootBuilder {
 	r.a = t.I1.Value()
 	r.b = t.I2.Value()
 	r.c = t.I3.Value()
@@ -225,6 +248,536 @@ func (r RootBuilder) FromLabelled(t fp.Labelled7[NameIsA[int], NameIsB[string], 
 	r.e = t.I5.Value()
 	r.f = t.I6.Value()
 	r.g = t.I7.Value()
+	r.h = t.I8.Value()
+	return r
+}
+
+type ChildBuilder Child
+
+type ChildMutable struct {
+	A map[string]any
+	B any
+}
+
+func (r ChildBuilder) Build() Child {
+	return Child(r)
+}
+
+func (r Child) Builder() ChildBuilder {
+	return ChildBuilder(r)
+}
+
+func (r Child) A() map[string]any {
+	return r.a
+}
+
+func (r Child) WithA(v map[string]any) Child {
+	r.a = v
+	return r
+}
+
+func (r ChildBuilder) A(v map[string]any) ChildBuilder {
+	r.a = v
+	return r
+}
+
+func (r Child) B() any {
+	return r.b
+}
+
+func (r Child) WithB(v any) Child {
+	r.b = v
+	return r
+}
+
+func (r ChildBuilder) B(v any) ChildBuilder {
+	r.b = v
+	return r
+}
+
+func (r Child) String() string {
+	return fmt.Sprintf("Child(a=%v, b=%v)", r.a, r.b)
+}
+
+func (r Child) AsTuple() fp.Tuple2[map[string]any, any] {
+	return as.Tuple2(r.a, r.b)
+}
+
+func (r Child) AsMutable() ChildMutable {
+	return ChildMutable{
+		A: r.a,
+		B: r.b,
+	}
+}
+
+func (r ChildMutable) AsImmutable() Child {
+	return Child{
+		a: r.A,
+		b: r.B,
+	}
+}
+
+func (r ChildBuilder) FromTuple(t fp.Tuple2[map[string]any, any]) ChildBuilder {
+	r.a = t.I1
+	r.b = t.I2
+	return r
+}
+
+func (r Child) AsMap() map[string]any {
+	return map[string]any{
+		"a": r.a,
+		"b": r.b,
+	}
+}
+
+func (r ChildBuilder) FromMap(m map[string]any) ChildBuilder {
+
+	if v, ok := m["a"].(map[string]any); ok {
+		r.a = v
+	}
+
+	if v, ok := m["b"].(any); ok {
+		r.b = v
+	}
+
+	return r
+}
+
+func (r Child) AsLabelled() fp.Labelled2[NameIsA[map[string]any], NameIsB[any]] {
+	return as.Labelled2(NameIsA[map[string]any]{r.a}, NameIsB[any]{r.b})
+}
+
+func (r ChildBuilder) FromLabelled(t fp.Labelled2[NameIsA[map[string]any], NameIsB[any]]) ChildBuilder {
+	r.a = t.I1.Value()
+	r.b = t.I2.Value()
+	return r
+}
+
+type NodeBuilder Node
+
+type NodeMutable struct {
+	Name  string
+	Left  *Node
+	Right *Node
+}
+
+func (r NodeBuilder) Build() Node {
+	return Node(r)
+}
+
+func (r Node) Builder() NodeBuilder {
+	return NodeBuilder(r)
+}
+
+func (r Node) Name() string {
+	return r.name
+}
+
+func (r Node) WithName(v string) Node {
+	r.name = v
+	return r
+}
+
+func (r NodeBuilder) Name(v string) NodeBuilder {
+	r.name = v
+	return r
+}
+
+func (r Node) Left() *Node {
+	return r.left
+}
+
+func (r Node) WithLeft(v *Node) Node {
+	r.left = v
+	return r
+}
+
+func (r NodeBuilder) Left(v *Node) NodeBuilder {
+	r.left = v
+	return r
+}
+
+func (r Node) Right() *Node {
+	return r.right
+}
+
+func (r Node) WithRight(v *Node) Node {
+	r.right = v
+	return r
+}
+
+func (r NodeBuilder) Right(v *Node) NodeBuilder {
+	r.right = v
+	return r
+}
+
+func (r Node) String() string {
+	return fmt.Sprintf("Node(name=%v, left=%v, right=%v)", r.name, r.left, r.right)
+}
+
+func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
+	return as.Tuple3(r.name, r.left, r.right)
+}
+
+func (r Node) AsMutable() NodeMutable {
+	return NodeMutable{
+		Name:  r.name,
+		Left:  r.left,
+		Right: r.right,
+	}
+}
+
+func (r NodeMutable) AsImmutable() Node {
+	return Node{
+		name:  r.Name,
+		left:  r.Left,
+		right: r.Right,
+	}
+}
+
+func (r NodeBuilder) FromTuple(t fp.Tuple3[string, *Node, *Node]) NodeBuilder {
+	r.name = t.I1
+	r.left = t.I2
+	r.right = t.I3
+	return r
+}
+
+func (r Node) AsMap() map[string]any {
+	return map[string]any{
+		"name":  r.name,
+		"left":  r.left,
+		"right": r.right,
+	}
+}
+
+func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["left"].(*Node); ok {
+		r.left = v
+	}
+
+	if v, ok := m["right"].(*Node); ok {
+		r.right = v
+	}
+
+	return r
+}
+
+func (r Node) AsLabelled() fp.Labelled3[NameIsName[string], NameIsLeft[*Node], NameIsRight[*Node]] {
+	return as.Labelled3(NameIsName[string]{r.name}, NameIsLeft[*Node]{r.left}, NameIsRight[*Node]{r.right})
+}
+
+func (r NodeBuilder) FromLabelled(t fp.Labelled3[NameIsName[string], NameIsLeft[*Node], NameIsRight[*Node]]) NodeBuilder {
+	r.name = t.I1.Value()
+	r.left = t.I2.Value()
+	r.right = t.I3.Value()
+	return r
+}
+
+type EntryBuilder[V any] Entry[V]
+
+type EntryMutable[V any] struct {
+	Name  string
+	Value V
+}
+
+func (r EntryBuilder[V]) Build() Entry[V] {
+	return Entry[V](r)
+}
+
+func (r Entry[V]) Builder() EntryBuilder[V] {
+	return EntryBuilder[V](r)
+}
+
+func (r Entry[V]) Name() string {
+	return r.name
+}
+
+func (r Entry[V]) WithName(v string) Entry[V] {
+	r.name = v
+	return r
+}
+
+func (r EntryBuilder[V]) Name(v string) EntryBuilder[V] {
+	r.name = v
+	return r
+}
+
+func (r Entry[V]) Value() V {
+	return r.value
+}
+
+func (r Entry[V]) WithValue(v V) Entry[V] {
+	r.value = v
+	return r
+}
+
+func (r EntryBuilder[V]) Value(v V) EntryBuilder[V] {
+	r.value = v
+	return r
+}
+
+func (r Entry[V]) String() string {
+	return fmt.Sprintf("Entry(name=%v, value=%v)", r.name, r.value)
+}
+
+func (r Entry[V]) AsTuple() fp.Tuple2[string, V] {
+	return as.Tuple2(r.name, r.value)
+}
+
+func (r Entry[V]) AsMutable() EntryMutable[V] {
+	return EntryMutable[V]{
+		Name:  r.name,
+		Value: r.value,
+	}
+}
+
+func (r EntryMutable[V]) AsImmutable() Entry[V] {
+	return Entry[V]{
+		name:  r.Name,
+		value: r.Value,
+	}
+}
+
+func (r EntryBuilder[V]) FromTuple(t fp.Tuple2[string, V]) EntryBuilder[V] {
+	r.name = t.I1
+	r.value = t.I2
+	return r
+}
+
+func (r Entry[V]) AsMap() map[string]any {
+	return map[string]any{
+		"name":  r.name,
+		"value": r.value,
+	}
+}
+
+func (r EntryBuilder[V]) FromMap(m map[string]any) EntryBuilder[V] {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["value"].(V); ok {
+		r.value = v
+	}
+
+	return r
+}
+
+func (r Entry[V]) AsLabelled() fp.Labelled2[NameIsName[string], NameIsValue[V]] {
+	return as.Labelled2(NameIsName[string]{r.name}, NameIsValue[V]{r.value})
+}
+
+func (r EntryBuilder[V]) FromLabelled(t fp.Labelled2[NameIsName[string], NameIsValue[V]]) EntryBuilder[V] {
+	r.name = t.I1.Value()
+	r.value = t.I2.Value()
+	return r
+}
+
+type NotUsedParamBuilder[K any, V any] NotUsedParam[K, V]
+
+type NotUsedParamMutable[K any, V any] struct {
+	Param string
+	Value V
+}
+
+func (r NotUsedParamBuilder[K, V]) Build() NotUsedParam[K, V] {
+	return NotUsedParam[K, V](r)
+}
+
+func (r NotUsedParam[K, V]) Builder() NotUsedParamBuilder[K, V] {
+	return NotUsedParamBuilder[K, V](r)
+}
+
+func (r NotUsedParam[K, V]) Param() string {
+	return r.param
+}
+
+func (r NotUsedParam[K, V]) WithParam(v string) NotUsedParam[K, V] {
+	r.param = v
+	return r
+}
+
+func (r NotUsedParamBuilder[K, V]) Param(v string) NotUsedParamBuilder[K, V] {
+	r.param = v
+	return r
+}
+
+func (r NotUsedParam[K, V]) Value() V {
+	return r.value
+}
+
+func (r NotUsedParam[K, V]) WithValue(v V) NotUsedParam[K, V] {
+	r.value = v
+	return r
+}
+
+func (r NotUsedParamBuilder[K, V]) Value(v V) NotUsedParamBuilder[K, V] {
+	r.value = v
+	return r
+}
+
+func (r NotUsedParam[K, V]) String() string {
+	return fmt.Sprintf("NotUsedParam(param=%v, value=%v)", r.param, r.value)
+}
+
+func (r NotUsedParam[K, V]) AsTuple() fp.Tuple2[string, V] {
+	return as.Tuple2(r.param, r.value)
+}
+
+func (r NotUsedParam[K, V]) AsMutable() NotUsedParamMutable[K, V] {
+	return NotUsedParamMutable[K, V]{
+		Param: r.param,
+		Value: r.value,
+	}
+}
+
+func (r NotUsedParamMutable[K, V]) AsImmutable() NotUsedParam[K, V] {
+	return NotUsedParam[K, V]{
+		param: r.Param,
+		value: r.Value,
+	}
+}
+
+func (r NotUsedParamBuilder[K, V]) FromTuple(t fp.Tuple2[string, V]) NotUsedParamBuilder[K, V] {
+	r.param = t.I1
+	r.value = t.I2
+	return r
+}
+
+func (r NotUsedParam[K, V]) AsMap() map[string]any {
+	return map[string]any{
+		"param": r.param,
+		"value": r.value,
+	}
+}
+
+func (r NotUsedParamBuilder[K, V]) FromMap(m map[string]any) NotUsedParamBuilder[K, V] {
+
+	if v, ok := m["param"].(string); ok {
+		r.param = v
+	}
+
+	if v, ok := m["value"].(V); ok {
+		r.value = v
+	}
+
+	return r
+}
+
+func (r NotUsedParam[K, V]) AsLabelled() fp.Labelled2[NameIsParam[string], NameIsValue[V]] {
+	return as.Labelled2(NameIsParam[string]{r.param}, NameIsValue[V]{r.value})
+}
+
+func (r NotUsedParamBuilder[K, V]) FromLabelled(t fp.Labelled2[NameIsParam[string], NameIsValue[V]]) NotUsedParamBuilder[K, V] {
+	r.param = t.I1.Value()
+	r.value = t.I2.Value()
+	return r
+}
+
+type MovieBuilder Movie
+
+type MovieMutable struct {
+	Name    string
+	Casting Entry[string]
+}
+
+func (r MovieBuilder) Build() Movie {
+	return Movie(r)
+}
+
+func (r Movie) Builder() MovieBuilder {
+	return MovieBuilder(r)
+}
+
+func (r Movie) Name() string {
+	return r.name
+}
+
+func (r Movie) WithName(v string) Movie {
+	r.name = v
+	return r
+}
+
+func (r MovieBuilder) Name(v string) MovieBuilder {
+	r.name = v
+	return r
+}
+
+func (r Movie) Casting() Entry[string] {
+	return r.casting
+}
+
+func (r Movie) WithCasting(v Entry[string]) Movie {
+	r.casting = v
+	return r
+}
+
+func (r MovieBuilder) Casting(v Entry[string]) MovieBuilder {
+	r.casting = v
+	return r
+}
+
+func (r Movie) String() string {
+	return fmt.Sprintf("Movie(name=%v, casting=%v)", r.name, r.casting)
+}
+
+func (r Movie) AsTuple() fp.Tuple2[string, Entry[string]] {
+	return as.Tuple2(r.name, r.casting)
+}
+
+func (r Movie) AsMutable() MovieMutable {
+	return MovieMutable{
+		Name:    r.name,
+		Casting: r.casting,
+	}
+}
+
+func (r MovieMutable) AsImmutable() Movie {
+	return Movie{
+		name:    r.Name,
+		casting: r.Casting,
+	}
+}
+
+func (r MovieBuilder) FromTuple(t fp.Tuple2[string, Entry[string]]) MovieBuilder {
+	r.name = t.I1
+	r.casting = t.I2
+	return r
+}
+
+func (r Movie) AsMap() map[string]any {
+	return map[string]any{
+		"name":    r.name,
+		"casting": r.casting,
+	}
+}
+
+func (r MovieBuilder) FromMap(m map[string]any) MovieBuilder {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["casting"].(Entry[string]); ok {
+		r.casting = v
+	}
+
+	return r
+}
+
+func (r Movie) AsLabelled() fp.Labelled2[NameIsName[string], NameIsCasting[Entry[string]]] {
+	return as.Labelled2(NameIsName[string]{r.name}, NameIsCasting[Entry[string]]{r.casting})
+}
+
+func (r MovieBuilder) FromLabelled(t fp.Labelled2[NameIsName[string], NameIsCasting[Entry[string]]]) MovieBuilder {
+	r.name = t.I1.Value()
+	r.casting = t.I2.Value()
 	return r
 }
 
@@ -263,6 +816,19 @@ func (r NameIsC[T]) Value() T {
 	return r.I1
 }
 func (r NameIsC[T]) WithValue(v T) NameIsC[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsCasting[T any] fp.Tuple1[T]
+
+func (r NameIsCasting[T]) Name() string {
+	return "casting"
+}
+func (r NameIsCasting[T]) Value() T {
+	return r.I1
+}
+func (r NameIsCasting[T]) WithValue(v T) NameIsCasting[T] {
 	r.I1 = v
 	return r
 }
@@ -315,6 +881,84 @@ func (r NameIsG[T]) Value() T {
 	return r.I1
 }
 func (r NameIsG[T]) WithValue(v T) NameIsG[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsH[T any] fp.Tuple1[T]
+
+func (r NameIsH[T]) Name() string {
+	return "h"
+}
+func (r NameIsH[T]) Value() T {
+	return r.I1
+}
+func (r NameIsH[T]) WithValue(v T) NameIsH[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsLeft[T any] fp.Tuple1[T]
+
+func (r NameIsLeft[T]) Name() string {
+	return "left"
+}
+func (r NameIsLeft[T]) Value() T {
+	return r.I1
+}
+func (r NameIsLeft[T]) WithValue(v T) NameIsLeft[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsName[T any] fp.Tuple1[T]
+
+func (r NameIsName[T]) Name() string {
+	return "name"
+}
+func (r NameIsName[T]) Value() T {
+	return r.I1
+}
+func (r NameIsName[T]) WithValue(v T) NameIsName[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsParam[T any] fp.Tuple1[T]
+
+func (r NameIsParam[T]) Name() string {
+	return "param"
+}
+func (r NameIsParam[T]) Value() T {
+	return r.I1
+}
+func (r NameIsParam[T]) WithValue(v T) NameIsParam[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsRight[T any] fp.Tuple1[T]
+
+func (r NameIsRight[T]) Name() string {
+	return "right"
+}
+func (r NameIsRight[T]) Value() T {
+	return r.I1
+}
+func (r NameIsRight[T]) WithValue(v T) NameIsRight[T] {
+	r.I1 = v
+	return r
+}
+
+type NameIsValue[T any] fp.Tuple1[T]
+
+func (r NameIsValue[T]) Name() string {
+	return "value"
+}
+func (r NameIsValue[T]) Value() T {
+	return r.I1
+}
+func (r NameIsValue[T]) WithValue(v T) NameIsValue[T] {
 	r.I1 = v
 	return r
 }

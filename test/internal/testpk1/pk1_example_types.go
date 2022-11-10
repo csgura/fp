@@ -165,3 +165,11 @@ var _ eq.Derives[fp.Eq[MySeq[any]]]
 
 // @fp.Derive
 var _ monoid.Derives[fp.Monoid[MySeq[any]]]
+
+// @fp.Value
+type MapEqParam[K, V any] struct {
+	m fp.Map[K, V]
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[MapEqParam[any, any]]]

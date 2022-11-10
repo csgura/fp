@@ -10,6 +10,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/testpk1"
 	"github.com/csgura/fp/test/internal/testpk2"
 	"github.com/csgura/fp/try"
@@ -74,7 +75,7 @@ func TestJson(t *testing.T) {
 	res := testpk2.EncoderGreeting.Encode(g).Get()
 	fmt.Println(res)
 
-	parsedG := testpk2.DecoderGreeting.Decode(res)
+	parsedG := testpk2.DecoderGreeting.Decode(js.DecoderContext{}, res)
 	parsedG.Failed().Foreach(func(v error) {
 		fmt.Printf("parse error : %s\n", v)
 	})
@@ -101,7 +102,7 @@ func TestJson(t *testing.T) {
 	res = testpk2.EncoderThree.Encode(t3).Get()
 	fmt.Println(res)
 
-	parsedT3 := testpk2.DecoderThree.Decode(res)
+	parsedT3 := testpk2.DecoderThree.Decode(js.DecoderContext{}, res)
 	assert.True(parsedT3.IsSuccess())
 	assert.Equal(parsedT3.Get().One(), 1)
 	assert.Equal(parsedT3.Get().Two(), "2")

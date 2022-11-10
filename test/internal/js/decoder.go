@@ -112,6 +112,26 @@ func DecoderGoMap[T any](decT Decoder[T]) Decoder[map[string]T] {
 	})
 }
 
+var DecoderGoMapAny = NewDecoder(func(ctx DecoderContext, a string) fp.Try[map[string]any] {
+	var ret map[string]any
+	err := json.Unmarshal([]byte(a), &ret)
+	if err != nil {
+		return try.Failure[map[string]any](err)
+	}
+	return try.Success(ret)
+})
+
+func DecoderGiven[T any]() Decoder[T] {
+	return NewDecoder(func(ctx DecoderContext, a string) fp.Try[T] {
+		var ret T
+		err := json.Unmarshal([]byte(a), &ret)
+		if err != nil {
+			return try.Failure[T](err)
+		}
+		return try.Success(ret)
+	})
+}
+
 func DecoderPtr[T any](decT Decoder[T]) Decoder[*T] {
 	return NewDecoder(func(ctx DecoderContext, a string) fp.Try[*T] {
 		if a == "null" {

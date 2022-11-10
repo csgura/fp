@@ -24,12 +24,20 @@ type TypeClass struct {
 	TypeParam fp.Seq[TypeParam]
 }
 
+// int  =>  Eq[int]
+// Option[T any] =>   (T) -> Eq[Option[T]]
 func (r TypeClass) InstantiatedType(t TypeInfo) TypeInfo {
 
 	ret := r.Type
 
+	ret.TypeParam = t.TypeParam
+
+	t.TypeParam = seq.Empty[TypeParam]()
+	t.TypeArgs = seq.Map(ret.TypeParam, func(v TypeParam) TypeInfo {
+		p := types.NewTypeParam(v.TypeName, v.Constraint)
+		return typeInfo(p)
+	})
 	ret.TypeArgs = seq.Of(t)
-	ret.TypeParam = seq.Empty[TypeParam]()
 
 	ctx := types.NewContext()
 	ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
@@ -61,6 +69,9 @@ type TypeClassDerive struct {
 	StructInfo           fp.Option[TaggedStruct]
 }
 
+func (r TypeClassDerive) IsRecursive() bool {
+	return r.StructInfo.IsDefined() && r.StructInfo.Get().IsRecursive()
+}
 func publicName(name string) string {
 	return strings.ToUpper(name[:1]) + name[1:]
 }
@@ -211,6 +222,7 @@ func (r TypeClassInstancesOfPackage) FindFunc(name string) fp.Option[TypeClassIn
 }
 
 func (r TypeClassInstancesOfPackage) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
+	//	fmt.Printf("find %s\n", name)
 	ret := option.FlatMap(r.ByName.Get(name), as.Func2(TypeClassInstance.Check).ApplyLast(t))
 	return ret
 }
@@ -442,6 +454,11 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 	})
 
 	t := tc.TypeClass.InstantiatedType(tc.DeriveFor.Info)
+	//fmt.Printf("will generate %s, %v, %v\n", tc.GeneratedInstanceName(), tc.DeriveFor.Info.TypeParam, tc.DeriveFor.Info.TypeArgs)
+
+	// if t.TypeArgs.Head().IsDefined() {
+	// 	fmt.Printf("will generate arg type = %s\n", t.TypeArgs.Head().Get().TypeArgs)
+	// }
 	ins := TypeClassInstance{
 		Package:  tc.Package,
 		Name:     tc.GeneratedInstanceName(),
@@ -449,6 +466,21 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 		Implicit: false,
 		Type:     t,
 		Result:   t,
+	}
+
+	if tc.IsRecursive() {
+		ins.Static = false
+	}
+
+	if tc.DeriveFor.Info.TypeParam.Size() > 0 {
+		ins.Static = false
+		ins.RequiredInstance = seq.Map(tc.DeriveFor.Info.TypeParam, func(v TypeParam) RequiredInstance {
+			p := types.NewTypeParam(v.TypeName, v.Constraint)
+			return RequiredInstance{
+				TypeClass: tc.TypeClass,
+				Type:      typeInfo(p),
+			}
+		})
 	}
 
 	found.ByName = found.ByName.Updated(ins.Name, ins)

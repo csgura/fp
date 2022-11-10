@@ -235,3 +235,10 @@ func MonoidMySeq[T any]() fp.Monoid[MySeq[T]] {
 		},
 	)
 }
+
+func EqMapEqParam[K any, V any](eqV fp.Eq[V]) fp.Eq[MapEqParam[K, V]] {
+	return eq.ContraMap(
+		eq.Tuple1(eq.FpMap[K, V](eqV)),
+		MapEqParam[K, V].AsTuple,
+	)
+}

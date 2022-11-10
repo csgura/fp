@@ -28,6 +28,13 @@ type TaggedStruct struct {
 	Tags    mutable.Set[string]
 }
 
+func (r TaggedStruct) IsRecursive() bool {
+
+	return r.Fields.Exists(func(v StructField) bool {
+		return v.Type.HasTypeReference(mutable.EmptySet[string](), r.Info)
+	})
+}
+
 func (r TaggedStruct) PackagedName(w genfp.ImportSet, workingPackage *types.Package) string {
 	if workingPackage.Path() == r.Package.Path() {
 		return r.Name
@@ -172,7 +179,117 @@ func (r NamedTypeInfo) GenericName() string {
 	return r.Name
 }
 
+func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) []string {
+	ret := []string{}
+	for i := 0; i < len; i++ {
+		ret = append(ret, fn(i, getter(i)))
+	}
+	return ret
+}
+
+func typeId(tpe types.Type) string {
+	switch realtp := tpe.(type) {
+	case *types.Named:
+		tpname := realtp.Origin().Obj().Name()
+		nameWithPkg := tpname
+		if realtp.Obj().Pkg() != nil {
+
+			nameWithPkg = fmt.Sprintf("%s.%s", realtp.Obj().Pkg().Path(), tpname)
+		}
+
+		if realtp.TypeArgs() != nil {
+			args := []string{}
+			for i := 0; i < realtp.TypeArgs().Len(); i++ {
+				args = append(args, typeId(realtp.TypeArgs().At(i)))
+			}
+
+			argsstr := strings.Join(args, ",")
+
+			return fmt.Sprintf("%s[%s]", nameWithPkg, argsstr)
+		} else {
+
+			return nameWithPkg
+
+		}
+
+	case *types.Array:
+		elemType := typeId(realtp.Elem())
+		return fmt.Sprintf("[%d]%s", realtp.Len(), elemType)
+
+	case *types.Map:
+		keyType := typeId(realtp.Key())
+
+		elemType := typeId(realtp.Elem())
+		return fmt.Sprintf("map[%s]%s", keyType, elemType)
+	case *types.Slice:
+		elemType := typeId(realtp.Elem())
+		return "[]" + elemType
+	case *types.Pointer:
+		elemType := typeId(realtp.Elem())
+		return "*" + elemType
+	case *types.Chan:
+		elemType := typeId(realtp.Elem())
+		switch realtp.Dir() {
+		case types.RecvOnly:
+			return "<-chan " + elemType
+		case types.SendOnly:
+			return "chan<- " + elemType
+		default:
+			return "chan " + elemType
+
+		}
+	case *types.Signature:
+		argsstr := iterate(realtp.Params().Len(), realtp.Params().At, func(idx int, v *types.Var) string {
+			return v.Name() + " " + typeId(v.Type())
+		})
+
+		resultstr := iterate(realtp.Results().Len(), realtp.Results().At, func(idx int, v *types.Var) string {
+			return v.Name() + " " + typeId(v.Type())
+		})
+
+		return fmt.Sprintf("func (%s) (%s)", strings.Join(argsstr, ","), strings.Join(resultstr, ","))
+	case *types.Struct:
+		fields := iterate(realtp.NumFields(), realtp.Field, func(idx int, v *types.Var) string {
+			if v.Embedded() {
+				return fmt.Sprintf("%s %s",
+					typeId(v.Type()),
+					realtp.Tag(idx),
+				)
+			}
+			return fmt.Sprintf("%s %s %s",
+				v.Name(),
+				typeId(v.Type()),
+				realtp.Tag(idx),
+			)
+		})
+		return fmt.Sprintf(`struct {
+			%s
+		}`, strings.Join(fields, "\n"))
+	case *types.Interface:
+		if realtp.NumMethods() == 0 {
+			return "any"
+		}
+		embeded := iterate(realtp.NumEmbeddeds(), realtp.EmbeddedType, func(idx int, v types.Type) string {
+			return typeId(realtp.EmbeddedType(idx))
+		})
+
+		fields := iterate(realtp.NumExplicitMethods(), realtp.ExplicitMethod, func(idx int, v *types.Func) string {
+			m := realtp.ExplicitMethod(idx)
+
+			return fmt.Sprintf("%s%s", m.Name(), typeId(m.Type())[4:])
+
+		})
+		return fmt.Sprintf(`interface {
+			%s
+			%s
+		}`, strings.Join(embeded, "\n"), strings.Join(fields, "\n"))
+	}
+
+	return tpe.String()
+}
+
 type TypeInfo struct {
+	ID        string
 	Pkg       *types.Package
 	TypeName  string
 	Type      types.Type
@@ -181,6 +298,37 @@ type TypeInfo struct {
 	Method    fp.Map[string, *types.Func]
 }
 
+func (r TypeInfo) HasTypeReference(checked fp.Set[string], refType TypeInfo) bool {
+
+	if checked.Contains(r.ID) {
+		return false
+	}
+
+	checked = checked.Incl(r.ID)
+
+	if isSamePkg(r.Pkg, refType.Pkg) && r.TypeName == refType.TypeName {
+		return true
+	}
+
+	if r.TypeArgs.Exists(as.Func3(TypeInfo.HasTypeReference).ApplyLast2(checked, refType)) {
+		return true
+	}
+
+	switch at := r.Type.(type) {
+	case *types.Named:
+		under := typeInfo(at.Underlying())
+		return under.HasTypeReference(checked, refType)
+	case *types.Struct:
+		return iterator.Range(0, at.NumFields()).Exists(func(i int) bool {
+			f := at.Field(i)
+			tn := typeInfo(f.Type())
+
+			return tn.HasTypeReference(checked, refType)
+		})
+	}
+	return false
+
+}
 func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) fp.Tuple2[fp.Set[string], TypeInfo] {
 
 	if r.IsTypeParam() {
@@ -295,6 +443,16 @@ func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
 
 	return false
 
+}
+
+func (r TypeInfo) IsAny() bool {
+	switch at := r.Type.(type) {
+	case *types.Interface:
+		if at.NumMethods() == 0 && at.NumEmbeddeds() == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func (r TypeInfo) IsFunc() bool {
@@ -525,11 +683,19 @@ func GetTypeInfo(tpe types.Type) TypeInfo {
 func typeInfo(tpe types.Type) TypeInfo {
 	//	fmt.Printf("get info of %s\n", tpe.String())
 
+	id := typeId(tpe)
 	switch realtp := tpe.(type) {
 	case *types.TypeParam:
 		return TypeInfo{
+			ID:       id,
 			Type:     tpe,
 			TypeName: realtp.Obj().Name(),
+		}
+	case *types.Basic:
+		return TypeInfo{
+			ID:       id,
+			Type:     tpe,
+			TypeName: realtp.Name(),
 		}
 	case *types.Named:
 		args := typeArgs(realtp.TypeArgs())
@@ -541,6 +707,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 		})
 
 		return TypeInfo{
+			ID:        id,
 			Pkg:       realtp.Obj().Pkg(),
 			Type:      tpe,
 			TypeName:  realtp.Obj().Name(),
@@ -557,6 +724,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 		}
 
 		return TypeInfo{
+			ID:        id,
 			Pkg:       pk,
 			Type:      tpe,
 			TypeName:  "func",
@@ -564,6 +732,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 		}
 	case *types.Array:
 		return TypeInfo{
+			ID:       id,
 			Type:     tpe,
 			TypeName: "[_]",
 			TypeArgs: []TypeInfo{typeInfo(realtp.Elem())},
@@ -571,6 +740,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 	case *types.Map:
 
 		return TypeInfo{
+			ID:       id,
 			Type:     tpe,
 			TypeName: "map",
 			TypeArgs: []TypeInfo{typeInfo(realtp.Key()), typeInfo(realtp.Elem())},
@@ -581,6 +751,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 		//fmt.Printf("slice elemTp = %s, istypeParam = %t\n", elemTp, elemTp.IsTypeParam())
 
 		return TypeInfo{
+			ID:       id,
 			Type:     tpe,
 			TypeName: "[]",
 			TypeArgs: []TypeInfo{elemTp},
@@ -588,6 +759,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 	case *types.Pointer:
 		elemTp := typeInfo(realtp.Elem())
 		return TypeInfo{
+			ID:       id,
 			Type:     tpe,
 			TypeName: "*",
 			TypeArgs: []TypeInfo{elemTp},
@@ -595,6 +767,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 	}
 
 	return TypeInfo{
+		ID:       id,
 		Type:     tpe,
 		TypeName: tpe.String(),
 	}

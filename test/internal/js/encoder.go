@@ -1,6 +1,7 @@
 package js
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -144,6 +145,24 @@ func EncoderGoMap[V any](encV Encoder[V]) Encoder[map[string]V] {
 			return option.Some("{" + list.MakeString(",") + "}")
 		}
 		return option.None[string]()
+	})
+}
+
+var EncoderGoMapAny = NewEncoder(func(a map[string]any) fp.Option[string] {
+	b, err := json.Marshal(a)
+	if err != nil {
+		return option.None[string]()
+	}
+	return option.Some(string(b))
+})
+
+func EncoderGiven[T any]() Encoder[T] {
+	return NewEncoder(func(a T) fp.Option[string] {
+		b, err := json.Marshal(a)
+		if err != nil {
+			return option.None[string]()
+		}
+		return option.Some(string(b))
 	})
 }
 

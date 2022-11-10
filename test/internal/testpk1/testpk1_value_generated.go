@@ -965,6 +965,74 @@ func (r SeqMonoidBuilder) FromMap(m map[string]any) SeqMonoidBuilder {
 	return r
 }
 
+type MapEqParamBuilder[K any, V any] MapEqParam[K, V]
+
+type MapEqParamMutable[K any, V any] struct {
+	M fp.Map[K, V]
+}
+
+func (r MapEqParamBuilder[K, V]) Build() MapEqParam[K, V] {
+	return MapEqParam[K, V](r)
+}
+
+func (r MapEqParam[K, V]) Builder() MapEqParamBuilder[K, V] {
+	return MapEqParamBuilder[K, V](r)
+}
+
+func (r MapEqParam[K, V]) M() fp.Map[K, V] {
+	return r.m
+}
+
+func (r MapEqParam[K, V]) WithM(v fp.Map[K, V]) MapEqParam[K, V] {
+	r.m = v
+	return r
+}
+
+func (r MapEqParamBuilder[K, V]) M(v fp.Map[K, V]) MapEqParamBuilder[K, V] {
+	r.m = v
+	return r
+}
+
+func (r MapEqParam[K, V]) String() string {
+	return fmt.Sprintf("MapEqParam(m=%v)", r.m)
+}
+
+func (r MapEqParam[K, V]) AsTuple() fp.Tuple1[fp.Map[K, V]] {
+	return as.Tuple1(r.m)
+}
+
+func (r MapEqParam[K, V]) AsMutable() MapEqParamMutable[K, V] {
+	return MapEqParamMutable[K, V]{
+		M: r.m,
+	}
+}
+
+func (r MapEqParamMutable[K, V]) AsImmutable() MapEqParam[K, V] {
+	return MapEqParam[K, V]{
+		m: r.M,
+	}
+}
+
+func (r MapEqParamBuilder[K, V]) FromTuple(t fp.Tuple1[fp.Map[K, V]]) MapEqParamBuilder[K, V] {
+	r.m = t.I1
+	return r
+}
+
+func (r MapEqParam[K, V]) AsMap() map[string]any {
+	return map[string]any{
+		"m": r.m,
+	}
+}
+
+func (r MapEqParamBuilder[K, V]) FromMap(m map[string]any) MapEqParamBuilder[K, V] {
+
+	if v, ok := m["m"].(fp.Map[K, V]); ok {
+		r.m = v
+	}
+
+	return r
+}
+
 type NameIsAddr[T any] fp.Tuple1[T]
 
 func (r NameIsAddr[T]) Name() string {

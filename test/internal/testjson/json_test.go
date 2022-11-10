@@ -22,6 +22,13 @@ func TestEncode(t *testing.T) {
 			"k1": 1,
 			"k2": 2,
 		},
+		H: testjson.ChildMutable{
+			A: map[string]any{
+				"c1": "c1",
+				"c2": 2,
+			},
+			B: "hello",
+		}.AsImmutable(),
 	}.AsImmutable()
 
 	str := testjson.EncoderRoot.Encode(root)

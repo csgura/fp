@@ -4,6 +4,7 @@ package testjson
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 )
@@ -23,7 +24,10 @@ var EncoderRoot = js.EncoderContraMap(
 							js.EncoderNamed[NameIsF[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
 							js.EncoderHConsLabelled(
 								js.EncoderNamed[NameIsG[map[string]int]](js.EncoderGoMap(js.EncoderNumber[int]())),
-								js.EncoderHNil,
+								js.EncoderHConsLabelled(
+									js.EncoderNamed[NameIsH[Child]](EncoderChild),
+									js.EncoderHNil,
+								),
 							),
 						),
 					),
@@ -33,7 +37,7 @@ var EncoderRoot = js.EncoderContraMap(
 	),
 	fp.Compose(
 		Root.AsLabelled,
-		as.HList7Labelled[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int]],
+		as.HList8Labelled[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int], NameIsH[Child]],
 	),
 )
 
@@ -52,7 +56,10 @@ var DecoderRoot = js.DecoderMap(
 							js.DecoderNamed[NameIsF[[]int]](js.DecoderSlice(js.DecoderNumber[int]())),
 							js.DecoderHConsLabelled(
 								js.DecoderNamed[NameIsG[map[string]int]](js.DecoderGoMap(js.DecoderNumber[int]())),
-								js.DecoderHNil,
+								js.DecoderHConsLabelled(
+									js.DecoderNamed[NameIsH[Child]](DecoderChild),
+									js.DecoderHNil,
+								),
 							),
 						),
 					),
@@ -62,10 +69,68 @@ var DecoderRoot = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList7[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int]],
+		product.LabelledFromHList8[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int], NameIsH[Child]],
 		fp.Compose(
 			as.Curried2(RootBuilder.FromLabelled)(RootBuilder{}),
 			RootBuilder.Build,
 		),
 	),
+)
+
+var EncoderChild = js.EncoderContraMap(
+	js.EncoderLabelled2(js.EncoderNamed[NameIsA[map[string]any]](js.EncoderGoMapAny), js.EncoderNamed[NameIsB[any]](js.EncoderGiven[any]())),
+	Child.AsLabelled,
+)
+
+var DecoderChild = js.DecoderMap(
+	js.DecoderLabelled2(js.DecoderNamed[NameIsA[map[string]any]](js.DecoderGoMapAny), js.DecoderNamed[NameIsB[any]](js.DecoderGiven[any]())),
+	fp.Compose(
+		as.Curried2(ChildBuilder.FromLabelled)(ChildBuilder{}),
+		ChildBuilder.Build,
+	),
+)
+
+func EncoderNode() js.Encoder[Node] {
+	return js.EncoderContraMap(
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NameIsName[string]](js.EncoderString),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NameIsLeft[*Node]](js.EncoderPtr(EncoderNode())),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NameIsRight[*Node]](js.EncoderPtr(EncoderNode())),
+					js.EncoderHNil,
+				),
+			),
+		),
+		fp.Compose(
+			Node.AsLabelled,
+			as.HList3Labelled[NameIsName[string], NameIsLeft[*Node], NameIsRight[*Node]],
+		),
+	)
+}
+
+var EncoderTree = js.EncoderContraMap(
+	js.EncoderHNil,
+	func(Tree) hlist.Nil {
+		return hlist.Empty()
+	},
+)
+
+func EncoderEntry[V any](encoderV js.Encoder[V]) js.Encoder[Entry[V]] {
+	return js.EncoderContraMap(
+		js.EncoderLabelled2(js.EncoderNamed[NameIsName[string]](js.EncoderString), js.EncoderNamed[NameIsValue[V]](encoderV)),
+		Entry[V].AsLabelled,
+	)
+}
+
+func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUsedParam[K, V]] {
+	return js.EncoderContraMap(
+		js.EncoderLabelled2(js.EncoderNamed[NameIsParam[string]](js.EncoderString), js.EncoderNamed[NameIsValue[V]](encoderV)),
+		NotUsedParam[K, V].AsLabelled,
+	)
+}
+
+var EncoderMovie = js.EncoderContraMap(
+	js.EncoderLabelled2(js.EncoderNamed[NameIsName[string]](js.EncoderString), js.EncoderNamed[NameIsCasting[Entry[string]]](EncoderEntry(js.EncoderString))),
+	Movie.AsLabelled,
 )
