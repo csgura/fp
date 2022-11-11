@@ -191,3 +191,11 @@ type Node struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Node]]
+
+// @fp.Value
+type NoPrivate struct {
+	Value int
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[NoPrivate]]

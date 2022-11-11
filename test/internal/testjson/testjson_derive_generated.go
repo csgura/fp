@@ -4,6 +4,7 @@ package testjson
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -153,4 +154,18 @@ var EncoderMovie = js.EncoderContraMap(
 		Movie.AsLabelled,
 		as.HList3Labelled[NamedName[string], NamedCasting[Entry[string]], NamedNotUsed[NotUsedParam[int, string]]],
 	),
+)
+
+var EncoderNoPrivate = js.EncoderContraMap(
+	js.EncoderHNil,
+	func(NoPrivate) hlist.Nil {
+		return hlist.Empty()
+	},
+)
+
+var DecoderNoPrivate = js.DecoderMap(
+	js.DecoderHNil,
+	func(hlist.Nil) NoPrivate {
+		return NoPrivate{}
+	},
 )

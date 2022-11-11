@@ -86,3 +86,16 @@ type Movie struct {
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Movie]]
+
+// @fp.Value
+// @fp.GenLabelled
+
+type NoPrivate struct {
+	Root string
+}
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[NoPrivate]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[NoPrivate]]

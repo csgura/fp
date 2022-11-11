@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/ord"
@@ -259,3 +260,10 @@ func EqNode() fp.Eq[Node] {
 		Node.AsTuple,
 	)
 }
+
+var EqNoPrivate = eq.ContraMap(
+	eq.HNil,
+	func(NoPrivate) hlist.Nil {
+		return hlist.Empty()
+	},
+)
