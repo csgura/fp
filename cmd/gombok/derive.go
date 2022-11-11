@@ -678,7 +678,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
 						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-							return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
+							return fmt.Sprintf("Named%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
 						}).MakeString(",")
 
 						return fmt.Sprintf(`%s.Compose(
@@ -700,11 +700,11 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 					namedTypeArgs := seq.Zip(names, typeArgs)
 
 					tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-						return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
+						return fmt.Sprintf("Named%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
 					}).MakeString(",")
 
 					// hlisttp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-					// 	return fmt.Sprintf("NameIs%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
+					// 	return fmt.Sprintf("Named%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
 					// }).MakeString(",")
 
 					hlistToTuple := fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
@@ -907,7 +907,7 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 		Type:      t,
 	})
 
-	return newSummonExpr(fmt.Sprintf("%s[NameIs%s[%s]](%s)", instance.PackagedName(r.w, ctx.working), publicName(name),
+	return newSummonExpr(fmt.Sprintf("%s[Named%s[%s]](%s)", instance.PackagedName(r.w, ctx.working), publicName(name),
 		r.w.TypeName(ctx.working, t.Type), expr.expr), expr.paramInstance)
 
 	// pk := r.w.GetImportedName(ctx.working)

@@ -398,11 +398,11 @@ func genValue() {
 
 			if ts.Tags.Contains("@fp.GenLabelled") {
 				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
-					return fmt.Sprintf("NameIs%s[%s]", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
+					return fmt.Sprintf("Named%s[%s]", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
 				}).MakeString(",")
 
 				fields := seq.Map(privateFields, func(f metafp.StructField) string {
-					return fmt.Sprintf(`NameIs%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
+					return fmt.Sprintf(`Named%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
 				}).Iterator().Take(max.Product).MakeString(",")
 
 				privateFields.Foreach(func(v metafp.StructField) {
@@ -481,20 +481,20 @@ func genValue() {
 
 		klist := keyTags.Iterator().ToSeq()
 		seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
-			fmt.Fprintf(w, `type NameIs%s[T any] fp.Tuple1[T]
+			fmt.Fprintf(w, `type Named%s[T any] fp.Tuple1[T]
 			`, publicName(name))
 
-			fmt.Fprintf(w, `func (r NameIs%s[T]) Name() string {
+			fmt.Fprintf(w, `func (r Named%s[T]) Name() string {
 				return "%s"
 			}
 			`, publicName(name), name)
 
-			fmt.Fprintf(w, `func (r NameIs%s[T]) Value() T {
+			fmt.Fprintf(w, `func (r Named%s[T]) Value() T {
 				return r.I1
 			}
 			`, publicName(name))
 
-			fmt.Fprintf(w, `func (r NameIs%s[T]) WithValue(v T) NameIs%s[T] {
+			fmt.Fprintf(w, `func (r Named%s[T]) WithValue(v T) Named%s[T] {
 				r.I1 = v
 				return r
 			}

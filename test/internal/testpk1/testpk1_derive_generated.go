@@ -21,12 +21,12 @@ var EqWorld = eq.ContraMap(
 )
 
 var EncoderWorld = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NameIsMessage[string]](js.EncoderString), js.EncoderNamed[NameIsTimestamp[time.Time]](js.EncoderTime)),
+	js.EncoderLabelled2(js.EncoderNamed[NamedMessage[string]](js.EncoderString), js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime)),
 	World.AsLabelled,
 )
 
 var DecoderWorld = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[NameIsMessage[string]](js.DecoderString), js.DecoderNamed[NameIsTimestamp[time.Time]](js.DecoderTime)),
+	js.DecoderLabelled2(js.DecoderNamed[NamedMessage[string]](js.DecoderString), js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime)),
 	fp.Compose(
 		as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
 		WorldBuilder.Build,
@@ -60,13 +60,13 @@ var ShowWorld = show.Generic(
 
 var EncoderHasOption = js.EncoderContraMap(
 	js.EncoderHConsLabelled(
-		js.EncoderNamed[NameIsMessage[string]](js.EncoderString),
+		js.EncoderNamed[NamedMessage[string]](js.EncoderString),
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NameIsAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
+			js.EncoderNamed[NamedAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NameIsPhone[[]string]](js.EncoderSlice(js.EncoderString)),
+				js.EncoderNamed[NamedPhone[[]string]](js.EncoderSlice(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NameIsEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+					js.EncoderNamed[NamedEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
 					js.EncoderHNil,
 				),
 			),
@@ -74,7 +74,7 @@ var EncoderHasOption = js.EncoderContraMap(
 	),
 	fp.Compose(
 		HasOption.AsLabelled,
-		as.HList4Labelled[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]],
+		as.HList4Labelled[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]],
 	),
 )
 

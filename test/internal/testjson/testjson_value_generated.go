@@ -236,11 +236,11 @@ func (r RootBuilder) FromMap(m map[string]any) RootBuilder {
 	return r
 }
 
-func (r Root) AsLabelled() fp.Labelled8[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int], NameIsH[Child]] {
-	return as.Labelled8(NameIsA[int]{r.a}, NameIsB[string]{r.b}, NameIsC[float64]{r.c}, NameIsD[bool]{r.d}, NameIsE[*int]{r.e}, NameIsF[[]int]{r.f}, NameIsG[map[string]int]{r.g}, NameIsH[Child]{r.h})
+func (r Root) AsLabelled() fp.Labelled8[NamedA[int], NamedB[string], NamedC[float64], NamedD[bool], NamedE[*int], NamedF[[]int], NamedG[map[string]int], NamedH[Child]] {
+	return as.Labelled8(NamedA[int]{r.a}, NamedB[string]{r.b}, NamedC[float64]{r.c}, NamedD[bool]{r.d}, NamedE[*int]{r.e}, NamedF[[]int]{r.f}, NamedG[map[string]int]{r.g}, NamedH[Child]{r.h})
 }
 
-func (r RootBuilder) FromLabelled(t fp.Labelled8[NameIsA[int], NameIsB[string], NameIsC[float64], NameIsD[bool], NameIsE[*int], NameIsF[[]int], NameIsG[map[string]int], NameIsH[Child]]) RootBuilder {
+func (r RootBuilder) FromLabelled(t fp.Labelled8[NamedA[int], NamedB[string], NamedC[float64], NamedD[bool], NamedE[*int], NamedF[[]int], NamedG[map[string]int], NamedH[Child]]) RootBuilder {
 	r.a = t.I1.Value()
 	r.b = t.I2.Value()
 	r.c = t.I3.Value()
@@ -343,11 +343,11 @@ func (r ChildBuilder) FromMap(m map[string]any) ChildBuilder {
 	return r
 }
 
-func (r Child) AsLabelled() fp.Labelled2[NameIsA[map[string]any], NameIsB[any]] {
-	return as.Labelled2(NameIsA[map[string]any]{r.a}, NameIsB[any]{r.b})
+func (r Child) AsLabelled() fp.Labelled2[NamedA[map[string]any], NamedB[any]] {
+	return as.Labelled2(NamedA[map[string]any]{r.a}, NamedB[any]{r.b})
 }
 
-func (r ChildBuilder) FromLabelled(t fp.Labelled2[NameIsA[map[string]any], NameIsB[any]]) ChildBuilder {
+func (r ChildBuilder) FromLabelled(t fp.Labelled2[NamedA[map[string]any], NamedB[any]]) ChildBuilder {
 	r.a = t.I1.Value()
 	r.b = t.I2.Value()
 	return r
@@ -467,11 +467,11 @@ func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
 	return r
 }
 
-func (r Node) AsLabelled() fp.Labelled3[NameIsName[string], NameIsLeft[*Node], NameIsRight[*Node]] {
-	return as.Labelled3(NameIsName[string]{r.name}, NameIsLeft[*Node]{r.left}, NameIsRight[*Node]{r.right})
+func (r Node) AsLabelled() fp.Labelled3[NamedName[string], NamedLeft[*Node], NamedRight[*Node]] {
+	return as.Labelled3(NamedName[string]{r.name}, NamedLeft[*Node]{r.left}, NamedRight[*Node]{r.right})
 }
 
-func (r NodeBuilder) FromLabelled(t fp.Labelled3[NameIsName[string], NameIsLeft[*Node], NameIsRight[*Node]]) NodeBuilder {
+func (r NodeBuilder) FromLabelled(t fp.Labelled3[NamedName[string], NamedLeft[*Node], NamedRight[*Node]]) NodeBuilder {
 	r.name = t.I1.Value()
 	r.left = t.I2.Value()
 	r.right = t.I3.Value()
@@ -546,11 +546,11 @@ func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
 	return r
 }
 
-func (r Tree) AsLabelled() fp.Labelled1[NameIsRoot[*Node]] {
-	return as.Labelled1(NameIsRoot[*Node]{r.root})
+func (r Tree) AsLabelled() fp.Labelled1[NamedRoot[*Node]] {
+	return as.Labelled1(NamedRoot[*Node]{r.root})
 }
 
-func (r TreeBuilder) FromLabelled(t fp.Labelled1[NameIsRoot[*Node]]) TreeBuilder {
+func (r TreeBuilder) FromLabelled(t fp.Labelled1[NamedRoot[*Node]]) TreeBuilder {
 	r.root = t.I1.Value()
 	return r
 }
@@ -646,11 +646,11 @@ func (r EntryBuilder[V]) FromMap(m map[string]any) EntryBuilder[V] {
 	return r
 }
 
-func (r Entry[V]) AsLabelled() fp.Labelled2[NameIsName[string], NameIsValue[V]] {
-	return as.Labelled2(NameIsName[string]{r.name}, NameIsValue[V]{r.value})
+func (r Entry[V]) AsLabelled() fp.Labelled2[NamedName[string], NamedValue[V]] {
+	return as.Labelled2(NamedName[string]{r.name}, NamedValue[V]{r.value})
 }
 
-func (r EntryBuilder[V]) FromLabelled(t fp.Labelled2[NameIsName[string], NameIsValue[V]]) EntryBuilder[V] {
+func (r EntryBuilder[V]) FromLabelled(t fp.Labelled2[NamedName[string], NamedValue[V]]) EntryBuilder[V] {
 	r.name = t.I1.Value()
 	r.value = t.I2.Value()
 	return r
@@ -747,11 +747,11 @@ func (r NotUsedParamBuilder[K, V]) FromMap(m map[string]any) NotUsedParamBuilder
 	return r
 }
 
-func (r NotUsedParam[K, V]) AsLabelled() fp.Labelled2[NameIsParam[string], NameIsValue[V]] {
-	return as.Labelled2(NameIsParam[string]{r.param}, NameIsValue[V]{r.value})
+func (r NotUsedParam[K, V]) AsLabelled() fp.Labelled2[NamedParam[string], NamedValue[V]] {
+	return as.Labelled2(NamedParam[string]{r.param}, NamedValue[V]{r.value})
 }
 
-func (r NotUsedParamBuilder[K, V]) FromLabelled(t fp.Labelled2[NameIsParam[string], NameIsValue[V]]) NotUsedParamBuilder[K, V] {
+func (r NotUsedParamBuilder[K, V]) FromLabelled(t fp.Labelled2[NamedParam[string], NamedValue[V]]) NotUsedParamBuilder[K, V] {
 	r.param = t.I1.Value()
 	r.value = t.I2.Value()
 	return r
@@ -871,221 +871,221 @@ func (r MovieBuilder) FromMap(m map[string]any) MovieBuilder {
 	return r
 }
 
-func (r Movie) AsLabelled() fp.Labelled3[NameIsName[string], NameIsCasting[Entry[string]], NameIsNotUsed[NotUsedParam[int, string]]] {
-	return as.Labelled3(NameIsName[string]{r.name}, NameIsCasting[Entry[string]]{r.casting}, NameIsNotUsed[NotUsedParam[int, string]]{r.notUsed})
+func (r Movie) AsLabelled() fp.Labelled3[NamedName[string], NamedCasting[Entry[string]], NamedNotUsed[NotUsedParam[int, string]]] {
+	return as.Labelled3(NamedName[string]{r.name}, NamedCasting[Entry[string]]{r.casting}, NamedNotUsed[NotUsedParam[int, string]]{r.notUsed})
 }
 
-func (r MovieBuilder) FromLabelled(t fp.Labelled3[NameIsName[string], NameIsCasting[Entry[string]], NameIsNotUsed[NotUsedParam[int, string]]]) MovieBuilder {
+func (r MovieBuilder) FromLabelled(t fp.Labelled3[NamedName[string], NamedCasting[Entry[string]], NamedNotUsed[NotUsedParam[int, string]]]) MovieBuilder {
 	r.name = t.I1.Value()
 	r.casting = t.I2.Value()
 	r.notUsed = t.I3.Value()
 	return r
 }
 
-type NameIsA[T any] fp.Tuple1[T]
+type NamedA[T any] fp.Tuple1[T]
 
-func (r NameIsA[T]) Name() string {
+func (r NamedA[T]) Name() string {
 	return "a"
 }
-func (r NameIsA[T]) Value() T {
+func (r NamedA[T]) Value() T {
 	return r.I1
 }
-func (r NameIsA[T]) WithValue(v T) NameIsA[T] {
+func (r NamedA[T]) WithValue(v T) NamedA[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsB[T any] fp.Tuple1[T]
+type NamedB[T any] fp.Tuple1[T]
 
-func (r NameIsB[T]) Name() string {
+func (r NamedB[T]) Name() string {
 	return "b"
 }
-func (r NameIsB[T]) Value() T {
+func (r NamedB[T]) Value() T {
 	return r.I1
 }
-func (r NameIsB[T]) WithValue(v T) NameIsB[T] {
+func (r NamedB[T]) WithValue(v T) NamedB[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsC[T any] fp.Tuple1[T]
+type NamedC[T any] fp.Tuple1[T]
 
-func (r NameIsC[T]) Name() string {
+func (r NamedC[T]) Name() string {
 	return "c"
 }
-func (r NameIsC[T]) Value() T {
+func (r NamedC[T]) Value() T {
 	return r.I1
 }
-func (r NameIsC[T]) WithValue(v T) NameIsC[T] {
+func (r NamedC[T]) WithValue(v T) NamedC[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsCasting[T any] fp.Tuple1[T]
+type NamedCasting[T any] fp.Tuple1[T]
 
-func (r NameIsCasting[T]) Name() string {
+func (r NamedCasting[T]) Name() string {
 	return "casting"
 }
-func (r NameIsCasting[T]) Value() T {
+func (r NamedCasting[T]) Value() T {
 	return r.I1
 }
-func (r NameIsCasting[T]) WithValue(v T) NameIsCasting[T] {
+func (r NamedCasting[T]) WithValue(v T) NamedCasting[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsD[T any] fp.Tuple1[T]
+type NamedD[T any] fp.Tuple1[T]
 
-func (r NameIsD[T]) Name() string {
+func (r NamedD[T]) Name() string {
 	return "d"
 }
-func (r NameIsD[T]) Value() T {
+func (r NamedD[T]) Value() T {
 	return r.I1
 }
-func (r NameIsD[T]) WithValue(v T) NameIsD[T] {
+func (r NamedD[T]) WithValue(v T) NamedD[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsE[T any] fp.Tuple1[T]
+type NamedE[T any] fp.Tuple1[T]
 
-func (r NameIsE[T]) Name() string {
+func (r NamedE[T]) Name() string {
 	return "e"
 }
-func (r NameIsE[T]) Value() T {
+func (r NamedE[T]) Value() T {
 	return r.I1
 }
-func (r NameIsE[T]) WithValue(v T) NameIsE[T] {
+func (r NamedE[T]) WithValue(v T) NamedE[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsF[T any] fp.Tuple1[T]
+type NamedF[T any] fp.Tuple1[T]
 
-func (r NameIsF[T]) Name() string {
+func (r NamedF[T]) Name() string {
 	return "f"
 }
-func (r NameIsF[T]) Value() T {
+func (r NamedF[T]) Value() T {
 	return r.I1
 }
-func (r NameIsF[T]) WithValue(v T) NameIsF[T] {
+func (r NamedF[T]) WithValue(v T) NamedF[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsG[T any] fp.Tuple1[T]
+type NamedG[T any] fp.Tuple1[T]
 
-func (r NameIsG[T]) Name() string {
+func (r NamedG[T]) Name() string {
 	return "g"
 }
-func (r NameIsG[T]) Value() T {
+func (r NamedG[T]) Value() T {
 	return r.I1
 }
-func (r NameIsG[T]) WithValue(v T) NameIsG[T] {
+func (r NamedG[T]) WithValue(v T) NamedG[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsH[T any] fp.Tuple1[T]
+type NamedH[T any] fp.Tuple1[T]
 
-func (r NameIsH[T]) Name() string {
+func (r NamedH[T]) Name() string {
 	return "h"
 }
-func (r NameIsH[T]) Value() T {
+func (r NamedH[T]) Value() T {
 	return r.I1
 }
-func (r NameIsH[T]) WithValue(v T) NameIsH[T] {
+func (r NamedH[T]) WithValue(v T) NamedH[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsLeft[T any] fp.Tuple1[T]
+type NamedLeft[T any] fp.Tuple1[T]
 
-func (r NameIsLeft[T]) Name() string {
+func (r NamedLeft[T]) Name() string {
 	return "left"
 }
-func (r NameIsLeft[T]) Value() T {
+func (r NamedLeft[T]) Value() T {
 	return r.I1
 }
-func (r NameIsLeft[T]) WithValue(v T) NameIsLeft[T] {
+func (r NamedLeft[T]) WithValue(v T) NamedLeft[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsName[T any] fp.Tuple1[T]
+type NamedName[T any] fp.Tuple1[T]
 
-func (r NameIsName[T]) Name() string {
+func (r NamedName[T]) Name() string {
 	return "name"
 }
-func (r NameIsName[T]) Value() T {
+func (r NamedName[T]) Value() T {
 	return r.I1
 }
-func (r NameIsName[T]) WithValue(v T) NameIsName[T] {
+func (r NamedName[T]) WithValue(v T) NamedName[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsNotUsed[T any] fp.Tuple1[T]
+type NamedNotUsed[T any] fp.Tuple1[T]
 
-func (r NameIsNotUsed[T]) Name() string {
+func (r NamedNotUsed[T]) Name() string {
 	return "notUsed"
 }
-func (r NameIsNotUsed[T]) Value() T {
+func (r NamedNotUsed[T]) Value() T {
 	return r.I1
 }
-func (r NameIsNotUsed[T]) WithValue(v T) NameIsNotUsed[T] {
+func (r NamedNotUsed[T]) WithValue(v T) NamedNotUsed[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsParam[T any] fp.Tuple1[T]
+type NamedParam[T any] fp.Tuple1[T]
 
-func (r NameIsParam[T]) Name() string {
+func (r NamedParam[T]) Name() string {
 	return "param"
 }
-func (r NameIsParam[T]) Value() T {
+func (r NamedParam[T]) Value() T {
 	return r.I1
 }
-func (r NameIsParam[T]) WithValue(v T) NameIsParam[T] {
+func (r NamedParam[T]) WithValue(v T) NamedParam[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsRight[T any] fp.Tuple1[T]
+type NamedRight[T any] fp.Tuple1[T]
 
-func (r NameIsRight[T]) Name() string {
+func (r NamedRight[T]) Name() string {
 	return "right"
 }
-func (r NameIsRight[T]) Value() T {
+func (r NamedRight[T]) Value() T {
 	return r.I1
 }
-func (r NameIsRight[T]) WithValue(v T) NameIsRight[T] {
+func (r NamedRight[T]) WithValue(v T) NamedRight[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsRoot[T any] fp.Tuple1[T]
+type NamedRoot[T any] fp.Tuple1[T]
 
-func (r NameIsRoot[T]) Name() string {
+func (r NamedRoot[T]) Name() string {
 	return "root"
 }
-func (r NameIsRoot[T]) Value() T {
+func (r NamedRoot[T]) Value() T {
 	return r.I1
 }
-func (r NameIsRoot[T]) WithValue(v T) NameIsRoot[T] {
+func (r NamedRoot[T]) WithValue(v T) NamedRoot[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsValue[T any] fp.Tuple1[T]
+type NamedValue[T any] fp.Tuple1[T]
 
-func (r NameIsValue[T]) Name() string {
+func (r NamedValue[T]) Name() string {
 	return "value"
 }
-func (r NameIsValue[T]) Value() T {
+func (r NamedValue[T]) Value() T {
 	return r.I1
 }
-func (r NameIsValue[T]) WithValue(v T) NameIsValue[T] {
+func (r NamedValue[T]) WithValue(v T) NamedValue[T] {
 	r.I1 = v
 	return r
 }

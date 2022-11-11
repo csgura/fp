@@ -68,12 +68,12 @@ var EqGreeting = eq.ContraMap(
 )
 
 var EncoderGreeting = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NameIsHello[testpk1.World]](testpk1.EncoderWorld), js.EncoderNamed[NameIsLanguage[string]](js.EncoderString)),
+	js.EncoderLabelled2(js.EncoderNamed[NamedHello[testpk1.World]](testpk1.EncoderWorld), js.EncoderNamed[NamedLanguage[string]](js.EncoderString)),
 	Greeting.AsLabelled,
 )
 
 var DecoderGreeting = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[NameIsHello[testpk1.World]](testpk1.DecoderWorld), js.DecoderNamed[NameIsLanguage[string]](js.DecoderString)),
+	js.DecoderLabelled2(js.DecoderNamed[NamedHello[testpk1.World]](testpk1.DecoderWorld), js.DecoderNamed[NamedLanguage[string]](js.DecoderString)),
 	fp.Compose(
 		as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}),
 		GreetingBuilder.Build,
@@ -82,35 +82,35 @@ var DecoderGreeting = js.DecoderMap(
 
 var EncoderThree = js.EncoderContraMap(
 	js.EncoderHConsLabelled(
-		js.EncoderNamed[NameIsOne[int]](js.EncoderNumber[int]()),
+		js.EncoderNamed[NamedOne[int]](js.EncoderNumber[int]()),
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NameIsTwo[string]](js.EncoderString),
+			js.EncoderNamed[NamedTwo[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NameIsThree[float64]](js.EncoderNumber[float64]()),
+				js.EncoderNamed[NamedThree[float64]](js.EncoderNumber[float64]()),
 				js.EncoderHNil,
 			),
 		),
 	),
 	fp.Compose(
 		Three.AsLabelled,
-		as.HList3Labelled[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]],
+		as.HList3Labelled[NamedOne[int], NamedTwo[string], NamedThree[float64]],
 	),
 )
 
 var DecoderThree = js.DecoderMap(
 	js.DecoderHConsLabelled(
-		js.DecoderNamed[NameIsOne[int]](js.DecoderNumber[int]()),
+		js.DecoderNamed[NamedOne[int]](js.DecoderNumber[int]()),
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NameIsTwo[string]](js.DecoderString),
+			js.DecoderNamed[NamedTwo[string]](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NameIsThree[float64]](js.DecoderNumber[float64]()),
+				js.DecoderNamed[NamedThree[float64]](js.DecoderNumber[float64]()),
 				js.DecoderHNil,
 			),
 		),
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[NameIsOne[int], NameIsTwo[string], NameIsThree[float64]],
+		product.LabelledFromHList3[NamedOne[int], NamedTwo[string], NamedThree[float64]],
 		fp.Compose(
 			as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
 			ThreeBuilder.Build,

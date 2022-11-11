@@ -272,14 +272,14 @@ type Car struct {
 
 ## 4.1. AsLabelled method
 ```go
-func (r Car) AsLabelled() fp.Labelled3[NameIsCompany[string], NameIsModel[string], NameIsYear[int]] {
-    return as.Labelled3(NameIsCompany[string]{r.company}, NameIsModel[string]{r.model}, NameIsYear[int]{r.year})
+func (r Car) AsLabelled() fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]] {
+    return as.Labelled3(NamedCompany[string]{r.company}, NamedModel[string]{r.model}, NamedYear[int]{r.year})
 }
 ```
 
 ## 4.2. FromLabelled method
 ```go
-func (r CarBuilder) FromLabelled(t fp.Labelled3[NameIsCompany[string], NameIsModel[string], NameIsYear[int]]) CarBuilder {
+func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]]) CarBuilder {
     r.company = t.I1.Value()
     r.model = t.I2.Value()
     r.year = t.I3.Value()
@@ -289,15 +289,15 @@ func (r CarBuilder) FromLabelled(t fp.Labelled3[NameIsCompany[string], NameIsMod
 
 ## 4.3. Labelled type
 ```go
-type NameIsCompany[T any] fp.Tuple1[T]
+type NamedCompany[T any] fp.Tuple1[T]
  
-func (r NameIsCompany[T]) Name() string {
+func (r NamedCompany[T]) Name() string {
     return "company"
 }
-func (r NameIsCompany[T]) Value() T {
+func (r NamedCompany[T]) Value() T {
     return r.I1
 }
-func (r NameIsCompany[T]) WithValue(v T) NameIsCompany[T] {
+func (r NamedCompany[T]) WithValue(v T) NamedCompany[T] {
     r.I1 = v
     return r
 }

@@ -102,11 +102,11 @@ func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
 	return r
 }
 
-func (r World) AsLabelled() fp.Labelled2[NameIsMessage[string], NameIsTimestamp[time.Time]] {
-	return as.Labelled2(NameIsMessage[string]{r.message}, NameIsTimestamp[time.Time]{r.timestamp})
+func (r World) AsLabelled() fp.Labelled2[NamedMessage[string], NamedTimestamp[time.Time]] {
+	return as.Labelled2(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp})
 }
 
-func (r WorldBuilder) FromLabelled(t fp.Labelled2[NameIsMessage[string], NameIsTimestamp[time.Time]]) WorldBuilder {
+func (r WorldBuilder) FromLabelled(t fp.Labelled2[NamedMessage[string], NamedTimestamp[time.Time]]) WorldBuilder {
 	r.message = t.I1.Value()
 	r.timestamp = t.I2.Value()
 	return r
@@ -286,11 +286,11 @@ func (r HasOptionBuilder) FromMap(m map[string]any) HasOptionBuilder {
 	return r
 }
 
-func (r HasOption) AsLabelled() fp.Labelled4[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]] {
-	return as.Labelled4(NameIsMessage[string]{r.message}, NameIsAddr[fp.Option[string]]{r.addr}, NameIsPhone[[]string]{r.phone}, NameIsEmptySeq[[]int]{r.emptySeq})
+func (r HasOption) AsLabelled() fp.Labelled4[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]] {
+	return as.Labelled4(NamedMessage[string]{r.message}, NamedAddr[fp.Option[string]]{r.addr}, NamedPhone[[]string]{r.phone}, NamedEmptySeq[[]int]{r.emptySeq})
 }
 
-func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NameIsMessage[string], NameIsAddr[fp.Option[string]], NameIsPhone[[]string], NameIsEmptySeq[[]int]]) HasOptionBuilder {
+func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]]) HasOptionBuilder {
 	r.message = t.I1.Value()
 	r.addr = t.I2.Value()
 	r.phone = t.I3.Value()
@@ -1215,67 +1215,67 @@ func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
 	return r
 }
 
-type NameIsAddr[T any] fp.Tuple1[T]
+type NamedAddr[T any] fp.Tuple1[T]
 
-func (r NameIsAddr[T]) Name() string {
+func (r NamedAddr[T]) Name() string {
 	return "addr"
 }
-func (r NameIsAddr[T]) Value() T {
+func (r NamedAddr[T]) Value() T {
 	return r.I1
 }
-func (r NameIsAddr[T]) WithValue(v T) NameIsAddr[T] {
+func (r NamedAddr[T]) WithValue(v T) NamedAddr[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsEmptySeq[T any] fp.Tuple1[T]
+type NamedEmptySeq[T any] fp.Tuple1[T]
 
-func (r NameIsEmptySeq[T]) Name() string {
+func (r NamedEmptySeq[T]) Name() string {
 	return "emptySeq"
 }
-func (r NameIsEmptySeq[T]) Value() T {
+func (r NamedEmptySeq[T]) Value() T {
 	return r.I1
 }
-func (r NameIsEmptySeq[T]) WithValue(v T) NameIsEmptySeq[T] {
+func (r NamedEmptySeq[T]) WithValue(v T) NamedEmptySeq[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsMessage[T any] fp.Tuple1[T]
+type NamedMessage[T any] fp.Tuple1[T]
 
-func (r NameIsMessage[T]) Name() string {
+func (r NamedMessage[T]) Name() string {
 	return "message"
 }
-func (r NameIsMessage[T]) Value() T {
+func (r NamedMessage[T]) Value() T {
 	return r.I1
 }
-func (r NameIsMessage[T]) WithValue(v T) NameIsMessage[T] {
+func (r NamedMessage[T]) WithValue(v T) NamedMessage[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsPhone[T any] fp.Tuple1[T]
+type NamedPhone[T any] fp.Tuple1[T]
 
-func (r NameIsPhone[T]) Name() string {
+func (r NamedPhone[T]) Name() string {
 	return "phone"
 }
-func (r NameIsPhone[T]) Value() T {
+func (r NamedPhone[T]) Value() T {
 	return r.I1
 }
-func (r NameIsPhone[T]) WithValue(v T) NameIsPhone[T] {
+func (r NamedPhone[T]) WithValue(v T) NamedPhone[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsTimestamp[T any] fp.Tuple1[T]
+type NamedTimestamp[T any] fp.Tuple1[T]
 
-func (r NameIsTimestamp[T]) Name() string {
+func (r NamedTimestamp[T]) Name() string {
 	return "timestamp"
 }
-func (r NameIsTimestamp[T]) Value() T {
+func (r NamedTimestamp[T]) Value() T {
 	return r.I1
 }
-func (r NameIsTimestamp[T]) WithValue(v T) NameIsTimestamp[T] {
+func (r NamedTimestamp[T]) WithValue(v T) NamedTimestamp[T] {
 	r.I1 = v
 	return r
 }
