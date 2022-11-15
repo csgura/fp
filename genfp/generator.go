@@ -484,10 +484,25 @@ type Range struct {
 }
 
 var defaultFunc = map[string]any{
+	"FormtStr":          FormatStr,
+	"FuncChain":         FuncChain,
+	"ConsType":          ConsType,
+	"ReversConsType":    ReversConsType,
 	"TypeArgs":          FuncTypeArgs,
 	"DeclArgs":          FuncDeclArgs,
 	"CallArgs":          FuncCallArgs,
+	"ReverseCallArgs":   ReverseFuncCallArgs,
 	"DeclTypeClassArgs": FuncDeclTypeClassArgs,
+	"CurriedCallArgs":   CurriedCallArgs,
+	"TypeClassArgs":     TypeClassArgs,
+	"CurriedType":       CurriedType,
+	"OrdinalName":       OrdinalName,
+	"Monad": func(s string) Monad {
+		return Monad(s)
+	},
+	"Args": func(s string) Args {
+		return Args(s)
+	},
 	"TupleType": func(n int) string {
 		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
 	},

@@ -224,3 +224,7 @@ func Ptr[T any](monoidT lazy.Eval[fp.Monoid[T]]) fp.Monoid[*T] {
 			return a
 		})
 }
+
+var Unit = New(fp.Zero[fp.Unit], func(a, b fp.Unit) fp.Unit {
+	return fp.Unit{}
+})
