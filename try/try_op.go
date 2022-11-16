@@ -139,6 +139,12 @@ func LiftA2[A, B, R any](fab fp.Func2[A, B, R]) fp.Func2[fp.Try[A], fp.Try[B], f
 	}
 }
 
+func LiftM[A, R any](fa func(v A) fp.Try[R]) fp.Func1[fp.Try[A], fp.Try[R]] {
+	return func(ta fp.Try[A]) fp.Try[R] {
+		return Flatten(Map(ta, fa))
+	}
+}
+
 // (a -> b -> m r) -> m a -> m b -> m r
 // 하스켈에서는  liftM2 와 liftA2 는 같은 함수이고
 // 위와 같은 함수는 존재하지 않음.
@@ -258,6 +264,18 @@ func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Itera
 
 func TraverseSeq[A, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
 	return Map(Traverse(sa.Iterator(), fa), fp.Iterator[R].ToSeq)
+}
+
+func TraverseFunc[A, R any](far func(A) fp.Try[R]) fp.Func1[fp.Iterator[A], fp.Try[fp.Iterator[R]]] {
+	return func(iterA fp.Iterator[A]) fp.Try[fp.Iterator[R]] {
+		return Traverse(iterA, far)
+	}
+}
+
+func TraverseSeqFunc[A, R any](far func(A) fp.Try[R]) fp.Func1[fp.Seq[A], fp.Try[fp.Seq[R]]] {
+	return func(seqA fp.Seq[A]) fp.Try[fp.Seq[R]] {
+		return TraverseSeq(seqA, far)
+	}
 }
 
 func Sequence[A any](tsa fp.Seq[fp.Try[A]]) fp.Try[fp.Seq[A]] {

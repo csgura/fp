@@ -132,6 +132,12 @@ func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.Executor) fp.Func2[f
 	}
 }
 
+func LiftM[A, R any](fa func(v A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Future[A], fp.Future[R]] {
+	return func(ta fp.Future[A]) fp.Future[R] {
+		return Flatten(Map(ta, fa, ctx...))
+	}
+}
+
 // (a -> b -> m r) -> m a -> m b -> m r
 // 하스켈에서는  liftM2 와 liftA2 는 같은 함수이고
 // 위와 같은 함수는 존재하지 않음.
@@ -321,6 +327,18 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.E
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Seq[U]] {
 	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq, ctx...)
+}
+
+func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Iterator[A], fp.Future[fp.Iterator[R]]] {
+	return func(iterA fp.Iterator[A]) fp.Future[fp.Iterator[R]] {
+		return Traverse(iterA, far, ctx...)
+	}
+}
+
+func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Seq[A], fp.Future[fp.Seq[R]]] {
+	return func(seqA fp.Seq[A]) fp.Future[fp.Seq[R]] {
+		return TraverseSeq(seqA, far, ctx...)
+	}
 }
 
 type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {

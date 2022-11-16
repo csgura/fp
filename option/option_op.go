@@ -81,6 +81,12 @@ func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Option[A1], fp.Opt
 	}
 }
 
+func LiftM[A, R any](fa func(v A) fp.Option[R]) fp.Func1[fp.Option[A], fp.Option[R]] {
+	return func(ta fp.Option[A]) fp.Option[R] {
+		return Flatten(Map(ta, fa))
+	}
+}
+
 // (a -> b -> m r) -> m a -> m b -> m r
 // 하스켈에서는  liftM2 와 liftA2 는 같은 함수이고
 // 위와 같은 함수는 존재하지 않음.
@@ -220,6 +226,18 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[f
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
 	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq)
+}
+
+func TraverseFunc[A, R any](far func(A) fp.Option[R]) fp.Func1[fp.Iterator[A], fp.Option[fp.Iterator[R]]] {
+	return func(iterA fp.Iterator[A]) fp.Option[fp.Iterator[R]] {
+		return Traverse(iterA, far)
+	}
+}
+
+func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) fp.Func1[fp.Seq[A], fp.Option[fp.Seq[R]]] {
+	return func(seqA fp.Seq[A]) fp.Option[fp.Seq[R]] {
+		return TraverseSeq(seqA, far)
+	}
 }
 
 func Sequence[T any](optSeq fp.Seq[fp.Option[T]]) fp.Option[fp.Seq[T]] {
