@@ -256,6 +256,7 @@ func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] 
 
 func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
 	return iterator.Fold(ia, Success(iterator.Empty[R]()), func(tir fp.Try[fp.Iterator[R]], a A) fp.Try[fp.Iterator[R]] {
+		// return ApFunc(Ap(Success(as.Curried2(fp.Iterator[R].Appended)), tir), lazy.Func1(fn)(a))
 		return FlatMap(tir, func(acc fp.Iterator[R]) fp.Try[fp.Iterator[R]] {
 			return Map(fn(a), acc.Appended)
 		})

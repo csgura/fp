@@ -170,6 +170,14 @@ func Memoize[T any](f func() T) func() T {
 	}
 }
 
+func Func1[A, R any](f func(A) R) func(A) func() R {
+	return func(a A) func() R {
+		return func() R {
+			return f(a)
+		}
+	}
+}
+
 func Func2[A, B, R any](f func(A, B) R) func(A, B) func() R {
 	return func(a A, b B) func() R {
 		return func() R {
