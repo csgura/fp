@@ -496,7 +496,6 @@ var defaultFunc = map[string]any{
 	"CurriedCallArgs":   CurriedCallArgs,
 	"TypeClassArgs":     TypeClassArgs,
 	"CurriedType":       CurriedType,
-	"OrdinalName":       OrdinalName,
 	"Monad": func(s string) Monad {
 		return Monad(s)
 	},
