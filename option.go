@@ -67,10 +67,7 @@ func (r Option[T]) OrElse(t T) T {
 }
 
 func (r Option[T]) OrZero() T {
-	return r.OrElseGet(func() T {
-		var zero T
-		return zero
-	})
+	return r.OrElseGet(Zero[T])
 }
 
 func (r Option[T]) OrElseGet(f func() T) T {
@@ -94,18 +91,18 @@ func (r Option[T]) Recover(f func() T) Option[T] {
 	return Option[T]{true, t}
 }
 
-func (r Option[T]) Exists(p func(v T) bool) bool {
-	if r.IsDefined() {
-		return p(r.Get())
-	}
-	return false
-}
-func (r Option[T]) ForAll(p func(v T) bool) bool {
-	if r.IsDefined() {
-		return p(r.Get())
-	}
-	return true
-}
+// func (r Option[T]) Exists(p func(v T) bool) bool {
+// 	if r.IsDefined() {
+// 		return p(r.Get())
+// 	}
+// 	return false
+// }
+// func (r Option[T]) ForAll(p func(v T) bool) bool {
+// 	if r.IsDefined() {
+// 		return p(r.Get())
+// 	}
+// 	return true
+// }
 
 func (r Option[T]) ToSeq() []T {
 	if r.IsDefined() {
