@@ -336,7 +336,7 @@ func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 
 	leftAhead := true
 
-	unseq := func(r []T) (Option[T], Seq[T]) {
+	unseq := func(r []T) (Option[T], []T) {
 		if len(r) > 0 {
 			return Some(r[0]), r[1:]
 		} else {
