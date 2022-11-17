@@ -85,7 +85,7 @@ func TestFibonacci(t *testing.T) {
 		return lazy.Done(0)
 	})
 
-	println(count)
+	println(count.Get())
 
 }
 
@@ -105,7 +105,7 @@ func NotTestSum(t *testing.T) {
 
 	})
 
-	println(sum)
+	println(sum.Get())
 	println(math.Pi * math.Pi / 6)
 
 	fmt.Println("print list scan")
@@ -194,6 +194,7 @@ func TestLeftFold(t *testing.T) {
 		return a + b
 	})
 	fmt.Printf("sum = %d\n", sum)
+	assert.Equal(sum, 15)
 
 }
 
@@ -205,7 +206,8 @@ func TestFoldRight(t *testing.T) {
 		return lazy.Done(a + b.Get())
 	})
 
-	fmt.Printf("sum = %d\n", sum)
+	fmt.Printf("sum = %d\n", sum.Get())
+	assert.Equal(sum.Get(), 15)
 }
 
 func TestFoldMap(t *testing.T) {
@@ -219,6 +221,7 @@ func TestFoldMap(t *testing.T) {
 	}), fp.Id[int])
 
 	fmt.Printf("sum = %d\n", sum)
+	assert.Equal(sum, 15)
 }
 
 func NotTestFoldMapInfinity(t *testing.T) {
@@ -243,6 +246,8 @@ func TestFoldLeftUsingMap(t *testing.T) {
 	})
 
 	fmt.Printf("sum = %f\n", sum)
+	assert.Equal(sum, 15)
+
 }
 
 func TestReduce(t *testing.T) {
@@ -250,6 +255,8 @@ func TestReduce(t *testing.T) {
 
 	sum := list.Reduce(l, monoid.Sum[int]())
 	fmt.Printf("sum = %d\n", sum)
+	assert.Equal(sum, 15)
+
 }
 
 func TestFoldRightUsingMap(t *testing.T) {
@@ -261,6 +268,7 @@ func TestFoldRightUsingMap(t *testing.T) {
 	})
 
 	fmt.Printf("sum = %f\n", sum)
+	assert.Equal(sum, 15)
 }
 
 func TestEndoOrder(t *testing.T) {

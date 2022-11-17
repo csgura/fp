@@ -7,12 +7,58 @@ import (
 
 // https://github.com/onflow/cadence/blob/v0.5.0-beta2/runtime/trampoline/trampoline.go
 
-type Eval[T any] interface {
-	sealed()
-	Get() T
-	Resume() (T, func() Eval[T])
-	FlatMap(f func(T) Eval[T]) Eval[T]
-	Map(f func(T) T) Eval[T]
+type Eval[T any] struct {
+	subroutine   func() T
+	continuation func(T) Eval[T]
+}
+
+func (r Eval[T]) Resume() (T, func() Eval[T]) {
+
+	sub := r.subroutine
+	if sub == nil {
+		sub = func() T {
+			var zero T
+			return zero
+		}
+	}
+
+	if r.continuation == nil {
+		return sub(), nil
+	}
+	var zero T
+	return zero, func() Eval[T] {
+		return r.continuation(sub())
+	}
+
+}
+
+func (r Eval[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
+	if r.continuation == nil {
+		return Eval[T]{
+			subroutine:   r.subroutine,
+			continuation: f,
+		}
+	} else {
+		continuation := r.continuation
+
+		return Eval[T]{
+			subroutine: r.subroutine,
+			continuation: func(value T) Eval[T] {
+				return continuation(value).FlatMap(f)
+			},
+		}
+	}
+}
+
+func (r Eval[T]) Map(f func(T) T) Eval[T] {
+	return r.FlatMap(func(value T) Eval[T] {
+		//return done[T]{Result: f(value)}
+		return Done(f(value))
+	})
+}
+
+func (r Eval[T]) Get() T {
+	return Run(r)
 }
 
 func Run[T any](t Eval[T]) T {
@@ -37,126 +83,141 @@ func Map2[T any](a, b Eval[T], f func(T, T) T) Eval[T] {
 }
 
 func Map[T any](t Eval[T], f func(T) T) Eval[T] {
-	return t.FlatMap(func(value T) Eval[T] {
-		return done[T]{Result: f(value)}
-	})
+	return t.Map(f)
 }
 
 func FlatMap[T any](t Eval[T], f func(T) Eval[T]) Eval[T] {
 	return t.FlatMap(f)
 }
 
-type done[T any] struct {
-	Result T
-}
+// type done[T any] struct {
+// 	Result T
+// }
 
-func (d done[T]) sealed() {
-}
+// func (d done[T]) sealed() {
+// }
 
-func (d done[T]) Get() T {
-	return d.Result
-}
+// func (d done[T]) Get() T {
+// 	return d.Result
+// }
 
-func (d done[T]) Resume() (T, func() Eval[T]) {
-	return d.Result, nil
-}
+// func (d done[T]) Resume() (T, func() Eval[T]) {
+// 	return d.Result, nil
+// }
 
-func (d done[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
-	return cont[T]{Subroutine: d, Continuation: f}
-}
+// func (d done[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
+// 	return cont[T]{Subroutine: d, Continuation: f}
+// }
 
-func (d done[T]) Map(f func(T) T) Eval[T] {
-	return Map[T](d, f)
-}
+// func (d done[T]) Map(f func(T) T) Eval[T] {
+// 	return Map[T](d, f)
+// }
 
-type call[T any] func() Eval[T]
+// type call[T any] func() Eval[T]
 
-func (d call[T]) Get() T {
-	return Run[T](d)
-}
+// func (d call[T]) Get() T {
+// 	return Run[T](d)
+// }
 
-func (m call[T]) Resume() (T, func() Eval[T]) {
-	var zero T
-	return zero, (func() Eval[T])(m)
-}
+// func (m call[T]) Resume() (T, func() Eval[T]) {
+// 	var zero T
+// 	return zero, (func() Eval[T])(m)
+// }
 
-func (m call[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
-	return cont[T]{Subroutine: m, Continuation: f}
-}
+// func (m call[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
+// 	return cont[T]{Subroutine: m, Continuation: f}
+// }
 
-func (m call[T]) Map(f func(T) T) Eval[T] {
-	return Map[T](m, f)
-}
+// func (m call[T]) Map(f func(T) T) Eval[T] {
+// 	return Map[T](m, f)
+// }
 
-func (m call[T]) Continue() Eval[T] {
-	return m()
-}
+// func (m call[T]) Continue() Eval[T] {
+// 	return m()
+// }
 
-func (d call[T]) sealed() {
-}
+// func (d call[T]) sealed() {
+// }
 
-type cont[T any] struct {
-	Subroutine   Eval[T]
-	Continuation func(T) Eval[T]
-}
+// type cont[T any] struct {
+// 	Subroutine   Eval[T]
+// 	Continuation func(T) Eval[T]
+// }
 
-func (d cont[T]) sealed() {
-}
+// func (d cont[T]) sealed() {
+// }
 
-func (d cont[T]) Get() T {
-	return Run[T](d)
-}
+// func (d cont[T]) Get() T {
+// 	return Run[T](d)
+// }
 
-func (m cont[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
+// func (m cont[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
 
-	continuation := m.Continuation
-	return cont[T]{
-		Subroutine: m.Subroutine,
-		Continuation: func(value T) Eval[T] {
-			return continuation(value).FlatMap(f)
+// 	continuation := m.Continuation
+// 	return cont[T]{
+// 		Subroutine: m.Subroutine,
+// 		Continuation: func(value T) Eval[T] {
+// 			return continuation(value).FlatMap(f)
+// 		},
+// 	}
+// }
+
+// func (m cont[T]) Resume() (T, func() Eval[T]) {
+// 	continuation := m.Continuation
+
+// 	switch sub := m.Subroutine.(type) {
+// 	case done[T]:
+// 		var zero T
+// 		return zero, func() Eval[T] {
+// 			return continuation(sub.Result)
+// 		}
+// 	case call[T]:
+// 		var zero T
+// 		return zero, func() Eval[T] {
+// 			return sub.Continue().FlatMap(continuation)
+// 		}
+// 	case cont[T]:
+// 		panic("cont[T] is not a valid subroutine. Use the cont[T] function to construct proper cont[T] structures.")
+// 	}
+
+// 	panic("")
+// }
+
+// func (m cont[T]) Map(f func(T) T) Eval[T] {
+// 	return Map[T](m, f)
+// }
+
+func Done[T any](t T) Eval[T] {
+	return Eval[T]{
+		subroutine: func() T {
+			return t
 		},
 	}
 }
 
-func (m cont[T]) Resume() (T, func() Eval[T]) {
-	continuation := m.Continuation
-
-	switch sub := m.Subroutine.(type) {
-	case done[T]:
-		var zero T
-		return zero, func() Eval[T] {
-			return continuation(sub.Result)
-		}
-	case call[T]:
-		var zero T
-		return zero, func() Eval[T] {
-			return sub.Continue().FlatMap(continuation)
-		}
-	case cont[T]:
-		panic("cont[T] is not a valid subroutine. Use the cont[T] function to construct proper cont[T] structures.")
-	}
-
-	panic("")
-}
-
-func (m cont[T]) Map(f func(T) T) Eval[T] {
-	return Map[T](m, f)
-}
-
-func Done[T any](t T) Eval[T] {
-	return done[T]{t}
-}
-
 func TailCall[T any](f func() Eval[T]) Eval[T] {
 	mf := Memoize(f)
-	return call[T](mf)
+	// return call[T](mf)
+
+	return Eval[T]{
+		subroutine: func() T {
+			var zero T
+			return zero
+		},
+		continuation: func(T) Eval[T] {
+			return mf()
+		},
+	}
 }
 
 func Call[T any](f func() T) Eval[T] {
 	mf := Memoize(f)
-	return call[T](func() Eval[T] {
-		return Done(mf())
-	})
+	// return call[T](func() Eval[T] {
+	// 	return Done(mf())
+	// })
+	return Eval[T]{
+		subroutine: mf,
+	}
 }
 
 func Memoize[T any](f func() T) func() T {
