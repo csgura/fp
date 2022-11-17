@@ -1,5 +1,10 @@
 package fp
 
+import (
+	"bytes"
+	"fmt"
+)
+
 type Seq[T any] []T
 
 func (r Seq[T]) Size() int {
@@ -47,11 +52,17 @@ func (r Seq[T]) UnSeq() (Option[T], Seq[T]) {
 }
 
 func (r Seq[T]) Take(n int) Seq[T] {
-	return iteratorToSeq(IteratorOfSeq(r).Take(n), len(r))
+	if len(r) < n {
+		return r
+	}
+	return r[0:n]
 }
 
 func (r Seq[T]) Drop(n int) Seq[T] {
-	return iteratorToSeq(IteratorOfSeq(r).Drop(n), len(r))
+	if len(r) < n {
+		return nil
+	}
+	return r[n:]
 }
 
 func (r Seq[T]) Foreach(f func(v T)) {
@@ -61,23 +72,46 @@ func (r Seq[T]) Foreach(f func(v T)) {
 }
 
 func (r Seq[T]) Filter(p func(v T) bool) Seq[T] {
-	return iteratorToSeq(IteratorOfSeq(r).Filter(p), len(r))
+	ret := make([]T, 0, len(r))
+	for _, v := range r {
+		if p(v) {
+			ret = append(ret, v)
+		}
+	}
+	return ret
 }
 
 func (r Seq[T]) FilterNot(p func(v T) bool) Seq[T] {
-	return iteratorToSeq(IteratorOfSeq(r).FilterNot(p), len(r))
+	return r.Filter(func(t T) bool {
+		return !p(t)
+	})
 }
 
 func (r Seq[T]) Exists(p func(v T) bool) bool {
-	return IteratorOfSeq(r).Exists(p)
+	for _, v := range r {
+		if p(v) {
+			return true
+		}
+	}
+	return false
 }
 
 func (r Seq[T]) ForAll(p func(v T) bool) bool {
-	return IteratorOfSeq(r).ForAll(p)
+	for _, v := range r {
+		if !p(v) {
+			return false
+		}
+	}
+	return true
 }
 
 func (r Seq[T]) Find(p func(v T) bool) Option[T] {
-	return IteratorOfSeq(r).Find(p)
+	for _, v := range r {
+		if p(v) {
+			return Some(v)
+		}
+	}
+	return None[T]()
 }
 
 func (r Seq[T]) Add(item T) Seq[T] {
@@ -97,10 +131,6 @@ func (r Seq[T]) Append(items ...T) Seq[T] {
 	}
 
 	return ret
-}
-
-func (r Seq[T]) Appended(item T) Seq[T] {
-	return r.Append(item)
 }
 
 func (r Seq[T]) Concat(tail Seq[T]) Seq[T] {
@@ -159,5 +189,13 @@ func IteratorOfSeq[T any](r []T) Iterator[T] {
 }
 
 func (r Seq[T]) MakeString(sep string) string {
-	return IteratorOfSeq(r).MakeString(sep)
+	buf := &bytes.Buffer{}
+
+	for i, v := range r {
+		if i != 0 {
+			buf.WriteString(sep)
+		}
+		buf.WriteString(fmt.Sprint(v))
+	}
+	return buf.String()
 }

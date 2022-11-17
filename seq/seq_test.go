@@ -6,6 +6,9 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
@@ -84,4 +87,20 @@ func TestAp(t *testing.T) {
 	f3 := seq.Ap(f2, seq.Of(2, 3))
 	f4 := seq.Ap(f3, seq.Of(3, 4))
 	f4.Foreach(fp.Println[int])
+}
+
+func TestTakeDrop(t *testing.T) {
+	s := as.Seq(iterator.Range(0, 10).ToSeq())
+
+	assert.True(eq.Seq(eq.Given[int]()).Eqv(s.Take(3), as.Seq(seq.Iterator(s).Take(3).ToSeq())))
+	assert.True(eq.Seq(eq.Given[int]()).Eqv(s.Drop(3), as.Seq(seq.Iterator(s).Drop(3).ToSeq())))
+
+	assert.True(eq.Seq(eq.Given[int]()).Eqv(s.Take(10), as.Seq(seq.Iterator(s).Take(10).ToSeq())))
+	assert.True(eq.Seq(eq.Given[int]()).Eqv(s.Drop(10), as.Seq(seq.Iterator(s).Drop(10).ToSeq())))
+
+	assert.True(eq.Seq(eq.Given[int]()).Eqv(s.Take(12), as.Seq(seq.Iterator(s).Take(12).ToSeq())))
+	assert.True(eq.Seq(eq.Given[int]()).Eqv(s.Drop(12), as.Seq(seq.Iterator(s).Drop(12).ToSeq())))
+
+	assert.Equal(s.MakeString(","), seq.Iterator(s).MakeString(","))
+
 }
