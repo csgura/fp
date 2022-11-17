@@ -245,7 +245,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 			required: v.RequiredInstance,
 		}
 
-	}).Head()
+	}).NextOption()
 
 }
 
@@ -380,7 +380,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx Current
 			required:   v.RequiredInstance,
 			instance:   option.Some(v),
 		}
-	}).Head()
+	}).NextOption()
 
 }
 

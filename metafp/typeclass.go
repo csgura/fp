@@ -533,7 +533,7 @@ func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassI
 
 	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindByName(name, t)
-	}).Filter(fp.Option[TypeClassInstance].IsDefined).Head()
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
 	return option.Flatten(ret)
 }
@@ -542,7 +542,7 @@ func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
 
 	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindFunc(name)
-	}).Filter(fp.Option[TypeClassInstance].IsDefined).Head()
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
 	return option.Flatten(ret)
 }
