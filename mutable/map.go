@@ -18,11 +18,11 @@ func (r Set[V]) Size() int {
 }
 
 func (r Set[V]) Iterator() fp.Iterator[V] {
-	seq := fp.Seq[V]{}
+	seq := []V{}
 	for k := range r {
 		seq = append(seq, k)
 	}
-	return seq.Iterator()
+	return fp.IteratorOfSeq(seq)
 }
 
 func (r Set[V]) Incl(v V) fp.SetMinimal[V] {
@@ -87,9 +87,9 @@ func (r Map[K, V]) Updated(k K, v V) fp.MapBase[K, V] {
 }
 
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
-	seq := fp.Seq[fp.Tuple2[K, V]]{}
+	seq := []fp.Tuple2[K, V]{}
 	for k, v := range r {
 		seq = append(seq, as.Tuple2(k, v))
 	}
-	return seq.Iterator()
+	return fp.IteratorOfSeq(seq)
 }

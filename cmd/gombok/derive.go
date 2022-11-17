@@ -96,7 +96,7 @@ func newTypeClassInstance(t lookupTarget) typeClassInstance {
 
 func collectSummonExpr(list fp.Seq[SummonExpr]) SummonExpr {
 	expr := seq.Map(list, SummonExpr.Expr).MakeString(",")
-	paramList := seq.Map(list, SummonExpr.ParamInstance).Reduce(MergeSeqDistinct(EqParamInstance))
+	paramList := seq.Reduce(seq.Map(list, SummonExpr.ParamInstance), MergeSeqDistinct(EqParamInstance))
 	return SummonExpr{
 		expr:          expr,
 		paramInstance: paramList,
@@ -173,7 +173,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 	if req.TypeClass.Id() != ctx.tc.TypeClass.Id() {
 		scope = r.tcCache.GetLocal(ctx.working, req.TypeClass)
 	}
-	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
+	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
 		if f.Pkg != nil && ctx.working.Path() != f.Pkg.Path() {
 			return []string{
 				req.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v),
@@ -182,7 +182,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 
 		}
 		return []string{req.TypeClass.Name + publicName(v)}
-	}).Iterator()
+	}))
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
 		return option.Iterator(scope.FindByName(v, f))
@@ -216,7 +216,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 				}).ToSeq()
 
 				// 사용되지 않았다고 표시
-				notused.Foreach(func(v string) {
+				as.Seq(notused).Foreach(func(v string) {
 					tci.UsedParam = tci.UsedParam.Excl(v)
 				})
 			}
@@ -229,9 +229,9 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 	})
 
 	if f.TypeArgs.Size() > 0 {
-		ins = scope.Find(f).Iterator().Concat(ins)
+		ins = seq.Iterator(scope.Find(f)).Concat(ins)
 	} else {
-		ins = ins.Concat(scope.Find(f).Iterator())
+		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
 	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
@@ -344,7 +344,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx Current
 		scope = r.tcCache.GetImported(req.TypeClass)
 	}
 	f := req.Type
-	itr := seq.FlatMap(name, func(v string) fp.Seq[string] {
+	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
 		ret := seq.Of(
 			req.TypeClass.Name+publicName(v),
 			publicName(v),
@@ -356,16 +356,16 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx Current
 			).Concat(ret)
 		}
 		return ret
-	}).Iterator()
+	}))
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
 		return option.Iterator(scope.FindByName(v, f))
-	}).Concat(scope.Find(f).Iterator())
+	}).Concat(seq.Iterator(scope.Find(f)))
 
 	if f.TypeArgs.Size() > 0 {
-		ins = scope.Find(f).Iterator().Concat(ins)
+		ins = seq.Iterator(scope.Find(f)).Concat(ins)
 	} else {
-		ins = ins.Concat(scope.Find(f).Iterator())
+		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
@@ -495,7 +495,7 @@ func (r *TypeClassSummonContext) summonArgs(ctx CurrentContext, args fp.Seq[meta
 func newSummonExpr(expr string, params ...fp.Seq[ParamInstance]) SummonExpr {
 	return SummonExpr{
 		expr:          expr,
-		paramInstance: as.Seq(params).Reduce(MergeSeqDistinct(EqParamInstance)),
+		paramInstance: seq.Reduce(as.Seq(params), MergeSeqDistinct(EqParamInstance)),
 	}
 }
 
@@ -1016,7 +1016,7 @@ func (r *TypeClassSummonContext) summonStruct(ctx CurrentContext, tc metafp.Type
 
 	valuetp := ""
 	if named.Info.TypeParam.Size() > 0 {
-		valuetp = "[" + iterator.Map(named.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
+		valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}
@@ -1093,7 +1093,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx CurrentContext, tc metafp.TypeC
 
 	valuetp := ""
 	if named.Info.TypeParam.Size() > 0 {
-		valuetp = "[" + iterator.Map(named.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
+		valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}
@@ -1134,12 +1134,12 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 	valuetpdec := ""
 	valuetp := ""
 	if tc.DeriveFor.Info.TypeParam.Size() > 0 {
-		valuetpdec = "[" + iterator.Map(tc.DeriveFor.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
+		valuetpdec = "[" + iterator.Map(seq.Iterator(tc.DeriveFor.Info.TypeParam), func(v metafp.TypeParam) string {
 			tn := r.w.TypeName(workingPackage, v.Constraint)
 			return fmt.Sprintf("%s %s", v.Name, tn)
 		}).MakeString(",") + "]"
 
-		valuetp = "[" + iterator.Map(tc.DeriveFor.Info.TypeParam.Iterator(), func(v metafp.TypeParam) string {
+		valuetp = "[" + iterator.Map(seq.Iterator(tc.DeriveFor.Info.TypeParam), func(v metafp.TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}
@@ -1244,7 +1244,7 @@ func genDerive() {
 			tccache.Load(v.PrimitiveInstancePkg, v.TypeClass)
 		})
 
-		d.Iterator().Foreach(func(v metafp.TypeClassDerive) {
+		seq.Iterator(d).Foreach(func(v metafp.TypeClassDerive) {
 			tccache.WillGenerated(v)
 		})
 

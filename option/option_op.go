@@ -225,7 +225,7 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[f
 }
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
-	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq)
+	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Compose(fp.Iterator[U].ToSeq, as.Seq[U]))
 }
 
 func TraverseFunc[A, R any](far func(A) fp.Option[R]) fp.Func1[fp.Iterator[A], fp.Option[fp.Iterator[R]]] {
@@ -241,7 +241,7 @@ func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) fp.Func1[fp.Seq[A], fp.
 }
 
 func Sequence[T any](optSeq fp.Seq[fp.Option[T]]) fp.Option[fp.Seq[T]] {
-	return Map(SequenceIterator(optSeq.Iterator()), fp.Iterator[T].ToSeq)
+	return Map(SequenceIterator(fp.IteratorOfSeq(optSeq)), fp.Compose(fp.Iterator[T].ToSeq, as.Seq[T]))
 }
 
 func Fold[A, B any](s fp.Option[A], zero B, f func(B, A) B) B {
@@ -268,7 +268,7 @@ func ToSeq[T any](r fp.Option[T]) fp.Seq[T] {
 }
 
 func Iterator[T any](r fp.Option[T]) fp.Iterator[T] {
-	return ToSeq(r).Iterator()
+	return fp.IteratorOfSeq(ToSeq(r))
 }
 
 type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {

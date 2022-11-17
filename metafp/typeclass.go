@@ -286,7 +286,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		}
 	}
 
-	zipped := iterator.Map(iterator.Zip(genericType.TypeArgs.Iterator(), typeArgs.Iterator()), func(t fp.Tuple2[TypeInfo, TypeInfo]) typeCompare {
+	zipped := iterator.Map(iterator.Zip(seq.Iterator(genericType.TypeArgs), seq.Iterator(typeArgs)), func(t fp.Tuple2[TypeInfo, TypeInfo]) typeCompare {
 		return typeCompare{
 			genericType: t.I1,
 			actualType:  t.I2,
@@ -302,7 +302,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		return v.actualType.IsInstantiatedOf(param, v.genericType)
 	}).ToSeq()
 
-	actualAllMatch := actualCheck.ForAll(func(v ConstraintCheckResult) bool {
+	actualAllMatch := as.Seq(actualCheck).ForAll(func(v ConstraintCheckResult) bool {
 		return v.Ok
 	})
 
@@ -312,9 +312,9 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		}
 	}
 
-	merge := seq.Map(actualCheck, func(v ConstraintCheckResult) fp.Map[string, TypeInfo] {
+	merge := seq.Reduce(seq.Map(actualCheck, func(v ConstraintCheckResult) fp.Map[string, TypeInfo] {
 		return v.ParamMapping
-	}).Reduce(monoid.MergeMap[string, TypeInfo]())
+	}), monoid.MergeMap[string, TypeInfo]())
 
 	paramFound := iterator.Map(paramArgs, func(v typeCompare) fp.Option[paramVar] {
 		paramName := v.genericType.Name().Get()
@@ -333,13 +333,13 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		return paramCons
 	}).ToSeq()
 
-	if paramFound.IsEmpty() {
+	if len(paramFound) == 0 {
 		return ConstraintCheckResult{
 			Ok: true,
 		}
 	}
 
-	if !paramFound.ForAll(fp.Option[paramVar].IsDefined) {
+	if !as.Seq(paramFound).ForAll(fp.Option[paramVar].IsDefined) {
 		return ConstraintCheckResult{
 			Ok: false,
 		}
@@ -531,7 +531,7 @@ type TypeClassScope struct {
 
 func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
 
-	ret := iterator.Map(r.List.Iterator(), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindByName(name, t)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).Head()
 
@@ -540,7 +540,7 @@ func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassI
 
 func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
 
-	ret := iterator.Map(r.List.Iterator(), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindFunc(name)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).Head()
 

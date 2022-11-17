@@ -7,8 +7,6 @@ import (
 	"reflect"
 	"runtime/debug"
 	"sync"
-
-	"github.com/csgura/fp/hlist"
 )
 
 type Unit struct {
@@ -32,10 +30,6 @@ func (r Tuple1[T1]) Head() T1 {
 
 func (r Tuple1[T1]) Tail() Unit {
 	return Unit{}
-}
-
-func (r Tuple1[T1]) ToHList() hlist.Cons[T1, hlist.Nil] {
-	return hlist.Concat(r.Head(), hlist.Empty())
 }
 
 type Named interface {

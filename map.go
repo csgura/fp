@@ -168,9 +168,9 @@ func (r UnsafeGoMap[K, V]) Updated(k K, v V) MapBase[K, V] {
 }
 
 func (r UnsafeGoMap[K, V]) Iterator() Iterator[Tuple2[K, V]] {
-	seq := Seq[Tuple2[K, V]]{}
+	seq := []Tuple2[K, V]{}
 	for k, v := range r {
 		seq = append(seq, Tuple2[K, V]{k.(K), v})
 	}
-	return seq.Iterator()
+	return IteratorOfSeq(seq)
 }

@@ -307,7 +307,7 @@ func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Fut
 }
 
 func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Seq[T]] {
-	return Map(SequenceIterator(futureList.Iterator()), fp.Iterator[T].ToSeq)
+	return Map(SequenceIterator(fp.IteratorOfSeq(futureList)), fp.Compose(fp.Iterator[T].ToSeq, as.Seq[T]))
 
 }
 
@@ -326,7 +326,7 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.E
 }
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Seq[U]] {
-	return Map(Traverse(seq.Iterator(), fn), fp.Iterator[U].ToSeq, ctx...)
+	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Compose(fp.Iterator[U].ToSeq, as.Seq[U]), ctx...)
 }
 
 func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Iterator[A], fp.Future[fp.Iterator[R]]] {

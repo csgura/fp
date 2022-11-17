@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
 )
@@ -61,9 +62,13 @@ func fiboNoOpt(n int) lazy.Eval[int] {
 
 }
 func TestFibo(t *testing.T) {
-	fmt.Println(fibo(20, 0, 1))
+	result := fibo(20, 0, 1)
+	fmt.Println(result)
 
-	fmt.Println(fiboEval(20, 0, 1).Get())
+	lazyResult := fiboEval(20, 0, 1)
+	fmt.Println(lazyResult.Get())
+
+	assert.Equal(result, lazyResult.Get())
 	fmt.Println(fiboNoOpt(20).Get())
 
 }

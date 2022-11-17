@@ -10,6 +10,10 @@ import (
 	"github.com/csgura/fp/product"
 )
 
+func Iterator[T any](r fp.Seq[T]) fp.Iterator[T] {
+	return fp.IteratorOfSeq(r)
+}
+
 func Collect[T any](r fp.Iterator[T]) fp.Seq[T] {
 	ret := fp.Seq[T]{}
 	for r.HasNext() {
@@ -120,6 +124,19 @@ func Zip[A, B any](s1 fp.Seq[A], s2 fp.Seq[B]) fp.Seq[fp.Tuple2[A, B]] {
 		ret[i] = product.Tuple2(s1[i], s2[i])
 	}
 	return ret
+}
+
+func Reduce[T any](r fp.Seq[T], m fp.Monoid[T]) T {
+	if r.Size() == 0 {
+		return m.Empty()
+	}
+
+	reduce := m.Empty()
+	for i := 0; i < len(r); i++ {
+		reduce = m.Combine(reduce, r[i])
+	}
+
+	return reduce
 }
 
 func Fold[A, B any](s fp.Seq[A], zero B, f func(B, A) B) B {

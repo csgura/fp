@@ -32,7 +32,7 @@ func Empty[T any]() fp.Iterator[T] {
 }
 
 func Of[T any](list ...T) fp.Iterator[T] {
-	return fp.Seq[T](list).Iterator()
+	return fp.IteratorOfSeq(list)
 }
 
 func Ap[T, U any](t fp.Iterator[fp.Func1[T, U]], a fp.Iterator[T]) fp.Iterator[U] {

@@ -288,7 +288,7 @@ func TestEndoOrder(t *testing.T) {
 
 func TestRange(t *testing.T) {
 
-	s := list.Range(5, 10).Iterator().ToSeq()
+	s := as.Seq(list.Range(5, 10).Iterator().ToSeq())
 
 	assert.Equal(s.Reverse().Head().Get(), 9)
 

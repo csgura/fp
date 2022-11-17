@@ -193,7 +193,7 @@ func Apply[T any](head T, tail fp.List[T]) fp.List[T] {
 }
 
 func Of[T any](e ...T) fp.List[T] {
-	return seq.Of(e...)
+	return Collect(seq.Iterator(e))
 }
 
 func Collect[T any](itr fp.Iterator[T]) fp.List[T] {

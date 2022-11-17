@@ -137,11 +137,11 @@ func (r UnsafeGoSet[V]) Size() int {
 }
 
 func (r UnsafeGoSet[V]) Iterator() Iterator[V] {
-	seq := Seq[V]{}
+	seq := []V{}
 	for k := range r {
 		seq = append(seq, k.(V))
 	}
-	return seq.Iterator()
+	return IteratorOfSeq(seq)
 }
 
 func (r UnsafeGoSet[V]) Incl(v V) SetMinimal[V] {

@@ -30,7 +30,7 @@ func (r Seq[T]) Head() Option[T] {
 	}
 }
 
-func (r Seq[T]) Tail() List[T] {
+func (r Seq[T]) Tail() Seq[T] {
 	if r.Size() > 0 {
 		return r[1:]
 	} else {
@@ -46,20 +46,12 @@ func (r Seq[T]) UnSeq() (Option[T], Seq[T]) {
 	}
 }
 
-func (r Seq[T]) Unapply() (Option[T], List[T]) {
-	if r.Size() > 0 {
-		return r.Head(), r[1:]
-	} else {
-		return r.Head(), nil
-	}
-}
-
 func (r Seq[T]) Take(n int) Seq[T] {
-	return iteratorToSeq(r.Iterator().Take(n), len(r))
+	return iteratorToSeq(IteratorOfSeq(r).Take(n), len(r))
 }
 
 func (r Seq[T]) Drop(n int) Seq[T] {
-	return iteratorToSeq(r.Iterator().Drop(n), len(r))
+	return iteratorToSeq(IteratorOfSeq(r).Drop(n), len(r))
 }
 
 func (r Seq[T]) Foreach(f func(v T)) {
@@ -69,23 +61,23 @@ func (r Seq[T]) Foreach(f func(v T)) {
 }
 
 func (r Seq[T]) Filter(p func(v T) bool) Seq[T] {
-	return iteratorToSeq(r.Iterator().Filter(p), len(r))
+	return iteratorToSeq(IteratorOfSeq(r).Filter(p), len(r))
 }
 
 func (r Seq[T]) FilterNot(p func(v T) bool) Seq[T] {
-	return iteratorToSeq(r.Iterator().FilterNot(p), len(r))
+	return iteratorToSeq(IteratorOfSeq(r).FilterNot(p), len(r))
 }
 
 func (r Seq[T]) Exists(p func(v T) bool) bool {
-	return r.Iterator().Exists(p)
+	return IteratorOfSeq(r).Exists(p)
 }
 
 func (r Seq[T]) ForAll(p func(v T) bool) bool {
-	return r.Iterator().ForAll(p)
+	return IteratorOfSeq(r).ForAll(p)
 }
 
 func (r Seq[T]) Find(p func(v T) bool) Option[T] {
-	return r.Iterator().Find(p)
+	return IteratorOfSeq(r).Find(p)
 }
 
 func (r Seq[T]) Add(item T) Seq[T] {
@@ -125,17 +117,17 @@ func (r Seq[T]) Concat(tail Seq[T]) Seq[T] {
 	return ret
 }
 
-func (r Seq[T]) Reduce(m Monoid[T]) T {
-	if r.Size() == 0 {
-		return m.Empty()
-	}
+// func (r Seq[T]) Reduce(m Monoid[T]) T {
+// 	if r.Size() == 0 {
+// 		return m.Empty()
+// 	}
 
-	reduce := m.Empty()
-	for i := 0; i < len(r); i++ {
-		reduce = m.Combine(reduce, r[i])
-	}
-	return reduce
-}
+// 	reduce := m.Empty()
+// 	for i := 0; i < len(r); i++ {
+// 		reduce = m.Combine(reduce, r[i])
+// 	}
+// 	return reduce
+// }
 
 func (r Seq[T]) Reverse() Seq[T] {
 	ret := make(Seq[T], r.Size())
@@ -147,12 +139,16 @@ func (r Seq[T]) Reverse() Seq[T] {
 	return ret
 }
 
-func (r Seq[T]) Iterator() Iterator[T] {
+// func (r Seq[T]) Iterator() Iterator[T] {
+// 	return iteratorFromSlice(r)
+// }
+
+func IteratorOfSeq[T any](r []T) Iterator[T] {
 	idx := 0
 
 	return MakeIterator(
 		func() bool {
-			return idx < r.Size()
+			return idx < len(r)
 		},
 		func() T {
 			ret := r[idx]
@@ -163,5 +159,5 @@ func (r Seq[T]) Iterator() Iterator[T] {
 }
 
 func (r Seq[T]) MakeString(sep string) string {
-	return r.Iterator().MakeString(sep)
+	return IteratorOfSeq(r).MakeString(sep)
 }

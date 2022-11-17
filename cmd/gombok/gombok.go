@@ -113,7 +113,7 @@ func genValue() {
 				`, builderType, valuereceiver)
 			}
 
-			mutableFields := iterator.Map(ts.Fields.Iterator(), func(v metafp.StructField) string {
+			mutableFields := iterator.Map(seq.Iterator(ts.Fields), func(v metafp.StructField) string {
 				tag := v.Tag
 
 				if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
@@ -259,13 +259,13 @@ func genValue() {
 				printable := privateFields.Filter(func(v metafp.StructField) bool {
 					return v.Type.IsPrintable()
 				})
-				fm := seq.Map(printable, func(f metafp.StructField) string {
+				fm := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
 					return fmt.Sprintf("%s=%%v", f.Name)
-				}).Iterator().MakeString(", ")
+				})).MakeString(", ")
 
-				fields := seq.Map(printable, func(f metafp.StructField) string {
+				fields := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
 					return fmt.Sprintf("r.%s", f.Name)
-				}).Iterator().MakeString(",")
+				})).MakeString(",")
 
 				fmt.Fprintf(w, `
 					func(r %s) String() string {
@@ -279,13 +279,13 @@ func genValue() {
 			if ts.Info.Method.Get("AsTuple").IsEmpty() {
 				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
+				tp := iterator.Map(seq.Iterator(privateFields).Take(max.Product), func(v metafp.StructField) string {
 					return w.TypeName(workingPackage, v.Type.Type)
 				}).MakeString(",")
 
-				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+				fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
 					return fmt.Sprintf("r.%s", f.Name)
-				}).Iterator().Take(max.Product).MakeString(",")
+				})).Take(max.Product).MakeString(",")
 
 				fmt.Fprintf(w, `
 					func(r %s) AsTuple() %s.Tuple%d[%s] {
@@ -299,9 +299,9 @@ func genValue() {
 
 			if ts.Info.Method.Get("AsMutable").IsEmpty() {
 
-				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+				fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
 					return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
-				}).Iterator().Take(max.Product).MakeString(",\n")
+				})).Take(max.Product).MakeString(",\n")
 
 				fmt.Fprintf(w, `
 					func(r %s) AsMutable() %s {
@@ -317,9 +317,9 @@ func genValue() {
 
 			if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
 
-				fields := seq.Map(ts.Fields, func(f metafp.StructField) string {
+				fields := seq.Iterator(seq.Map(ts.Fields, func(f metafp.StructField) string {
 					return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
-				}).Iterator().Take(max.Product).MakeString(",\n")
+				})).Take(max.Product).MakeString(",\n")
 
 				fmt.Fprintf(w, `
 					func(r %s) AsImmutable() %s {
@@ -336,11 +336,11 @@ func genValue() {
 			if !isMethodDefined(workingPackage, builderTypeName, "FromTuple") {
 				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
+				tp := iterator.Map(seq.Iterator(privateFields).Take(max.Product), func(v metafp.StructField) string {
 					return w.TypeName(workingPackage, v.Type.Type)
 				}).MakeString(",")
 
-				fields := iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
+				fields := iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), seq.Iterator(privateFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
 					return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
 				}).Take(max.Product).MakeString("\n")
 
@@ -356,9 +356,9 @@ func genValue() {
 
 			if ts.Info.Method.Get("AsMap").IsEmpty() {
 
-				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+				fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
 					return fmt.Sprintf(`"%s" : r.%s`, f.Name, f.Name)
-				}).Iterator().Take(max.Product).MakeString(",\n")
+				})).Take(max.Product).MakeString(",\n")
 
 				fmt.Fprintf(w, `
 					func(r %s) AsMap() map[string]any {
@@ -374,7 +374,7 @@ func genValue() {
 
 			if !isMethodDefined(workingPackage, builderTypeName, "FromMap") {
 
-				fields := iterator.Map(privateFields.Iterator(), func(f metafp.StructField) string {
+				fields := iterator.Map(seq.Iterator(privateFields), func(f metafp.StructField) string {
 					return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
 							r.%s = v
 						}
@@ -397,13 +397,13 @@ func genValue() {
 			}
 
 			if ts.Tags.Contains("@fp.GenLabelled") {
-				tp := iterator.Map(privateFields.Iterator().Take(max.Product), func(v metafp.StructField) string {
+				tp := iterator.Map(seq.Iterator(privateFields).Take(max.Product), func(v metafp.StructField) string {
 					return fmt.Sprintf("Named%s[%s]", publicName(v.Name), w.TypeName(workingPackage, v.Type.Type))
 				}).MakeString(",")
 
-				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+				fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
 					return fmt.Sprintf(`Named%s[%s]{r.%s}`, publicName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
-				}).Iterator().Take(max.Product).MakeString(",")
+				})).Take(max.Product).MakeString(",")
 
 				privateFields.Foreach(func(v metafp.StructField) {
 					keyTags = keyTags.Incl(v.Name)
@@ -425,7 +425,7 @@ func genValue() {
 				if !isMethodDefined(workingPackage, builderTypeName, "FromLabelled") {
 					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-					fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), privateFields.Iterator()), func(f fp.Tuple2[int, metafp.StructField]) string {
+					fields = iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), seq.Iterator(privateFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
 						return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
 					}).Take(max.Product).MakeString("\n")
 

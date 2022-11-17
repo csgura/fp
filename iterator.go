@@ -29,8 +29,8 @@ func (r Iterator[T]) First() Option[T] {
 	return None[T]()
 }
 
-func (r Iterator[T]) ToSeq() Seq[T] {
-	ret := Seq[T]{}
+func (r Iterator[T]) ToSeq() []T {
+	ret := []T{}
 	for r.HasNext() {
 		ret = append(ret, r.Next())
 	}
@@ -87,8 +87,8 @@ func (r Iterator[T]) NextOption() Option[T] {
 	return None[T]()
 }
 
-func iteratorToSeq[T any](r Iterator[T], capa int) Seq[T] {
-	ret := make(Seq[T], 0, capa)
+func iteratorToSeq[T any](r Iterator[T], capa int) []T {
+	ret := make([]T, 0, capa)
 
 	for r.HasNext() {
 		ret = append(ret, r.Next())
@@ -275,7 +275,7 @@ func (r Iterator[T]) TapEach(p func(T)) Iterator[T] {
 }
 
 func (r Iterator[T]) Appended(elem T) Iterator[T] {
-	return r.Concat((Seq[T]{elem}).Iterator())
+	return r.Concat(IteratorOfSeq([]T{elem}))
 }
 
 func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {

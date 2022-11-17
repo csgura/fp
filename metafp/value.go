@@ -348,7 +348,7 @@ func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) fp.Tuple2[f
 		return v.I2
 	})
 
-	usedParam := seq.Map(newArgs, fp.Tuple2[fp.Set[string], TypeInfo].Head).Reduce(monoid.MergeSet[string]())
+	usedParam := seq.Reduce(seq.Map(newArgs, fp.Tuple2[fp.Set[string], TypeInfo].Head), monoid.MergeSet[string]())
 
 	return as.Tuple2(usedParam, r)
 }
@@ -630,14 +630,14 @@ func (r TypeInfo) IsNilable() bool {
 }
 
 func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd *types.Package) string {
-	return iterator.Map(r.TypeParam.Iterator(), func(v TypeParam) string {
+	return iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
 		tn := w.TypeName(cwd, v.Constraint)
 		return fmt.Sprintf("%s %s", v.Name, tn)
 	}).MakeString(",")
 }
 
 func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd *types.Package) string {
-	return iterator.Map(r.TypeParam.Iterator(), func(v TypeParam) string {
+	return iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
 		return v.Name
 	}).MakeString(",")
 }
