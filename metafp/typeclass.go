@@ -294,7 +294,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	})
 
 	// Eq[T] 가 아니고,  Eq[Seq[T]]  같은 경우는  체크 불가능
-	paramArgs, actualArgs := zipped.Partition(func(t typeCompare) bool {
+	paramArgs, actualArgs := iterator.Partition(zipped, func(t typeCompare) bool {
 		return t.genericType.IsTypeParam()
 	})
 

@@ -1,6 +1,8 @@
 package iterator
 
 import (
+	"sync"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/immutable"
@@ -282,4 +284,98 @@ func RangeClosed(from, inclusive int) fp.Iterator[int] {
 			panic("next on empty iterator")
 		},
 	)
+}
+
+func Duplicate[T any](r fp.Iterator[T]) (fp.Iterator[T], fp.Iterator[T]) {
+	lock := sync.Mutex{}
+
+	queue := []T{}
+
+	leftAhead := true
+
+	unseq := func(r []T) (fp.Option[T], []T) {
+		if len(r) > 0 {
+			return fp.Some(r[0]), r[1:]
+		} else {
+			return fp.None[T](), nil
+		}
+	}
+
+	left := fp.MakeIterator(
+		func() bool {
+			lock.Lock()
+			defer lock.Unlock()
+
+			if leftAhead || len(queue) == 0 {
+				return r.HasNext()
+			}
+			// queue not empty
+			return true
+		},
+		func() T {
+			lock.Lock()
+			defer lock.Unlock()
+
+			if len(queue) == 0 {
+				leftAhead = true
+			}
+			if leftAhead {
+				ret := r.Next()
+				queue = append(queue, ret)
+				return ret
+			}
+
+			// leftAhead == false means queue not empty
+			head, tail := unseq(queue)
+			queue = tail
+			return head.Get()
+		},
+	)
+
+	right := fp.MakeIterator(
+		func() bool {
+			lock.Lock()
+			defer lock.Unlock()
+
+			if !leftAhead || len(queue) == 0 {
+				return r.HasNext()
+			}
+			// queue not empty
+			return true
+		},
+		func() T {
+			lock.Lock()
+			defer lock.Unlock()
+
+			if len(queue) == 0 {
+				// right ahead
+				leftAhead = false
+			}
+			if !leftAhead {
+				ret := r.Next()
+				queue = append(queue, ret)
+				return ret
+			}
+			// rightAhead means queue not empty
+			head, tail := unseq(queue)
+			queue = tail
+			return head.Get()
+		},
+	)
+
+	return left, right
+}
+
+func Span[T any](r fp.Iterator[T], p func(T) bool) (fp.Iterator[T], fp.Iterator[T]) {
+	left, right := Duplicate(r)
+
+	return left.TakeWhile(p), right.DropWhile(p)
+
+}
+
+func Partition[T any](r fp.Iterator[T], p func(T) bool) (fp.Iterator[T], fp.Iterator[T]) {
+	left, right := Duplicate(r)
+
+	return left.Filter(p), right.FilterNot(p)
+
 }

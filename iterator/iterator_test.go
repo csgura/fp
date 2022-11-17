@@ -42,17 +42,17 @@ func TestIterator(t *testing.T) {
 
 	fmt.Println(iterator.ToMap(iterator.Zip(seq.Iterator(k), seq.Iterator(v)), hash.String))
 
-	p1, p2 := seq.Iterator(s).Partition(func(v int) bool {
+	p1, p2 := iterator.Partition(seq.Iterator(s), func(v int) bool {
 		return v%2 == 0
 	})
 
 	fmt.Println(seq.Collect(p1))
 	fmt.Println(seq.Collect(p2))
 
-	p1, p2 = iterator.Map(seq.Iterator(s), func(v int) int {
+	p1, p2 = iterator.Span(iterator.Map(seq.Iterator(s), func(v int) int {
 		println("before span v= ", v)
 		return v
-	}).Span(func(v int) bool {
+	}), func(v int) bool {
 		return v < 4
 	})
 

@@ -3,7 +3,6 @@ package fp
 import (
 	"bytes"
 	"fmt"
-	"sync"
 )
 
 type Iterable[T any] interface {
@@ -327,100 +326,6 @@ func (r Iterator[T]) IsEmpty() bool {
 
 func (r Iterator[T]) NonEmpty() bool {
 	return r.HasNext()
-}
-
-func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
-	lock := sync.Mutex{}
-
-	queue := []T{}
-
-	leftAhead := true
-
-	unseq := func(r []T) (Option[T], []T) {
-		if len(r) > 0 {
-			return Some(r[0]), r[1:]
-		} else {
-			return None[T](), nil
-		}
-	}
-
-	left := MakeIterator(
-		func() bool {
-			lock.Lock()
-			defer lock.Unlock()
-
-			if leftAhead || len(queue) == 0 {
-				return r.HasNext()
-			}
-			// queue not empty
-			return true
-		},
-		func() T {
-			lock.Lock()
-			defer lock.Unlock()
-
-			if len(queue) == 0 {
-				leftAhead = true
-			}
-			if leftAhead {
-				ret := r.Next()
-				queue = append(queue, ret)
-				return ret
-			}
-
-			// leftAhead == false means queue not empty
-			head, tail := unseq(queue)
-			queue = tail
-			return head.Get()
-		},
-	)
-
-	right := MakeIterator(
-		func() bool {
-			lock.Lock()
-			defer lock.Unlock()
-
-			if !leftAhead || len(queue) == 0 {
-				return r.HasNext()
-			}
-			// queue not empty
-			return true
-		},
-		func() T {
-			lock.Lock()
-			defer lock.Unlock()
-
-			if len(queue) == 0 {
-				// right ahead
-				leftAhead = false
-			}
-			if !leftAhead {
-				ret := r.Next()
-				queue = append(queue, ret)
-				return ret
-			}
-			// rightAhead means queue not empty
-			head, tail := unseq(queue)
-			queue = tail
-			return head.Get()
-		},
-	)
-
-	return left, right
-}
-
-func (r Iterator[T]) Span(p func(T) bool) (Iterator[T], Iterator[T]) {
-	left, right := r.Duplicate()
-
-	return left.TakeWhile(p), right.DropWhile(p)
-
-}
-
-func (r Iterator[T]) Partition(p func(T) bool) (Iterator[T], Iterator[T]) {
-	left, right := r.Duplicate()
-
-	return left.Filter(p), right.FilterNot(p)
-
 }
 
 func MakeIterator[T any](has func() bool, next func() T) Iterator[T] {
