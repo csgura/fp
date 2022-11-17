@@ -293,14 +293,14 @@ func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 	)
 }
 
-func (r Iterator[T]) Reduce(m Monoid[T]) T {
-	ret := m.Empty()
-	for r.HasNext() {
-		v := r.Next()
-		m.Combine(ret, v)
-	}
-	return ret
-}
+// func (r Iterator[T]) Reduce(m Monoid[T]) T {
+// 	ret := m.Empty()
+// 	for r.HasNext() {
+// 		v := r.Next()
+// 		m.Combine(ret, v)
+// 	}
+// 	return ret
+// }
 
 func (r Iterator[T]) Exists(p func(v T) bool) bool {
 	for r.HasNext() {
@@ -332,16 +332,24 @@ func (r Iterator[T]) NonEmpty() bool {
 func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 	lock := sync.Mutex{}
 
-	queue := Seq[T]{}
+	queue := []T{}
 
 	leftAhead := true
+
+	unseq := func(r []T) (Option[T], Seq[T]) {
+		if len(r) > 0 {
+			return Some(r[0]), r[1:]
+		} else {
+			return None[T](), nil
+		}
+	}
 
 	left := MakeIterator(
 		func() bool {
 			lock.Lock()
 			defer lock.Unlock()
 
-			if leftAhead || queue.IsEmpty() {
+			if leftAhead || len(queue) == 0 {
 				return r.HasNext()
 			}
 			// queue not empty
@@ -351,17 +359,17 @@ func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			lock.Lock()
 			defer lock.Unlock()
 
-			if queue.IsEmpty() {
+			if len(queue) == 0 {
 				leftAhead = true
 			}
 			if leftAhead {
 				ret := r.Next()
-				queue = queue.Append(ret)
+				queue = append(queue, ret)
 				return ret
 			}
 
 			// leftAhead == false means queue not empty
-			head, tail := queue.UnSeq()
+			head, tail := unseq(queue)
 			queue = tail
 			return head.Get()
 		},
@@ -372,7 +380,7 @@ func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			lock.Lock()
 			defer lock.Unlock()
 
-			if !leftAhead || queue.IsEmpty() {
+			if !leftAhead || len(queue) == 0 {
 				return r.HasNext()
 			}
 			// queue not empty
@@ -382,17 +390,17 @@ func (r Iterator[T]) Duplicate() (Iterator[T], Iterator[T]) {
 			lock.Lock()
 			defer lock.Unlock()
 
-			if queue.IsEmpty() {
+			if len(queue) == 0 {
 				// right ahead
 				leftAhead = false
 			}
 			if !leftAhead {
 				ret := r.Next()
-				queue = queue.Append(ret)
+				queue = append(queue, ret)
 				return ret
 			}
 			// rightAhead means queue not empty
-			head, tail := queue.UnSeq()
+			head, tail := unseq(queue)
 			queue = tail
 			return head.Get()
 		},

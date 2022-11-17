@@ -181,6 +181,15 @@ func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, 
 	)
 }
 
+func Reduce[T any](r fp.Iterator[T], m fp.Monoid[T]) T {
+	ret := m.Empty()
+	for r.HasNext() {
+		v := r.Next()
+		m.Combine(ret, v)
+	}
+	return ret
+}
+
 func Fold[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) B {
 	sum := zero
 	for s.HasNext() {
