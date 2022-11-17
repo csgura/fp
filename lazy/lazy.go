@@ -231,26 +231,27 @@ func Memoize[T any](f func() T) func() T {
 	}
 }
 
-func Func1[A, R any](f func(A) R) func(A) func() R {
-	return func(a A) func() R {
-		return func() R {
+func Func1[A, R any](f func(A) R) func(A) Eval[R] {
+	return func(a A) Eval[R] {
+		return Call(func() R {
 			return f(a)
-		}
+		})
+
 	}
 }
 
-func Func2[A, B, R any](f func(A, B) R) func(A, B) func() R {
-	return func(a A, b B) func() R {
-		return func() R {
+func Func2[A, B, R any](f func(A, B) R) func(A, B) Eval[R] {
+	return func(a A, b B) Eval[R] {
+		return Call(func() R {
 			return f(a, b)
-		}
+		})
 	}
 }
 
-func Func3[A, B, C, R any](f func(A, B, C) R) func(A, B, C) func() R {
-	return func(a A, b B, c C) func() R {
-		return func() R {
+func Func3[A, B, C, R any](f func(A, B, C) R) func(A, B, C) Eval[R] {
+	return func(a A, b B, c C) Eval[R] {
+		return Call(func() R {
 			return f(a, b, c)
-		}
+		})
 	}
 }

@@ -415,7 +415,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx CurrentConte
 }
 
 func (r *TypeClassSummonContext) namedLookup(ctx CurrentContext, req metafp.RequiredInstance, name string) typeClassInstance {
-	ret := r.lookupTypeClassInstanceLocalDeclared(ctx, req, name).Or(lazy.Func3(r.lookupTypeClassInstanceTypePkg)(ctx, req, name)).Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, name))
+	ret := r.lookupTypeClassInstanceLocalDeclared(ctx, req, name).Or(lazy.Func3(r.lookupTypeClassInstanceTypePkg)(ctx, req, name).Get).Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, name))
 
 	return typeClassInstance{
 		ret,
