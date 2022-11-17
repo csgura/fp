@@ -174,3 +174,11 @@ func (r UnsafeGoMap[K, V]) Iterator() Iterator[Tuple2[K, V]] {
 	}
 	return IteratorOfSeq(seq)
 }
+
+func IteratorOfGoMap[K comparable, V any](m map[K]V) Iterator[Tuple2[K, V]] {
+	seq := []Tuple2[K, V]{}
+	for k, v := range m {
+		seq = append(seq, Tuple2[K, V]{k, v})
+	}
+	return IteratorOfSeq(seq)
+}

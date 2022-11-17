@@ -161,3 +161,11 @@ func (r UnsafeGoSet[V]) Excl(v V) SetMinimal[V] {
 	delete(n, v)
 	return n
 }
+
+func IteratorOfGoSet[K comparable](m map[K]bool) Iterator[K] {
+	seq := []K{}
+	for k := range m {
+		seq = append(seq, k)
+	}
+	return IteratorOfSeq(seq)
+}
