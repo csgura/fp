@@ -3,6 +3,7 @@ package hash
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 )
 
@@ -11,9 +12,9 @@ func Tuple2[A1, A2 any](ins1 fp.Hashable[A1], ins2 fp.Hashable[A2]) fp.Hashable[
 	pt := Tuple1(ins2)
 
 	return New(eq.New(func(a, b fp.Tuple2[A1, A2]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple1(a.Tail()), as.Tuple1(b.Tail()))
 	}), func(t fp.Tuple2[A1, A2]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple1(t.Tail()))
 	})
 }
 
@@ -22,9 +23,9 @@ func Tuple3[A1, A2, A3 any](ins1 fp.Hashable[A1], ins2 fp.Hashable[A2], ins3 fp.
 	pt := Tuple2(ins2, ins3)
 
 	return New(eq.New(func(a, b fp.Tuple3[A1, A2, A3]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple2(a.Tail()), as.Tuple2(b.Tail()))
 	}), func(t fp.Tuple3[A1, A2, A3]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple2(t.Tail()))
 	})
 }
 
@@ -33,9 +34,9 @@ func Tuple4[A1, A2, A3, A4 any](ins1 fp.Hashable[A1], ins2 fp.Hashable[A2], ins3
 	pt := Tuple3(ins2, ins3, ins4)
 
 	return New(eq.New(func(a, b fp.Tuple4[A1, A2, A3, A4]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple3(a.Tail()), as.Tuple3(b.Tail()))
 	}), func(t fp.Tuple4[A1, A2, A3, A4]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple3(t.Tail()))
 	})
 }
 
@@ -44,9 +45,9 @@ func Tuple5[A1, A2, A3, A4, A5 any](ins1 fp.Hashable[A1], ins2 fp.Hashable[A2], 
 	pt := Tuple4(ins2, ins3, ins4, ins5)
 
 	return New(eq.New(func(a, b fp.Tuple5[A1, A2, A3, A4, A5]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple4(a.Tail()), as.Tuple4(b.Tail()))
 	}), func(t fp.Tuple5[A1, A2, A3, A4, A5]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple4(t.Tail()))
 	})
 }
 
@@ -55,9 +56,9 @@ func Tuple6[A1, A2, A3, A4, A5, A6 any](ins1 fp.Hashable[A1], ins2 fp.Hashable[A
 	pt := Tuple5(ins2, ins3, ins4, ins5, ins6)
 
 	return New(eq.New(func(a, b fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple5(a.Tail()), as.Tuple5(b.Tail()))
 	}), func(t fp.Tuple6[A1, A2, A3, A4, A5, A6]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple5(t.Tail()))
 	})
 }
 
@@ -66,9 +67,9 @@ func Tuple7[A1, A2, A3, A4, A5, A6, A7 any](ins1 fp.Hashable[A1], ins2 fp.Hashab
 	pt := Tuple6(ins2, ins3, ins4, ins5, ins6, ins7)
 
 	return New(eq.New(func(a, b fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple6(a.Tail()), as.Tuple6(b.Tail()))
 	}), func(t fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple6(t.Tail()))
 	})
 }
 
@@ -77,9 +78,9 @@ func Tuple8[A1, A2, A3, A4, A5, A6, A7, A8 any](ins1 fp.Hashable[A1], ins2 fp.Ha
 	pt := Tuple7(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
 
 	return New(eq.New(func(a, b fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple7(a.Tail()), as.Tuple7(b.Tail()))
 	}), func(t fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple7(t.Tail()))
 	})
 }
 
@@ -88,9 +89,9 @@ func Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](ins1 fp.Hashable[A1], ins2 f
 	pt := Tuple8(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
 
 	return New(eq.New(func(a, b fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple8(a.Tail()), as.Tuple8(b.Tail()))
 	}), func(t fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple8(t.Tail()))
 	})
 }
 
@@ -99,9 +100,9 @@ func Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](ins1 fp.Hashable[A1], 
 	pt := Tuple9(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10)
 
 	return New(eq.New(func(a, b fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple9(a.Tail()), as.Tuple9(b.Tail()))
 	}), func(t fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple9(t.Tail()))
 	})
 }
 
@@ -110,9 +111,9 @@ func Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](ins1 fp.Hashable[
 	pt := Tuple10(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11)
 
 	return New(eq.New(func(a, b fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple10(a.Tail()), as.Tuple10(b.Tail()))
 	}), func(t fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple10(t.Tail()))
 	})
 }
 
@@ -121,9 +122,9 @@ func Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](ins1 fp.Hash
 	pt := Tuple11(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12)
 
 	return New(eq.New(func(a, b fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple11(a.Tail()), as.Tuple11(b.Tail()))
 	}), func(t fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple11(t.Tail()))
 	})
 }
 
@@ -132,9 +133,9 @@ func Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](ins1 fp
 	pt := Tuple12(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13)
 
 	return New(eq.New(func(a, b fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple12(a.Tail()), as.Tuple12(b.Tail()))
 	}), func(t fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple12(t.Tail()))
 	})
 }
 
@@ -143,9 +144,9 @@ func Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](in
 	pt := Tuple13(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14)
 
 	return New(eq.New(func(a, b fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple13(a.Tail()), as.Tuple13(b.Tail()))
 	}), func(t fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple13(t.Tail()))
 	})
 }
 
@@ -154,9 +155,9 @@ func Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 an
 	pt := Tuple14(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15)
 
 	return New(eq.New(func(a, b fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple14(a.Tail()), as.Tuple14(b.Tail()))
 	}), func(t fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple14(t.Tail()))
 	})
 }
 
@@ -165,9 +166,9 @@ func Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple15(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16)
 
 	return New(eq.New(func(a, b fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple15(a.Tail()), as.Tuple15(b.Tail()))
 	}), func(t fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple15(t.Tail()))
 	})
 }
 
@@ -176,9 +177,9 @@ func Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple16(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17)
 
 	return New(eq.New(func(a, b fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple16(a.Tail()), as.Tuple16(b.Tail()))
 	}), func(t fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple16(t.Tail()))
 	})
 }
 
@@ -187,9 +188,9 @@ func Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple17(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18)
 
 	return New(eq.New(func(a, b fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple17(a.Tail()), as.Tuple17(b.Tail()))
 	}), func(t fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple17(t.Tail()))
 	})
 }
 
@@ -198,9 +199,9 @@ func Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple18(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18, ins19)
 
 	return New(eq.New(func(a, b fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple18(a.Tail()), as.Tuple18(b.Tail()))
 	}), func(t fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple18(t.Tail()))
 	})
 }
 
@@ -209,9 +210,9 @@ func Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple19(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18, ins19, ins20)
 
 	return New(eq.New(func(a, b fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple19(a.Tail()), as.Tuple19(b.Tail()))
 	}), func(t fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple19(t.Tail()))
 	})
 }
 
@@ -220,8 +221,8 @@ func Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple20(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18, ins19, ins20, ins21)
 
 	return New(eq.New(func(a, b fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple20(a.Tail()), as.Tuple20(b.Tail()))
 	}), func(t fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) uint32 {
-		return ins1.Hash(t.Head())*31 + pt.Hash(t.Tail())
+		return ins1.Hash(t.Head())*31 + pt.Hash(as.Tuple20(t.Tail()))
 	})
 }

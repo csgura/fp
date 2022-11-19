@@ -86,7 +86,7 @@ func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 			fmt.Fprintf(f, "func HList%d [%s any]( tuple fp.Tuple%d[%s]) %s { ", i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.ConsType(1, i, "hlist.Nil"))
 
 			fmt.Fprintf(f, `
-				return hlist.Concat( tuple.Head(), HList%d( tuple.Tail() ))
+				return hlist.Concat( tuple.Head(), hlist.Of%d( tuple.Tail() ))
 			}
 			`, i-1)
 

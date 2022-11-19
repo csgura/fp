@@ -92,12 +92,12 @@ func (r Try[T]) RecoverWith(f func(err error) Try[T]) Try[T] {
 	return f(r.Failed().Get())
 }
 
-func (r Try[T]) ToOption() Option[T] {
-	if r.IsSuccess() {
-		return Some(r.v)
-	}
-	return None[T]()
-}
+// func (r Try[T]) ToOption() Option[T] {
+// 	if r.IsSuccess() {
+// 		return Some(r.v)
+// 	}
+// 	return None[T]()
+// }
 
 func (r Try[T]) String() string {
 	if r.IsSuccess() {

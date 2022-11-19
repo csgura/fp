@@ -326,62 +326,62 @@ func HList1[A1 any](tuple fp.Tuple1[A1]) hlist.Cons[A1, hlist.Nil] {
 	return hlist.Concat(tuple.Head(), hlist.Empty())
 }
 func HList2[A1, A2 any](tuple fp.Tuple2[A1, A2]) hlist.Cons[A1, hlist.Cons[A2, hlist.Nil]] {
-	return hlist.Concat(tuple.Head(), HList1(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of1(tuple.Tail()))
 }
 func HList3[A1, A2, A3 any](tuple fp.Tuple3[A1, A2, A3]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Nil]]] {
-	return hlist.Concat(tuple.Head(), HList2(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of2(tuple.Tail()))
 }
 func HList4[A1, A2, A3, A4 any](tuple fp.Tuple4[A1, A2, A3, A4]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Nil]]]] {
-	return hlist.Concat(tuple.Head(), HList3(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of3(tuple.Tail()))
 }
 func HList5[A1, A2, A3, A4, A5 any](tuple fp.Tuple5[A1, A2, A3, A4, A5]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Nil]]]]] {
-	return hlist.Concat(tuple.Head(), HList4(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of4(tuple.Tail()))
 }
 func HList6[A1, A2, A3, A4, A5, A6 any](tuple fp.Tuple6[A1, A2, A3, A4, A5, A6]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Nil]]]]]] {
-	return hlist.Concat(tuple.Head(), HList5(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of5(tuple.Tail()))
 }
 func HList7[A1, A2, A3, A4, A5, A6, A7 any](tuple fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Nil]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList6(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of6(tuple.Tail()))
 }
 func HList8[A1, A2, A3, A4, A5, A6, A7, A8 any](tuple fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Nil]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList7(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of7(tuple.Tail()))
 }
 func HList9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](tuple fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Nil]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList8(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of8(tuple.Tail()))
 }
 func HList10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](tuple fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Nil]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList9(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of9(tuple.Tail()))
 }
 func HList11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](tuple fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Nil]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList10(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of10(tuple.Tail()))
 }
 func HList12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](tuple fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Nil]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList11(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of11(tuple.Tail()))
 }
 func HList13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](tuple fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Nil]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList12(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of12(tuple.Tail()))
 }
 func HList14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](tuple fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Nil]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList13(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of13(tuple.Tail()))
 }
 func HList15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](tuple fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Nil]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList14(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of14(tuple.Tail()))
 }
 func HList16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](tuple fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Nil]]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList15(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of15(tuple.Tail()))
 }
 func HList17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](tuple fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Nil]]]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList16(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of16(tuple.Tail()))
 }
 func HList18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](tuple fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Nil]]]]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList17(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of17(tuple.Tail()))
 }
 func HList19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](tuple fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Cons[A19, hlist.Nil]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList18(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of18(tuple.Tail()))
 }
 func HList20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](tuple fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Cons[A19, hlist.Cons[A20, hlist.Nil]]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList19(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of19(tuple.Tail()))
 }
 func HList21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](tuple fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) hlist.Cons[A1, hlist.Cons[A2, hlist.Cons[A3, hlist.Cons[A4, hlist.Cons[A5, hlist.Cons[A6, hlist.Cons[A7, hlist.Cons[A8, hlist.Cons[A9, hlist.Cons[A10, hlist.Cons[A11, hlist.Cons[A12, hlist.Cons[A13, hlist.Cons[A14, hlist.Cons[A15, hlist.Cons[A16, hlist.Cons[A17, hlist.Cons[A18, hlist.Cons[A19, hlist.Cons[A20, hlist.Cons[A21, hlist.Nil]]]]]]]]]]]]]]]]]]]]] {
-	return hlist.Concat(tuple.Head(), HList20(tuple.Tail()))
+	return hlist.Concat(tuple.Head(), hlist.Of20(tuple.Tail()))
 }

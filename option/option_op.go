@@ -43,6 +43,13 @@ func Ptr[T any](v *T) fp.Option[T] {
 	return Some(*v)
 }
 
+func FromTry[T any](t fp.Try[T]) fp.Option[T] {
+	if t.IsSuccess() {
+		return Some(t.Get())
+	}
+	return None[T]()
+}
+
 func Ap[T, U any](t fp.Option[fp.Func1[T, U]], a fp.Option[T]) fp.Option[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Option[U] {
 		return Map(a, f)

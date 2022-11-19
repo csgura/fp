@@ -155,10 +155,24 @@ func (r Tuple%d[%s]) Head() T1 {
 `, i, genfp.TypeArgs("T", 1, i))
 
 			fmt.Fprintf(f, `
-			func (r Tuple%d[%s]) Tail() Tuple%d[%s] {
-				return Tuple%d[%s]{%s};
+func (r Tuple%d[%s]) Last() T%d {
+	return r.I%d;
+}
+`, i, genfp.TypeArgs("T", 1, i), i, i)
+
+			fmt.Fprintf(f, `
+			func (r Tuple%d[%s]) Init() (%s) {
+				return %s;
 			}
-			`, i, genfp.TypeArgs("T", 1, i), i-1, genfp.TypeArgs("T", 2, i), i-1, genfp.TypeArgs("T", 2, i), genfp.FuncCallArgs(2, i, "r.I"))
+			`, i, genfp.TypeArgs("T", 1, i), genfp.TypeArgs("T", 1, i-1),
+				genfp.FuncCallArgs(1, i-1, "r.I"))
+
+			fmt.Fprintf(f, `
+			func (r Tuple%d[%s]) Tail() (%s) {
+				return %s;
+			}
+			`, i, genfp.TypeArgs("T", 1, i), genfp.TypeArgs("T", 2, i),
+				genfp.FuncCallArgs(2, i, "r.I"))
 
 			// fmt.Fprintf(f, `
 			// func (r Tuple%d[%s]) ToHList() %s {
@@ -198,6 +212,19 @@ func (r Labelled%d[%s]) Head() T1 {
 	return r.I1;
 }
 `, i, genfp.TypeArgs("T", 1, i))
+
+			fmt.Fprintf(f, `
+func (r Labelled%d[%s]) Last() T%d {
+	return r.I%d;
+}
+`, i, genfp.TypeArgs("T", 1, i), i, i)
+
+			fmt.Fprintf(f, `
+			func (r Labelled%d[%s]) Init() Labelled%d[%s] {
+				return Labelled%d[%s]{%s};
+			}
+			`, i, genfp.TypeArgs("T", 1, i), i-1, genfp.TypeArgs("T", 1, i-1),
+				i-1, genfp.TypeArgs("T", 1, i-1), genfp.FuncCallArgs(1, i-1, "r.I"))
 
 			fmt.Fprintf(f, `
 			func (r Labelled%d[%s]) Tail() Labelled%d[%s] {

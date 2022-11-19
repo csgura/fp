@@ -3,6 +3,7 @@ package eq
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 )
 
 func Tuple2[A1, A2 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2]) fp.Eq[fp.Tuple2[A1, A2]] {
@@ -11,7 +12,7 @@ func Tuple2[A1, A2 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2]) fp.Eq[fp.Tuple2[A1, A2]]
 
 	return New(
 		func(t1, t2 fp.Tuple2[A1, A2]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple1(t1.Tail()), as.Tuple1(t2.Tail()))
 		},
 	)
 }
@@ -22,7 +23,7 @@ func Tuple3[A1, A2, A3 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2], ins3 fp.Eq[A3]) fp.E
 
 	return New(
 		func(t1, t2 fp.Tuple3[A1, A2, A3]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple2(t1.Tail()), as.Tuple2(t2.Tail()))
 		},
 	)
 }
@@ -33,7 +34,7 @@ func Tuple4[A1, A2, A3, A4 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2], ins3 fp.Eq[A3], 
 
 	return New(
 		func(t1, t2 fp.Tuple4[A1, A2, A3, A4]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple3(t1.Tail()), as.Tuple3(t2.Tail()))
 		},
 	)
 }
@@ -44,7 +45,7 @@ func Tuple5[A1, A2, A3, A4, A5 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2], ins3 fp.Eq[A
 
 	return New(
 		func(t1, t2 fp.Tuple5[A1, A2, A3, A4, A5]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple4(t1.Tail()), as.Tuple4(t2.Tail()))
 		},
 	)
 }
@@ -55,7 +56,7 @@ func Tuple6[A1, A2, A3, A4, A5, A6 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2], ins3 fp.
 
 	return New(
 		func(t1, t2 fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple5(t1.Tail()), as.Tuple5(t2.Tail()))
 		},
 	)
 }
@@ -66,7 +67,7 @@ func Tuple7[A1, A2, A3, A4, A5, A6, A7 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2], ins3
 
 	return New(
 		func(t1, t2 fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple6(t1.Tail()), as.Tuple6(t2.Tail()))
 		},
 	)
 }
@@ -77,7 +78,7 @@ func Tuple8[A1, A2, A3, A4, A5, A6, A7, A8 any](ins1 fp.Eq[A1], ins2 fp.Eq[A2], 
 
 	return New(
 		func(t1, t2 fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple7(t1.Tail()), as.Tuple7(t2.Tail()))
 		},
 	)
 }
@@ -88,7 +89,7 @@ func Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](ins1 fp.Eq[A1], ins2 fp.Eq[A
 
 	return New(
 		func(t1, t2 fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple8(t1.Tail()), as.Tuple8(t2.Tail()))
 		},
 	)
 }
@@ -99,7 +100,7 @@ func Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](ins1 fp.Eq[A1], ins2 f
 
 	return New(
 		func(t1, t2 fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple9(t1.Tail()), as.Tuple9(t2.Tail()))
 		},
 	)
 }
@@ -110,7 +111,7 @@ func Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](ins1 fp.Eq[A1], i
 
 	return New(
 		func(t1, t2 fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple10(t1.Tail()), as.Tuple10(t2.Tail()))
 		},
 	)
 }
@@ -121,7 +122,7 @@ func Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](ins1 fp.Eq[A
 
 	return New(
 		func(t1, t2 fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple11(t1.Tail()), as.Tuple11(t2.Tail()))
 		},
 	)
 }
@@ -132,7 +133,7 @@ func Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](ins1 fp
 
 	return New(
 		func(t1, t2 fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple12(t1.Tail()), as.Tuple12(t2.Tail()))
 		},
 	)
 }
@@ -143,7 +144,7 @@ func Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](in
 
 	return New(
 		func(t1, t2 fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple13(t1.Tail()), as.Tuple13(t2.Tail()))
 		},
 	)
 }
@@ -154,7 +155,7 @@ func Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 an
 
 	return New(
 		func(t1, t2 fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple14(t1.Tail()), as.Tuple14(t2.Tail()))
 		},
 	)
 }
@@ -165,7 +166,7 @@ func Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 
 	return New(
 		func(t1, t2 fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple15(t1.Tail()), as.Tuple15(t2.Tail()))
 		},
 	)
 }
@@ -176,7 +177,7 @@ func Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 
 	return New(
 		func(t1, t2 fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple16(t1.Tail()), as.Tuple16(t2.Tail()))
 		},
 	)
 }
@@ -187,7 +188,7 @@ func Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 
 	return New(
 		func(t1, t2 fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple17(t1.Tail()), as.Tuple17(t2.Tail()))
 		},
 	)
 }
@@ -198,7 +199,7 @@ func Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 
 	return New(
 		func(t1, t2 fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple18(t1.Tail()), as.Tuple18(t2.Tail()))
 		},
 	)
 }
@@ -209,7 +210,7 @@ func Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 
 	return New(
 		func(t1, t2 fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple19(t1.Tail()), as.Tuple19(t2.Tail()))
 		},
 	)
 }
@@ -220,7 +221,7 @@ func Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 
 	return New(
 		func(t1, t2 fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) bool {
-			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(t1.Tail(), t2.Tail())
+			return ins1.Eqv(t1.I1, t2.I1) && pt.Eqv(as.Tuple20(t1.Tail()), as.Tuple20(t2.Tail()))
 		},
 	)
 }

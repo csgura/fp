@@ -14,6 +14,14 @@ func (r Labelled2[T1, T2]) Head() T1 {
 	return r.I1
 }
 
+func (r Labelled2[T1, T2]) Last() T2 {
+	return r.I2
+}
+
+func (r Labelled2[T1, T2]) Init() Labelled1[T1] {
+	return Labelled1[T1]{r.I1}
+}
+
 func (r Labelled2[T1, T2]) Tail() Labelled1[T2] {
 	return Labelled1[T2]{r.I2}
 }
@@ -34,6 +42,14 @@ type Labelled3[T1, T2, T3 Named] struct {
 
 func (r Labelled3[T1, T2, T3]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled3[T1, T2, T3]) Last() T3 {
+	return r.I3
+}
+
+func (r Labelled3[T1, T2, T3]) Init() Labelled2[T1, T2] {
+	return Labelled2[T1, T2]{r.I1, r.I2}
 }
 
 func (r Labelled3[T1, T2, T3]) Tail() Labelled2[T2, T3] {
@@ -59,6 +75,14 @@ func (r Labelled4[T1, T2, T3, T4]) Head() T1 {
 	return r.I1
 }
 
+func (r Labelled4[T1, T2, T3, T4]) Last() T4 {
+	return r.I4
+}
+
+func (r Labelled4[T1, T2, T3, T4]) Init() Labelled3[T1, T2, T3] {
+	return Labelled3[T1, T2, T3]{r.I1, r.I2, r.I3}
+}
+
 func (r Labelled4[T1, T2, T3, T4]) Tail() Labelled3[T2, T3, T4] {
 	return Labelled3[T2, T3, T4]{r.I2, r.I3, r.I4}
 }
@@ -81,6 +105,14 @@ type Labelled5[T1, T2, T3, T4, T5 Named] struct {
 
 func (r Labelled5[T1, T2, T3, T4, T5]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled5[T1, T2, T3, T4, T5]) Last() T5 {
+	return r.I5
+}
+
+func (r Labelled5[T1, T2, T3, T4, T5]) Init() Labelled4[T1, T2, T3, T4] {
+	return Labelled4[T1, T2, T3, T4]{r.I1, r.I2, r.I3, r.I4}
 }
 
 func (r Labelled5[T1, T2, T3, T4, T5]) Tail() Labelled4[T2, T3, T4, T5] {
@@ -108,6 +140,14 @@ func (r Labelled6[T1, T2, T3, T4, T5, T6]) Head() T1 {
 	return r.I1
 }
 
+func (r Labelled6[T1, T2, T3, T4, T5, T6]) Last() T6 {
+	return r.I6
+}
+
+func (r Labelled6[T1, T2, T3, T4, T5, T6]) Init() Labelled5[T1, T2, T3, T4, T5] {
+	return Labelled5[T1, T2, T3, T4, T5]{r.I1, r.I2, r.I3, r.I4, r.I5}
+}
+
 func (r Labelled6[T1, T2, T3, T4, T5, T6]) Tail() Labelled5[T2, T3, T4, T5, T6] {
 	return Labelled5[T2, T3, T4, T5, T6]{r.I2, r.I3, r.I4, r.I5, r.I6}
 }
@@ -132,6 +172,14 @@ type Labelled7[T1, T2, T3, T4, T5, T6, T7 Named] struct {
 
 func (r Labelled7[T1, T2, T3, T4, T5, T6, T7]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled7[T1, T2, T3, T4, T5, T6, T7]) Last() T7 {
+	return r.I7
+}
+
+func (r Labelled7[T1, T2, T3, T4, T5, T6, T7]) Init() Labelled6[T1, T2, T3, T4, T5, T6] {
+	return Labelled6[T1, T2, T3, T4, T5, T6]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6}
 }
 
 func (r Labelled7[T1, T2, T3, T4, T5, T6, T7]) Tail() Labelled6[T2, T3, T4, T5, T6, T7] {
@@ -161,6 +209,14 @@ func (r Labelled8[T1, T2, T3, T4, T5, T6, T7, T8]) Head() T1 {
 	return r.I1
 }
 
+func (r Labelled8[T1, T2, T3, T4, T5, T6, T7, T8]) Last() T8 {
+	return r.I8
+}
+
+func (r Labelled8[T1, T2, T3, T4, T5, T6, T7, T8]) Init() Labelled7[T1, T2, T3, T4, T5, T6, T7] {
+	return Labelled7[T1, T2, T3, T4, T5, T6, T7]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7}
+}
+
 func (r Labelled8[T1, T2, T3, T4, T5, T6, T7, T8]) Tail() Labelled7[T2, T3, T4, T5, T6, T7, T8] {
 	return Labelled7[T2, T3, T4, T5, T6, T7, T8]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8}
 }
@@ -187,6 +243,14 @@ type Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9 Named] struct {
 
 func (r Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Last() T9 {
+	return r.I9
+}
+
+func (r Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Init() Labelled8[T1, T2, T3, T4, T5, T6, T7, T8] {
+	return Labelled8[T1, T2, T3, T4, T5, T6, T7, T8]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8}
 }
 
 func (r Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Tail() Labelled8[T2, T3, T4, T5, T6, T7, T8, T9] {
@@ -218,6 +282,14 @@ func (r Labelled10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Head() T1 {
 	return r.I1
 }
 
+func (r Labelled10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Last() T10 {
+	return r.I10
+}
+
+func (r Labelled10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Init() Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9] {
+	return Labelled9[T1, T2, T3, T4, T5, T6, T7, T8, T9]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9}
+}
+
 func (r Labelled10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Tail() Labelled9[T2, T3, T4, T5, T6, T7, T8, T9, T10] {
 	return Labelled9[T2, T3, T4, T5, T6, T7, T8, T9, T10]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10}
 }
@@ -246,6 +318,14 @@ type Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 Named] struct {
 
 func (r Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Last() T11 {
+	return r.I11
+}
+
+func (r Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Init() Labelled10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10] {
+	return Labelled10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10}
 }
 
 func (r Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Tail() Labelled10[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11] {
@@ -279,6 +359,14 @@ func (r Labelled12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Head() T1
 	return r.I1
 }
 
+func (r Labelled12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Last() T12 {
+	return r.I12
+}
+
+func (r Labelled12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Init() Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11] {
+	return Labelled11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11}
+}
+
 func (r Labelled12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Tail() Labelled11[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12] {
 	return Labelled11[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12}
 }
@@ -309,6 +397,14 @@ type Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13 Named] st
 
 func (r Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Last() T13 {
+	return r.I13
+}
+
+func (r Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Init() Labelled12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12] {
+	return Labelled12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12}
 }
 
 func (r Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Tail() Labelled12[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13] {
@@ -344,6 +440,14 @@ func (r Labelled14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14])
 	return r.I1
 }
 
+func (r Labelled14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Last() T14 {
+	return r.I14
+}
+
+func (r Labelled14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Init() Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13] {
+	return Labelled13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13}
+}
+
 func (r Labelled14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Tail() Labelled13[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14] {
 	return Labelled13[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14}
 }
@@ -376,6 +480,14 @@ type Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 
 func (r Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Last() T15 {
+	return r.I15
+}
+
+func (r Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Init() Labelled14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14] {
+	return Labelled14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14}
 }
 
 func (r Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Tail() Labelled14[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15] {
@@ -413,6 +525,14 @@ func (r Labelled16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, 
 	return r.I1
 }
 
+func (r Labelled16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Last() T16 {
+	return r.I16
+}
+
+func (r Labelled16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Init() Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15] {
+	return Labelled15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15}
+}
+
 func (r Labelled16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Tail() Labelled15[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16] {
 	return Labelled15[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16}
 }
@@ -447,6 +567,14 @@ type Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 
 func (r Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Last() T17 {
+	return r.I17
+}
+
+func (r Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Init() Labelled16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16] {
+	return Labelled16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16}
 }
 
 func (r Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Tail() Labelled16[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17] {
@@ -486,6 +614,14 @@ func (r Labelled18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, 
 	return r.I1
 }
 
+func (r Labelled18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Last() T18 {
+	return r.I18
+}
+
+func (r Labelled18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Init() Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17] {
+	return Labelled17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17}
+}
+
 func (r Labelled18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Tail() Labelled17[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18] {
 	return Labelled17[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18}
 }
@@ -522,6 +658,14 @@ type Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 
 func (r Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Last() T19 {
+	return r.I19
+}
+
+func (r Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Init() Labelled18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18] {
+	return Labelled18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18}
 }
 
 func (r Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Tail() Labelled18[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19] {
@@ -563,6 +707,14 @@ func (r Labelled20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, 
 	return r.I1
 }
 
+func (r Labelled20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Last() T20 {
+	return r.I20
+}
+
+func (r Labelled20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Init() Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19] {
+	return Labelled19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19}
+}
+
 func (r Labelled20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Tail() Labelled19[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20] {
 	return Labelled19[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20}
 }
@@ -601,6 +753,14 @@ type Labelled21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 
 func (r Labelled21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Head() T1 {
 	return r.I1
+}
+
+func (r Labelled21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Last() T21 {
+	return r.I21
+}
+
+func (r Labelled21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Init() Labelled20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20] {
+	return Labelled20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]{r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20}
 }
 
 func (r Labelled21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Tail() Labelled20[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21] {

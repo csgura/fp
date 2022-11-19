@@ -14,8 +14,16 @@ func (r Tuple2[T1, T2]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple2[T1, T2]) Tail() Tuple1[T2] {
-	return Tuple1[T2]{r.I2}
+func (r Tuple2[T1, T2]) Last() T2 {
+	return r.I2
+}
+
+func (r Tuple2[T1, T2]) Init() T1 {
+	return r.I1
+}
+
+func (r Tuple2[T1, T2]) Tail() T2 {
+	return r.I2
 }
 
 func (r Tuple2[T1, T2]) String() string {
@@ -36,8 +44,16 @@ func (r Tuple3[T1, T2, T3]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple3[T1, T2, T3]) Tail() Tuple2[T2, T3] {
-	return Tuple2[T2, T3]{r.I2, r.I3}
+func (r Tuple3[T1, T2, T3]) Last() T3 {
+	return r.I3
+}
+
+func (r Tuple3[T1, T2, T3]) Init() (T1, T2) {
+	return r.I1, r.I2
+}
+
+func (r Tuple3[T1, T2, T3]) Tail() (T2, T3) {
+	return r.I2, r.I3
 }
 
 func (r Tuple3[T1, T2, T3]) String() string {
@@ -59,8 +75,16 @@ func (r Tuple4[T1, T2, T3, T4]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple4[T1, T2, T3, T4]) Tail() Tuple3[T2, T3, T4] {
-	return Tuple3[T2, T3, T4]{r.I2, r.I3, r.I4}
+func (r Tuple4[T1, T2, T3, T4]) Last() T4 {
+	return r.I4
+}
+
+func (r Tuple4[T1, T2, T3, T4]) Init() (T1, T2, T3) {
+	return r.I1, r.I2, r.I3
+}
+
+func (r Tuple4[T1, T2, T3, T4]) Tail() (T2, T3, T4) {
+	return r.I2, r.I3, r.I4
 }
 
 func (r Tuple4[T1, T2, T3, T4]) String() string {
@@ -83,8 +107,16 @@ func (r Tuple5[T1, T2, T3, T4, T5]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple5[T1, T2, T3, T4, T5]) Tail() Tuple4[T2, T3, T4, T5] {
-	return Tuple4[T2, T3, T4, T5]{r.I2, r.I3, r.I4, r.I5}
+func (r Tuple5[T1, T2, T3, T4, T5]) Last() T5 {
+	return r.I5
+}
+
+func (r Tuple5[T1, T2, T3, T4, T5]) Init() (T1, T2, T3, T4) {
+	return r.I1, r.I2, r.I3, r.I4
+}
+
+func (r Tuple5[T1, T2, T3, T4, T5]) Tail() (T2, T3, T4, T5) {
+	return r.I2, r.I3, r.I4, r.I5
 }
 
 func (r Tuple5[T1, T2, T3, T4, T5]) String() string {
@@ -108,8 +140,16 @@ func (r Tuple6[T1, T2, T3, T4, T5, T6]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple6[T1, T2, T3, T4, T5, T6]) Tail() Tuple5[T2, T3, T4, T5, T6] {
-	return Tuple5[T2, T3, T4, T5, T6]{r.I2, r.I3, r.I4, r.I5, r.I6}
+func (r Tuple6[T1, T2, T3, T4, T5, T6]) Last() T6 {
+	return r.I6
+}
+
+func (r Tuple6[T1, T2, T3, T4, T5, T6]) Init() (T1, T2, T3, T4, T5) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5
+}
+
+func (r Tuple6[T1, T2, T3, T4, T5, T6]) Tail() (T2, T3, T4, T5, T6) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6
 }
 
 func (r Tuple6[T1, T2, T3, T4, T5, T6]) String() string {
@@ -134,8 +174,16 @@ func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) Tail() Tuple6[T2, T3, T4, T5, T6, T7] {
-	return Tuple6[T2, T3, T4, T5, T6, T7]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7}
+func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) Last() T7 {
+	return r.I7
+}
+
+func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) Init() (T1, T2, T3, T4, T5, T6) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6
+}
+
+func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) Tail() (T2, T3, T4, T5, T6, T7) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7
 }
 
 func (r Tuple7[T1, T2, T3, T4, T5, T6, T7]) String() string {
@@ -161,8 +209,16 @@ func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) Tail() Tuple7[T2, T3, T4, T5, T6, T7, T8] {
-	return Tuple7[T2, T3, T4, T5, T6, T7, T8]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8}
+func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) Last() T8 {
+	return r.I8
+}
+
+func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) Init() (T1, T2, T3, T4, T5, T6, T7) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7
+}
+
+func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) Tail() (T2, T3, T4, T5, T6, T7, T8) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8
 }
 
 func (r Tuple8[T1, T2, T3, T4, T5, T6, T7, T8]) String() string {
@@ -189,8 +245,16 @@ func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Tail() Tuple8[T2, T3, T4, T5, T6, T7, T8, T9] {
-	return Tuple8[T2, T3, T4, T5, T6, T7, T8, T9]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9}
+func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Last() T9 {
+	return r.I9
+}
+
+func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Init() (T1, T2, T3, T4, T5, T6, T7, T8) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8
+}
+
+func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9
 }
 
 func (r Tuple9[T1, T2, T3, T4, T5, T6, T7, T8, T9]) String() string {
@@ -218,8 +282,16 @@ func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Tail() Tuple9[T2, T3, T4, T5, T6, T7, T8, T9, T10] {
-	return Tuple9[T2, T3, T4, T5, T6, T7, T8, T9, T10]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10}
+func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Last() T10 {
+	return r.I10
+}
+
+func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9
+}
+
+func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10
 }
 
 func (r Tuple10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) String() string {
@@ -248,8 +320,16 @@ func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Tail() Tuple10[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11] {
-	return Tuple10[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11}
+func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Last() T11 {
+	return r.I11
+}
+
+func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10
+}
+
+func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11
 }
 
 func (r Tuple11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) String() string {
@@ -279,8 +359,16 @@ func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Head() T1 {
 	return r.I1
 }
 
-func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Tail() Tuple11[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12] {
-	return Tuple11[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12}
+func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Last() T12 {
+	return r.I12
+}
+
+func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11
+}
+
+func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12
 }
 
 func (r Tuple12[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) String() string {
@@ -311,8 +399,16 @@ func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Head() 
 	return r.I1
 }
 
-func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Tail() Tuple12[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13] {
-	return Tuple12[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13}
+func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Last() T13 {
+	return r.I13
+}
+
+func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12
+}
+
+func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13
 }
 
 func (r Tuple13[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13]) String() string {
@@ -344,8 +440,16 @@ func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) He
 	return r.I1
 }
 
-func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Tail() Tuple13[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14] {
-	return Tuple13[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14}
+func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Last() T14 {
+	return r.I14
+}
+
+func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13
+}
+
+func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14
 }
 
 func (r Tuple14[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14]) String() string {
@@ -378,8 +482,16 @@ func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Tail() Tuple14[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15] {
-	return Tuple14[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15}
+func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Last() T15 {
+	return r.I15
+}
+
+func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14
+}
+
+func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15
 }
 
 func (r Tuple15[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15]) String() string {
@@ -413,8 +525,16 @@ func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Tail() Tuple15[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16] {
-	return Tuple15[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16}
+func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Last() T16 {
+	return r.I16
+}
+
+func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15
+}
+
+func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16
 }
 
 func (r Tuple16[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16]) String() string {
@@ -449,8 +569,16 @@ func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Tail() Tuple16[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17] {
-	return Tuple16[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17}
+func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Last() T17 {
+	return r.I17
+}
+
+func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16
+}
+
+func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17
 }
 
 func (r Tuple17[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17]) String() string {
@@ -486,8 +614,16 @@ func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Tail() Tuple17[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18] {
-	return Tuple17[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18}
+func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Last() T18 {
+	return r.I18
+}
+
+func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17
+}
+
+func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18
 }
 
 func (r Tuple18[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18]) String() string {
@@ -524,8 +660,16 @@ func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Tail() Tuple18[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19] {
-	return Tuple18[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19}
+func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Last() T19 {
+	return r.I19
+}
+
+func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18
+}
+
+func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19
 }
 
 func (r Tuple19[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19]) String() string {
@@ -563,8 +707,16 @@ func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Tail() Tuple19[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20] {
-	return Tuple19[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20}
+func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Last() T20 {
+	return r.I20
+}
+
+func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19
+}
+
+func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20
 }
 
 func (r Tuple20[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20]) String() string {
@@ -603,8 +755,16 @@ func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
 	return r.I1
 }
 
-func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Tail() Tuple20[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21] {
-	return Tuple20[T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]{r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20, r.I21}
+func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Last() T21 {
+	return r.I21
+}
+
+func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Init() (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20) {
+	return r.I1, r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20
+}
+
+func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) Tail() (T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21) {
+	return r.I2, r.I3, r.I4, r.I5, r.I6, r.I7, r.I8, r.I9, r.I10, r.I11, r.I12, r.I13, r.I14, r.I15, r.I16, r.I17, r.I18, r.I19, r.I20, r.I21
 }
 
 func (r Tuple21[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21]) String() string {

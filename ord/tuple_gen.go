@@ -3,6 +3,7 @@ package ord
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 )
 
@@ -11,7 +12,7 @@ func Tuple2[A1, A2 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2]) fp.Ord[fp.Tuple2[A1, A
 	pt := Tuple1(ins2)
 
 	return New(eq.New(func(a, b fp.Tuple2[A1, A2]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple1(a.Tail()), as.Tuple1(b.Tail()))
 	}), fp.LessFunc[fp.Tuple2[A1, A2]](func(t1, t2 fp.Tuple2[A1, A2]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -19,7 +20,7 @@ func Tuple2[A1, A2 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2]) fp.Ord[fp.Tuple2[A1, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple1(t1.Tail()), as.Tuple1(t2.Tail()))
 	}))
 }
 
@@ -28,7 +29,7 @@ func Tuple3[A1, A2, A3 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 fp.Ord[A3]) f
 	pt := Tuple2(ins2, ins3)
 
 	return New(eq.New(func(a, b fp.Tuple3[A1, A2, A3]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple2(a.Tail()), as.Tuple2(b.Tail()))
 	}), fp.LessFunc[fp.Tuple3[A1, A2, A3]](func(t1, t2 fp.Tuple3[A1, A2, A3]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -36,7 +37,7 @@ func Tuple3[A1, A2, A3 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 fp.Ord[A3]) f
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple2(t1.Tail()), as.Tuple2(t2.Tail()))
 	}))
 }
 
@@ -45,7 +46,7 @@ func Tuple4[A1, A2, A3, A4 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 fp.Ord[A3
 	pt := Tuple3(ins2, ins3, ins4)
 
 	return New(eq.New(func(a, b fp.Tuple4[A1, A2, A3, A4]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple3(a.Tail()), as.Tuple3(b.Tail()))
 	}), fp.LessFunc[fp.Tuple4[A1, A2, A3, A4]](func(t1, t2 fp.Tuple4[A1, A2, A3, A4]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -53,7 +54,7 @@ func Tuple4[A1, A2, A3, A4 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 fp.Ord[A3
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple3(t1.Tail()), as.Tuple3(t2.Tail()))
 	}))
 }
 
@@ -62,7 +63,7 @@ func Tuple5[A1, A2, A3, A4, A5 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 fp.Or
 	pt := Tuple4(ins2, ins3, ins4, ins5)
 
 	return New(eq.New(func(a, b fp.Tuple5[A1, A2, A3, A4, A5]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple4(a.Tail()), as.Tuple4(b.Tail()))
 	}), fp.LessFunc[fp.Tuple5[A1, A2, A3, A4, A5]](func(t1, t2 fp.Tuple5[A1, A2, A3, A4, A5]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -70,7 +71,7 @@ func Tuple5[A1, A2, A3, A4, A5 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 fp.Or
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple4(t1.Tail()), as.Tuple4(t2.Tail()))
 	}))
 }
 
@@ -79,7 +80,7 @@ func Tuple6[A1, A2, A3, A4, A5, A6 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 f
 	pt := Tuple5(ins2, ins3, ins4, ins5, ins6)
 
 	return New(eq.New(func(a, b fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple5(a.Tail()), as.Tuple5(b.Tail()))
 	}), fp.LessFunc[fp.Tuple6[A1, A2, A3, A4, A5, A6]](func(t1, t2 fp.Tuple6[A1, A2, A3, A4, A5, A6]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -87,7 +88,7 @@ func Tuple6[A1, A2, A3, A4, A5, A6 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], ins3 f
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple5(t1.Tail()), as.Tuple5(t2.Tail()))
 	}))
 }
 
@@ -96,7 +97,7 @@ func Tuple7[A1, A2, A3, A4, A5, A6, A7 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], in
 	pt := Tuple6(ins2, ins3, ins4, ins5, ins6, ins7)
 
 	return New(eq.New(func(a, b fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple6(a.Tail()), as.Tuple6(b.Tail()))
 	}), fp.LessFunc[fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]](func(t1, t2 fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -104,7 +105,7 @@ func Tuple7[A1, A2, A3, A4, A5, A6, A7 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2], in
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple6(t1.Tail()), as.Tuple6(t2.Tail()))
 	}))
 }
 
@@ -113,7 +114,7 @@ func Tuple8[A1, A2, A3, A4, A5, A6, A7, A8 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2]
 	pt := Tuple7(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
 
 	return New(eq.New(func(a, b fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple7(a.Tail()), as.Tuple7(b.Tail()))
 	}), fp.LessFunc[fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]](func(t1, t2 fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -121,7 +122,7 @@ func Tuple8[A1, A2, A3, A4, A5, A6, A7, A8 any](ins1 fp.Ord[A1], ins2 fp.Ord[A2]
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple7(t1.Tail()), as.Tuple7(t2.Tail()))
 	}))
 }
 
@@ -130,7 +131,7 @@ func Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](ins1 fp.Ord[A1], ins2 fp.Ord
 	pt := Tuple8(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
 
 	return New(eq.New(func(a, b fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple8(a.Tail()), as.Tuple8(b.Tail()))
 	}), fp.LessFunc[fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]](func(t1, t2 fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -138,7 +139,7 @@ func Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](ins1 fp.Ord[A1], ins2 fp.Ord
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple8(t1.Tail()), as.Tuple8(t2.Tail()))
 	}))
 }
 
@@ -147,7 +148,7 @@ func Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](ins1 fp.Ord[A1], ins2 
 	pt := Tuple9(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10)
 
 	return New(eq.New(func(a, b fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple9(a.Tail()), as.Tuple9(b.Tail()))
 	}), fp.LessFunc[fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]](func(t1, t2 fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -155,7 +156,7 @@ func Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](ins1 fp.Ord[A1], ins2 
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple9(t1.Tail()), as.Tuple9(t2.Tail()))
 	}))
 }
 
@@ -164,7 +165,7 @@ func Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](ins1 fp.Ord[A1], 
 	pt := Tuple10(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11)
 
 	return New(eq.New(func(a, b fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple10(a.Tail()), as.Tuple10(b.Tail()))
 	}), fp.LessFunc[fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]](func(t1, t2 fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -172,7 +173,7 @@ func Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](ins1 fp.Ord[A1], 
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple10(t1.Tail()), as.Tuple10(t2.Tail()))
 	}))
 }
 
@@ -181,7 +182,7 @@ func Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](ins1 fp.Ord[
 	pt := Tuple11(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12)
 
 	return New(eq.New(func(a, b fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple11(a.Tail()), as.Tuple11(b.Tail()))
 	}), fp.LessFunc[fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]](func(t1, t2 fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -189,7 +190,7 @@ func Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](ins1 fp.Ord[
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple11(t1.Tail()), as.Tuple11(t2.Tail()))
 	}))
 }
 
@@ -198,7 +199,7 @@ func Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](ins1 fp
 	pt := Tuple12(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13)
 
 	return New(eq.New(func(a, b fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple12(a.Tail()), as.Tuple12(b.Tail()))
 	}), fp.LessFunc[fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]](func(t1, t2 fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -206,7 +207,7 @@ func Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](ins1 fp
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple12(t1.Tail()), as.Tuple12(t2.Tail()))
 	}))
 }
 
@@ -215,7 +216,7 @@ func Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](in
 	pt := Tuple13(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14)
 
 	return New(eq.New(func(a, b fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple13(a.Tail()), as.Tuple13(b.Tail()))
 	}), fp.LessFunc[fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]](func(t1, t2 fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -223,7 +224,7 @@ func Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](in
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple13(t1.Tail()), as.Tuple13(t2.Tail()))
 	}))
 }
 
@@ -232,7 +233,7 @@ func Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 an
 	pt := Tuple14(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15)
 
 	return New(eq.New(func(a, b fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple14(a.Tail()), as.Tuple14(b.Tail()))
 	}), fp.LessFunc[fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]](func(t1, t2 fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -240,7 +241,7 @@ func Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 an
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple14(t1.Tail()), as.Tuple14(t2.Tail()))
 	}))
 }
 
@@ -249,7 +250,7 @@ func Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple15(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16)
 
 	return New(eq.New(func(a, b fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple15(a.Tail()), as.Tuple15(b.Tail()))
 	}), fp.LessFunc[fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]](func(t1, t2 fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -257,7 +258,7 @@ func Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple15(t1.Tail()), as.Tuple15(t2.Tail()))
 	}))
 }
 
@@ -266,7 +267,7 @@ func Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple16(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17)
 
 	return New(eq.New(func(a, b fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple16(a.Tail()), as.Tuple16(b.Tail()))
 	}), fp.LessFunc[fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]](func(t1, t2 fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -274,7 +275,7 @@ func Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple16(t1.Tail()), as.Tuple16(t2.Tail()))
 	}))
 }
 
@@ -283,7 +284,7 @@ func Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple17(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18)
 
 	return New(eq.New(func(a, b fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple17(a.Tail()), as.Tuple17(b.Tail()))
 	}), fp.LessFunc[fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]](func(t1, t2 fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -291,7 +292,7 @@ func Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple17(t1.Tail()), as.Tuple17(t2.Tail()))
 	}))
 }
 
@@ -300,7 +301,7 @@ func Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple18(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18, ins19)
 
 	return New(eq.New(func(a, b fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple18(a.Tail()), as.Tuple18(b.Tail()))
 	}), fp.LessFunc[fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]](func(t1, t2 fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -308,7 +309,7 @@ func Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple18(t1.Tail()), as.Tuple18(t2.Tail()))
 	}))
 }
 
@@ -317,7 +318,7 @@ func Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple19(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18, ins19, ins20)
 
 	return New(eq.New(func(a, b fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple19(a.Tail()), as.Tuple19(b.Tail()))
 	}), fp.LessFunc[fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]](func(t1, t2 fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -325,7 +326,7 @@ func Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple19(t1.Tail()), as.Tuple19(t2.Tail()))
 	}))
 }
 
@@ -334,7 +335,7 @@ func Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 	pt := Tuple20(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9, ins10, ins11, ins12, ins13, ins14, ins15, ins16, ins17, ins18, ins19, ins20, ins21)
 
 	return New(eq.New(func(a, b fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) bool {
-		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(a.Tail(), b.Tail())
+		return ins1.Eqv(a.Head(), b.Head()) && pt.Eqv(as.Tuple20(a.Tail()), as.Tuple20(b.Tail()))
 	}), fp.LessFunc[fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]](func(t1, t2 fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) bool {
 		if ins1.Less(t1.I1, t2.I1) {
 			return true
@@ -342,6 +343,6 @@ func Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A
 		if ins1.Less(t2.I1, t1.I1) {
 			return false
 		}
-		return pt.Less(t1.Tail(), t2.Tail())
+		return pt.Less(as.Tuple20(t1.Tail()), as.Tuple20(t2.Tail()))
 	}))
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/try"
 )
 
@@ -43,7 +44,7 @@ func TestTry(t *testing.T) {
 		return try.Success("recoverWith")
 	}).Foreach(print[string])
 
-	assert.True(v.ToOption().IsDefined())
+	assert.True(option.FromTry(v).IsDefined())
 
 	// fp.Try[*url.URL]
 	var u fp.Try[*url.URL] = try.Func1(url.Parse)("http://[abc")
