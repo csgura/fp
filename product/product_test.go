@@ -88,9 +88,9 @@ func TestGeneric(t *testing.T) {
 	a, b, _ := tp.Unapply()
 	fmt.Printf("a = %d , b = %s\n", a, b)
 
-	unit.Func2(hello).Tupled()(product.Tuple2("a", 20))
+	as.Tupled2(unit.Func2(hello))(product.Tuple2("a", 20))
 
-	fn := as.Func2(format).Tupled()
+	fn := as.Tupled2(format)
 
 	println(fn(product.Tuple2("hello", 10)))
 

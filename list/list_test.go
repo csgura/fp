@@ -114,9 +114,9 @@ func NotTestSum(t *testing.T) {
 	zip := list.Zip(list.Collect(l2.Iterator().Drop(100)), l2)
 	printFirst10(zip)
 
-	sumOpt := zip.Iterator().Find(as.Func2(func(a float64, b float64) bool {
+	sumOpt := zip.Iterator().Find(as.Tupled2(func(a float64, b float64) bool {
 		return a-b < 0.0000000001
-	}).Tupled())
+	}))
 
 	fmt.Println("sum 1/n^2 = ", sumOpt)
 
@@ -133,9 +133,9 @@ func NotTestSum(t *testing.T) {
 	printFirst10(zip)
 	fmt.Println("print list at 100000")
 
-	sumOpt = zip.Iterator().Take(100000).Find(as.Func2(func(a float64, b float64) bool {
+	sumOpt = zip.Iterator().Take(100000).Find(as.Tupled2(func(a float64, b float64) bool {
 		return a-b < 0.0000000001
-	}).Tupled())
+	}))
 
 	fmt.Println("sum 1/n = ", sumOpt)
 

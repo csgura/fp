@@ -17,7 +17,11 @@ func (r SemigroupFunc[T]) Combine(a T, b T) T {
 }
 
 func (r SemigroupFunc[T]) Curried() Func1[T, Func1[T, T]] {
-	return Func2[T, T, T](r).Curried()
+	return func(a1 T) Func1[T, T] {
+		return func(a2 T) T {
+			return r.Combine(a1, a2)
+		}
+	}
 }
 
 type Monoid[T any] interface {

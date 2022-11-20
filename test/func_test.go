@@ -49,9 +49,9 @@ func TestFunc(t *testing.T) {
 	})
 
 	otuple := option.Some(as.Tuple(1, 2))
-	option.Map(otuple, as.Func2(product).Tupled())
+	option.Map(otuple, as.Tupled2(product))
 
-	option.Map(otuple, as.Func2(monoid.Product[int]().Combine).Tupled())
+	option.Map(otuple, as.Tupled2(monoid.Product[int]().Combine))
 
 	option.Map(otuple, func(tuple fp.Tuple2[int, int]) int {
 		return tuple.I1 + tuple.I2
