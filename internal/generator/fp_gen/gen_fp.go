@@ -37,22 +37,24 @@ func main() {
 
 			for j := i - 1; j < i; j++ {
 				fmt.Fprintf(f, `
-			   func(r Func%d[%s,R]) ApplyFirst%d(%s) Func%d[%s,R] {
+			   func(r Func%d[%s,R]) ApplyFirst%d(%s) %s {
 			   	return func(%s) R {
 			   		return r(%s)
 			   	}
 			   }
-			   `, i, genfp.FuncTypeArgs(1, i), j, genfp.FuncDeclArgs(1, j), i-j, genfp.FuncTypeArgs(j+1, i), genfp.FuncDeclArgs(j+1, i), genfp.FuncCallArgs(1, i))
+			   `, i, genfp.FuncTypeArgs(1, i), j, genfp.FuncDeclArgs(1, j), genfp.FuncDecl("A", j+1, i, "R"),
+					genfp.FuncDeclArgs(j+1, i), genfp.FuncCallArgs(1, i))
 			}
 
 			for j := i - 1; j < i; j++ {
 				fmt.Fprintf(f, `
-			   func(r Func%d[%s,R]) ApplyLast%d(%s) Func%d[%s,R] {
+			   func(r Func%d[%s,R]) ApplyLast%d(%s) %s {
 			   	return func(%s) R {
 			   		return r(%s)
 			   	}
 			   }
-			   `, i, genfp.FuncTypeArgs(1, i), j, genfp.FuncDeclArgs(i-j+1, i), i-j, genfp.FuncTypeArgs(1, i-j), genfp.FuncDeclArgs(1, i-j), genfp.FuncCallArgs(1, i))
+			   `, i, genfp.FuncTypeArgs(1, i), j, genfp.FuncDeclArgs(i-j+1, i), genfp.FuncDecl("A", 1, i-j, "R"),
+					genfp.FuncDeclArgs(1, i-j), genfp.FuncCallArgs(1, i))
 			}
 
 			/* 일부만 아규먼트 적용하는 함수는

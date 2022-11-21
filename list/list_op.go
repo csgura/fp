@@ -398,7 +398,7 @@ func FoldLeftUsingMap[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 }
 
 func FoldRightUsingMap[A, B any](s fp.List[A], zero B, f func(A, B) B) B {
-	cf := as.Func2(f).Curried()
+	cf := as.Curried2(f)
 	m := monoid.Endo[B]()
 
 	f2 := func(a A) fp.Endo[B] {

@@ -73,9 +73,9 @@ func TestAp(t *testing.T) {
 	}
 	s := seq.Of(1, 2, 3, 4)
 
-	s2 := seq.Map(s, as.Func2(plus).Curried()(2))
+	s2 := seq.Map(s, as.Curried2(plus)(2))
 
-	s3 := seq.Map(s2, as.Func2(plus).Curried()(3))
+	s3 := seq.Map(s2, as.Curried2(plus)(3))
 	s3.Foreach(fp.Println[int])
 
 	plus3 := func(a, b, c int) int {

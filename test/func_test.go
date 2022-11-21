@@ -39,7 +39,7 @@ func TestFunc(t *testing.T) {
 	}
 
 	oint := option.Some(2)
-	option.Map(oint, as.Func2(product).Curried()(2))
+	option.Map(oint, as.Curried2(product)(2))
 	option.Map(oint, curried.Func2(
 		monoid.Product[int]().Combine)(2),
 	)

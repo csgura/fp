@@ -196,7 +196,7 @@ func Flap2[A, B, R any](tfab fp.Try[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp
 // https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
 // liftOp 라는 이름으로 정의된 것이 있음
 func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Try[A]) fp.Func1[B, fp.Try[R]] {
-	return Flap(Map(a, as.Func2(tfab).Curried()))
+	return Flap(Map(a, as.Curried2(tfab)))
 }
 
 // ( a -> b -> m r) -> m a -> b -> m r

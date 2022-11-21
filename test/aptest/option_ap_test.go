@@ -88,7 +88,7 @@ func TestFunc(t *testing.T) {
 		Ap(2)
 
 	otuple := option.Some(as.Tuple(1, 2))
-	option.Applicative1(as.Func2(plus).Tupled()).
+	option.Applicative1(as.Tupled2(plus)).
 		ApOption(otuple)
 
 	oreader := option.Chain3(fp.Id3[int, string, *strings.Reader]).

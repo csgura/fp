@@ -28,6 +28,10 @@ var OrdinalName = []string{
 	"Tenth",
 }
 
+func FuncDecl(prefix string, start, until int, ret string) string {
+	return fmt.Sprintf("func(%s) %s", TypeArgs(prefix, start, until), ret)
+}
+
 func FormatStr(start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
