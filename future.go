@@ -30,7 +30,6 @@ type Future[T any] interface {
 	Foreach(f func(v T), ctx ...Executor)
 	OnComplete(cb func(try Try[T]), ctx ...Executor)
 	IsCompleted() bool
-	Value() Option[Try[T]]
 	Failed() Future[error]
 	Recover(f func(err error) T, ctx ...Executor) Future[T]
 	RecoverWith(f func(err error) Future[T], ctx ...Executor) Future[T]

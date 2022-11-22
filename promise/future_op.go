@@ -63,9 +63,9 @@ func (r future[T]) IsCompleted() bool {
 	return r.p.IsCompleted()
 }
 
-func (r future[T]) Value() fp.Option[fp.Try[T]] {
-	return r.p.Value()
-}
+// func (r future[T]) Value() fp.Option[fp.Try[T]] {
+// 	return r.p.Value()
+// }
 
 func (r future[T]) Failed() fp.Future[error] {
 	np := New[error]()
