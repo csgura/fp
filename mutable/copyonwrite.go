@@ -81,8 +81,14 @@ func (r *CopyOnWriteMap[K, V]) Removed(k ...K) fp.MapBase[K, V] {
 }
 
 func (r *CopyOnWriteMap[K, V]) ComputeIfAbsent(k K, f func() V) V {
+	return r.ComputeIf(k, func(V) bool {
+		return false
+	}, f)
+}
 
-	ret := r.Get(k)
+func (r *CopyOnWriteMap[K, V]) ComputeIf(k K, pred func(V) bool, f func() V) V {
+
+	ret := r.Get(k).FilterNot(pred)
 	if ret.IsDefined() {
 		return ret.Get()
 	}
