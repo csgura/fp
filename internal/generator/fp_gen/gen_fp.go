@@ -222,17 +222,18 @@ func (r Labelled%d[%s]) Last() T%d {
 `, i, genfp.TypeArgs("T", 1, i), i, i)
 
 			fmt.Fprintf(f, `
-			func (r Labelled%d[%s]) Init() Labelled%d[%s] {
-				return Labelled%d[%s]{%s};
+			func (r Labelled%d[%s]) Init() (%s) {
+				return %s;
 			}
-			`, i, genfp.TypeArgs("T", 1, i), i-1, genfp.TypeArgs("T", 1, i-1),
-				i-1, genfp.TypeArgs("T", 1, i-1), genfp.FuncCallArgs(1, i-1, "r.I"))
+			`, i, genfp.TypeArgs("T", 1, i), genfp.TypeArgs("T", 1, i-1),
+				genfp.FuncCallArgs(1, i-1, "r.I"))
 
 			fmt.Fprintf(f, `
-			func (r Labelled%d[%s]) Tail() Labelled%d[%s] {
-				return Labelled%d[%s]{%s};
+			func (r Labelled%d[%s]) Tail() (%s) {
+				return %s;
 			}
-			`, i, genfp.TypeArgs("T", 1, i), i-1, genfp.TypeArgs("T", 2, i), i-1, genfp.TypeArgs("T", 2, i), genfp.FuncCallArgs(2, i, "r.I"))
+			`, i, genfp.TypeArgs("T", 1, i), genfp.TypeArgs("T", 2, i),
+				genfp.FuncCallArgs(2, i, "r.I"))
 
 			// fmt.Fprintf(f, `
 			// func (r Labelled%d[%s]) ToHList() %s {

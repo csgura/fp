@@ -122,9 +122,9 @@ func UnTupled%d[%s,R any]( f func(fp.Tuple%d[%s]) R) fp.Func%d[%s,R] {
 				genfp.ConsType(1, i, "hlist.Nil"))
 
 			fmt.Fprintf(f, `
-						return hlist.Concat( tuple.Head(), HList%dLabelled( tuple.Tail() ))
+						return hlist.Of%d( tuple.Unapply() )
 					}
-					`, i-1)
+					`, i)
 
 		}
 
