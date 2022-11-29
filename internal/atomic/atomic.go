@@ -5,6 +5,15 @@ import (
 	"unsafe"
 )
 
+type Reference interface {
+	Get() *ValuePtr
+	Load() any
+	Store(v any)
+	CompareAndSwap(original *ValuePtr, newval any) bool
+}
+
+var _ Reference = &Value{}
+
 type Value struct {
 	value unsafe.Pointer
 }
@@ -44,4 +53,8 @@ func (r *ValuePtr) Value() any {
 		return nil
 	}
 	return r.v
+}
+
+func New() Reference {
+	return &Value{}
 }
