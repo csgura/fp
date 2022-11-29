@@ -119,7 +119,7 @@ func (r monoid[T]) ToMonoid(emptyFunc fp.EmptyFunc[T]) fp.Monoid[T] {
 	return monoid[T]{emptyFunc, r.combine}
 }
 
-func (r monoid[T]) Curried() fp.Func1[T, fp.Func1[T, T]] {
+func (r monoid[T]) Curried() func(T) func(T) T {
 	return r.combine.Curried()
 }
 

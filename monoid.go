@@ -2,7 +2,6 @@ package fp
 
 type Semigroup[T any] interface {
 	Combine(a T, b T) T
-	Curried() Func1[T, Func1[T, T]]
 }
 
 type SemigroupFunc[T any] func(a T, b T) T
@@ -16,8 +15,8 @@ func (r SemigroupFunc[T]) Combine(a T, b T) T {
 	return r(a, b)
 }
 
-func (r SemigroupFunc[T]) Curried() Func1[T, Func1[T, T]] {
-	return func(a1 T) Func1[T, T] {
+func (r SemigroupFunc[T]) Curried() func(T) func(T) T {
+	return func(a1 T) func(T) T {
 		return func(a2 T) T {
 			return r.Combine(a1, a2)
 		}
@@ -58,7 +57,7 @@ func (r monoid[T]) ToMonoid(emptyFunc EmptyFunc[T]) Monoid[T] {
 	return monoid[T]{emptyFunc, r.combine}
 }
 
-func (r monoid[T]) Curried() Func1[T, Func1[T, T]] {
+func (r monoid[T]) Curried() func(T) func(T) T {
 	return r.combine.Curried()
 }
 

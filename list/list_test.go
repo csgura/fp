@@ -80,7 +80,7 @@ func TestFibonacci(t *testing.T) {
 
 	count := list.FoldRight(l, 0, func(v int, sum lazy.Eval[int]) lazy.Eval[int] {
 		if v < 100 {
-			return sum.Map(monoid.Sum[int]().Curried()(1))
+			return sum.Map(as.Curried2(monoid.Sum[int]().Combine)(1))
 		}
 		return lazy.Done(0)
 	})
@@ -101,7 +101,7 @@ func NotTestSum(t *testing.T) {
 		if v < 0.0000000001 {
 			return lazy.Done(0.0)
 		}
-		return sum.Map(monoid.Sum[float64]().Curried()(v))
+		return sum.Map(as.Curried2(monoid.Sum[float64]().Combine)(v))
 
 	})
 
@@ -173,7 +173,7 @@ func NotTestInfinity(t *testing.T) {
 			return lazy.Done(0.0)
 		}
 		//return lazy.Done(sum.Get() + v)
-		return sum.Map(monoid.Sum[float64]().Curried()(v))
+		return sum.Map(as.Curried2(monoid.Sum[float64]().Combine)(v))
 
 	})
 
