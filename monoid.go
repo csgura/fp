@@ -72,10 +72,10 @@ func Product[T ImplicitNum]() Monoid[T] {
 	}
 }
 
-type Endo[T any] Func1[T, T]
+type Endo[T any] func(T) T
 
-func (r Endo[T]) AsFunc() Func1[T, T] {
-	return Func1[T, T](r)
+func (r Endo[T]) AsFunc() func(T) T {
+	return r
 }
 
 type Dual[T any] struct {

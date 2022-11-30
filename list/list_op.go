@@ -237,19 +237,19 @@ func Ap[T, U any](t fp.List[fp.Func1[T, U]], a fp.List[T]) fp.List[U] {
 	})
 }
 
-func Lift[T, U any](f func(v T) U) fp.Func1[fp.List[T], fp.List[U]] {
+func Lift[T, U any](f func(v T) U) func(fp.List[T]) fp.List[U] {
 	return func(opt fp.List[T]) fp.List[U] {
 		return Map(opt, f)
 	}
 }
 
-func Compose[A, B, C any](f1 fp.Func1[A, fp.List[B]], f2 fp.Func1[B, fp.List[C]]) fp.Func1[A, fp.List[C]] {
+func Compose[A, B, C any](f1 func(A) fp.List[B], f2 func(B) fp.List[C]) func(A) fp.List[C] {
 	return func(a A) fp.List[C] {
 		return FlatMap(f1(a), f2)
 	}
 }
 
-func ComposePure[A, B, C any](f1 fp.Func1[A, fp.List[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.List[C]] {
+func ComposePure[A, B, C any](f1 func(A) fp.List[B], f2 func(B) C) func(A) fp.List[C] {
 	return func(a A) fp.List[C] {
 		return Map(f1(a), f2)
 	}

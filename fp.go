@@ -214,13 +214,13 @@ func PanicError(message any) error {
 //	g(f(_)) == g . f   ==  Compose f g  ==  f AndThen g
 //
 // go 는 AndThen 메소드를 Func1 타입에 정의할 수 없음.
-func Compose[A, B, C any](f1 Func1[A, B], f2 Func1[B, C]) Func1[A, C] {
+func Compose[A, B, C any](f1 func(A) B, f2 func(B) C) func(A) C {
 	return func(a A) C {
 		return f2(f1(a))
 	}
 }
 
-func Compose2[A, B, C any](f1 Func1[A, B], f2 Func1[B, C]) Func1[A, C] {
+func Compose2[A, B, C any](f1 func(A) B, f2 func(B) C) func(A) C {
 	return func(a A) C {
 		return f2(f1(a))
 	}

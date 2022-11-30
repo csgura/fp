@@ -120,19 +120,19 @@ func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp
 	}, ctx...)
 }
 
-func Lift[T, U any](f func(v T) U, ctx ...fp.Executor) fp.Func1[fp.Future[T], fp.Future[U]] {
+func Lift[T, U any](f func(v T) U, ctx ...fp.Executor) func(fp.Future[T]) fp.Future[U] {
 	return func(opt fp.Future[T]) fp.Future[U] {
 		return Map(opt, f, ctx...)
 	}
 }
 
-func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.Executor) fp.Func2[fp.Future[A1], fp.Future[A2], fp.Future[R]] {
+func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.Executor) func(fp.Future[A1], fp.Future[A2]) fp.Future[R] {
 	return func(a1 fp.Future[A1], a2 fp.Future[A2]) fp.Future[R] {
 		return Map2(a1, a2, f, ctx...)
 	}
 }
 
-func LiftM[A, R any](fa func(v A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Future[A], fp.Future[R]] {
+func LiftM[A, R any](fa func(v A) fp.Future[R], ctx ...fp.Executor) func(fp.Future[A]) fp.Future[R] {
 	return func(ta fp.Future[A]) fp.Future[R] {
 		return Flatten(Map(ta, fa, ctx...))
 	}
@@ -151,31 +151,31 @@ func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Future[R]], ctx ...fp.Executor) f
 	}
 }
 
-func Compose[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
+func Compose[A, B, C any](f1 func(A) fp.Future[B], f2 func(B) fp.Future[C], ctx ...fp.Executor) func(A) fp.Future[C] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(f1(a), f2, ctx...)
 	}
 }
 
-func Compose2[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
+func Compose2[A, B, C any](f1 func(A) fp.Future[B], f2 func(B) fp.Future[C], ctx ...fp.Executor) func(A) fp.Future[C] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(f1(a), f2, ctx...)
 	}
 }
 
-func ComposeOption[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
+func ComposeOption[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) fp.Future[C], ctx ...fp.Executor) func(A) fp.Future[C] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(FromOption(f1(a)), f2, ctx...)
 	}
 }
 
-func ComposeTry[A, B, C any](f1 fp.Func1[A, fp.Try[B]], f2 fp.Func1[B, fp.Future[C]], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
+func ComposeTry[A, B, C any](f1 func(A) fp.Try[B], f2 func(B) fp.Future[C], ctx ...fp.Executor) func(A) fp.Future[C] {
 	return func(a A) fp.Future[C] {
 		return FlatMap(FromTry(f1(a)), f2, ctx...)
 	}
 }
 
-func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Future[B]], f2 fp.Func1[B, C], ctx ...fp.Executor) fp.Func1[A, fp.Future[C]] {
+func ComposePure[A, B, C any](f1 func(A) fp.Future[B], f2 func(B) C, ctx ...fp.Executor) func(A) fp.Future[C] {
 	return func(a A) fp.Future[C] {
 		return Map(f1(a), f2, ctx...)
 	}
@@ -231,7 +231,7 @@ func Flatten[T any](opt fp.Future[fp.Future[T]]) fp.Future[T] {
 // hoogle 에서 검색해 보면
 // https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
 // ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
-func Flap[A, R any](tfa fp.Future[fp.Func1[A, R]], ctx ...fp.Executor) fp.Func1[A, fp.Future[R]] {
+func Flap[A, R any](tfa fp.Future[fp.Func1[A, R]], ctx ...fp.Executor) func(A) fp.Future[R] {
 	return func(a A) fp.Future[R] {
 		return Ap(tfa, Successful(a), ctx...)
 	}
@@ -249,7 +249,7 @@ func Flap2[A, B, R any](tfab fp.Future[fp.Func1[A, fp.Func1[B, R]]], ctx ...fp.E
 //
 // https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
 // liftOp 라는 이름으로 정의된 것이 있음
-func FlapMap[A, B, R any](tfab func(A, B) R, ta fp.Future[A], ctx ...fp.Executor) fp.Func1[B, fp.Future[R]] {
+func FlapMap[A, B, R any](tfab func(A, B) R, ta fp.Future[A], ctx ...fp.Executor) func(B) fp.Future[R] {
 	// 	return Flap(Map(a, as.Func2(tfab).Curried()))
 	return func(b B) fp.Future[R] {
 		return Map(ta, func(a A) R {
@@ -264,7 +264,7 @@ func FlapMap[A, B, R any](tfab func(A, B) R, ta fp.Future[A], ctx ...fp.Executor
 //
 // https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 // om , ==<<  이름으로 정의된 것이 있음
-func FlatFlapMap[A, B, R any](fab func(A, B) fp.Future[R], ta fp.Future[A], ctx ...fp.Executor) fp.Func1[B, fp.Future[R]] {
+func FlatFlapMap[A, B, R any](fab func(A, B) fp.Future[R], ta fp.Future[A], ctx ...fp.Executor) func(B) fp.Future[R] {
 	return fp.Compose(FlapMap(fab, ta, ctx...), Flatten[R])
 }
 
@@ -272,15 +272,15 @@ func FlatFlapMap[A, B, R any](fab func(A, B) fp.Future[R], ta fp.Future[A], ctx 
 // Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
 // Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
 // Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
-func Method1[A, B, R any](ta fp.Future[A], fab func(a A, b B) R, ctx ...fp.Executor) fp.Func1[B, fp.Future[R]] {
+func Method1[A, B, R any](ta fp.Future[A], fab func(a A, b B) R, ctx ...fp.Executor) func(B) fp.Future[R] {
 	return FlapMap(fab, ta, ctx...)
 }
 
-func FlatMethod1[A, B, R any](ta fp.Future[A], fab func(a A, b B) fp.Future[R], ctx ...fp.Executor) fp.Func1[B, fp.Future[R]] {
+func FlatMethod1[A, B, R any](ta fp.Future[A], fab func(a A, b B) fp.Future[R], ctx ...fp.Executor) func(B) fp.Future[R] {
 	return FlatFlapMap(fab, ta, ctx...)
 }
 
-func Method2[A, B, C, R any](ta fp.Future[A], fabc func(a A, b B, c C) R, ctx ...fp.Executor) fp.Func2[B, C, fp.Future[R]] {
+func Method2[A, B, C, R any](ta fp.Future[A], fabc func(a A, b B, c C) R, ctx ...fp.Executor) func(B, C) fp.Future[R] {
 
 	return func(b B, c C) fp.Future[R] {
 		return Map(ta, func(a A) R {
@@ -289,7 +289,7 @@ func Method2[A, B, C, R any](ta fp.Future[A], fabc func(a A, b B, c C) R, ctx ..
 	}
 }
 
-func FlatMethod2[A, B, C, R any](ta fp.Future[A], fabc func(a A, b B, c C) fp.Future[R]) fp.Func2[B, C, fp.Future[R]] {
+func FlatMethod2[A, B, C, R any](ta fp.Future[A], fabc func(a A, b B, c C) fp.Future[R]) func(B, C) fp.Future[R] {
 
 	return func(b B, c C) fp.Future[R] {
 		return FlatMap(ta, func(a A) fp.Future[R] {
@@ -329,13 +329,13 @@ func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Exe
 	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Compose(fp.Iterator[U].ToSeq, as.Seq[U]), ctx...)
 }
 
-func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Iterator[A], fp.Future[fp.Iterator[R]]] {
+func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(fp.Iterator[A]) fp.Future[fp.Iterator[R]] {
 	return func(iterA fp.Iterator[A]) fp.Future[fp.Iterator[R]] {
 		return Traverse(iterA, far, ctx...)
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) fp.Func1[fp.Seq[A], fp.Future[fp.Seq[R]]] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(fp.Seq[A]) fp.Future[fp.Seq[R]] {
 	return func(seqA fp.Seq[A]) fp.Future[fp.Seq[R]] {
 		return TraverseSeq(seqA, far, ctx...)
 	}

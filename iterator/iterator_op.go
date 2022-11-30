@@ -43,19 +43,19 @@ func Ap[T, U any](t fp.Iterator[fp.Func1[T, U]], a fp.Iterator[T]) fp.Iterator[U
 	})
 }
 
-func Lift[T, U any](f func(v T) U) fp.Func1[fp.Iterator[T], fp.Iterator[U]] {
+func Lift[T, U any](f func(v T) U) func(fp.Iterator[T]) fp.Iterator[U] {
 	return func(opt fp.Iterator[T]) fp.Iterator[U] {
 		return Map(opt, f)
 	}
 }
 
-func Compose[A, B, C any](f1 fp.Func1[A, fp.Iterator[B]], f2 fp.Func1[B, fp.Iterator[C]]) fp.Func1[A, fp.Iterator[C]] {
+func Compose[A, B, C any](f1 func(A) fp.Iterator[B], f2 func(B) fp.Iterator[C]) func(A) fp.Iterator[C] {
 	return func(a A) fp.Iterator[C] {
 		return FlatMap(f1(a), f2)
 	}
 }
 
-func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Iterator[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.Iterator[C]] {
+func ComposePure[A, B, C any](f1 func(A) fp.Iterator[B], f2 func(B) C) func(A) fp.Iterator[C] {
 	return func(a A) fp.Iterator[C] {
 		return Map(f1(a), f2)
 	}

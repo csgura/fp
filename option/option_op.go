@@ -76,19 +76,19 @@ func Map2[A, B, U any](a fp.Option[A], b fp.Option[B], f func(A, B) U) fp.Option
 	})
 }
 
-func Lift[T, U any](f func(v T) U) fp.Func1[fp.Option[T], fp.Option[U]] {
+func Lift[T, U any](f func(v T) U) func(fp.Option[T]) fp.Option[U] {
 	return func(opt fp.Option[T]) fp.Option[U] {
 		return Map(opt, f)
 	}
 }
 
-func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) fp.Func2[fp.Option[A1], fp.Option[A2], fp.Option[R]] {
+func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) func(fp.Option[A1], fp.Option[A2]) fp.Option[R] {
 	return func(a1 fp.Option[A1], a2 fp.Option[A2]) fp.Option[R] {
 		return Map2(a1, a2, f)
 	}
 }
 
-func LiftM[A, R any](fa func(v A) fp.Option[R]) fp.Func1[fp.Option[A], fp.Option[R]] {
+func LiftM[A, R any](fa func(v A) fp.Option[R]) func(fp.Option[A]) fp.Option[R] {
 	return func(ta fp.Option[A]) fp.Option[R] {
 		return Flatten(Map(ta, fa))
 	}
@@ -107,19 +107,19 @@ func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Option[R]]) fp.Func2[fp.Option[A]
 	}
 }
 
-func Compose[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
+func Compose[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) fp.Option[C]) func(A) fp.Option[C] {
 	return func(a A) fp.Option[C] {
 		return FlatMap(f1(a), f2)
 	}
 }
 
-func Compose2[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, fp.Option[C]]) fp.Func1[A, fp.Option[C]] {
+func Compose2[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) fp.Option[C]) func(A) fp.Option[C] {
 	return func(a A) fp.Option[C] {
 		return FlatMap(f1(a), f2)
 	}
 }
 
-func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Option[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.Option[C]] {
+func ComposePure[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) C) func(A) fp.Option[C] {
 	return func(a A) fp.Option[C] {
 		return Map(f1(a), f2)
 	}
@@ -144,7 +144,7 @@ func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
 // hoogle 에서 검색해 보면
 // https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
 // ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
-func Flap[A, R any](tfa fp.Option[fp.Func1[A, R]]) fp.Func1[A, fp.Option[R]] {
+func Flap[A, R any](tfa fp.Option[fp.Func1[A, R]]) func(A) fp.Option[R] {
 	return func(a A) fp.Option[R] {
 		return Ap(tfa, Some(a))
 	}
@@ -162,7 +162,7 @@ func Flap2[A, B, R any](tfab fp.Option[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A,
 //
 // https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
 // liftOp 라는 이름으로 정의된 것이 있음
-func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Option[A]) fp.Func1[B, fp.Option[R]] {
+func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Option[A]) func(B) fp.Option[R] {
 	return Flap(Map(a, as.Curried2(tfab)))
 }
 
@@ -172,7 +172,7 @@ func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Option[A]) fp.Func1[B, fp.Opti
 //
 // https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 // om , ==<<  이름으로 정의된 것이 있음
-func FlatFlapMap[A, B, R any](fab func(A, B) fp.Option[R], ta fp.Option[A]) fp.Func1[B, fp.Option[R]] {
+func FlatFlapMap[A, B, R any](fab func(A, B) fp.Option[R], ta fp.Option[A]) func(B) fp.Option[R] {
 	return fp.Compose(FlapMap(fab, ta), Flatten[R])
 }
 
@@ -180,11 +180,11 @@ func FlatFlapMap[A, B, R any](fab func(A, B) fp.Option[R], ta fp.Option[A]) fp.F
 // Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
 // Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
 // Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
-func Method1[A, B, R any](ta fp.Option[A], fab func(a A, b B) R) fp.Func1[B, fp.Option[R]] {
+func Method1[A, B, R any](ta fp.Option[A], fab func(a A, b B) R) func(B) fp.Option[R] {
 	return FlapMap(fab, ta)
 }
 
-func FlatMethod1[A, B, R any](ta fp.Option[A], fab func(a A, b B) fp.Option[R]) fp.Func1[B, fp.Option[R]] {
+func FlatMethod1[A, B, R any](ta fp.Option[A], fab func(a A, b B) fp.Option[R]) func(B) fp.Option[R] {
 	return FlatFlapMap(fab, ta)
 }
 
@@ -235,13 +235,13 @@ func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.
 	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Compose(fp.Iterator[U].ToSeq, as.Seq[U]))
 }
 
-func TraverseFunc[A, R any](far func(A) fp.Option[R]) fp.Func1[fp.Iterator[A], fp.Option[fp.Iterator[R]]] {
+func TraverseFunc[A, R any](far func(A) fp.Option[R]) func(fp.Iterator[A]) fp.Option[fp.Iterator[R]] {
 	return func(iterA fp.Iterator[A]) fp.Option[fp.Iterator[R]] {
 		return Traverse(iterA, far)
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) fp.Func1[fp.Seq[A], fp.Option[fp.Seq[R]]] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) func(fp.Seq[A]) fp.Option[fp.Seq[R]] {
 	return func(seqA fp.Seq[A]) fp.Option[fp.Seq[R]] {
 		return TraverseSeq(seqA, far)
 	}

@@ -78,19 +78,19 @@ func Map2[A, B, U any](a fp.Seq[A], b fp.Seq[B], f func(A, B) U) fp.Seq[U] {
 	})
 }
 
-func Lift[T, U any](f func(v T) U) fp.Func1[fp.Seq[T], fp.Seq[U]] {
+func Lift[T, U any](f func(v T) U) func(fp.Seq[T]) fp.Seq[U] {
 	return func(opt fp.Seq[T]) fp.Seq[U] {
 		return Map(opt, f)
 	}
 }
 
-func Compose[A, B, C any](f1 fp.Func1[A, fp.Seq[B]], f2 fp.Func1[B, fp.Seq[C]]) fp.Func1[A, fp.Seq[C]] {
+func Compose[A, B, C any](f1 func(A) fp.Seq[B], f2 func(B) fp.Seq[C]) func(A) fp.Seq[C] {
 	return func(a A) fp.Seq[C] {
 		return FlatMap(f1(a), f2)
 	}
 }
 
-func ComposePure[A, B, C any](f1 fp.Func1[A, fp.Seq[B]], f2 fp.Func1[B, C]) fp.Func1[A, fp.Seq[C]] {
+func ComposePure[A, B, C any](f1 func(A) fp.Seq[B], f2 func(B) C) func(A) fp.Seq[C] {
 	return func(a A) fp.Seq[C] {
 		return Map(f1(a), f2)
 	}
