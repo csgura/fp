@@ -192,9 +192,16 @@ func (r Future[T]) IsCompleted() bool {
 	return r.p.IsCompleted()
 }
 
-// func (r Future[T]) Value() Option[Try[T]] {
-// 	return r.p.Value()
-// }
+func (r Future[T]) Value() Try[T] {
+	if r.p.status == nil {
+		panic("Future not completed")
+	}
+	switch v := r.p.status.Load().(type) {
+	case Try[T]:
+		return v
+	}
+	panic("Future not completed")
+}
 
 func (r Future[T]) Failed() Future[error] {
 	np := NewPromise[error]()
