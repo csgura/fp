@@ -82,7 +82,7 @@ func Lift[T, U any](f func(v T) U) func(fp.Option[T]) fp.Option[U] {
 	}
 }
 
-func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R]) func(fp.Option[A1], fp.Option[A2]) fp.Option[R] {
+func LiftA2[A1, A2, R any](f func(A1, A2) R) func(fp.Option[A1], fp.Option[A2]) fp.Option[R] {
 	return func(a1 fp.Option[A1], a2 fp.Option[A2]) fp.Option[R] {
 		return Map2(a1, a2, f)
 	}
@@ -101,7 +101,7 @@ func LiftM[A, R any](fa func(v A) fp.Option[R]) func(fp.Option[A]) fp.Option[R] 
 // 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
 // M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
 // LiftM2 를 다음과 같이 정의함.
-func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Option[R]]) fp.Func2[fp.Option[A], fp.Option[B], fp.Option[R]] {
+func LiftM2[A, B, R any](fab func(A, B) fp.Option[R]) func(fp.Option[A], fp.Option[B]) fp.Option[R] {
 	return func(a fp.Option[A], b fp.Option[B]) fp.Option[R] {
 		return Flatten(Map2(a, b, fab))
 	}
@@ -188,7 +188,7 @@ func FlatMethod1[A, B, R any](ta fp.Option[A], fab func(a A, b B) fp.Option[R]) 
 	return FlatFlapMap(fab, ta)
 }
 
-func Method2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) R) fp.Func2[B, C, fp.Option[R]] {
+func Method2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) R) func(B, C) fp.Option[R] {
 
 	return curried.Revert2(Flap2(Map(ta, as.Curried3(fabc))))
 	// return func(b B, c C) fp.Option[R] {
@@ -198,7 +198,7 @@ func Method2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) R) fp.Fun
 	// }
 }
 
-func FlatMethod2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) fp.Option[R]) fp.Func2[B, C, fp.Option[R]] {
+func FlatMethod2[A, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) fp.Option[R]) func(B, C) fp.Option[R] {
 
 	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(fabc))), Flatten[R]))
 

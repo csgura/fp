@@ -133,7 +133,7 @@ func Lift[A, R any](fa func(v A) R) func(fp.Try[A]) fp.Try[R] {
 	}
 }
 
-func LiftA2[A, B, R any](fab fp.Func2[A, B, R]) func(fp.Try[A], fp.Try[B]) fp.Try[R] {
+func LiftA2[A, B, R any](fab func(A, B) R) func(fp.Try[A], fp.Try[B]) fp.Try[R] {
 	return func(a fp.Try[A], b fp.Try[B]) fp.Try[R] {
 		return Map2(a, b, fab)
 	}
@@ -152,7 +152,7 @@ func LiftM[A, R any](fa func(v A) fp.Try[R]) func(fp.Try[A]) fp.Try[R] {
 // 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
 // M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
 // LiftM2 를 다음과 같이 정의함.
-func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Try[R]]) fp.Func2[fp.Try[A], fp.Try[B], fp.Try[R]] {
+func LiftM2[A, B, R any](fab func(A, B) fp.Try[R]) func(fp.Try[A], fp.Try[B]) fp.Try[R] {
 	return func(a fp.Try[A], b fp.Try[B]) fp.Try[R] {
 		return Flatten(Map2(a, b, fab))
 	}

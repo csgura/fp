@@ -126,7 +126,7 @@ func Lift[T, U any](f func(v T) U, ctx ...fp.Executor) func(fp.Future[T]) fp.Fut
 	}
 }
 
-func LiftA2[A1, A2, R any](f fp.Func2[A1, A2, R], ctx ...fp.Executor) func(fp.Future[A1], fp.Future[A2]) fp.Future[R] {
+func LiftA2[A1, A2, R any](f func(A1, A2) R, ctx ...fp.Executor) func(fp.Future[A1], fp.Future[A2]) fp.Future[R] {
 	return func(a1 fp.Future[A1], a2 fp.Future[A2]) fp.Future[R] {
 		return Map2(a1, a2, f, ctx...)
 	}
@@ -145,7 +145,7 @@ func LiftM[A, R any](fa func(v A) fp.Future[R], ctx ...fp.Executor) func(fp.Futu
 // 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
 // M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
 // LiftM2 를 다음과 같이 정의함.
-func LiftM2[A, B, R any](fab fp.Func2[A, B, fp.Future[R]], ctx ...fp.Executor) fp.Func2[fp.Future[A], fp.Future[B], fp.Future[R]] {
+func LiftM2[A, B, R any](fab func(A, B) fp.Future[R], ctx ...fp.Executor) func(fp.Future[A], fp.Future[B]) fp.Future[R] {
 	return func(a fp.Future[A], b fp.Future[B]) fp.Future[R] {
 		return Flatten(Map2(a, b, fab, ctx...))
 	}
