@@ -5,7 +5,7 @@ import (
 	"github.com/csgura/fp"
 )
 
-func LiftA3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) fp.Func3[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[R]] {
+func LiftA3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -16,7 +16,7 @@ func LiftA3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) fp.Func3[fp.Option
 	}
 }
 
-func LiftM3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.Option[R]) fp.Func3[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[R]] {
+func LiftM3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -33,7 +33,7 @@ func Flap3[A1, A2, A3, R any](tf fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3
 	}
 }
 
-func Method3[A1, A2, A3, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3) R) fp.Func2[A2, A3, fp.Option[R]] {
+func Method3[A1, A2, A3, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3) R) func(A2, A3) fp.Option[R] {
 	return func(a2 A2, a3 A3) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3)
@@ -41,7 +41,7 @@ func Method3[A1, A2, A3, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3)
 	}
 }
 
-func FlatMethod3[A1, A2, A3, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3) fp.Option[R]) fp.Func2[A2, A3, fp.Option[R]] {
+func FlatMethod3[A1, A2, A3, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3) fp.Option[R]) func(A2, A3) fp.Option[R] {
 	return func(a2 A2, a3 A3) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3)
@@ -49,7 +49,7 @@ func FlatMethod3[A1, A2, A3, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3
 	}
 }
 
-func LiftA4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Func4[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[R]] {
+func LiftA4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -60,7 +60,7 @@ func LiftA4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Func
 	}
 }
 
-func LiftM4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Option[R]) fp.Func4[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[R]] {
+func LiftM4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -77,7 +77,7 @@ func Flap4[A1, A2, A3, A4, R any](tf fp.Option[fp.Func1[A1, fp.Func1[A2, fp.Func
 	}
 }
 
-func Method4[A1, A2, A3, A4, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Func3[A2, A3, A4, fp.Option[R]] {
+func Method4[A1, A2, A3, A4, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(A2, A3, A4) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4)
@@ -85,7 +85,7 @@ func Method4[A1, A2, A3, A4, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3
 	}
 }
 
-func FlatMethod4[A1, A2, A3, A4, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Option[R]) fp.Func3[A2, A3, A4, fp.Option[R]] {
+func FlatMethod4[A1, A2, A3, A4, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Option[R]) func(A2, A3, A4) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3, a4)
@@ -93,7 +93,7 @@ func FlatMethod4[A1, A2, A3, A4, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2
 	}
 }
 
-func LiftA5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.Func5[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[R]] {
+func LiftA5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -104,7 +104,7 @@ func LiftA5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5)
 	}
 }
 
-func LiftM5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Option[R]) fp.Func5[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[R]] {
+func LiftM5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -121,7 +121,7 @@ func Flap5[A1, A2, A3, A4, A5, R any](tf fp.Option[fp.Func1[A1, fp.Func1[A2, fp.
 	}
 }
 
-func Method5[A1, A2, A3, A4, A5, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.Func4[A2, A3, A4, A5, fp.Option[R]] {
+func Method5[A1, A2, A3, A4, A5, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) func(A2, A3, A4, A5) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4, a5)
@@ -129,7 +129,7 @@ func Method5[A1, A2, A3, A4, A5, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2
 	}
 }
 
-func FlatMethod5[A1, A2, A3, A4, A5, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Option[R]) fp.Func4[A2, A3, A4, A5, fp.Option[R]] {
+func FlatMethod5[A1, A2, A3, A4, A5, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Option[R]) func(A2, A3, A4, A5) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3, a4, a5)
@@ -137,7 +137,7 @@ func FlatMethod5[A1, A2, A3, A4, A5, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a
 	}
 }
 
-func LiftA6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.Func6[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[R]] {
+func LiftA6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -148,7 +148,7 @@ func LiftA6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5
 	}
 }
 
-func LiftM6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Option[R]) fp.Func6[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[R]] {
+func LiftM6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -165,7 +165,7 @@ func Flap6[A1, A2, A3, A4, A5, A6, R any](tf fp.Option[fp.Func1[A1, fp.Func1[A2,
 	}
 }
 
-func Method6[A1, A2, A3, A4, A5, A6, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.Func5[A2, A3, A4, A5, A6, fp.Option[R]] {
+func Method6[A1, A2, A3, A4, A5, A6, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(A2, A3, A4, A5, A6) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4, a5, a6)
@@ -173,7 +173,7 @@ func Method6[A1, A2, A3, A4, A5, A6, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a
 	}
 }
 
-func FlatMethod6[A1, A2, A3, A4, A5, A6, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Option[R]) fp.Func5[A2, A3, A4, A5, A6, fp.Option[R]] {
+func FlatMethod6[A1, A2, A3, A4, A5, A6, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Option[R]) func(A2, A3, A4, A5, A6) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3, a4, a5, a6)
@@ -181,7 +181,7 @@ func FlatMethod6[A1, A2, A3, A4, A5, A6, R any](ta1 fp.Option[A1], fa1 func(a1 A
 	}
 }
 
-func LiftA7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.Func7[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[R]] {
+func LiftA7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -192,7 +192,7 @@ func LiftA7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4
 	}
 }
 
-func LiftM7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Option[R]) fp.Func7[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[R]] {
+func LiftM7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -209,7 +209,7 @@ func Flap7[A1, A2, A3, A4, A5, A6, A7, R any](tf fp.Option[fp.Func1[A1, fp.Func1
 	}
 }
 
-func Method7[A1, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.Func6[A2, A3, A4, A5, A6, A7, fp.Option[R]] {
+func Method7[A1, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) func(A2, A3, A4, A5, A6, A7) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4, a5, a6, a7)
@@ -217,7 +217,7 @@ func Method7[A1, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Option[A1], fa1 func(a1 A
 	}
 }
 
-func FlatMethod7[A1, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Option[R]) fp.Func6[A2, A3, A4, A5, A6, A7, fp.Option[R]] {
+func FlatMethod7[A1, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Option[R]) func(A2, A3, A4, A5, A6, A7) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3, a4, a5, a6, a7)
@@ -225,7 +225,7 @@ func FlatMethod7[A1, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Option[A1], fa1 func(
 	}
 }
 
-func LiftA8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.Func8[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8], fp.Option[R]] {
+func LiftA8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -236,7 +236,7 @@ func LiftA8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a
 	}
 }
 
-func LiftM8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Option[R]) fp.Func8[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8], fp.Option[R]] {
+func LiftM8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -253,7 +253,7 @@ func Flap8[A1, A2, A3, A4, A5, A6, A7, A8, R any](tf fp.Option[fp.Func1[A1, fp.F
 	}
 }
 
-func Method8[A1, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.Func7[A2, A3, A4, A5, A6, A7, A8, fp.Option[R]] {
+func Method8[A1, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(A2, A3, A4, A5, A6, A7, A8) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4, a5, a6, a7, a8)
@@ -261,7 +261,7 @@ func Method8[A1, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Option[A1], fa1 func(
 	}
 }
 
-func FlatMethod8[A1, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Option[R]) fp.Func7[A2, A3, A4, A5, A6, A7, A8, fp.Option[R]] {
+func FlatMethod8[A1, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Option[R]) func(A2, A3, A4, A5, A6, A7, A8) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3, a4, a5, a6, a7, a8)
@@ -269,7 +269,7 @@ func FlatMethod8[A1, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Option[A1], fa1 f
 	}
 }
 
-func LiftA9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) fp.Func9[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8], fp.Option[A9], fp.Option[R]] {
+func LiftA9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8], fp.Option[A9]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8], ins9 fp.Option[A9]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -280,7 +280,7 @@ func LiftA9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A
 	}
 }
 
-func LiftM9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Option[R]) fp.Func9[fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8], fp.Option[A9], fp.Option[R]] {
+func LiftM9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Option[R]) func(fp.Option[A1], fp.Option[A2], fp.Option[A3], fp.Option[A4], fp.Option[A5], fp.Option[A6], fp.Option[A7], fp.Option[A8], fp.Option[A9]) fp.Option[R] {
 	return func(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8], ins9 fp.Option[A9]) fp.Option[R] {
 
 		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -297,7 +297,7 @@ func Flap9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](tf fp.Option[fp.Func1[A1, 
 	}
 }
 
-func Method9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) fp.Func8[A2, A3, A4, A5, A6, A7, A8, A9, fp.Option[R]] {
+func Method9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) func(A2, A3, A4, A5, A6, A7, A8, A9) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Option[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4, a5, a6, a7, a8, a9)
@@ -305,7 +305,7 @@ func Method9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](ta1 fp.Option[A1], fa1 f
 	}
 }
 
-func FlatMethod9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Option[R]) fp.Func8[A2, A3, A4, A5, A6, A7, A8, A9, fp.Option[R]] {
+func FlatMethod9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](ta1 fp.Option[A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Option[R]) func(A2, A3, A4, A5, A6, A7, A8, A9) fp.Option[R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Option[R] {
 		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 			return fa1(a1, a2, a3, a4, a5, a6, a7, a8, a9)

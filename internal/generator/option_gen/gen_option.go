@@ -246,7 +246,7 @@ import (
 
 		for i := 3; i < max.Func; i++ {
 			fmt.Fprintf(f, `
-				func LiftA%d[%s,R any]( f func(%s) R ) fp.Func%d[%s,fp.Option[R]] {
+				func LiftA%d[%s,R any]( f func(%s) R ) func(%s) fp.Option[R] {
 					return func(%s) fp.Option[R] {
 
 						return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -256,7 +256,7 @@ import (
 						})
 					}
 				}
-			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.TypeClassArgs(1, i, "fp.Option"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.TypeClassArgs(1, i, "fp.Option"),
 				genfp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
 				i-1, genfp.FuncDeclArgs(2, i),
 				genfp.FuncCallArgs(1, i),
@@ -264,7 +264,7 @@ import (
 			)
 
 			fmt.Fprintf(f, `
-				func LiftM%d[%s,R any]( f func(%s) fp.Option[R] ) fp.Func%d[%s,fp.Option[R]] {
+				func LiftM%d[%s,R any]( f func(%s) fp.Option[R] ) func(%s) fp.Option[R] {
 					return func(%s) fp.Option[R] {
 
 						return FlatMap(ins1, func(a1 A1) fp.Option[R] {
@@ -274,7 +274,7 @@ import (
 						})
 					}
 				}
-			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.TypeClassArgs(1, i, "fp.Option"),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.TypeClassArgs(1, i, "fp.Option"),
 				genfp.FuncDeclTypeClassArgs(1, i, "fp.Option"),
 				i-1, genfp.FuncDeclArgs(2, i),
 				genfp.FuncCallArgs(1, i),
@@ -293,27 +293,27 @@ import (
 			)
 
 			fmt.Fprintf(f, `
-				func Method%d[%s,R any](ta1 fp.Option[A1], fa1 func(%s) R) fp.Func%d[%s, fp.Option[R]] {
+				func Method%d[%s,R any](ta1 fp.Option[A1], fa1 func(%s) R) func(%s) fp.Option[R] {
 					return func(%s) fp.Option[R] {
 						return Map(ta1, func(a1 A1) R {
 							return fa1(%s)
 						})
 					}
 				}
-			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i-1, genfp.FuncTypeArgs(2, i),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncTypeArgs(2, i),
 				genfp.FuncDeclArgs(2, i),
 				genfp.FuncCallArgs(1, i),
 			)
 
 			fmt.Fprintf(f, `
-				func FlatMethod%d[%s,R any](ta1 fp.Option[A1], fa1 func(%s) fp.Option[R]) fp.Func%d[%s, fp.Option[R]] {
+				func FlatMethod%d[%s,R any](ta1 fp.Option[A1], fa1 func(%s) fp.Option[R]) func(%s) fp.Option[R] {
 					return func(%s) fp.Option[R] {
 						return FlatMap(ta1, func(a1 A1) fp.Option[R] {
 							return fa1(%s)
 						})
 					}
 				}
-			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i-1, genfp.FuncTypeArgs(2, i),
+			`, i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncTypeArgs(2, i),
 				genfp.FuncDeclArgs(2, i),
 				genfp.FuncCallArgs(1, i),
 			)

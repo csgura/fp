@@ -33,7 +33,7 @@ func main() {
 }	
 `, genfp.CurriedType(2, i, "R"), i-1, genfp.FuncDeclArgs(2, i), genfp.FuncCallArgs(1, i))
 
-			fmt.Fprintf(f, "func Revert%d [%s, R any]( f %s ) fp.Func%d[%s,R] { ", i, args, genfp.CurriedType(1, i, "R"), i, args)
+			fmt.Fprintf(f, "func Revert%d [%s, R any]( f %s ) %s { ", i, args, genfp.CurriedType(1, i, "R"), genfp.FuncDecl("A", 1, i, "R"))
 
 			fmt.Fprintf(f, `
 	return func(%s) R {
