@@ -126,6 +126,15 @@ func Zip[A, B any](s1 fp.Seq[A], s2 fp.Seq[B]) fp.Seq[fp.Tuple2[A, B]] {
 	return ret
 }
 
+func ZipWithIndex[A any](s1 fp.Seq[A]) fp.Seq[fp.Tuple2[int, A]] {
+
+	ret := make(fp.Seq[fp.Tuple2[int, A]], s1.Size())
+	for i := 0; i < s1.Size(); i++ {
+		ret[i] = product.Tuple2(i, s1[i])
+	}
+	return ret
+}
+
 func Reduce[T any](r fp.Seq[T], m fp.Monoid[T]) T {
 	if r.Size() == 0 {
 		return m.Empty()

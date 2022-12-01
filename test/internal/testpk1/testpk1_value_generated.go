@@ -62,6 +62,10 @@ func (r World) AsTuple() fp.Tuple2[string, time.Time] {
 	return as.Tuple2(r.message, r.timestamp)
 }
 
+func (r World) Unapply() (string, time.Time) {
+	return r.message, r.timestamp
+}
+
 func (r World) AsMutable() WorldMutable {
 	return WorldMutable{
 		Message:   r.message,
@@ -79,6 +83,12 @@ func (r WorldMutable) AsImmutable() World {
 func (r WorldBuilder) FromTuple(t fp.Tuple2[string, time.Time]) WorldBuilder {
 	r.message = t.I1
 	r.timestamp = t.I2
+	return r
+}
+
+func (r WorldBuilder) Apply(message string, timestamp time.Time) WorldBuilder {
+	r.message = message
+	r.timestamp = timestamp
 	return r
 }
 
@@ -230,6 +240,10 @@ func (r HasOption) AsTuple() fp.Tuple4[string, fp.Option[string], []string, []in
 	return as.Tuple4(r.message, r.addr, r.phone, r.emptySeq)
 }
 
+func (r HasOption) Unapply() (string, fp.Option[string], []string, []int) {
+	return r.message, r.addr, r.phone, r.emptySeq
+}
+
 func (r HasOption) AsMutable() HasOptionMutable {
 	return HasOptionMutable{
 		Message:  r.message,
@@ -253,6 +267,14 @@ func (r HasOptionBuilder) FromTuple(t fp.Tuple4[string, fp.Option[string], []str
 	r.addr = t.I2
 	r.phone = t.I3
 	r.emptySeq = t.I4
+	return r
+}
+
+func (r HasOptionBuilder) Apply(message string, addr fp.Option[string], phone []string, emptySeq []int) HasOptionBuilder {
+	r.message = message
+	r.addr = addr
+	r.phone = phone
+	r.emptySeq = emptySeq
 	return r
 }
 
@@ -333,6 +355,10 @@ func (r CustomValue) AsTuple() fp.Tuple2[string, int] {
 	return as.Tuple2(r.a, r.b)
 }
 
+func (r CustomValue) Unapply() (string, int) {
+	return r.a, r.b
+}
+
 func (r CustomValue) AsMutable() CustomValueMutable {
 	return CustomValueMutable{
 		A: r.a,
@@ -350,6 +376,12 @@ func (r CustomValueMutable) AsImmutable() CustomValue {
 func (r CustomValueBuilder) FromTuple(t fp.Tuple2[string, int]) CustomValueBuilder {
 	r.a = t.I1
 	r.b = t.I2
+	return r
+}
+
+func (r CustomValueBuilder) Apply(a string, b int) CustomValueBuilder {
+	r.a = a
+	r.b = b
 	return r
 }
 
@@ -424,6 +456,10 @@ func (r AliasedStruct) AsTuple() fp.Tuple2[string, time.Time] {
 	return as.Tuple2(r.message, r.timestamp)
 }
 
+func (r AliasedStruct) Unapply() (string, time.Time) {
+	return r.message, r.timestamp
+}
+
 func (r AliasedStruct) AsMutable() AliasedStructMutable {
 	return AliasedStructMutable{
 		Message:   r.message,
@@ -441,6 +477,12 @@ func (r AliasedStructMutable) AsImmutable() AliasedStruct {
 func (r AliasedStructBuilder) FromTuple(t fp.Tuple2[string, time.Time]) AliasedStructBuilder {
 	r.message = t.I1
 	r.timestamp = t.I2
+	return r
+}
+
+func (r AliasedStructBuilder) Apply(message string, timestamp time.Time) AliasedStructBuilder {
+	r.message = message
+	r.timestamp = timestamp
 	return r
 }
 
@@ -530,6 +572,10 @@ func (r HListInsideHList) AsTuple() fp.Tuple3[fp.Tuple2[string, int], string, Wo
 	return as.Tuple3(r.tp, r.value, r.hello)
 }
 
+func (r HListInsideHList) Unapply() (fp.Tuple2[string, int], string, World) {
+	return r.tp, r.value, r.hello
+}
+
 func (r HListInsideHList) AsMutable() HListInsideHListMutable {
 	return HListInsideHListMutable{
 		Tp:    r.tp,
@@ -550,6 +596,13 @@ func (r HListInsideHListBuilder) FromTuple(t fp.Tuple3[fp.Tuple2[string, int], s
 	r.tp = t.I1
 	r.value = t.I2
 	r.hello = t.I3
+	return r
+}
+
+func (r HListInsideHListBuilder) Apply(tp fp.Tuple2[string, int], value string, hello World) HListInsideHListBuilder {
+	r.tp = tp
+	r.value = value
+	r.hello = hello
 	return r
 }
 
@@ -614,6 +667,10 @@ func (r Wrapper[T]) AsTuple() fp.Tuple1[T] {
 	return as.Tuple1(r.unwrap)
 }
 
+func (r Wrapper[T]) Unapply() T {
+	return r.unwrap
+}
+
 func (r Wrapper[T]) AsMutable() WrapperMutable[T] {
 	return WrapperMutable[T]{
 		Unwrap: r.unwrap,
@@ -628,6 +685,11 @@ func (r WrapperMutable[T]) AsImmutable() Wrapper[T] {
 
 func (r WrapperBuilder[T]) FromTuple(t fp.Tuple1[T]) WrapperBuilder[T] {
 	r.unwrap = t.I1
+	return r
+}
+
+func (r WrapperBuilder[T]) Apply(unwrap T) WrapperBuilder[T] {
+	r.unwrap = unwrap
 	return r
 }
 
@@ -697,6 +759,10 @@ func (r TestOrderedEq) AsTuple() fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, in
 	return as.Tuple2(r.list, r.tlist)
 }
 
+func (r TestOrderedEq) Unapply() (fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]) {
+	return r.list, r.tlist
+}
+
 func (r TestOrderedEq) AsMutable() TestOrderedEqMutable {
 	return TestOrderedEqMutable{
 		List:  r.list,
@@ -714,6 +780,12 @@ func (r TestOrderedEqMutable) AsImmutable() TestOrderedEq {
 func (r TestOrderedEqBuilder) FromTuple(t fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]]) TestOrderedEqBuilder {
 	r.list = t.I1
 	r.tlist = t.I2
+	return r
+}
+
+func (r TestOrderedEqBuilder) Apply(list fp.Seq[int], tlist fp.Seq[fp.Tuple2[int, int]]) TestOrderedEqBuilder {
+	r.list = list
+	r.tlist = tlist
 	return r
 }
 
@@ -788,6 +860,10 @@ func (r MapEq) AsTuple() fp.Tuple2[map[string]World, fp.Map[string, World]] {
 	return as.Tuple2(r.m, r.m2)
 }
 
+func (r MapEq) Unapply() (map[string]World, fp.Map[string, World]) {
+	return r.m, r.m2
+}
+
 func (r MapEq) AsMutable() MapEqMutable {
 	return MapEqMutable{
 		M:  r.m,
@@ -805,6 +881,12 @@ func (r MapEqMutable) AsImmutable() MapEq {
 func (r MapEqBuilder) FromTuple(t fp.Tuple2[map[string]World, fp.Map[string, World]]) MapEqBuilder {
 	r.m = t.I1
 	r.m2 = t.I2
+	return r
+}
+
+func (r MapEqBuilder) Apply(m map[string]World, m2 fp.Map[string, World]) MapEqBuilder {
+	r.m = m
+	r.m2 = m2
 	return r
 }
 
@@ -909,6 +991,10 @@ func (r SeqMonoid) AsTuple() fp.Tuple4[string, fp.Seq[string], map[string]int, f
 	return as.Tuple4(r.v, r.s, r.m, r.m2)
 }
 
+func (r SeqMonoid) Unapply() (string, fp.Seq[string], map[string]int, fp.Map[string, World]) {
+	return r.v, r.s, r.m, r.m2
+}
+
 func (r SeqMonoid) AsMutable() SeqMonoidMutable {
 	return SeqMonoidMutable{
 		V:  r.v,
@@ -932,6 +1018,14 @@ func (r SeqMonoidBuilder) FromTuple(t fp.Tuple4[string, fp.Seq[string], map[stri
 	r.s = t.I2
 	r.m = t.I3
 	r.m2 = t.I4
+	return r
+}
+
+func (r SeqMonoidBuilder) Apply(v string, s fp.Seq[string], m map[string]int, m2 fp.Map[string, World]) SeqMonoidBuilder {
+	r.v = v
+	r.s = s
+	r.m = m
+	r.m2 = m2
 	return r
 }
 
@@ -1001,6 +1095,10 @@ func (r MapEqParam[K, V]) AsTuple() fp.Tuple1[fp.Map[K, V]] {
 	return as.Tuple1(r.m)
 }
 
+func (r MapEqParam[K, V]) Unapply() fp.Map[K, V] {
+	return r.m
+}
+
 func (r MapEqParam[K, V]) AsMutable() MapEqParamMutable[K, V] {
 	return MapEqParamMutable[K, V]{
 		M: r.m,
@@ -1015,6 +1113,11 @@ func (r MapEqParamMutable[K, V]) AsImmutable() MapEqParam[K, V] {
 
 func (r MapEqParamBuilder[K, V]) FromTuple(t fp.Tuple1[fp.Map[K, V]]) MapEqParamBuilder[K, V] {
 	r.m = t.I1
+	return r
+}
+
+func (r MapEqParamBuilder[K, V]) Apply(m fp.Map[K, V]) MapEqParamBuilder[K, V] {
+	r.m = m
 	return r
 }
 
@@ -1069,6 +1172,10 @@ func (r NotUsedProblem) AsTuple() fp.Tuple1[MapEqParam[string, int]] {
 	return as.Tuple1(r.m)
 }
 
+func (r NotUsedProblem) Unapply() MapEqParam[string, int] {
+	return r.m
+}
+
 func (r NotUsedProblem) AsMutable() NotUsedProblemMutable {
 	return NotUsedProblemMutable{
 		M: r.m,
@@ -1083,6 +1190,11 @@ func (r NotUsedProblemMutable) AsImmutable() NotUsedProblem {
 
 func (r NotUsedProblemBuilder) FromTuple(t fp.Tuple1[MapEqParam[string, int]]) NotUsedProblemBuilder {
 	r.m = t.I1
+	return r
+}
+
+func (r NotUsedProblemBuilder) Apply(m MapEqParam[string, int]) NotUsedProblemBuilder {
+	r.m = m
 	return r
 }
 
@@ -1167,6 +1279,10 @@ func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
 	return as.Tuple3(r.value, r.left, r.right)
 }
 
+func (r Node) Unapply() (string, *Node, *Node) {
+	return r.value, r.left, r.right
+}
+
 func (r Node) AsMutable() NodeMutable {
 	return NodeMutable{
 		Value: r.value,
@@ -1187,6 +1303,13 @@ func (r NodeBuilder) FromTuple(t fp.Tuple3[string, *Node, *Node]) NodeBuilder {
 	r.value = t.I1
 	r.left = t.I2
 	r.right = t.I3
+	return r
+}
+
+func (r NodeBuilder) Apply(value string, left *Node, right *Node) NodeBuilder {
+	r.value = value
+	r.left = left
+	r.right = right
 	return r
 }
 
@@ -1682,8 +1805,8 @@ func (r Over21) String() string {
 	return fmt.Sprintf("Over21(i1=%v, i2=%v, i3=%v, i4=%v, i5=%v, i6=%v, i7=%v, i8=%v, i9=%v, i10=%v, i11=%v, i12=%v, i13=%v, i14=%v, i15=%v, i16=%v, i17=%v, i18=%v, i19=%v, i20=%v, i21=%v, i22=%v, i23=%v, i24=%v, i25=%v, i26=%v, i27=%v, i28=%v, i29=%v, i30=%v)", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
 }
 
-func (r Over21) AsTuple() fp.Tuple21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int] {
-	return as.Tuple21(r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21)
+func (r Over21) Unapply() (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int) {
+	return r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30
 }
 
 func (r Over21) AsMutable() Over21Mutable {
@@ -1756,28 +1879,37 @@ func (r Over21Mutable) AsImmutable() Over21 {
 	}
 }
 
-func (r Over21Builder) FromTuple(t fp.Tuple21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int]) Over21Builder {
-	r.i1 = t.I1
-	r.i2 = t.I2
-	r.i3 = t.I3
-	r.i4 = t.I4
-	r.i5 = t.I5
-	r.i6 = t.I6
-	r.i7 = t.I7
-	r.i8 = t.I8
-	r.i9 = t.I9
-	r.i10 = t.I10
-	r.i11 = t.I11
-	r.i12 = t.I12
-	r.i13 = t.I13
-	r.i14 = t.I14
-	r.i15 = t.I15
-	r.i16 = t.I16
-	r.i17 = t.I17
-	r.i18 = t.I18
-	r.i19 = t.I19
-	r.i20 = t.I20
-	r.i21 = t.I21
+func (r Over21Builder) Apply(i1 int, i2 int, i3 int, i4 int, i5 int, i6 int, i7 int, i8 int, i9 int, i10 int, i11 int, i12 int, i13 int, i14 int, i15 int, i16 int, i17 int, i18 int, i19 int, i20 int, i21 int, i22 int, i23 int, i24 int, i25 int, i26 int, i27 int, i28 int, i29 int, i30 int) Over21Builder {
+	r.i1 = i1
+	r.i2 = i2
+	r.i3 = i3
+	r.i4 = i4
+	r.i5 = i5
+	r.i6 = i6
+	r.i7 = i7
+	r.i8 = i8
+	r.i9 = i9
+	r.i10 = i10
+	r.i11 = i11
+	r.i12 = i12
+	r.i13 = i13
+	r.i14 = i14
+	r.i15 = i15
+	r.i16 = i16
+	r.i17 = i17
+	r.i18 = i18
+	r.i19 = i19
+	r.i20 = i20
+	r.i21 = i21
+	r.i22 = i22
+	r.i23 = i23
+	r.i24 = i24
+	r.i25 = i25
+	r.i26 = i26
+	r.i27 = i27
+	r.i28 = i28
+	r.i29 = i29
+	r.i30 = i30
 	return r
 }
 

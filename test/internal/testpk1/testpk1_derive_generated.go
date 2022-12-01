@@ -311,7 +311,34 @@ var EqOver21 = eq.ContraMap(
 																					eq.Given[int](),
 																					eq.HCons(
 																						eq.Given[int](),
-																						eq.HNil,
+																						eq.HCons(
+																							eq.Given[int](),
+																							eq.HCons(
+																								eq.Given[int](),
+																								eq.HCons(
+																									eq.Given[int](),
+																									eq.HCons(
+																										eq.Given[int](),
+																										eq.HCons(
+																											eq.Given[int](),
+																											eq.HCons(
+																												eq.Given[int](),
+																												eq.HCons(
+																													eq.Given[int](),
+																													eq.HCons(
+																														eq.Given[int](),
+																														eq.HCons(
+																															eq.Given[int](),
+																															eq.HNil,
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
 																					),
 																				),
 																			),
@@ -333,10 +360,70 @@ var EqOver21 = eq.ContraMap(
 			),
 		),
 	),
-	fp.Compose(
-		Over21.AsTuple,
-		as.HList21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int],
-	),
+	func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+		i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+		return hlist.Concat(i0,
+			hlist.Concat(i1,
+				hlist.Concat(i2,
+					hlist.Concat(i3,
+						hlist.Concat(i4,
+							hlist.Concat(i5,
+								hlist.Concat(i6,
+									hlist.Concat(i7,
+										hlist.Concat(i8,
+											hlist.Concat(i9,
+												hlist.Concat(i10,
+													hlist.Concat(i11,
+														hlist.Concat(i12,
+															hlist.Concat(i13,
+																hlist.Concat(i14,
+																	hlist.Concat(i15,
+																		hlist.Concat(i16,
+																			hlist.Concat(i17,
+																				hlist.Concat(i18,
+																					hlist.Concat(i19,
+																						hlist.Concat(i20,
+																							hlist.Concat(i21,
+																								hlist.Concat(i22,
+																									hlist.Concat(i23,
+																										hlist.Concat(i24,
+																											hlist.Concat(i25,
+																												hlist.Concat(i26,
+																													hlist.Concat(i27,
+																														hlist.Concat(i28,
+																															hlist.Concat(i29,
+																																hlist.Empty(),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		)
+	},
 )
 
 var MonoidOver21 = monoid.IMap(
@@ -382,7 +469,34 @@ var MonoidOver21 = monoid.IMap(
 																					monoid.Product[int](),
 																					monoid.HCons(
 																						monoid.Product[int](),
-																						monoid.HNil,
+																						monoid.HCons(
+																							monoid.Product[int](),
+																							monoid.HCons(
+																								monoid.Product[int](),
+																								monoid.HCons(
+																									monoid.Product[int](),
+																									monoid.HCons(
+																										monoid.Product[int](),
+																										monoid.HCons(
+																											monoid.Product[int](),
+																											monoid.HCons(
+																												monoid.Product[int](),
+																												monoid.HCons(
+																													monoid.Product[int](),
+																													monoid.HCons(
+																														monoid.Product[int](),
+																														monoid.HCons(
+																															monoid.Product[int](),
+																															monoid.HNil,
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
 																					),
 																				),
 																			),
@@ -404,35 +518,205 @@ var MonoidOver21 = monoid.IMap(
 			),
 		),
 	),
-
-	fp.Compose(
-		product.TupleFromHList21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int],
-		fp.Compose(
-			as.Curried2(Over21Builder.FromTuple)(Over21Builder{}),
-			Over21Builder.Build,
-		),
-	),
-	fp.Compose(
-		Over21.AsTuple,
-		as.HList21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int],
-	),
+	func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
+		i0, hl1 := hlist.Unapply(hl0)
+		i1, hl2 := hlist.Unapply(hl1)
+		i2, hl3 := hlist.Unapply(hl2)
+		i3, hl4 := hlist.Unapply(hl3)
+		i4, hl5 := hlist.Unapply(hl4)
+		i5, hl6 := hlist.Unapply(hl5)
+		i6, hl7 := hlist.Unapply(hl6)
+		i7, hl8 := hlist.Unapply(hl7)
+		i8, hl9 := hlist.Unapply(hl8)
+		i9, hl10 := hlist.Unapply(hl9)
+		i10, hl11 := hlist.Unapply(hl10)
+		i11, hl12 := hlist.Unapply(hl11)
+		i12, hl13 := hlist.Unapply(hl12)
+		i13, hl14 := hlist.Unapply(hl13)
+		i14, hl15 := hlist.Unapply(hl14)
+		i15, hl16 := hlist.Unapply(hl15)
+		i16, hl17 := hlist.Unapply(hl16)
+		i17, hl18 := hlist.Unapply(hl17)
+		i18, hl19 := hlist.Unapply(hl18)
+		i19, hl20 := hlist.Unapply(hl19)
+		i20, hl21 := hlist.Unapply(hl20)
+		i21, hl22 := hlist.Unapply(hl21)
+		i22, hl23 := hlist.Unapply(hl22)
+		i23, hl24 := hlist.Unapply(hl23)
+		i24, hl25 := hlist.Unapply(hl24)
+		i25, hl26 := hlist.Unapply(hl25)
+		i26, hl27 := hlist.Unapply(hl26)
+		i27, hl28 := hlist.Unapply(hl27)
+		i28, hl29 := hlist.Unapply(hl28)
+		i29 := hl29.Head()
+		return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
+	},
+	func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+		i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+		return hlist.Concat(i0,
+			hlist.Concat(i1,
+				hlist.Concat(i2,
+					hlist.Concat(i3,
+						hlist.Concat(i4,
+							hlist.Concat(i5,
+								hlist.Concat(i6,
+									hlist.Concat(i7,
+										hlist.Concat(i8,
+											hlist.Concat(i9,
+												hlist.Concat(i10,
+													hlist.Concat(i11,
+														hlist.Concat(i12,
+															hlist.Concat(i13,
+																hlist.Concat(i14,
+																	hlist.Concat(i15,
+																		hlist.Concat(i16,
+																			hlist.Concat(i17,
+																				hlist.Concat(i18,
+																					hlist.Concat(i19,
+																						hlist.Concat(i20,
+																							hlist.Concat(i21,
+																								hlist.Concat(i22,
+																									hlist.Concat(i23,
+																										hlist.Concat(i24,
+																											hlist.Concat(i25,
+																												hlist.Concat(i26,
+																													hlist.Concat(i27,
+																														hlist.Concat(i28,
+																															hlist.Concat(i29,
+																																hlist.Empty(),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		)
+	},
 )
 
 var ReadOver21 = read.Generic(
 	as.Generic(
 		"testpk1.Over21",
-		fp.Compose(
-			Over21.AsTuple,
-			as.HList21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int],
-		),
-
-		fp.Compose(
-			product.TupleFromHList21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int],
-			fp.Compose(
-				as.Curried2(Over21Builder.FromTuple)(Over21Builder{}),
-				Over21Builder.Build,
-			),
-		),
+		func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+			i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+			return hlist.Concat(i0,
+				hlist.Concat(i1,
+					hlist.Concat(i2,
+						hlist.Concat(i3,
+							hlist.Concat(i4,
+								hlist.Concat(i5,
+									hlist.Concat(i6,
+										hlist.Concat(i7,
+											hlist.Concat(i8,
+												hlist.Concat(i9,
+													hlist.Concat(i10,
+														hlist.Concat(i11,
+															hlist.Concat(i12,
+																hlist.Concat(i13,
+																	hlist.Concat(i14,
+																		hlist.Concat(i15,
+																			hlist.Concat(i16,
+																				hlist.Concat(i17,
+																					hlist.Concat(i18,
+																						hlist.Concat(i19,
+																							hlist.Concat(i20,
+																								hlist.Concat(i21,
+																									hlist.Concat(i22,
+																										hlist.Concat(i23,
+																											hlist.Concat(i24,
+																												hlist.Concat(i25,
+																													hlist.Concat(i26,
+																														hlist.Concat(i27,
+																															hlist.Concat(i28,
+																																hlist.Concat(i29,
+																																	hlist.Empty(),
+																																),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		},
+		func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2, hl3 := hlist.Unapply(hl2)
+			i3, hl4 := hlist.Unapply(hl3)
+			i4, hl5 := hlist.Unapply(hl4)
+			i5, hl6 := hlist.Unapply(hl5)
+			i6, hl7 := hlist.Unapply(hl6)
+			i7, hl8 := hlist.Unapply(hl7)
+			i8, hl9 := hlist.Unapply(hl8)
+			i9, hl10 := hlist.Unapply(hl9)
+			i10, hl11 := hlist.Unapply(hl10)
+			i11, hl12 := hlist.Unapply(hl11)
+			i12, hl13 := hlist.Unapply(hl12)
+			i13, hl14 := hlist.Unapply(hl13)
+			i14, hl15 := hlist.Unapply(hl14)
+			i15, hl16 := hlist.Unapply(hl15)
+			i16, hl17 := hlist.Unapply(hl16)
+			i17, hl18 := hlist.Unapply(hl17)
+			i18, hl19 := hlist.Unapply(hl18)
+			i19, hl20 := hlist.Unapply(hl19)
+			i20, hl21 := hlist.Unapply(hl20)
+			i21, hl22 := hlist.Unapply(hl21)
+			i22, hl23 := hlist.Unapply(hl22)
+			i23, hl24 := hlist.Unapply(hl23)
+			i24, hl25 := hlist.Unapply(hl24)
+			i25, hl26 := hlist.Unapply(hl25)
+			i26, hl27 := hlist.Unapply(hl26)
+			i27, hl28 := hlist.Unapply(hl27)
+			i28, hl29 := hlist.Unapply(hl28)
+			i29 := hl29.Head()
+			return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
+		},
 	),
 	read.HCons(
 		read.Int[int](),
@@ -476,7 +760,34 @@ var ReadOver21 = read.Generic(
 																					read.Int[int](),
 																					read.HCons(
 																						read.Int[int](),
-																						read.HNil,
+																						read.HCons(
+																							read.Int[int](),
+																							read.HCons(
+																								read.Int[int](),
+																								read.HCons(
+																									read.Int[int](),
+																									read.HCons(
+																										read.Int[int](),
+																										read.HCons(
+																											read.Int[int](),
+																											read.HCons(
+																												read.Int[int](),
+																												read.HCons(
+																													read.Int[int](),
+																													read.HCons(
+																														read.Int[int](),
+																														read.HCons(
+																															read.Int[int](),
+																															read.HNil,
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
 																					),
 																				),
 																			),

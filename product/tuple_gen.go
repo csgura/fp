@@ -471,50 +471,122 @@ func LabelledFromHList21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13,
 	tail := LabelledFromHList20(list.Tail())
 	return as.Labelled21(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16, tail.I17, tail.I18, tail.I19, tail.I20)
 }
-func Lift2[A1, A2, R any](f func(a1 A1, a2 A2) R) fp.Func1[fp.Tuple2[A1, A2], R] {
+func Lift2[A1, A2, R any](f func(a1 A1, a2 A2) R) func(fp.Tuple2[A1, A2]) R {
 	return func(t fp.Tuple2[A1, A2]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) fp.Func1[fp.Tuple3[A1, A2, A3], R] {
+func Lift3[A1, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) func(fp.Tuple3[A1, A2, A3]) R {
 	return func(t fp.Tuple3[A1, A2, A3]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Func1[fp.Tuple4[A1, A2, A3, A4], R] {
+func Lift4[A1, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(fp.Tuple4[A1, A2, A3, A4]) R {
 	return func(t fp.Tuple4[A1, A2, A3, A4]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.Func1[fp.Tuple5[A1, A2, A3, A4, A5], R] {
+func Lift5[A1, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) func(fp.Tuple5[A1, A2, A3, A4, A5]) R {
 	return func(t fp.Tuple5[A1, A2, A3, A4, A5]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.Func1[fp.Tuple6[A1, A2, A3, A4, A5, A6], R] {
+func Lift6[A1, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(fp.Tuple6[A1, A2, A3, A4, A5, A6]) R {
 	return func(t fp.Tuple6[A1, A2, A3, A4, A5, A6]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.Func1[fp.Tuple7[A1, A2, A3, A4, A5, A6, A7], R] {
+func Lift7[A1, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) func(fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) R {
 	return func(t fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.Func1[fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], R] {
+func Lift8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) R {
 	return func(t fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]) R {
 		return f(t.Unapply())
 	}
 }
 
-func Lift9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) fp.Func1[fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], R] {
+func Lift9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) func(fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) R {
 	return func(t fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10) R) func(fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) R {
+	return func(t fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11) R) func(fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) R {
+	return func(t fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12) R) func(fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) R {
+	return func(t fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13) R) func(fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) R {
+	return func(t fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14) R) func(fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) R {
+	return func(t fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15) R) func(fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) R {
+	return func(t fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16) R) func(fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) R {
+	return func(t fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17) R) func(fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) R {
+	return func(t fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18) R) func(fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) R {
+	return func(t fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18, a19 A19) R) func(fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) R {
+	return func(t fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18, a19 A19, a20 A20) R) func(fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) R {
+	return func(t fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]) R {
+		return f(t.Unapply())
+	}
+}
+
+func Lift21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9, a10 A10, a11 A11, a12 A12, a13 A13, a14 A14, a15 A15, a16 A16, a17 A17, a18 A18, a19 A19, a20 A20, a21 A21) R) func(fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) R {
+	return func(t fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]) R {
 		return f(t.Unapply())
 	}
 }

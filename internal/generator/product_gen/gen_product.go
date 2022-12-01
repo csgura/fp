@@ -52,9 +52,9 @@ func main() {
 
 		}
 
-		for i := 2; i < max.Func; i++ {
+		for i := 2; i < max.Product; i++ {
 
-			fmt.Fprintf(f, "func Lift%d [%s , R any](f func(%s) R) fp.Func1[fp.Tuple%d[%s],R] { ", i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.FuncTypeArgs(1, i))
+			fmt.Fprintf(f, "func Lift%d [%s , R any](f func(%s) R) func(fp.Tuple%d[%s]) R { ", i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), i, genfp.FuncTypeArgs(1, i))
 
 			fmt.Fprintf(f, `
 	return func(t fp.Tuple%d[%s]) R {

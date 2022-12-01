@@ -276,25 +276,46 @@ func genValue() {
 				)
 			}
 
-			if ts.Info.Method.Get("AsTuple").IsEmpty() {
-				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			if privateFields.Size() < max.Product {
+				if ts.Info.Method.Get("AsTuple").IsEmpty() {
+					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-				arity := fp.Min(privateFields.Size(), max.Product-1)
-				tp := iterator.Map(seq.Iterator(privateFields).Take(arity), func(v metafp.StructField) string {
-					return w.TypeName(workingPackage, v.Type.Type)
-				}).MakeString(",")
+					arity := fp.Min(privateFields.Size(), max.Product-1)
+					tp := iterator.Map(seq.Iterator(privateFields).Take(arity), func(v metafp.StructField) string {
+						return w.TypeName(workingPackage, v.Type.Type)
+					}).MakeString(",")
 
-				fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
-					return fmt.Sprintf("r.%s", f.Name)
-				})).Take(arity).MakeString(",")
+					fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
+						return fmt.Sprintf("r.%s", f.Name)
+					})).Take(arity).MakeString(",")
 
-				fmt.Fprintf(w, `
+					fmt.Fprintf(w, `
 					func(r %s) AsTuple() %s.Tuple%d[%s] {
 						return %s.Tuple%d(%s)
 					}
 
 				`, valuereceiver, fppkg, arity, tp,
-					asalias, arity, fields,
+						asalias, arity, fields,
+					)
+				}
+			}
+			if ts.Info.Method.Get("Unapply").IsEmpty() {
+
+				tp := seq.Map(privateFields, func(v metafp.StructField) string {
+					return w.TypeName(workingPackage, v.Type.Type)
+				}).MakeString(",")
+
+				fields := seq.Map(privateFields, func(f metafp.StructField) string {
+					return fmt.Sprintf("r.%s", f.Name)
+				}).MakeString(",")
+
+				fmt.Fprintf(w, `
+					func(r %s) Unapply() (%s) {
+						return %s
+					}
+
+				`, valuereceiver, tp,
+					fields,
 				)
 			}
 
@@ -334,25 +355,48 @@ func genValue() {
 				)
 			}
 
-			if !isMethodDefined(workingPackage, builderTypeName, "FromTuple") {
-				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			if privateFields.Size() < max.Product {
 
-				arity := fp.Min(privateFields.Size(), max.Product-1)
+				if !isMethodDefined(workingPackage, builderTypeName, "FromTuple") {
+					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-				tp := iterator.Map(seq.Iterator(privateFields).Take(arity), func(v metafp.StructField) string {
-					return w.TypeName(workingPackage, v.Type.Type)
-				}).MakeString(",")
+					arity := fp.Min(privateFields.Size(), max.Product-1)
 
-				fields := iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), seq.Iterator(privateFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
-					return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
-				}).Take(arity).MakeString("\n")
+					tp := iterator.Map(seq.Iterator(privateFields).Take(arity), func(v metafp.StructField) string {
+						return w.TypeName(workingPackage, v.Type.Type)
+					}).MakeString(",")
 
-				fmt.Fprintf(w, `
+					fields := iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), seq.Iterator(privateFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+						return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
+					}).Take(arity).MakeString("\n")
+
+					fmt.Fprintf(w, `
 					func (r %s) FromTuple(t %s.Tuple%d[%s] ) %s {
 						%s
 						return r
 					}
 				`, builderreceiver, fppkg, arity, tp, builderreceiver,
+						fields,
+					)
+				}
+			}
+
+			if !isMethodDefined(workingPackage, builderTypeName, "Apply") {
+
+				tp := iterator.Map(seq.Iterator(privateFields), func(v metafp.StructField) string {
+					return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPackage, v.Type.Type))
+				}).MakeString(",")
+
+				fields := iterator.Map(iterator.Zip(iterator.Range(0, privateFields.Size()), seq.Iterator(privateFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+					return fmt.Sprintf("r.%s = %s", f.I2.Name, f.I2.Name)
+				}).MakeString("\n")
+
+				fmt.Fprintf(w, `
+					func (r %s) Apply( %s ) %s {
+						%s
+						return r
+					}
+				`, builderreceiver, tp, builderreceiver,
 					fields,
 				)
 			}
