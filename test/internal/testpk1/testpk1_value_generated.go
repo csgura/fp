@@ -1215,6 +1215,761 @@ func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
 	return r
 }
 
+type Over21Builder Over21
+
+type Over21Mutable struct {
+	I1  int
+	I2  int
+	I3  int
+	I4  int
+	I5  int
+	I6  int
+	I7  int
+	I8  int
+	I9  int
+	I10 int
+	I11 int
+	I12 int
+	I13 int
+	I14 int
+	I15 int
+	I16 int
+	I17 int
+	I18 int
+	I19 int
+	I20 int
+	I21 int
+	I22 int
+	I23 int
+	I24 int
+	I25 int
+	I26 int
+	I27 int
+	I28 int
+	I29 int
+	I30 int
+}
+
+func (r Over21Builder) Build() Over21 {
+	return Over21(r)
+}
+
+func (r Over21) Builder() Over21Builder {
+	return Over21Builder(r)
+}
+
+func (r Over21) I1() int {
+	return r.i1
+}
+
+func (r Over21) WithI1(v int) Over21 {
+	r.i1 = v
+	return r
+}
+
+func (r Over21Builder) I1(v int) Over21Builder {
+	r.i1 = v
+	return r
+}
+
+func (r Over21) I2() int {
+	return r.i2
+}
+
+func (r Over21) WithI2(v int) Over21 {
+	r.i2 = v
+	return r
+}
+
+func (r Over21Builder) I2(v int) Over21Builder {
+	r.i2 = v
+	return r
+}
+
+func (r Over21) I3() int {
+	return r.i3
+}
+
+func (r Over21) WithI3(v int) Over21 {
+	r.i3 = v
+	return r
+}
+
+func (r Over21Builder) I3(v int) Over21Builder {
+	r.i3 = v
+	return r
+}
+
+func (r Over21) I4() int {
+	return r.i4
+}
+
+func (r Over21) WithI4(v int) Over21 {
+	r.i4 = v
+	return r
+}
+
+func (r Over21Builder) I4(v int) Over21Builder {
+	r.i4 = v
+	return r
+}
+
+func (r Over21) I5() int {
+	return r.i5
+}
+
+func (r Over21) WithI5(v int) Over21 {
+	r.i5 = v
+	return r
+}
+
+func (r Over21Builder) I5(v int) Over21Builder {
+	r.i5 = v
+	return r
+}
+
+func (r Over21) I6() int {
+	return r.i6
+}
+
+func (r Over21) WithI6(v int) Over21 {
+	r.i6 = v
+	return r
+}
+
+func (r Over21Builder) I6(v int) Over21Builder {
+	r.i6 = v
+	return r
+}
+
+func (r Over21) I7() int {
+	return r.i7
+}
+
+func (r Over21) WithI7(v int) Over21 {
+	r.i7 = v
+	return r
+}
+
+func (r Over21Builder) I7(v int) Over21Builder {
+	r.i7 = v
+	return r
+}
+
+func (r Over21) I8() int {
+	return r.i8
+}
+
+func (r Over21) WithI8(v int) Over21 {
+	r.i8 = v
+	return r
+}
+
+func (r Over21Builder) I8(v int) Over21Builder {
+	r.i8 = v
+	return r
+}
+
+func (r Over21) I9() int {
+	return r.i9
+}
+
+func (r Over21) WithI9(v int) Over21 {
+	r.i9 = v
+	return r
+}
+
+func (r Over21Builder) I9(v int) Over21Builder {
+	r.i9 = v
+	return r
+}
+
+func (r Over21) I10() int {
+	return r.i10
+}
+
+func (r Over21) WithI10(v int) Over21 {
+	r.i10 = v
+	return r
+}
+
+func (r Over21Builder) I10(v int) Over21Builder {
+	r.i10 = v
+	return r
+}
+
+func (r Over21) I11() int {
+	return r.i11
+}
+
+func (r Over21) WithI11(v int) Over21 {
+	r.i11 = v
+	return r
+}
+
+func (r Over21Builder) I11(v int) Over21Builder {
+	r.i11 = v
+	return r
+}
+
+func (r Over21) I12() int {
+	return r.i12
+}
+
+func (r Over21) WithI12(v int) Over21 {
+	r.i12 = v
+	return r
+}
+
+func (r Over21Builder) I12(v int) Over21Builder {
+	r.i12 = v
+	return r
+}
+
+func (r Over21) I13() int {
+	return r.i13
+}
+
+func (r Over21) WithI13(v int) Over21 {
+	r.i13 = v
+	return r
+}
+
+func (r Over21Builder) I13(v int) Over21Builder {
+	r.i13 = v
+	return r
+}
+
+func (r Over21) I14() int {
+	return r.i14
+}
+
+func (r Over21) WithI14(v int) Over21 {
+	r.i14 = v
+	return r
+}
+
+func (r Over21Builder) I14(v int) Over21Builder {
+	r.i14 = v
+	return r
+}
+
+func (r Over21) I15() int {
+	return r.i15
+}
+
+func (r Over21) WithI15(v int) Over21 {
+	r.i15 = v
+	return r
+}
+
+func (r Over21Builder) I15(v int) Over21Builder {
+	r.i15 = v
+	return r
+}
+
+func (r Over21) I16() int {
+	return r.i16
+}
+
+func (r Over21) WithI16(v int) Over21 {
+	r.i16 = v
+	return r
+}
+
+func (r Over21Builder) I16(v int) Over21Builder {
+	r.i16 = v
+	return r
+}
+
+func (r Over21) I17() int {
+	return r.i17
+}
+
+func (r Over21) WithI17(v int) Over21 {
+	r.i17 = v
+	return r
+}
+
+func (r Over21Builder) I17(v int) Over21Builder {
+	r.i17 = v
+	return r
+}
+
+func (r Over21) I18() int {
+	return r.i18
+}
+
+func (r Over21) WithI18(v int) Over21 {
+	r.i18 = v
+	return r
+}
+
+func (r Over21Builder) I18(v int) Over21Builder {
+	r.i18 = v
+	return r
+}
+
+func (r Over21) I19() int {
+	return r.i19
+}
+
+func (r Over21) WithI19(v int) Over21 {
+	r.i19 = v
+	return r
+}
+
+func (r Over21Builder) I19(v int) Over21Builder {
+	r.i19 = v
+	return r
+}
+
+func (r Over21) I20() int {
+	return r.i20
+}
+
+func (r Over21) WithI20(v int) Over21 {
+	r.i20 = v
+	return r
+}
+
+func (r Over21Builder) I20(v int) Over21Builder {
+	r.i20 = v
+	return r
+}
+
+func (r Over21) I21() int {
+	return r.i21
+}
+
+func (r Over21) WithI21(v int) Over21 {
+	r.i21 = v
+	return r
+}
+
+func (r Over21Builder) I21(v int) Over21Builder {
+	r.i21 = v
+	return r
+}
+
+func (r Over21) I22() int {
+	return r.i22
+}
+
+func (r Over21) WithI22(v int) Over21 {
+	r.i22 = v
+	return r
+}
+
+func (r Over21Builder) I22(v int) Over21Builder {
+	r.i22 = v
+	return r
+}
+
+func (r Over21) I23() int {
+	return r.i23
+}
+
+func (r Over21) WithI23(v int) Over21 {
+	r.i23 = v
+	return r
+}
+
+func (r Over21Builder) I23(v int) Over21Builder {
+	r.i23 = v
+	return r
+}
+
+func (r Over21) I24() int {
+	return r.i24
+}
+
+func (r Over21) WithI24(v int) Over21 {
+	r.i24 = v
+	return r
+}
+
+func (r Over21Builder) I24(v int) Over21Builder {
+	r.i24 = v
+	return r
+}
+
+func (r Over21) I25() int {
+	return r.i25
+}
+
+func (r Over21) WithI25(v int) Over21 {
+	r.i25 = v
+	return r
+}
+
+func (r Over21Builder) I25(v int) Over21Builder {
+	r.i25 = v
+	return r
+}
+
+func (r Over21) I26() int {
+	return r.i26
+}
+
+func (r Over21) WithI26(v int) Over21 {
+	r.i26 = v
+	return r
+}
+
+func (r Over21Builder) I26(v int) Over21Builder {
+	r.i26 = v
+	return r
+}
+
+func (r Over21) I27() int {
+	return r.i27
+}
+
+func (r Over21) WithI27(v int) Over21 {
+	r.i27 = v
+	return r
+}
+
+func (r Over21Builder) I27(v int) Over21Builder {
+	r.i27 = v
+	return r
+}
+
+func (r Over21) I28() int {
+	return r.i28
+}
+
+func (r Over21) WithI28(v int) Over21 {
+	r.i28 = v
+	return r
+}
+
+func (r Over21Builder) I28(v int) Over21Builder {
+	r.i28 = v
+	return r
+}
+
+func (r Over21) I29() int {
+	return r.i29
+}
+
+func (r Over21) WithI29(v int) Over21 {
+	r.i29 = v
+	return r
+}
+
+func (r Over21Builder) I29(v int) Over21Builder {
+	r.i29 = v
+	return r
+}
+
+func (r Over21) I30() int {
+	return r.i30
+}
+
+func (r Over21) WithI30(v int) Over21 {
+	r.i30 = v
+	return r
+}
+
+func (r Over21Builder) I30(v int) Over21Builder {
+	r.i30 = v
+	return r
+}
+
+func (r Over21) String() string {
+	return fmt.Sprintf("Over21(i1=%v, i2=%v, i3=%v, i4=%v, i5=%v, i6=%v, i7=%v, i8=%v, i9=%v, i10=%v, i11=%v, i12=%v, i13=%v, i14=%v, i15=%v, i16=%v, i17=%v, i18=%v, i19=%v, i20=%v, i21=%v, i22=%v, i23=%v, i24=%v, i25=%v, i26=%v, i27=%v, i28=%v, i29=%v, i30=%v)", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
+}
+
+func (r Over21) AsTuple() fp.Tuple21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int] {
+	return as.Tuple21(r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21)
+}
+
+func (r Over21) AsMutable() Over21Mutable {
+	return Over21Mutable{
+		I1:  r.i1,
+		I2:  r.i2,
+		I3:  r.i3,
+		I4:  r.i4,
+		I5:  r.i5,
+		I6:  r.i6,
+		I7:  r.i7,
+		I8:  r.i8,
+		I9:  r.i9,
+		I10: r.i10,
+		I11: r.i11,
+		I12: r.i12,
+		I13: r.i13,
+		I14: r.i14,
+		I15: r.i15,
+		I16: r.i16,
+		I17: r.i17,
+		I18: r.i18,
+		I19: r.i19,
+		I20: r.i20,
+		I21: r.i21,
+		I22: r.i22,
+		I23: r.i23,
+		I24: r.i24,
+		I25: r.i25,
+		I26: r.i26,
+		I27: r.i27,
+		I28: r.i28,
+		I29: r.i29,
+		I30: r.i30,
+	}
+}
+
+func (r Over21Mutable) AsImmutable() Over21 {
+	return Over21{
+		i1:  r.I1,
+		i2:  r.I2,
+		i3:  r.I3,
+		i4:  r.I4,
+		i5:  r.I5,
+		i6:  r.I6,
+		i7:  r.I7,
+		i8:  r.I8,
+		i9:  r.I9,
+		i10: r.I10,
+		i11: r.I11,
+		i12: r.I12,
+		i13: r.I13,
+		i14: r.I14,
+		i15: r.I15,
+		i16: r.I16,
+		i17: r.I17,
+		i18: r.I18,
+		i19: r.I19,
+		i20: r.I20,
+		i21: r.I21,
+		i22: r.I22,
+		i23: r.I23,
+		i24: r.I24,
+		i25: r.I25,
+		i26: r.I26,
+		i27: r.I27,
+		i28: r.I28,
+		i29: r.I29,
+		i30: r.I30,
+	}
+}
+
+func (r Over21Builder) FromTuple(t fp.Tuple21[int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int]) Over21Builder {
+	r.i1 = t.I1
+	r.i2 = t.I2
+	r.i3 = t.I3
+	r.i4 = t.I4
+	r.i5 = t.I5
+	r.i6 = t.I6
+	r.i7 = t.I7
+	r.i8 = t.I8
+	r.i9 = t.I9
+	r.i10 = t.I10
+	r.i11 = t.I11
+	r.i12 = t.I12
+	r.i13 = t.I13
+	r.i14 = t.I14
+	r.i15 = t.I15
+	r.i16 = t.I16
+	r.i17 = t.I17
+	r.i18 = t.I18
+	r.i19 = t.I19
+	r.i20 = t.I20
+	r.i21 = t.I21
+	return r
+}
+
+func (r Over21) AsMap() map[string]any {
+	return map[string]any{
+		"i1":  r.i1,
+		"i2":  r.i2,
+		"i3":  r.i3,
+		"i4":  r.i4,
+		"i5":  r.i5,
+		"i6":  r.i6,
+		"i7":  r.i7,
+		"i8":  r.i8,
+		"i9":  r.i9,
+		"i10": r.i10,
+		"i11": r.i11,
+		"i12": r.i12,
+		"i13": r.i13,
+		"i14": r.i14,
+		"i15": r.i15,
+		"i16": r.i16,
+		"i17": r.i17,
+		"i18": r.i18,
+		"i19": r.i19,
+		"i20": r.i20,
+		"i21": r.i21,
+		"i22": r.i22,
+		"i23": r.i23,
+		"i24": r.i24,
+		"i25": r.i25,
+		"i26": r.i26,
+		"i27": r.i27,
+		"i28": r.i28,
+		"i29": r.i29,
+		"i30": r.i30,
+	}
+}
+
+func (r Over21Builder) FromMap(m map[string]any) Over21Builder {
+
+	if v, ok := m["i1"].(int); ok {
+		r.i1 = v
+	}
+
+	if v, ok := m["i2"].(int); ok {
+		r.i2 = v
+	}
+
+	if v, ok := m["i3"].(int); ok {
+		r.i3 = v
+	}
+
+	if v, ok := m["i4"].(int); ok {
+		r.i4 = v
+	}
+
+	if v, ok := m["i5"].(int); ok {
+		r.i5 = v
+	}
+
+	if v, ok := m["i6"].(int); ok {
+		r.i6 = v
+	}
+
+	if v, ok := m["i7"].(int); ok {
+		r.i7 = v
+	}
+
+	if v, ok := m["i8"].(int); ok {
+		r.i8 = v
+	}
+
+	if v, ok := m["i9"].(int); ok {
+		r.i9 = v
+	}
+
+	if v, ok := m["i10"].(int); ok {
+		r.i10 = v
+	}
+
+	if v, ok := m["i11"].(int); ok {
+		r.i11 = v
+	}
+
+	if v, ok := m["i12"].(int); ok {
+		r.i12 = v
+	}
+
+	if v, ok := m["i13"].(int); ok {
+		r.i13 = v
+	}
+
+	if v, ok := m["i14"].(int); ok {
+		r.i14 = v
+	}
+
+	if v, ok := m["i15"].(int); ok {
+		r.i15 = v
+	}
+
+	if v, ok := m["i16"].(int); ok {
+		r.i16 = v
+	}
+
+	if v, ok := m["i17"].(int); ok {
+		r.i17 = v
+	}
+
+	if v, ok := m["i18"].(int); ok {
+		r.i18 = v
+	}
+
+	if v, ok := m["i19"].(int); ok {
+		r.i19 = v
+	}
+
+	if v, ok := m["i20"].(int); ok {
+		r.i20 = v
+	}
+
+	if v, ok := m["i21"].(int); ok {
+		r.i21 = v
+	}
+
+	if v, ok := m["i22"].(int); ok {
+		r.i22 = v
+	}
+
+	if v, ok := m["i23"].(int); ok {
+		r.i23 = v
+	}
+
+	if v, ok := m["i24"].(int); ok {
+		r.i24 = v
+	}
+
+	if v, ok := m["i25"].(int); ok {
+		r.i25 = v
+	}
+
+	if v, ok := m["i26"].(int); ok {
+		r.i26 = v
+	}
+
+	if v, ok := m["i27"].(int); ok {
+		r.i27 = v
+	}
+
+	if v, ok := m["i28"].(int); ok {
+		r.i28 = v
+	}
+
+	if v, ok := m["i29"].(int); ok {
+		r.i29 = v
+	}
+
+	if v, ok := m["i30"].(int); ok {
+		r.i30 = v
+	}
+
+	return r
+}
+
+func (r Over21) AsLabelled() fp.Labelled21[NamedI1[int], NamedI2[int], NamedI3[int], NamedI4[int], NamedI5[int], NamedI6[int], NamedI7[int], NamedI8[int], NamedI9[int], NamedI10[int], NamedI11[int], NamedI12[int], NamedI13[int], NamedI14[int], NamedI15[int], NamedI16[int], NamedI17[int], NamedI18[int], NamedI19[int], NamedI20[int], NamedI21[int]] {
+	return as.Labelled21(NamedI1[int]{r.i1}, NamedI2[int]{r.i2}, NamedI3[int]{r.i3}, NamedI4[int]{r.i4}, NamedI5[int]{r.i5}, NamedI6[int]{r.i6}, NamedI7[int]{r.i7}, NamedI8[int]{r.i8}, NamedI9[int]{r.i9}, NamedI10[int]{r.i10}, NamedI11[int]{r.i11}, NamedI12[int]{r.i12}, NamedI13[int]{r.i13}, NamedI14[int]{r.i14}, NamedI15[int]{r.i15}, NamedI16[int]{r.i16}, NamedI17[int]{r.i17}, NamedI18[int]{r.i18}, NamedI19[int]{r.i19}, NamedI20[int]{r.i20}, NamedI21[int]{r.i21})
+}
+
+func (r Over21Builder) FromLabelled(t fp.Labelled21[NamedI1[int], NamedI2[int], NamedI3[int], NamedI4[int], NamedI5[int], NamedI6[int], NamedI7[int], NamedI8[int], NamedI9[int], NamedI10[int], NamedI11[int], NamedI12[int], NamedI13[int], NamedI14[int], NamedI15[int], NamedI16[int], NamedI17[int], NamedI18[int], NamedI19[int], NamedI20[int], NamedI21[int]]) Over21Builder {
+	r.i1 = t.I1.Value()
+	r.i2 = t.I2.Value()
+	r.i3 = t.I3.Value()
+	r.i4 = t.I4.Value()
+	r.i5 = t.I5.Value()
+	r.i6 = t.I6.Value()
+	r.i7 = t.I7.Value()
+	r.i8 = t.I8.Value()
+	r.i9 = t.I9.Value()
+	r.i10 = t.I10.Value()
+	r.i11 = t.I11.Value()
+	r.i12 = t.I12.Value()
+	r.i13 = t.I13.Value()
+	r.i14 = t.I14.Value()
+	r.i15 = t.I15.Value()
+	r.i16 = t.I16.Value()
+	r.i17 = t.I17.Value()
+	r.i18 = t.I18.Value()
+	r.i19 = t.I19.Value()
+	r.i20 = t.I20.Value()
+	r.i21 = t.I21.Value()
+	return r
+}
+
 type NamedAddr[T any] fp.Tuple1[T]
 
 func (r NamedAddr[T]) Name() string {
@@ -1237,6 +1992,396 @@ func (r NamedEmptySeq[T]) Value() T {
 	return r.I1
 }
 func (r NamedEmptySeq[T]) WithValue(v T) NamedEmptySeq[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI1[T any] fp.Tuple1[T]
+
+func (r NamedI1[T]) Name() string {
+	return "i1"
+}
+func (r NamedI1[T]) Value() T {
+	return r.I1
+}
+func (r NamedI1[T]) WithValue(v T) NamedI1[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI10[T any] fp.Tuple1[T]
+
+func (r NamedI10[T]) Name() string {
+	return "i10"
+}
+func (r NamedI10[T]) Value() T {
+	return r.I1
+}
+func (r NamedI10[T]) WithValue(v T) NamedI10[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI11[T any] fp.Tuple1[T]
+
+func (r NamedI11[T]) Name() string {
+	return "i11"
+}
+func (r NamedI11[T]) Value() T {
+	return r.I1
+}
+func (r NamedI11[T]) WithValue(v T) NamedI11[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI12[T any] fp.Tuple1[T]
+
+func (r NamedI12[T]) Name() string {
+	return "i12"
+}
+func (r NamedI12[T]) Value() T {
+	return r.I1
+}
+func (r NamedI12[T]) WithValue(v T) NamedI12[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI13[T any] fp.Tuple1[T]
+
+func (r NamedI13[T]) Name() string {
+	return "i13"
+}
+func (r NamedI13[T]) Value() T {
+	return r.I1
+}
+func (r NamedI13[T]) WithValue(v T) NamedI13[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI14[T any] fp.Tuple1[T]
+
+func (r NamedI14[T]) Name() string {
+	return "i14"
+}
+func (r NamedI14[T]) Value() T {
+	return r.I1
+}
+func (r NamedI14[T]) WithValue(v T) NamedI14[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI15[T any] fp.Tuple1[T]
+
+func (r NamedI15[T]) Name() string {
+	return "i15"
+}
+func (r NamedI15[T]) Value() T {
+	return r.I1
+}
+func (r NamedI15[T]) WithValue(v T) NamedI15[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI16[T any] fp.Tuple1[T]
+
+func (r NamedI16[T]) Name() string {
+	return "i16"
+}
+func (r NamedI16[T]) Value() T {
+	return r.I1
+}
+func (r NamedI16[T]) WithValue(v T) NamedI16[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI17[T any] fp.Tuple1[T]
+
+func (r NamedI17[T]) Name() string {
+	return "i17"
+}
+func (r NamedI17[T]) Value() T {
+	return r.I1
+}
+func (r NamedI17[T]) WithValue(v T) NamedI17[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI18[T any] fp.Tuple1[T]
+
+func (r NamedI18[T]) Name() string {
+	return "i18"
+}
+func (r NamedI18[T]) Value() T {
+	return r.I1
+}
+func (r NamedI18[T]) WithValue(v T) NamedI18[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI19[T any] fp.Tuple1[T]
+
+func (r NamedI19[T]) Name() string {
+	return "i19"
+}
+func (r NamedI19[T]) Value() T {
+	return r.I1
+}
+func (r NamedI19[T]) WithValue(v T) NamedI19[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI2[T any] fp.Tuple1[T]
+
+func (r NamedI2[T]) Name() string {
+	return "i2"
+}
+func (r NamedI2[T]) Value() T {
+	return r.I1
+}
+func (r NamedI2[T]) WithValue(v T) NamedI2[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI20[T any] fp.Tuple1[T]
+
+func (r NamedI20[T]) Name() string {
+	return "i20"
+}
+func (r NamedI20[T]) Value() T {
+	return r.I1
+}
+func (r NamedI20[T]) WithValue(v T) NamedI20[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI21[T any] fp.Tuple1[T]
+
+func (r NamedI21[T]) Name() string {
+	return "i21"
+}
+func (r NamedI21[T]) Value() T {
+	return r.I1
+}
+func (r NamedI21[T]) WithValue(v T) NamedI21[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI22[T any] fp.Tuple1[T]
+
+func (r NamedI22[T]) Name() string {
+	return "i22"
+}
+func (r NamedI22[T]) Value() T {
+	return r.I1
+}
+func (r NamedI22[T]) WithValue(v T) NamedI22[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI23[T any] fp.Tuple1[T]
+
+func (r NamedI23[T]) Name() string {
+	return "i23"
+}
+func (r NamedI23[T]) Value() T {
+	return r.I1
+}
+func (r NamedI23[T]) WithValue(v T) NamedI23[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI24[T any] fp.Tuple1[T]
+
+func (r NamedI24[T]) Name() string {
+	return "i24"
+}
+func (r NamedI24[T]) Value() T {
+	return r.I1
+}
+func (r NamedI24[T]) WithValue(v T) NamedI24[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI25[T any] fp.Tuple1[T]
+
+func (r NamedI25[T]) Name() string {
+	return "i25"
+}
+func (r NamedI25[T]) Value() T {
+	return r.I1
+}
+func (r NamedI25[T]) WithValue(v T) NamedI25[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI26[T any] fp.Tuple1[T]
+
+func (r NamedI26[T]) Name() string {
+	return "i26"
+}
+func (r NamedI26[T]) Value() T {
+	return r.I1
+}
+func (r NamedI26[T]) WithValue(v T) NamedI26[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI27[T any] fp.Tuple1[T]
+
+func (r NamedI27[T]) Name() string {
+	return "i27"
+}
+func (r NamedI27[T]) Value() T {
+	return r.I1
+}
+func (r NamedI27[T]) WithValue(v T) NamedI27[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI28[T any] fp.Tuple1[T]
+
+func (r NamedI28[T]) Name() string {
+	return "i28"
+}
+func (r NamedI28[T]) Value() T {
+	return r.I1
+}
+func (r NamedI28[T]) WithValue(v T) NamedI28[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI29[T any] fp.Tuple1[T]
+
+func (r NamedI29[T]) Name() string {
+	return "i29"
+}
+func (r NamedI29[T]) Value() T {
+	return r.I1
+}
+func (r NamedI29[T]) WithValue(v T) NamedI29[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI3[T any] fp.Tuple1[T]
+
+func (r NamedI3[T]) Name() string {
+	return "i3"
+}
+func (r NamedI3[T]) Value() T {
+	return r.I1
+}
+func (r NamedI3[T]) WithValue(v T) NamedI3[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI30[T any] fp.Tuple1[T]
+
+func (r NamedI30[T]) Name() string {
+	return "i30"
+}
+func (r NamedI30[T]) Value() T {
+	return r.I1
+}
+func (r NamedI30[T]) WithValue(v T) NamedI30[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI4[T any] fp.Tuple1[T]
+
+func (r NamedI4[T]) Name() string {
+	return "i4"
+}
+func (r NamedI4[T]) Value() T {
+	return r.I1
+}
+func (r NamedI4[T]) WithValue(v T) NamedI4[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI5[T any] fp.Tuple1[T]
+
+func (r NamedI5[T]) Name() string {
+	return "i5"
+}
+func (r NamedI5[T]) Value() T {
+	return r.I1
+}
+func (r NamedI5[T]) WithValue(v T) NamedI5[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI6[T any] fp.Tuple1[T]
+
+func (r NamedI6[T]) Name() string {
+	return "i6"
+}
+func (r NamedI6[T]) Value() T {
+	return r.I1
+}
+func (r NamedI6[T]) WithValue(v T) NamedI6[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI7[T any] fp.Tuple1[T]
+
+func (r NamedI7[T]) Name() string {
+	return "i7"
+}
+func (r NamedI7[T]) Value() T {
+	return r.I1
+}
+func (r NamedI7[T]) WithValue(v T) NamedI7[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI8[T any] fp.Tuple1[T]
+
+func (r NamedI8[T]) Name() string {
+	return "i8"
+}
+func (r NamedI8[T]) Value() T {
+	return r.I1
+}
+func (r NamedI8[T]) WithValue(v T) NamedI8[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedI9[T any] fp.Tuple1[T]
+
+func (r NamedI9[T]) Name() string {
+	return "i9"
+}
+func (r NamedI9[T]) Value() T {
+	return r.I1
+}
+func (r NamedI9[T]) WithValue(v T) NamedI9[T] {
 	r.I1 = v
 	return r
 }
