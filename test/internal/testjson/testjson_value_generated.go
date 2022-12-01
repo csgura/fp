@@ -148,6 +148,10 @@ func (r Root) AsTuple() fp.Tuple8[int, string, float64, bool, *int, []int, map[s
 	return as.Tuple8(r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
 }
 
+func (r Root) Unapply() (int, string, float64, bool, *int, []int, map[string]int, Child) {
+	return r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h
+}
+
 func (r Root) AsMutable() RootMutable {
 	return RootMutable{
 		A: r.a,
@@ -183,6 +187,18 @@ func (r RootBuilder) FromTuple(t fp.Tuple8[int, string, float64, bool, *int, []i
 	r.f = t.I6
 	r.g = t.I7
 	r.h = t.I8
+	return r
+}
+
+func (r RootBuilder) Apply(a int, b string, c float64, d bool, e *int, f []int, g map[string]int, h Child) RootBuilder {
+	r.a = a
+	r.b = b
+	r.c = c
+	r.d = d
+	r.e = e
+	r.f = f
+	r.g = g
+	r.h = h
 	return r
 }
 
@@ -303,6 +319,10 @@ func (r Child) AsTuple() fp.Tuple2[map[string]any, any] {
 	return as.Tuple2(r.a, r.b)
 }
 
+func (r Child) Unapply() (map[string]any, any) {
+	return r.a, r.b
+}
+
 func (r Child) AsMutable() ChildMutable {
 	return ChildMutable{
 		A: r.a,
@@ -320,6 +340,12 @@ func (r ChildMutable) AsImmutable() Child {
 func (r ChildBuilder) FromTuple(t fp.Tuple2[map[string]any, any]) ChildBuilder {
 	r.a = t.I1
 	r.b = t.I2
+	return r
+}
+
+func (r ChildBuilder) Apply(a map[string]any, b any) ChildBuilder {
+	r.a = a
+	r.b = b
 	return r
 }
 
@@ -419,6 +445,10 @@ func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
 	return as.Tuple3(r.name, r.left, r.right)
 }
 
+func (r Node) Unapply() (string, *Node, *Node) {
+	return r.name, r.left, r.right
+}
+
 func (r Node) AsMutable() NodeMutable {
 	return NodeMutable{
 		Name:  r.name,
@@ -439,6 +469,13 @@ func (r NodeBuilder) FromTuple(t fp.Tuple3[string, *Node, *Node]) NodeBuilder {
 	r.name = t.I1
 	r.left = t.I2
 	r.right = t.I3
+	return r
+}
+
+func (r NodeBuilder) Apply(name string, left *Node, right *Node) NodeBuilder {
+	r.name = name
+	r.left = left
+	r.right = right
 	return r
 }
 
@@ -514,6 +551,10 @@ func (r Tree) AsTuple() fp.Tuple1[*Node] {
 	return as.Tuple1(r.root)
 }
 
+func (r Tree) Unapply() *Node {
+	return r.root
+}
+
 func (r Tree) AsMutable() TreeMutable {
 	return TreeMutable{
 		Root: r.root,
@@ -528,6 +569,11 @@ func (r TreeMutable) AsImmutable() Tree {
 
 func (r TreeBuilder) FromTuple(t fp.Tuple1[*Node]) TreeBuilder {
 	r.root = t.I1
+	return r
+}
+
+func (r TreeBuilder) Apply(root *Node) TreeBuilder {
+	r.root = root
 	return r
 }
 
@@ -606,6 +652,10 @@ func (r Entry[V]) AsTuple() fp.Tuple2[string, V] {
 	return as.Tuple2(r.name, r.value)
 }
 
+func (r Entry[V]) Unapply() (string, V) {
+	return r.name, r.value
+}
+
 func (r Entry[V]) AsMutable() EntryMutable[V] {
 	return EntryMutable[V]{
 		Name:  r.name,
@@ -623,6 +673,12 @@ func (r EntryMutable[V]) AsImmutable() Entry[V] {
 func (r EntryBuilder[V]) FromTuple(t fp.Tuple2[string, V]) EntryBuilder[V] {
 	r.name = t.I1
 	r.value = t.I2
+	return r
+}
+
+func (r EntryBuilder[V]) Apply(name string, value V) EntryBuilder[V] {
+	r.name = name
+	r.value = value
 	return r
 }
 
@@ -707,6 +763,10 @@ func (r NotUsedParam[K, V]) AsTuple() fp.Tuple2[string, V] {
 	return as.Tuple2(r.param, r.value)
 }
 
+func (r NotUsedParam[K, V]) Unapply() (string, V) {
+	return r.param, r.value
+}
+
 func (r NotUsedParam[K, V]) AsMutable() NotUsedParamMutable[K, V] {
 	return NotUsedParamMutable[K, V]{
 		Param: r.param,
@@ -724,6 +784,12 @@ func (r NotUsedParamMutable[K, V]) AsImmutable() NotUsedParam[K, V] {
 func (r NotUsedParamBuilder[K, V]) FromTuple(t fp.Tuple2[string, V]) NotUsedParamBuilder[K, V] {
 	r.param = t.I1
 	r.value = t.I2
+	return r
+}
+
+func (r NotUsedParamBuilder[K, V]) Apply(param string, value V) NotUsedParamBuilder[K, V] {
+	r.param = param
+	r.value = value
 	return r
 }
 
@@ -823,6 +889,10 @@ func (r Movie) AsTuple() fp.Tuple3[string, Entry[string], NotUsedParam[int, stri
 	return as.Tuple3(r.name, r.casting, r.notUsed)
 }
 
+func (r Movie) Unapply() (string, Entry[string], NotUsedParam[int, string]) {
+	return r.name, r.casting, r.notUsed
+}
+
 func (r Movie) AsMutable() MovieMutable {
 	return MovieMutable{
 		Name:    r.name,
@@ -843,6 +913,13 @@ func (r MovieBuilder) FromTuple(t fp.Tuple3[string, Entry[string], NotUsedParam[
 	r.name = t.I1
 	r.casting = t.I2
 	r.notUsed = t.I3
+	return r
+}
+
+func (r MovieBuilder) Apply(name string, casting Entry[string], notUsed NotUsedParam[int, string]) MovieBuilder {
+	r.name = name
+	r.casting = casting
+	r.notUsed = notUsed
 	return r
 }
 

@@ -65,6 +65,10 @@ func (r DecoderContext) AsTuple() fp.Tuple1[fp.Option[map[string]json.RawMessage
 	return as.Tuple1(r.workingObject)
 }
 
+func (r DecoderContext) Unapply() fp.Option[map[string]json.RawMessage] {
+	return r.workingObject
+}
+
 func (r DecoderContext) AsMutable() DecoderContextMutable {
 	return DecoderContextMutable{
 		WorkingObject: r.workingObject,
@@ -79,6 +83,11 @@ func (r DecoderContextMutable) AsImmutable() DecoderContext {
 
 func (r DecoderContextBuilder) FromTuple(t fp.Tuple1[fp.Option[map[string]json.RawMessage]]) DecoderContextBuilder {
 	r.workingObject = t.I1
+	return r
+}
+
+func (r DecoderContextBuilder) Apply(workingObject fp.Option[map[string]json.RawMessage]) DecoderContextBuilder {
+	r.workingObject = workingObject
 	return r
 }
 

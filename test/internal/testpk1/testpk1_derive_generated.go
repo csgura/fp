@@ -854,7 +854,34 @@ var EncoderOver21 = js.EncoderContraMap(
 																					js.EncoderNamed[NamedI20[int]](js.EncoderNumber[int]()),
 																					js.EncoderHConsLabelled(
 																						js.EncoderNamed[NamedI21[int]](js.EncoderNumber[int]()),
-																						js.EncoderHNil,
+																						js.EncoderHConsLabelled(
+																							js.EncoderNamed[NamedI22[int]](js.EncoderNumber[int]()),
+																							js.EncoderHConsLabelled(
+																								js.EncoderNamed[NamedI23[int]](js.EncoderNumber[int]()),
+																								js.EncoderHConsLabelled(
+																									js.EncoderNamed[NamedI24[int]](js.EncoderNumber[int]()),
+																									js.EncoderHConsLabelled(
+																										js.EncoderNamed[NamedI25[int]](js.EncoderNumber[int]()),
+																										js.EncoderHConsLabelled(
+																											js.EncoderNamed[NamedI26[int]](js.EncoderNumber[int]()),
+																											js.EncoderHConsLabelled(
+																												js.EncoderNamed[NamedI27[int]](js.EncoderNumber[int]()),
+																												js.EncoderHConsLabelled(
+																													js.EncoderNamed[NamedI28[int]](js.EncoderNumber[int]()),
+																													js.EncoderHConsLabelled(
+																														js.EncoderNamed[NamedI29[int]](js.EncoderNumber[int]()),
+																														js.EncoderHConsLabelled(
+																															js.EncoderNamed[NamedI30[int]](js.EncoderNumber[int]()),
+																															js.EncoderHNil,
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
 																					),
 																				),
 																			),
@@ -876,10 +903,70 @@ var EncoderOver21 = js.EncoderContraMap(
 			),
 		),
 	),
-	fp.Compose(
-		Over21.AsLabelled,
-		as.HList21Labelled[NamedI1[int], NamedI2[int], NamedI3[int], NamedI4[int], NamedI5[int], NamedI6[int], NamedI7[int], NamedI8[int], NamedI9[int], NamedI10[int], NamedI11[int], NamedI12[int], NamedI13[int], NamedI14[int], NamedI15[int], NamedI16[int], NamedI17[int], NamedI18[int], NamedI19[int], NamedI20[int], NamedI21[int]],
-	),
+	func(v Over21) hlist.Cons[NamedI1[int], hlist.Cons[NamedI2[int], hlist.Cons[NamedI3[int], hlist.Cons[NamedI4[int], hlist.Cons[NamedI5[int], hlist.Cons[NamedI6[int], hlist.Cons[NamedI7[int], hlist.Cons[NamedI8[int], hlist.Cons[NamedI9[int], hlist.Cons[NamedI10[int], hlist.Cons[NamedI11[int], hlist.Cons[NamedI12[int], hlist.Cons[NamedI13[int], hlist.Cons[NamedI14[int], hlist.Cons[NamedI15[int], hlist.Cons[NamedI16[int], hlist.Cons[NamedI17[int], hlist.Cons[NamedI18[int], hlist.Cons[NamedI19[int], hlist.Cons[NamedI20[int], hlist.Cons[NamedI21[int], hlist.Cons[NamedI22[int], hlist.Cons[NamedI23[int], hlist.Cons[NamedI24[int], hlist.Cons[NamedI25[int], hlist.Cons[NamedI26[int], hlist.Cons[NamedI27[int], hlist.Cons[NamedI28[int], hlist.Cons[NamedI29[int], hlist.Cons[NamedI30[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+		i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+		return hlist.Concat(NamedI1[int]{i0},
+			hlist.Concat(NamedI2[int]{i1},
+				hlist.Concat(NamedI3[int]{i2},
+					hlist.Concat(NamedI4[int]{i3},
+						hlist.Concat(NamedI5[int]{i4},
+							hlist.Concat(NamedI6[int]{i5},
+								hlist.Concat(NamedI7[int]{i6},
+									hlist.Concat(NamedI8[int]{i7},
+										hlist.Concat(NamedI9[int]{i8},
+											hlist.Concat(NamedI10[int]{i9},
+												hlist.Concat(NamedI11[int]{i10},
+													hlist.Concat(NamedI12[int]{i11},
+														hlist.Concat(NamedI13[int]{i12},
+															hlist.Concat(NamedI14[int]{i13},
+																hlist.Concat(NamedI15[int]{i14},
+																	hlist.Concat(NamedI16[int]{i15},
+																		hlist.Concat(NamedI17[int]{i16},
+																			hlist.Concat(NamedI18[int]{i17},
+																				hlist.Concat(NamedI19[int]{i18},
+																					hlist.Concat(NamedI20[int]{i19},
+																						hlist.Concat(NamedI21[int]{i20},
+																							hlist.Concat(NamedI22[int]{i21},
+																								hlist.Concat(NamedI23[int]{i22},
+																									hlist.Concat(NamedI24[int]{i23},
+																										hlist.Concat(NamedI25[int]{i24},
+																											hlist.Concat(NamedI26[int]{i25},
+																												hlist.Concat(NamedI27[int]{i26},
+																													hlist.Concat(NamedI28[int]{i27},
+																														hlist.Concat(NamedI29[int]{i28},
+																															hlist.Concat(NamedI30[int]{i29},
+																																hlist.Empty(),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		)
+	},
 )
 
 var DecoderOver21 = js.DecoderMap(
@@ -925,7 +1012,34 @@ var DecoderOver21 = js.DecoderMap(
 																					js.DecoderNamed[NamedI20[int]](js.DecoderNumber[int]()),
 																					js.DecoderHConsLabelled(
 																						js.DecoderNamed[NamedI21[int]](js.DecoderNumber[int]()),
-																						js.DecoderHNil,
+																						js.DecoderHConsLabelled(
+																							js.DecoderNamed[NamedI22[int]](js.DecoderNumber[int]()),
+																							js.DecoderHConsLabelled(
+																								js.DecoderNamed[NamedI23[int]](js.DecoderNumber[int]()),
+																								js.DecoderHConsLabelled(
+																									js.DecoderNamed[NamedI24[int]](js.DecoderNumber[int]()),
+																									js.DecoderHConsLabelled(
+																										js.DecoderNamed[NamedI25[int]](js.DecoderNumber[int]()),
+																										js.DecoderHConsLabelled(
+																											js.DecoderNamed[NamedI26[int]](js.DecoderNumber[int]()),
+																											js.DecoderHConsLabelled(
+																												js.DecoderNamed[NamedI27[int]](js.DecoderNumber[int]()),
+																												js.DecoderHConsLabelled(
+																													js.DecoderNamed[NamedI28[int]](js.DecoderNumber[int]()),
+																													js.DecoderHConsLabelled(
+																														js.DecoderNamed[NamedI29[int]](js.DecoderNumber[int]()),
+																														js.DecoderHConsLabelled(
+																															js.DecoderNamed[NamedI30[int]](js.DecoderNumber[int]()),
+																															js.DecoderHNil,
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
 																					),
 																				),
 																			),
@@ -947,12 +1061,37 @@ var DecoderOver21 = js.DecoderMap(
 			),
 		),
 	),
-
-	fp.Compose(
-		product.LabelledFromHList21[NamedI1[int], NamedI2[int], NamedI3[int], NamedI4[int], NamedI5[int], NamedI6[int], NamedI7[int], NamedI8[int], NamedI9[int], NamedI10[int], NamedI11[int], NamedI12[int], NamedI13[int], NamedI14[int], NamedI15[int], NamedI16[int], NamedI17[int], NamedI18[int], NamedI19[int], NamedI20[int], NamedI21[int]],
-		fp.Compose(
-			as.Curried2(Over21Builder.FromLabelled)(Over21Builder{}),
-			Over21Builder.Build,
-		),
-	),
+	func(hl0 hlist.Cons[NamedI1[int], hlist.Cons[NamedI2[int], hlist.Cons[NamedI3[int], hlist.Cons[NamedI4[int], hlist.Cons[NamedI5[int], hlist.Cons[NamedI6[int], hlist.Cons[NamedI7[int], hlist.Cons[NamedI8[int], hlist.Cons[NamedI9[int], hlist.Cons[NamedI10[int], hlist.Cons[NamedI11[int], hlist.Cons[NamedI12[int], hlist.Cons[NamedI13[int], hlist.Cons[NamedI14[int], hlist.Cons[NamedI15[int], hlist.Cons[NamedI16[int], hlist.Cons[NamedI17[int], hlist.Cons[NamedI18[int], hlist.Cons[NamedI19[int], hlist.Cons[NamedI20[int], hlist.Cons[NamedI21[int], hlist.Cons[NamedI22[int], hlist.Cons[NamedI23[int], hlist.Cons[NamedI24[int], hlist.Cons[NamedI25[int], hlist.Cons[NamedI26[int], hlist.Cons[NamedI27[int], hlist.Cons[NamedI28[int], hlist.Cons[NamedI29[int], hlist.Cons[NamedI30[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
+		i0, hl1 := hlist.Unapply(hl0)
+		i1, hl2 := hlist.Unapply(hl1)
+		i2, hl3 := hlist.Unapply(hl2)
+		i3, hl4 := hlist.Unapply(hl3)
+		i4, hl5 := hlist.Unapply(hl4)
+		i5, hl6 := hlist.Unapply(hl5)
+		i6, hl7 := hlist.Unapply(hl6)
+		i7, hl8 := hlist.Unapply(hl7)
+		i8, hl9 := hlist.Unapply(hl8)
+		i9, hl10 := hlist.Unapply(hl9)
+		i10, hl11 := hlist.Unapply(hl10)
+		i11, hl12 := hlist.Unapply(hl11)
+		i12, hl13 := hlist.Unapply(hl12)
+		i13, hl14 := hlist.Unapply(hl13)
+		i14, hl15 := hlist.Unapply(hl14)
+		i15, hl16 := hlist.Unapply(hl15)
+		i16, hl17 := hlist.Unapply(hl16)
+		i17, hl18 := hlist.Unapply(hl17)
+		i18, hl19 := hlist.Unapply(hl18)
+		i19, hl20 := hlist.Unapply(hl19)
+		i20, hl21 := hlist.Unapply(hl20)
+		i21, hl22 := hlist.Unapply(hl21)
+		i22, hl23 := hlist.Unapply(hl22)
+		i23, hl24 := hlist.Unapply(hl23)
+		i24, hl25 := hlist.Unapply(hl24)
+		i25, hl26 := hlist.Unapply(hl25)
+		i26, hl27 := hlist.Unapply(hl26)
+		i27, hl28 := hlist.Unapply(hl27)
+		i28, hl29 := hlist.Unapply(hl28)
+		i29 := hl29.Head()
+		return Over21Builder{}.Apply(i0.Value(), i1.Value(), i2.Value(), i3.Value(), i4.Value(), i5.Value(), i6.Value(), i7.Value(), i8.Value(), i9.Value(), i10.Value(), i11.Value(), i12.Value(), i13.Value(), i14.Value(), i15.Value(), i16.Value(), i17.Value(), i18.Value(), i19.Value(), i20.Value(), i21.Value(), i22.Value(), i23.Value(), i24.Value(), i25.Value(), i26.Value(), i27.Value(), i28.Value(), i29.Value()).Build()
+	},
 )

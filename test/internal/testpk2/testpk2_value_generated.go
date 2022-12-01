@@ -67,6 +67,10 @@ func (r Hello) AsTuple() fp.Tuple2[string, int] {
 	return as.Tuple2(r.world, r.hi)
 }
 
+func (r Hello) Unapply() (string, int) {
+	return r.world, r.hi
+}
+
 func (r Hello) AsMutable() HelloMutable {
 	return HelloMutable{
 		World: r.world,
@@ -84,6 +88,12 @@ func (r HelloMutable) AsImmutable() Hello {
 func (r HelloBuilder) FromTuple(t fp.Tuple2[string, int]) HelloBuilder {
 	r.world = t.I1
 	r.hi = t.I2
+	return r
+}
+
+func (r HelloBuilder) Apply(world string, hi int) HelloBuilder {
+	r.world = world
+	r.hi = hi
 	return r
 }
 
@@ -484,6 +494,17 @@ func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.Fi
 	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
 }
 
+func (r AllKindTypes) Unapply() (fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+	Embed
+	A int
+	B fp.Option[string]
+}, interface {
+	io.Closer
+	Hello() fp.Try[int]
+}) {
+	return r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2
+}
+
 func (r AllKindTypes) AsMutable() AllKindTypesMutable {
 	return AllKindTypesMutable{
 		Hi:   r.hi,
@@ -563,6 +584,37 @@ func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type
 	r.arr2 = t.I18
 	r.st = t.I19
 	r.i2 = t.I20
+	return r
+}
+
+func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.Try[fp.Option[Local]], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
+	Embed
+	A int
+	B fp.Option[string]
+}, i2 interface {
+	io.Closer
+	Hello() fp.Try[int]
+}) AllKindTypesBuilder {
+	r.hi = hi
+	r.tpe = tpe
+	r.arr = arr
+	r.m = m
+	r.a = a
+	r.p = p
+	r.l = l
+	r.t = t
+	r.m2 = m2
+	r.mm = mm
+	r.intf = intf
+	r.ch = ch
+	r.ch2 = ch2
+	r.ch3 = ch3
+	r.fn3 = fn3
+	r.fn = fn
+	r.fn2 = fn2
+	r.arr2 = arr2
+	r.st = st
+	r.i2 = i2
 	return r
 }
 
@@ -845,6 +897,10 @@ func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []s
 	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
+func (r Person) Unapply() (string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte) {
+	return r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob
+}
+
 func (r Person) AsMutable() PersonMutable {
 	return PersonMutable{
 		Name:   r.name,
@@ -881,6 +937,18 @@ func (r PersonBuilder) FromTuple(t fp.Tuple8[string, int, float64, fp.Option[str
 	r.list = t.I6
 	r.seq = t.I7
 	r.blob = t.I8
+	return r
+}
+
+func (r PersonBuilder) Apply(name string, age int, height float64, phone fp.Option[string], addr []string, list hlist.Cons[string, hlist.Cons[int, hlist.Nil]], seq fp.Seq[float64], blob []byte) PersonBuilder {
+	r.name = name
+	r.age = age
+	r.height = height
+	r.phone = phone
+	r.addr = addr
+	r.list = list
+	r.seq = seq
+	r.blob = blob
 	return r
 }
 
@@ -985,6 +1053,10 @@ func (r Wallet) AsTuple() fp.Tuple2[Person, int64] {
 	return as.Tuple2(r.owner, r.amount)
 }
 
+func (r Wallet) Unapply() (Person, int64) {
+	return r.owner, r.amount
+}
+
 func (r Wallet) AsMutable() WalletMutable {
 	return WalletMutable{
 		Owner:  r.owner,
@@ -1002,6 +1074,12 @@ func (r WalletMutable) AsImmutable() Wallet {
 func (r WalletBuilder) FromTuple(t fp.Tuple2[Person, int64]) WalletBuilder {
 	r.owner = t.I1
 	r.amount = t.I2
+	return r
+}
+
+func (r WalletBuilder) Apply(owner Person, amount int64) WalletBuilder {
+	r.owner = owner
+	r.amount = amount
 	return r
 }
 
@@ -1095,6 +1173,10 @@ func (r Entry[A, B, C, D]) AsTuple() fp.Tuple3[string, A, fp.Tuple2[A, B]] {
 	return as.Tuple3(r.name, r.value, r.tuple)
 }
 
+func (r Entry[A, B, C, D]) Unapply() (string, A, fp.Tuple2[A, B]) {
+	return r.name, r.value, r.tuple
+}
+
 func (r Entry[A, B, C, D]) AsMutable() EntryMutable[A, B, C, D] {
 	return EntryMutable[A, B, C, D]{
 		Name:  r.name,
@@ -1115,6 +1197,13 @@ func (r EntryBuilder[A, B, C, D]) FromTuple(t fp.Tuple3[string, A, fp.Tuple2[A, 
 	r.name = t.I1
 	r.value = t.I2
 	r.tuple = t.I3
+	return r
+}
+
+func (r EntryBuilder[A, B, C, D]) Apply(name string, value A, tuple fp.Tuple2[A, B]) EntryBuilder[A, B, C, D] {
+	r.name = name
+	r.value = value
+	r.tuple = tuple
 	return r
 }
 
@@ -1209,6 +1298,10 @@ func (r Key) AsTuple() fp.Tuple3[int, float32, []byte] {
 	return as.Tuple3(r.a, r.b, r.c)
 }
 
+func (r Key) Unapply() (int, float32, []byte) {
+	return r.a, r.b, r.c
+}
+
 func (r Key) AsMutable() KeyMutable {
 	return KeyMutable{
 		A: r.a,
@@ -1229,6 +1322,13 @@ func (r KeyBuilder) FromTuple(t fp.Tuple3[int, float32, []byte]) KeyBuilder {
 	r.a = t.I1
 	r.b = t.I2
 	r.c = t.I3
+	return r
+}
+
+func (r KeyBuilder) Apply(a int, b float32, c []byte) KeyBuilder {
+	r.a = a
+	r.b = b
+	r.c = c
 	return r
 }
 
@@ -1319,6 +1419,10 @@ func (r Point) AsTuple() fp.Tuple3[int, int, fp.Tuple2[int, int]] {
 	return as.Tuple3(r.x, r.y, r.z)
 }
 
+func (r Point) Unapply() (int, int, fp.Tuple2[int, int]) {
+	return r.x, r.y, r.z
+}
+
 func (r Point) AsMutable() PointMutable {
 	return PointMutable{
 		X: r.x,
@@ -1339,6 +1443,13 @@ func (r PointBuilder) FromTuple(t fp.Tuple3[int, int, fp.Tuple2[int, int]]) Poin
 	r.x = t.I1
 	r.y = t.I2
 	r.z = t.I3
+	return r
+}
+
+func (r PointBuilder) Apply(x int, y int, z fp.Tuple2[int, int]) PointBuilder {
+	r.x = x
+	r.y = y
+	r.z = z
 	return r
 }
 
@@ -1418,6 +1529,10 @@ func (r Greeting) AsTuple() fp.Tuple2[testpk1.World, string] {
 	return as.Tuple2(r.hello, r.language)
 }
 
+func (r Greeting) Unapply() (testpk1.World, string) {
+	return r.hello, r.language
+}
+
 func (r Greeting) AsMutable() GreetingMutable {
 	return GreetingMutable{
 		Hello:    r.hello,
@@ -1435,6 +1550,12 @@ func (r GreetingMutable) AsImmutable() Greeting {
 func (r GreetingBuilder) FromTuple(t fp.Tuple2[testpk1.World, string]) GreetingBuilder {
 	r.hello = t.I1
 	r.language = t.I2
+	return r
+}
+
+func (r GreetingBuilder) Apply(hello testpk1.World, language string) GreetingBuilder {
+	r.hello = hello
+	r.language = language
 	return r
 }
 
@@ -1551,6 +1672,10 @@ func (r Three) AsTuple() fp.Tuple3[int, string, float64] {
 	return as.Tuple3(r.one, r.two, r.three)
 }
 
+func (r Three) Unapply() (int, string, float64) {
+	return r.one, r.two, r.three
+}
+
 func (r Three) AsMutable() ThreeMutable {
 	return ThreeMutable{
 		One:   r.one,
@@ -1571,6 +1696,13 @@ func (r ThreeBuilder) FromTuple(t fp.Tuple3[int, string, float64]) ThreeBuilder 
 	r.one = t.I1
 	r.two = t.I2
 	r.three = t.I3
+	return r
+}
+
+func (r ThreeBuilder) Apply(one int, two string, three float64) ThreeBuilder {
+	r.one = one
+	r.two = two
+	r.three = three
 	return r
 }
 
@@ -1646,6 +1778,10 @@ func (r Tree) AsTuple() fp.Tuple1[testpk1.Node] {
 	return as.Tuple1(r.root)
 }
 
+func (r Tree) Unapply() testpk1.Node {
+	return r.root
+}
+
 func (r Tree) AsMutable() TreeMutable {
 	return TreeMutable{
 		Root: r.root,
@@ -1660,6 +1796,11 @@ func (r TreeMutable) AsImmutable() Tree {
 
 func (r TreeBuilder) FromTuple(t fp.Tuple1[testpk1.Node]) TreeBuilder {
 	r.root = t.I1
+	return r
+}
+
+func (r TreeBuilder) Apply(root testpk1.Node) TreeBuilder {
+	r.root = root
 	return r
 }
 
@@ -1714,6 +1855,10 @@ func (r NotIgnored) AsTuple() fp.Tuple1[int] {
 	return as.Tuple1(r.ig)
 }
 
+func (r NotIgnored) Unapply() int {
+	return r.ig
+}
+
 func (r NotIgnored) AsMutable() NotIgnoredMutable {
 	return NotIgnoredMutable{
 		Ig: r.ig,
@@ -1728,6 +1873,11 @@ func (r NotIgnoredMutable) AsImmutable() NotIgnored {
 
 func (r NotIgnoredBuilder) FromTuple(t fp.Tuple1[int]) NotIgnoredBuilder {
 	r.ig = t.I1
+	return r
+}
+
+func (r NotIgnoredBuilder) Apply(ig int) NotIgnoredBuilder {
+	r.ig = ig
 	return r
 }
 

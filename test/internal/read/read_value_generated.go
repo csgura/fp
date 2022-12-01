@@ -58,6 +58,10 @@ func (r Result[T]) AsTuple() fp.Tuple2[T, string] {
 	return as.Tuple2(r.value, r.remains)
 }
 
+func (r Result[T]) Unapply() (T, string) {
+	return r.value, r.remains
+}
+
 func (r Result[T]) AsMutable() ResultMutable[T] {
 	return ResultMutable[T]{
 		Value:   r.value,
@@ -75,6 +79,12 @@ func (r ResultMutable[T]) AsImmutable() Result[T] {
 func (r ResultBuilder[T]) FromTuple(t fp.Tuple2[T, string]) ResultBuilder[T] {
 	r.value = t.I1
 	r.remains = t.I2
+	return r
+}
+
+func (r ResultBuilder[T]) Apply(value T, remains string) ResultBuilder[T] {
+	r.value = value
+	r.remains = remains
 	return r
 }
 
