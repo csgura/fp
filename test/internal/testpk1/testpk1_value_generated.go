@@ -2073,35 +2073,6 @@ func (r Over21Builder) FromMap(m map[string]any) Over21Builder {
 	return r
 }
 
-func (r Over21) AsLabelled() fp.Labelled21[NamedI1[int], NamedI2[int], NamedI3[int], NamedI4[int], NamedI5[int], NamedI6[int], NamedI7[int], NamedI8[int], NamedI9[int], NamedI10[int], NamedI11[int], NamedI12[int], NamedI13[int], NamedI14[int], NamedI15[int], NamedI16[int], NamedI17[int], NamedI18[int], NamedI19[int], NamedI20[int], NamedI21[int]] {
-	return as.Labelled21(NamedI1[int]{r.i1}, NamedI2[int]{r.i2}, NamedI3[int]{r.i3}, NamedI4[int]{r.i4}, NamedI5[int]{r.i5}, NamedI6[int]{r.i6}, NamedI7[int]{r.i7}, NamedI8[int]{r.i8}, NamedI9[int]{r.i9}, NamedI10[int]{r.i10}, NamedI11[int]{r.i11}, NamedI12[int]{r.i12}, NamedI13[int]{r.i13}, NamedI14[int]{r.i14}, NamedI15[int]{r.i15}, NamedI16[int]{r.i16}, NamedI17[int]{r.i17}, NamedI18[int]{r.i18}, NamedI19[int]{r.i19}, NamedI20[int]{r.i20}, NamedI21[int]{r.i21})
-}
-
-func (r Over21Builder) FromLabelled(t fp.Labelled21[NamedI1[int], NamedI2[int], NamedI3[int], NamedI4[int], NamedI5[int], NamedI6[int], NamedI7[int], NamedI8[int], NamedI9[int], NamedI10[int], NamedI11[int], NamedI12[int], NamedI13[int], NamedI14[int], NamedI15[int], NamedI16[int], NamedI17[int], NamedI18[int], NamedI19[int], NamedI20[int], NamedI21[int]]) Over21Builder {
-	r.i1 = t.I1.Value()
-	r.i2 = t.I2.Value()
-	r.i3 = t.I3.Value()
-	r.i4 = t.I4.Value()
-	r.i5 = t.I5.Value()
-	r.i6 = t.I6.Value()
-	r.i7 = t.I7.Value()
-	r.i8 = t.I8.Value()
-	r.i9 = t.I9.Value()
-	r.i10 = t.I10.Value()
-	r.i11 = t.I11.Value()
-	r.i12 = t.I12.Value()
-	r.i13 = t.I13.Value()
-	r.i14 = t.I14.Value()
-	r.i15 = t.I15.Value()
-	r.i16 = t.I16.Value()
-	r.i17 = t.I17.Value()
-	r.i18 = t.I18.Value()
-	r.i19 = t.I19.Value()
-	r.i20 = t.I20.Value()
-	r.i21 = t.I21.Value()
-	return r
-}
-
 type NamedAddr[T any] fp.Tuple1[T]
 
 func (r NamedAddr[T]) Name() string {
