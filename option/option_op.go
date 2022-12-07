@@ -231,8 +231,8 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[f
 	})
 }
 
-func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
-	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Compose(fp.Iterator[U].ToSeq, as.Seq[U]))
+func TraverseSeq[T, U any](seq []T, fn func(T) fp.Option[U]) fp.Option[[]U] {
+	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Iterator[U].ToSeq)
 }
 
 func TraverseFunc[A, R any](far func(A) fp.Option[R]) func(fp.Iterator[A]) fp.Option[fp.Iterator[R]] {
@@ -241,14 +241,14 @@ func TraverseFunc[A, R any](far func(A) fp.Option[R]) func(fp.Iterator[A]) fp.Op
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) func(fp.Seq[A]) fp.Option[fp.Seq[R]] {
-	return func(seqA fp.Seq[A]) fp.Option[fp.Seq[R]] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) func([]A) fp.Option[[]R] {
+	return func(seqA []A) fp.Option[[]R] {
 		return TraverseSeq(seqA, far)
 	}
 }
 
-func Sequence[T any](optSeq fp.Seq[fp.Option[T]]) fp.Option[fp.Seq[T]] {
-	return Map(SequenceIterator(fp.IteratorOfSeq(optSeq)), fp.Compose(fp.Iterator[T].ToSeq, as.Seq[T]))
+func Sequence[T any](optSeq []fp.Option[T]) fp.Option[[]T] {
+	return Map(SequenceIterator(fp.IteratorOfSeq(optSeq)), fp.Iterator[T].ToSeq)
 }
 
 func Fold[A, B any](s fp.Option[A], zero B, f func(B, A) B) B {

@@ -306,8 +306,8 @@ func Zip3[A, B, C any](c1 fp.Future[A], c2 fp.Future[B], c3 fp.Future[C]) fp.Fut
 	return LiftA3(as.Tuple3[A, B, C])(c1, c2, c3)
 }
 
-func Sequence[T any](futureList fp.Seq[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Seq[T]] {
-	return Map(SequenceIterator(fp.IteratorOfSeq(futureList)), fp.Compose(fp.Iterator[T].ToSeq, as.Seq[T]))
+func Sequence[T any](futureList []fp.Future[T], ctx ...fp.Executor) fp.Future[[]T] {
+	return Map(SequenceIterator(fp.IteratorOfSeq(futureList)), fp.Iterator[T].ToSeq)
 
 }
 
@@ -325,8 +325,8 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.E
 	})
 }
 
-func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Seq[U]] {
-	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Compose(fp.Iterator[U].ToSeq, as.Seq[U]), ctx...)
+func TraverseSeq[T, U any](seq []T, fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[[]U] {
+	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Iterator[U].ToSeq, ctx...)
 }
 
 func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(fp.Iterator[A]) fp.Future[fp.Iterator[R]] {
@@ -335,8 +335,8 @@ func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(f
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(fp.Seq[A]) fp.Future[fp.Seq[R]] {
-	return func(seqA fp.Seq[A]) fp.Future[fp.Seq[R]] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func([]A) fp.Future[[]R] {
+	return func(seqA []A) fp.Future[[]R] {
 		return TraverseSeq(seqA, far, ctx...)
 	}
 }
