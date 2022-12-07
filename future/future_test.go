@@ -31,9 +31,9 @@ func TestFuture(t *testing.T) {
 	futureSeq := future.Sequence(seqFuture)
 	fp.Println(futureSeq)
 
-	ch := make(chan fp.Try[fp.Seq[int]])
+	ch := make(chan fp.Try[[]int])
 
-	futureSeq.OnComplete(func(result fp.Try[fp.Seq[int]]) {
+	futureSeq.OnComplete(func(result fp.Try[[]int]) {
 		ch <- result
 	})
 
