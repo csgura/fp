@@ -121,12 +121,11 @@ func genValue() {
 						if tag != "" {
 							tag = tag + " "
 						}
-						if v.Type.IsNilable() {
+						if v.Type.IsNilable() || v.Type.IsOption() {
 							tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
 						} else {
 							tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
 						}
-
 					}
 				}
 
