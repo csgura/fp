@@ -89,10 +89,10 @@ func (r ResultBuilder[T]) Apply(value T, remains string) ResultBuilder[T] {
 }
 
 func (r Result[T]) AsMap() map[string]any {
-	return map[string]any{
-		"value":   r.value,
-		"remains": r.remains,
-	}
+	m := map[string]any{}
+	m["value"] = r.value
+	m["remains"] = r.remains
+	return m
 }
 
 func (r ResultBuilder[T]) FromMap(m map[string]any) ResultBuilder[T] {

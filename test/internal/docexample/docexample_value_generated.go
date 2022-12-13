@@ -61,6 +61,10 @@ func (r Person) AsTuple() fp.Tuple2[string, int] {
 	return as.Tuple2(r.name, r.age)
 }
 
+func (r Person) Unapply() (string, int) {
+	return r.name, r.age
+}
+
 func (r Person) AsMutable() PersonMutable {
 	return PersonMutable{
 		Name: r.name,
@@ -78,6 +82,12 @@ func (r PersonMutable) AsImmutable() Person {
 func (r PersonBuilder) FromTuple(t fp.Tuple2[string, int]) PersonBuilder {
 	r.name = t.I1
 	r.age = t.I2
+	return r
+}
+
+func (r PersonBuilder) Apply(name string, age int) PersonBuilder {
+	r.name = name
+	r.age = age
 	return r
 }
 
@@ -167,6 +177,10 @@ func (r Address) AsTuple() fp.Tuple3[string, string, string] {
 	return as.Tuple3(r.country, r.city, r.street)
 }
 
+func (r Address) Unapply() (string, string, string) {
+	return r.country, r.city, r.street
+}
+
 func (r Address) AsMutable() AddressMutable {
 	return AddressMutable{
 		Country: r.country,
@@ -187,6 +201,13 @@ func (r AddressBuilder) FromTuple(t fp.Tuple3[string, string, string]) AddressBu
 	r.country = t.I1
 	r.city = t.I2
 	r.street = t.I3
+	return r
+}
+
+func (r AddressBuilder) Apply(country string, city string, street string) AddressBuilder {
+	r.country = country
+	r.city = city
+	r.street = street
 	return r
 }
 
@@ -298,6 +319,10 @@ func (r Car) AsTuple() fp.Tuple3[string, string, int] {
 	return as.Tuple3(r.company, r.model, r.year)
 }
 
+func (r Car) Unapply() (string, string, int) {
+	return r.company, r.model, r.year
+}
+
 func (r Car) AsMutable() CarMutable {
 	return CarMutable{
 		Company: r.company,
@@ -318,6 +343,13 @@ func (r CarBuilder) FromTuple(t fp.Tuple3[string, string, int]) CarBuilder {
 	r.company = t.I1
 	r.model = t.I2
 	r.year = t.I3
+	return r
+}
+
+func (r CarBuilder) Apply(company string, model string, year int) CarBuilder {
+	r.company = company
+	r.model = model
+	r.year = year
 	return r
 }
 
@@ -346,11 +378,11 @@ func (r CarBuilder) FromMap(m map[string]any) CarBuilder {
 	return r
 }
 
-func (r Car) AsLabelled() fp.Labelled3[NameIsCompany[string], NameIsModel[string], NameIsYear[int]] {
-	return as.Labelled3(NameIsCompany[string]{r.company}, NameIsModel[string]{r.model}, NameIsYear[int]{r.year})
+func (r Car) AsLabelled() fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]] {
+	return as.Labelled3(NamedCompany[string]{r.company}, NamedModel[string]{r.model}, NamedYear[int]{r.year})
 }
 
-func (r CarBuilder) FromLabelled(t fp.Labelled3[NameIsCompany[string], NameIsModel[string], NameIsYear[int]]) CarBuilder {
+func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]]) CarBuilder {
 	r.company = t.I1.Value()
 	r.model = t.I2.Value()
 	r.year = t.I3.Value()
@@ -408,6 +440,10 @@ func (r Entry[A, B]) AsTuple() fp.Tuple2[A, B] {
 	return as.Tuple2(r.key, r.value)
 }
 
+func (r Entry[A, B]) Unapply() (A, B) {
+	return r.key, r.value
+}
+
 func (r Entry[A, B]) AsMutable() EntryMutable[A, B] {
 	return EntryMutable[A, B]{
 		Key:   r.key,
@@ -425,6 +461,12 @@ func (r EntryMutable[A, B]) AsImmutable() Entry[A, B] {
 func (r EntryBuilder[A, B]) FromTuple(t fp.Tuple2[A, B]) EntryBuilder[A, B] {
 	r.key = t.I1
 	r.value = t.I2
+	return r
+}
+
+func (r EntryBuilder[A, B]) Apply(key A, value B) EntryBuilder[A, B] {
+	r.key = key
+	r.value = value
 	return r
 }
 
@@ -499,6 +541,10 @@ func (r CarsOwned) AsTuple() fp.Tuple2[Person, fp.Seq[Car]] {
 	return as.Tuple2(r.owner, r.cars)
 }
 
+func (r CarsOwned) Unapply() (Person, fp.Seq[Car]) {
+	return r.owner, r.cars
+}
+
 func (r CarsOwned) AsMutable() CarsOwnedMutable {
 	return CarsOwnedMutable{
 		Owner: r.owner,
@@ -516,6 +562,12 @@ func (r CarsOwnedMutable) AsImmutable() CarsOwned {
 func (r CarsOwnedBuilder) FromTuple(t fp.Tuple2[Person, fp.Seq[Car]]) CarsOwnedBuilder {
 	r.owner = t.I1
 	r.cars = t.I2
+	return r
+}
+
+func (r CarsOwnedBuilder) Apply(owner Person, cars fp.Seq[Car]) CarsOwnedBuilder {
+	r.owner = owner
+	r.cars = cars
 	return r
 }
 
@@ -625,6 +677,10 @@ func (r User) AsTuple() fp.Tuple3[string, fp.Option[string], bool] {
 	return as.Tuple3(r.name, r.email, r.active)
 }
 
+func (r User) Unapply() (string, fp.Option[string], bool) {
+	return r.name, r.email, r.active
+}
+
 func (r User) AsMutable() UserMutable {
 	return UserMutable{
 		Name:   r.name,
@@ -645,6 +701,13 @@ func (r UserBuilder) FromTuple(t fp.Tuple3[string, fp.Option[string], bool]) Use
 	r.name = t.I1
 	r.email = t.I2
 	r.active = t.I3
+	return r
+}
+
+func (r UserBuilder) Apply(name string, email fp.Option[string], active bool) UserBuilder {
+	r.name = name
+	r.email = email
+	r.active = active
 	return r
 }
 
@@ -673,41 +736,41 @@ func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
 	return r
 }
 
-type NameIsCompany[T any] fp.Tuple1[T]
+type NamedCompany[T any] fp.Tuple1[T]
 
-func (r NameIsCompany[T]) Name() string {
+func (r NamedCompany[T]) Name() string {
 	return "company"
 }
-func (r NameIsCompany[T]) Value() T {
+func (r NamedCompany[T]) Value() T {
 	return r.I1
 }
-func (r NameIsCompany[T]) WithValue(v T) NameIsCompany[T] {
+func (r NamedCompany[T]) WithValue(v T) NamedCompany[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsModel[T any] fp.Tuple1[T]
+type NamedModel[T any] fp.Tuple1[T]
 
-func (r NameIsModel[T]) Name() string {
+func (r NamedModel[T]) Name() string {
 	return "model"
 }
-func (r NameIsModel[T]) Value() T {
+func (r NamedModel[T]) Value() T {
 	return r.I1
 }
-func (r NameIsModel[T]) WithValue(v T) NameIsModel[T] {
+func (r NamedModel[T]) WithValue(v T) NamedModel[T] {
 	r.I1 = v
 	return r
 }
 
-type NameIsYear[T any] fp.Tuple1[T]
+type NamedYear[T any] fp.Tuple1[T]
 
-func (r NameIsYear[T]) Name() string {
+func (r NamedYear[T]) Name() string {
 	return "year"
 }
-func (r NameIsYear[T]) Value() T {
+func (r NamedYear[T]) Value() T {
 	return r.I1
 }
-func (r NameIsYear[T]) WithValue(v T) NameIsYear[T] {
+func (r NamedYear[T]) WithValue(v T) NamedYear[T] {
 	r.I1 = v
 	return r
 }

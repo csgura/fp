@@ -93,10 +93,10 @@ func (r WorldBuilder) Apply(message string, timestamp time.Time) WorldBuilder {
 }
 
 func (r World) AsMap() map[string]any {
-	return map[string]any{
-		"message":   r.message,
-		"timestamp": r.timestamp,
-	}
+	m := map[string]any{}
+	m["message"] = r.message
+	m["timestamp"] = r.timestamp
+	return m
 }
 
 func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
@@ -279,12 +279,14 @@ func (r HasOptionBuilder) Apply(message string, addr fp.Option[string], phone []
 }
 
 func (r HasOption) AsMap() map[string]any {
-	return map[string]any{
-		"message":  r.message,
-		"addr":     r.addr,
-		"phone":    r.phone,
-		"emptySeq": r.emptySeq,
+	m := map[string]any{}
+	m["message"] = r.message
+	if r.addr.IsDefined() {
+		m["addr"] = r.addr.Get()
 	}
+	m["phone"] = r.phone
+	m["emptySeq"] = r.emptySeq
+	return m
 }
 
 func (r HasOptionBuilder) FromMap(m map[string]any) HasOptionBuilder {
@@ -295,6 +297,8 @@ func (r HasOptionBuilder) FromMap(m map[string]any) HasOptionBuilder {
 
 	if v, ok := m["addr"].(fp.Option[string]); ok {
 		r.addr = v
+	} else if v, ok := m["addr"].(string); ok {
+		r.addr = option.Some(v)
 	}
 
 	if v, ok := m["phone"].([]string); ok {
@@ -386,10 +390,10 @@ func (r CustomValueBuilder) Apply(a string, b int) CustomValueBuilder {
 }
 
 func (r CustomValue) AsMap() map[string]any {
-	return map[string]any{
-		"a": r.a,
-		"b": r.b,
-	}
+	m := map[string]any{}
+	m["a"] = r.a
+	m["b"] = r.b
+	return m
 }
 
 func (r CustomValueBuilder) FromMap(m map[string]any) CustomValueBuilder {
@@ -487,10 +491,10 @@ func (r AliasedStructBuilder) Apply(message string, timestamp time.Time) Aliased
 }
 
 func (r AliasedStruct) AsMap() map[string]any {
-	return map[string]any{
-		"message":   r.message,
-		"timestamp": r.timestamp,
-	}
+	m := map[string]any{}
+	m["message"] = r.message
+	m["timestamp"] = r.timestamp
+	return m
 }
 
 func (r AliasedStructBuilder) FromMap(m map[string]any) AliasedStructBuilder {
@@ -607,11 +611,11 @@ func (r HListInsideHListBuilder) Apply(tp fp.Tuple2[string, int], value string, 
 }
 
 func (r HListInsideHList) AsMap() map[string]any {
-	return map[string]any{
-		"tp":    r.tp,
-		"value": r.value,
-		"hello": r.hello,
-	}
+	m := map[string]any{}
+	m["tp"] = r.tp
+	m["value"] = r.value
+	m["hello"] = r.hello
+	return m
 }
 
 func (r HListInsideHListBuilder) FromMap(m map[string]any) HListInsideHListBuilder {
@@ -694,9 +698,9 @@ func (r WrapperBuilder[T]) Apply(unwrap T) WrapperBuilder[T] {
 }
 
 func (r Wrapper[T]) AsMap() map[string]any {
-	return map[string]any{
-		"unwrap": r.unwrap,
-	}
+	m := map[string]any{}
+	m["unwrap"] = r.unwrap
+	return m
 }
 
 func (r WrapperBuilder[T]) FromMap(m map[string]any) WrapperBuilder[T] {
@@ -790,10 +794,10 @@ func (r TestOrderedEqBuilder) Apply(list fp.Seq[int], tlist fp.Seq[fp.Tuple2[int
 }
 
 func (r TestOrderedEq) AsMap() map[string]any {
-	return map[string]any{
-		"list":  r.list,
-		"tlist": r.tlist,
-	}
+	m := map[string]any{}
+	m["list"] = r.list
+	m["tlist"] = r.tlist
+	return m
 }
 
 func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
@@ -891,10 +895,10 @@ func (r MapEqBuilder) Apply(m map[string]World, m2 fp.Map[string, World]) MapEqB
 }
 
 func (r MapEq) AsMap() map[string]any {
-	return map[string]any{
-		"m":  r.m,
-		"m2": r.m2,
-	}
+	m := map[string]any{}
+	m["m"] = r.m
+	m["m2"] = r.m2
+	return m
 }
 
 func (r MapEqBuilder) FromMap(m map[string]any) MapEqBuilder {
@@ -1030,12 +1034,12 @@ func (r SeqMonoidBuilder) Apply(v string, s fp.Seq[string], m map[string]int, m2
 }
 
 func (r SeqMonoid) AsMap() map[string]any {
-	return map[string]any{
-		"v":  r.v,
-		"s":  r.s,
-		"m":  r.m,
-		"m2": r.m2,
-	}
+	m := map[string]any{}
+	m["v"] = r.v
+	m["s"] = r.s
+	m["m"] = r.m
+	m["m2"] = r.m2
+	return m
 }
 
 func (r SeqMonoidBuilder) FromMap(m map[string]any) SeqMonoidBuilder {
@@ -1122,9 +1126,9 @@ func (r MapEqParamBuilder[K, V]) Apply(m fp.Map[K, V]) MapEqParamBuilder[K, V] {
 }
 
 func (r MapEqParam[K, V]) AsMap() map[string]any {
-	return map[string]any{
-		"m": r.m,
-	}
+	m := map[string]any{}
+	m["m"] = r.m
+	return m
 }
 
 func (r MapEqParamBuilder[K, V]) FromMap(m map[string]any) MapEqParamBuilder[K, V] {
@@ -1199,9 +1203,9 @@ func (r NotUsedProblemBuilder) Apply(m MapEqParam[string, int]) NotUsedProblemBu
 }
 
 func (r NotUsedProblem) AsMap() map[string]any {
-	return map[string]any{
-		"m": r.m,
-	}
+	m := map[string]any{}
+	m["m"] = r.m
+	return m
 }
 
 func (r NotUsedProblemBuilder) FromMap(m map[string]any) NotUsedProblemBuilder {
@@ -1314,11 +1318,11 @@ func (r NodeBuilder) Apply(value string, left *Node, right *Node) NodeBuilder {
 }
 
 func (r Node) AsMap() map[string]any {
-	return map[string]any{
-		"value": r.value,
-		"left":  r.left,
-		"right": r.right,
-	}
+	m := map[string]any{}
+	m["value"] = r.value
+	m["left"] = r.left
+	m["right"] = r.right
+	return m
 }
 
 func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
@@ -1914,38 +1918,38 @@ func (r Over21Builder) Apply(i1 int, i2 int, i3 int, i4 int, i5 int, i6 int, i7 
 }
 
 func (r Over21) AsMap() map[string]any {
-	return map[string]any{
-		"i1":  r.i1,
-		"i2":  r.i2,
-		"i3":  r.i3,
-		"i4":  r.i4,
-		"i5":  r.i5,
-		"i6":  r.i6,
-		"i7":  r.i7,
-		"i8":  r.i8,
-		"i9":  r.i9,
-		"i10": r.i10,
-		"i11": r.i11,
-		"i12": r.i12,
-		"i13": r.i13,
-		"i14": r.i14,
-		"i15": r.i15,
-		"i16": r.i16,
-		"i17": r.i17,
-		"i18": r.i18,
-		"i19": r.i19,
-		"i20": r.i20,
-		"i21": r.i21,
-		"i22": r.i22,
-		"i23": r.i23,
-		"i24": r.i24,
-		"i25": r.i25,
-		"i26": r.i26,
-		"i27": r.i27,
-		"i28": r.i28,
-		"i29": r.i29,
-		"i30": r.i30,
-	}
+	m := map[string]any{}
+	m["i1"] = r.i1
+	m["i2"] = r.i2
+	m["i3"] = r.i3
+	m["i4"] = r.i4
+	m["i5"] = r.i5
+	m["i6"] = r.i6
+	m["i7"] = r.i7
+	m["i8"] = r.i8
+	m["i9"] = r.i9
+	m["i10"] = r.i10
+	m["i11"] = r.i11
+	m["i12"] = r.i12
+	m["i13"] = r.i13
+	m["i14"] = r.i14
+	m["i15"] = r.i15
+	m["i16"] = r.i16
+	m["i17"] = r.i17
+	m["i18"] = r.i18
+	m["i19"] = r.i19
+	m["i20"] = r.i20
+	m["i21"] = r.i21
+	m["i22"] = r.i22
+	m["i23"] = r.i23
+	m["i24"] = r.i24
+	m["i25"] = r.i25
+	m["i26"] = r.i26
+	m["i27"] = r.i27
+	m["i28"] = r.i28
+	m["i29"] = r.i29
+	m["i30"] = r.i30
+	return m
 }
 
 func (r Over21Builder) FromMap(m map[string]any) Over21Builder {

@@ -98,10 +98,10 @@ func (r HelloBuilder) Apply(world string, hi int) HelloBuilder {
 }
 
 func (r Hello) AsMap() map[string]any {
-	return map[string]any{
-		"world": r.world,
-		"hi":    r.hi,
-	}
+	m := map[string]any{}
+	m["world"] = r.world
+	m["hi"] = r.hi
+	return m
 }
 
 func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
@@ -619,34 +619,38 @@ func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os
 }
 
 func (r AllKindTypes) AsMap() map[string]any {
-	return map[string]any{
-		"hi":   r.hi,
-		"tpe":  r.tpe,
-		"arr":  r.arr,
-		"m":    r.m,
-		"a":    r.a,
-		"p":    r.p,
-		"l":    r.l,
-		"t":    r.t,
-		"m2":   r.m2,
-		"mm":   r.mm,
-		"intf": r.intf,
-		"ch":   r.ch,
-		"ch2":  r.ch2,
-		"ch3":  r.ch3,
-		"fn3":  r.fn3,
-		"fn":   r.fn,
-		"fn2":  r.fn2,
-		"arr2": r.arr2,
-		"st":   r.st,
-		"i2":   r.i2,
+	m := map[string]any{}
+	if r.hi.IsDefined() {
+		m["hi"] = r.hi.Get()
 	}
+	m["tpe"] = r.tpe
+	m["arr"] = r.arr
+	m["m"] = r.m
+	m["a"] = r.a
+	m["p"] = r.p
+	m["l"] = r.l
+	m["t"] = r.t
+	m["m2"] = r.m2
+	m["mm"] = r.mm
+	m["intf"] = r.intf
+	m["ch"] = r.ch
+	m["ch2"] = r.ch2
+	m["ch3"] = r.ch3
+	m["fn3"] = r.fn3
+	m["fn"] = r.fn
+	m["fn2"] = r.fn2
+	m["arr2"] = r.arr2
+	m["st"] = r.st
+	m["i2"] = r.i2
+	return m
 }
 
 func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 
 	if v, ok := m["hi"].(fp.Option[int]); ok {
 		r.hi = v
+	} else if v, ok := m["hi"].(int); ok {
+		r.hi = option.Some(v)
 	}
 
 	if v, ok := m["tpe"].(reflect.Type); ok {
@@ -953,16 +957,18 @@ func (r PersonBuilder) Apply(name string, age int, height float64, phone fp.Opti
 }
 
 func (r Person) AsMap() map[string]any {
-	return map[string]any{
-		"name":   r.name,
-		"age":    r.age,
-		"height": r.height,
-		"phone":  r.phone,
-		"addr":   r.addr,
-		"list":   r.list,
-		"seq":    r.seq,
-		"blob":   r.blob,
+	m := map[string]any{}
+	m["name"] = r.name
+	m["age"] = r.age
+	m["height"] = r.height
+	if r.phone.IsDefined() {
+		m["phone"] = r.phone.Get()
 	}
+	m["addr"] = r.addr
+	m["list"] = r.list
+	m["seq"] = r.seq
+	m["blob"] = r.blob
+	return m
 }
 
 func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
@@ -981,6 +987,8 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 
 	if v, ok := m["phone"].(fp.Option[string]); ok {
 		r.phone = v
+	} else if v, ok := m["phone"].(string); ok {
+		r.phone = option.Some(v)
 	}
 
 	if v, ok := m["addr"].([]string); ok {
@@ -1084,10 +1092,10 @@ func (r WalletBuilder) Apply(owner Person, amount int64) WalletBuilder {
 }
 
 func (r Wallet) AsMap() map[string]any {
-	return map[string]any{
-		"owner":  r.owner,
-		"amount": r.amount,
-	}
+	m := map[string]any{}
+	m["owner"] = r.owner
+	m["amount"] = r.amount
+	return m
 }
 
 func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
@@ -1208,11 +1216,11 @@ func (r EntryBuilder[A, B, C, D]) Apply(name string, value A, tuple fp.Tuple2[A,
 }
 
 func (r Entry[A, B, C, D]) AsMap() map[string]any {
-	return map[string]any{
-		"name":  r.name,
-		"value": r.value,
-		"tuple": r.tuple,
-	}
+	m := map[string]any{}
+	m["name"] = r.name
+	m["value"] = r.value
+	m["tuple"] = r.tuple
+	return m
 }
 
 func (r EntryBuilder[A, B, C, D]) FromMap(m map[string]any) EntryBuilder[A, B, C, D] {
@@ -1333,11 +1341,11 @@ func (r KeyBuilder) Apply(a int, b float32, c []byte) KeyBuilder {
 }
 
 func (r Key) AsMap() map[string]any {
-	return map[string]any{
-		"a": r.a,
-		"b": r.b,
-		"c": r.c,
-	}
+	m := map[string]any{}
+	m["a"] = r.a
+	m["b"] = r.b
+	m["c"] = r.c
+	return m
 }
 
 func (r KeyBuilder) FromMap(m map[string]any) KeyBuilder {
@@ -1454,11 +1462,11 @@ func (r PointBuilder) Apply(x int, y int, z fp.Tuple2[int, int]) PointBuilder {
 }
 
 func (r Point) AsMap() map[string]any {
-	return map[string]any{
-		"x": r.x,
-		"y": r.y,
-		"z": r.z,
-	}
+	m := map[string]any{}
+	m["x"] = r.x
+	m["y"] = r.y
+	m["z"] = r.z
+	return m
 }
 
 func (r PointBuilder) FromMap(m map[string]any) PointBuilder {
@@ -1560,10 +1568,10 @@ func (r GreetingBuilder) Apply(hello testpk1.World, language string) GreetingBui
 }
 
 func (r Greeting) AsMap() map[string]any {
-	return map[string]any{
-		"hello":    r.hello,
-		"language": r.language,
-	}
+	m := map[string]any{}
+	m["hello"] = r.hello
+	m["language"] = r.language
+	return m
 }
 
 func (r GreetingBuilder) FromMap(m map[string]any) GreetingBuilder {
@@ -1707,11 +1715,11 @@ func (r ThreeBuilder) Apply(one int, two string, three float64) ThreeBuilder {
 }
 
 func (r Three) AsMap() map[string]any {
-	return map[string]any{
-		"one":   r.one,
-		"two":   r.two,
-		"three": r.three,
-	}
+	m := map[string]any{}
+	m["one"] = r.one
+	m["two"] = r.two
+	m["three"] = r.three
+	return m
 }
 
 func (r ThreeBuilder) FromMap(m map[string]any) ThreeBuilder {
@@ -1805,9 +1813,9 @@ func (r TreeBuilder) Apply(root testpk1.Node) TreeBuilder {
 }
 
 func (r Tree) AsMap() map[string]any {
-	return map[string]any{
-		"root": r.root,
-	}
+	m := map[string]any{}
+	m["root"] = r.root
+	return m
 }
 
 func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
@@ -1882,9 +1890,9 @@ func (r NotIgnoredBuilder) Apply(ig int) NotIgnoredBuilder {
 }
 
 func (r NotIgnored) AsMap() map[string]any {
-	return map[string]any{
-		"ig": r.ig,
-	}
+	m := map[string]any{}
+	m["ig"] = r.ig
+	return m
 }
 
 func (r NotIgnoredBuilder) FromMap(m map[string]any) NotIgnoredBuilder {

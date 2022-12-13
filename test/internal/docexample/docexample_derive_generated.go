@@ -6,8 +6,8 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
-	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/ord"
+	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
@@ -33,7 +33,7 @@ var OrdCar = ord.ContraMap(
 )
 
 var EqCarsOwned = eq.ContraMap(
-	eq.Tuple2(EqPerson, eq.Seq(EqCar)),
+	eq.Tuple2(EqPerson, EqSortSeq(EqCar, OrdCar)),
 	CarsOwned.AsTuple,
 )
 
@@ -46,11 +46,7 @@ var ShowAddress = show.Generic(
 		),
 
 		fp.Compose(
-			as.Func2(
-				hlist.Case3[string, string, string, hlist.Nil, fp.Tuple3[string, string, string]],
-			).ApplyLast(
-				as.Tuple3[string, string, string],
-			),
+			product.TupleFromHList3[string, string, string],
 			fp.Compose(
 				as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
 				AddressBuilder.Build,
@@ -71,17 +67,17 @@ var ShowAddress = show.Generic(
 
 var EncoderCar = js.EncoderContraMap(
 	js.EncoderHConsLabelled(
-		js.EncoderNamed[NameIsCompany[string]](js.EncoderString),
+		js.EncoderNamed[NamedCompany[string]](js.EncoderString),
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NameIsModel[string]](js.EncoderString),
+			js.EncoderNamed[NamedModel[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NameIsYear[int]](js.EncoderNumber[int]()),
+				js.EncoderNamed[NamedYear[int]](js.EncoderNumber[int]()),
 				js.EncoderHNil,
 			),
 		),
 	),
 	fp.Compose(
 		Car.AsLabelled,
-		as.HList3Labelled[NameIsCompany[string], NameIsModel[string], NameIsYear[int]],
+		as.HList3Labelled[NamedCompany[string], NamedModel[string], NamedYear[int]],
 	),
 )

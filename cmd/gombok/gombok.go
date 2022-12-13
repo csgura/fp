@@ -403,14 +403,20 @@ func genValue() {
 			if ts.Info.Method.Get("AsMap").IsEmpty() {
 
 				fields := seq.Iterator(seq.Map(privateFields, func(f metafp.StructField) string {
-					return fmt.Sprintf(`"%s" : r.%s`, f.Name, f.Name)
-				})).MakeString(",\n")
+					if f.Type.IsOption() {
+						return fmt.Sprintf(`if r.%s.IsDefined() {
+							m["%s"] = r.%s.Get()
+						}`, f.Name, f.Name, f.Name)
+					} else {
+						return fmt.Sprintf(`m["%s"] = r.%s`, f.Name, f.Name)
+					}
+				})).MakeString("\n")
 
 				fmt.Fprintf(w, `
 					func(r %s) AsMap() map[string]any {
-						return map[string]any {
-							%s,
-						}
+						m := map[string]any{}
+						%s
+						return m
 					}
 
 				`, valuereceiver,
@@ -421,12 +427,25 @@ func genValue() {
 			if !isMethodDefined(workingPackage, builderTypeName, "FromMap") {
 
 				fields := iterator.Map(seq.Iterator(privateFields), func(f metafp.StructField) string {
-					return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
+					if f.Type.IsOption() {
+						return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
+							r.%s = v
+						} else if v, ok := m["%s"].(%s); ok {
+							r.%s = option.Some(v)
+						}
+						`, f.Name, w.TypeName(workingPackage, f.Type.Type),
+							f.Name,
+							f.Name, w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type),
+							f.Name,
+						)
+					} else {
+						return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
 							r.%s = v
 						}
 							`, f.Name, w.TypeName(workingPackage, f.Type.Type),
-						f.Name,
-					)
+							f.Name,
+						)
+					}
 				}).MakeString("\n")
 
 				fmt.Fprintf(w, `

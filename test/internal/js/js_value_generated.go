@@ -92,15 +92,19 @@ func (r DecoderContextBuilder) Apply(workingObject fp.Option[map[string]json.Raw
 }
 
 func (r DecoderContext) AsMap() map[string]any {
-	return map[string]any{
-		"workingObject": r.workingObject,
+	m := map[string]any{}
+	if r.workingObject.IsDefined() {
+		m["workingObject"] = r.workingObject.Get()
 	}
+	return m
 }
 
 func (r DecoderContextBuilder) FromMap(m map[string]any) DecoderContextBuilder {
 
 	if v, ok := m["workingObject"].(fp.Option[map[string]json.RawMessage]); ok {
 		r.workingObject = v
+	} else if v, ok := m["workingObject"].(map[string]json.RawMessage); ok {
+		r.workingObject = option.Some(v)
 	}
 
 	return r

@@ -203,16 +203,16 @@ func (r RootBuilder) Apply(a int, b string, c float64, d bool, e *int, f []int, 
 }
 
 func (r Root) AsMap() map[string]any {
-	return map[string]any{
-		"a": r.a,
-		"b": r.b,
-		"c": r.c,
-		"d": r.d,
-		"e": r.e,
-		"f": r.f,
-		"g": r.g,
-		"h": r.h,
-	}
+	m := map[string]any{}
+	m["a"] = r.a
+	m["b"] = r.b
+	m["c"] = r.c
+	m["d"] = r.d
+	m["e"] = r.e
+	m["f"] = r.f
+	m["g"] = r.g
+	m["h"] = r.h
+	return m
 }
 
 func (r RootBuilder) FromMap(m map[string]any) RootBuilder {
@@ -350,10 +350,10 @@ func (r ChildBuilder) Apply(a map[string]any, b any) ChildBuilder {
 }
 
 func (r Child) AsMap() map[string]any {
-	return map[string]any{
-		"a": r.a,
-		"b": r.b,
-	}
+	m := map[string]any{}
+	m["a"] = r.a
+	m["b"] = r.b
+	return m
 }
 
 func (r ChildBuilder) FromMap(m map[string]any) ChildBuilder {
@@ -480,11 +480,11 @@ func (r NodeBuilder) Apply(name string, left *Node, right *Node) NodeBuilder {
 }
 
 func (r Node) AsMap() map[string]any {
-	return map[string]any{
-		"name":  r.name,
-		"left":  r.left,
-		"right": r.right,
-	}
+	m := map[string]any{}
+	m["name"] = r.name
+	m["left"] = r.left
+	m["right"] = r.right
+	return m
 }
 
 func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
@@ -578,9 +578,9 @@ func (r TreeBuilder) Apply(root *Node) TreeBuilder {
 }
 
 func (r Tree) AsMap() map[string]any {
-	return map[string]any{
-		"root": r.root,
-	}
+	m := map[string]any{}
+	m["root"] = r.root
+	return m
 }
 
 func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
@@ -683,10 +683,10 @@ func (r EntryBuilder[V]) Apply(name string, value V) EntryBuilder[V] {
 }
 
 func (r Entry[V]) AsMap() map[string]any {
-	return map[string]any{
-		"name":  r.name,
-		"value": r.value,
-	}
+	m := map[string]any{}
+	m["name"] = r.name
+	m["value"] = r.value
+	return m
 }
 
 func (r EntryBuilder[V]) FromMap(m map[string]any) EntryBuilder[V] {
@@ -794,10 +794,10 @@ func (r NotUsedParamBuilder[K, V]) Apply(param string, value V) NotUsedParamBuil
 }
 
 func (r NotUsedParam[K, V]) AsMap() map[string]any {
-	return map[string]any{
-		"param": r.param,
-		"value": r.value,
-	}
+	m := map[string]any{}
+	m["param"] = r.param
+	m["value"] = r.value
+	return m
 }
 
 func (r NotUsedParamBuilder[K, V]) FromMap(m map[string]any) NotUsedParamBuilder[K, V] {
@@ -924,11 +924,11 @@ func (r MovieBuilder) Apply(name string, casting Entry[string], notUsed NotUsedP
 }
 
 func (r Movie) AsMap() map[string]any {
-	return map[string]any{
-		"name":    r.name,
-		"casting": r.casting,
-		"notUsed": r.notUsed,
-	}
+	m := map[string]any{}
+	m["name"] = r.name
+	m["casting"] = r.casting
+	m["notUsed"] = r.notUsed
+	return m
 }
 
 func (r MovieBuilder) FromMap(m map[string]any) MovieBuilder {
