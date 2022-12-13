@@ -428,15 +428,17 @@ func genValue() {
 
 				fields := iterator.Map(seq.Iterator(privateFields), func(f metafp.StructField) string {
 					if f.Type.IsOption() {
+						optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
+
 						return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
 							r.%s = v
 						} else if v, ok := m["%s"].(%s); ok {
-							r.%s = option.Some(v)
+							r.%s = %s.Some(v)
 						}
 						`, f.Name, w.TypeName(workingPackage, f.Type.Type),
 							f.Name,
 							f.Name, w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type),
-							f.Name,
+							f.Name, optionpk,
 						)
 					} else {
 						return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
