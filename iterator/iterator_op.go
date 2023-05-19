@@ -1,3 +1,4 @@
+//go:generate go run github.com/csgura/fp/internal/generator/itr_gen
 package iterator
 
 import (
@@ -5,6 +6,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
@@ -123,6 +125,30 @@ func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Itera
 			panic("next on empty iterator")
 		},
 	)
+}
+
+func Flap[A, R any](tfa fp.Iterator[fp.Func1[A, R]]) func(A) fp.Iterator[R] {
+	return func(a A) fp.Iterator[R] {
+		return Ap(tfa, Of(a))
+	}
+}
+
+func Flap2[A, B, R any](tfab fp.Iterator[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Iterator[R]]] {
+	return func(a A) fp.Func1[B, fp.Iterator[R]] {
+		return Flap(Ap(tfab, Of(a)))
+	}
+}
+
+func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Iterator[A]) func(B) fp.Iterator[R] {
+	return Flap(Map(a, as.Curried2(tfab)))
+}
+
+func Method1[A, B, R any](ta fp.Iterator[A], fab func(a A, b B) R) func(B) fp.Iterator[R] {
+	return FlapMap(fab, ta)
+}
+
+func Method2[A, B, C, R any](ta fp.Iterator[A], fabc func(a A, b B, c C) R) func(B, C) fp.Iterator[R] {
+	return curried.Revert2(Flap2(Map(ta, as.Curried3(fabc))))
 }
 
 func ToMap[K, V any](itr fp.Iterator[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
