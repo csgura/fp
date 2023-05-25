@@ -93,7 +93,7 @@ func Map2[A, B, U any](a fp.Iterator[A], b fp.Iterator[B], f func(A, B) U) fp.It
 }
 
 func FilterMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Option[U]) fp.Iterator[U] {
-	return Map(Map(opt, fn).Filter(fp.Option[U].IsDefined), fp.Option[U].Get)
+	return FlatMap(opt, fp.Compose(fn, fp.IteratorOfOption[U]))
 }
 
 func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Iterator[U] {

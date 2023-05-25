@@ -188,6 +188,23 @@ func IteratorOfSeq[T any](r []T) Iterator[T] {
 	)
 }
 
+func IteratorOfOption[T any](r Option[T]) Iterator[T] {
+	first := true
+
+	return MakeIterator(
+		func() bool {
+			return first && r.IsDefined()
+		},
+		func() T {
+			if first && r.IsDefined() {
+				first = false
+				return r.Get()
+			}
+			panic("next on empty iterator")
+		},
+	)
+}
+
 func (r Seq[T]) MakeString(sep string) string {
 	buf := &bytes.Buffer{}
 

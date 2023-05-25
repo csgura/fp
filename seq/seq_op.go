@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/product"
 )
 
@@ -76,6 +77,10 @@ func Map2[A, B, U any](a fp.Seq[A], b fp.Seq[B], f func(A, B) U) fp.Seq[U] {
 			return f(v1, v2)
 		})
 	})
+}
+
+func FilterMap[T, U any](opt fp.Seq[T], fn func(v T) fp.Option[U]) fp.Seq[U] {
+	return FlatMap(opt, fp.Compose(fn, option.ToSeq[U]))
 }
 
 func Lift[T, U any](f func(v T) U) func(fp.Seq[T]) fp.Seq[U] {
