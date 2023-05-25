@@ -157,3 +157,11 @@ func (r Option[T]) Ptr() *T {
 
 	return nil
 }
+
+func (r Option[T]) Exists(p func(v T) bool) bool {
+	return r.IsDefined() && p(r.v)
+}
+
+func (r Option[T]) ForAll(p func(v T) bool) bool {
+	return r.IsEmpty() || p(r.v)
+}
