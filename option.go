@@ -90,6 +90,16 @@ func (r Option[T]) OrOption(v Option[T]) Option[T] {
 	return v
 }
 
+func (r Option[T]) OrPtr(v *T) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	if v == nil {
+		return None[T]()
+	}
+	return Some(*v)
+}
+
 func (r Option[T]) Recover(f func() T) Option[T] {
 	if r.IsDefined() {
 		return r
