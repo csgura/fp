@@ -276,3 +276,11 @@ func Zero[T any]() T {
 	var zero T
 	return zero
 }
+
+// https://hackage.haskell.org/package/base/docs/Prelude.html#v:const
+// const a b always evaluates to a, ignoring its second argument.
+func Const[A, B any](a A) func(b B) A {
+	return func(b B) A {
+		return a
+	}
+}
