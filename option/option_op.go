@@ -43,6 +43,13 @@ func Ptr[T any](v *T) fp.Option[T] {
 	return Some(*v)
 }
 
+func String(v string) fp.Option[string] {
+	if v == "" {
+		return None[string]()
+	}
+	return Some(v)
+}
+
 func FromTry[T any](t fp.Try[T]) fp.Option[T] {
 	if t.IsSuccess() {
 		return Some(t.Get())

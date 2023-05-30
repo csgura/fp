@@ -83,6 +83,13 @@ func (r Option[T]) Or(f func() Option[T]) Option[T] {
 	return f()
 }
 
+func (r Option[T]) OrOption(v Option[T]) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	return v
+}
+
 func (r Option[T]) Recover(f func() T) Option[T] {
 	if r.IsDefined() {
 		return r
