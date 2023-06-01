@@ -75,6 +75,12 @@ func GivenValue[T comparable](a T) func(b T) bool {
 	}
 }
 
+func GivenFieldValue[S any, T comparable](getter func(S) T, a T) func(s S) bool {
+	return func(s S) bool {
+		return Given[T]().Eqv(getter(s), a)
+	}
+}
+
 func Ptr[T any](eq lazy.Eval[fp.Eq[T]]) fp.Eq[*T] {
 	return New(func(a, b *T) bool {
 		if a == nil && b == nil {
