@@ -251,3 +251,23 @@ var _ js.Derives[js.Encoder[Over21]]
 
 // @fp.Derive
 var _ js.Derives[js.Decoder[Over21]]
+
+// @fp.Value
+type DefinedOtherPackage struct {
+	PubField  string
+	privField string
+	DupGetter string
+}
+
+func (r *DefinedOtherPackage) PtrRecv() {
+	// do nothing
+}
+
+func (r *DefinedOtherPackage) PtrRecvRet() string {
+	// do nothing
+	return ""
+}
+
+func (r *DefinedOtherPackage) GetDupGetter() string {
+	return "dup"
+}

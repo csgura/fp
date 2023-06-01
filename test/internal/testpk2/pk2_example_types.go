@@ -197,3 +197,15 @@ type Tree struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[Tree]]
+
+// @fp.GetterPubField
+// @fp.Alias
+type AliasedStruct testpk1.DefinedOtherPackage
+
+func (r AliasedStruct) String() string {
+	return "AliasedStruct"
+}
+
+// @fp.GetterPubField(override=true)
+// @fp.Alias
+type GetterOverride testpk1.DefinedOtherPackage

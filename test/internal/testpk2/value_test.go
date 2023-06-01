@@ -3,17 +3,20 @@ package testpk2_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/testpk1"
 	"github.com/csgura/fp/test/internal/testpk2"
 	"github.com/csgura/fp/try"
+	"golang.org/x/tools/go/packages"
 )
 
 func TestString(t *testing.T) {
@@ -124,5 +127,23 @@ func TestRead(t *testing.T) {
 	assert.True(res.IsSuccess())
 	assert.Equal(res.Get().Three(), 13.5)
 	assert.Equal(res.Get().Two(), "hello world")
+
+}
+
+func TestNewTyped(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	res := metafp.FindTaggedStruct(pkgs, "@fp.GetterPubField")
+	fmt.Printf("res = %v\n", res.Size())
 
 }

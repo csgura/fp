@@ -18,6 +18,19 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+type Annotation struct {
+	name   string
+	params fp.Map[string, string]
+}
+
+func (r Annotation) Name() string {
+	return r.name
+}
+
+func (r Annotation) Params() fp.Map[string, string] {
+	return r.params
+}
+
 type TaggedStruct struct {
 	Package *types.Package
 	Name    string
@@ -25,7 +38,8 @@ type TaggedStruct struct {
 	Struct  *types.Struct
 	Fields  fp.Seq[StructField]
 	Info    TypeInfo
-	Tags    mutable.Set[string]
+	Tags    fp.Map[string, Annotation]
+	RhsType fp.Option[TypeInfo]
 }
 
 func (r TaggedStruct) IsRecursive() bool {
@@ -77,12 +91,48 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	return option.None[TaggedStruct]()
 }
 
-func extractTag(comment string) mutable.Set[string] {
-	list := as.Seq(strings.Fields(comment))
-	return seq.ToGoSet(list.Filter(as.Func2(strings.Contains).ApplyLast("@")))
+func parseKeyValue(s string) fp.Tuple2[string, string] {
+	s = strings.TrimSpace(s)
+	idx := strings.Index(s, "=")
+	if idx > 0 && len(s) > idx+1 {
+		return as.Tuple2(strings.TrimSpace(s[:idx]), strings.TrimSpace(s[idx+1:]))
+	}
+	return as.Tuple2(s, "true")
 }
 
-func GetTagsOfType(p []*packages.Package, name string) mutable.Set[string] {
+func parseAnnotation(s string) fp.Tuple2[string, Annotation] {
+	pstart := strings.Index(s, "(")
+	if pstart > 0 {
+		pend := strings.LastIndex(s, ")")
+		if pend > pstart {
+			name := strings.TrimSpace(s[:pstart])
+			params := s[pstart+1 : pend]
+
+			itr := iterator.FromSeq(strings.Split(params, ","))
+			p := iterator.ToGoMap(iterator.Map(itr, parseKeyValue))
+			return as.Tuple2(name, Annotation{
+				name:   name,
+				params: mutable.MapOf(p),
+			})
+		}
+
+	}
+	name := strings.TrimSpace(s)
+	return as.Tuple2(name, Annotation{
+		name: name,
+	})
+
+}
+
+func extractTag(comment string) fp.Map[string, Annotation] {
+	list := iterator.FromSeq(strings.Split(comment, "\n"))
+	list = iterator.Map(list, strings.TrimSpace)
+	list = list.Filter(as.Func2(strings.HasPrefix).ApplyLast("@"))
+	ret := iterator.ToGoMap(iterator.Map(list, parseAnnotation))
+	return mutable.MapOf(ret)
+}
+
+func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation] {
 	comment := seq.FlatMap(p, func(pk *packages.Package) fp.Seq[string] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
 
@@ -113,8 +163,9 @@ func GetTagsOfType(p []*packages.Package, name string) mutable.Set[string] {
 	return option.Map(comment, extractTag).OrZero()
 }
 
-func FindTaggedStruct(p []*packages.Package, tag string) fp.Seq[TaggedStruct] {
+func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct] {
 
+	tagSeq := as.Seq(tags)
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedStruct] {
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
 
@@ -135,10 +186,25 @@ func FindTaggedStruct(p []*packages.Package, tag string) fp.Seq[TaggedStruct] {
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedStruct] {
 				if ts, ok := v.(*ast.TypeSpec); ok {
 					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
-					if doc.Filter(as.Func2(strings.Contains).ApplyLast(tag)).IsDefined() {
-						return option.Map(LookupStruct(pk.Types, ts.Name.Name), func(v TaggedStruct) TaggedStruct {
-							v.Tags = option.Map(doc, extractTag).OrZero()
-							return v
+					if doc.Exists(func(comment string) bool {
+						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
+					}) {
+
+						return option.Map(LookupStruct(pk.Types, ts.Name.Name), func(ret TaggedStruct) TaggedStruct {
+							ret.Tags = option.Map(doc, extractTag).OrZero()
+							if _, ok := ts.Type.(*ast.SelectorExpr); ok {
+								info := &types.Info{
+									Types: make(map[ast.Expr]types.TypeAndValue),
+								}
+								types.CheckExpr(pk.Fset, pk.Types, v.Pos(), ts.Type, info)
+								ti := info.Types[ts.Type]
+								if _, ok := ti.Type.(*types.Named); ok {
+									ret.RhsType = option.Some(typeInfo(ti.Type))
+
+								}
+							}
+
+							return ret
 						}).ToSeq()
 					}
 				}

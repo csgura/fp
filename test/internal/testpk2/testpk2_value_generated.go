@@ -480,10 +480,10 @@ func (r AllKindTypesBuilder) I2(v interface {
 }
 
 func (r AllKindTypes) String() string {
-	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, ch2=%v, ch3=%v, fn3=%v, arr2=%v, st=%v, i2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
+	return fmt.Sprintf("AllKindTypes(Embed=%v, hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, ch2=%v, ch3=%v, fn3=%v, arr2=%v, st=%v, i2=%v)", r.Embed, r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypes) AsTuple() fp.Tuple21[Embed, fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -491,10 +491,10 @@ func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.Fi
 	io.Closer
 	Hello() fp.Try[int]
 }] {
-	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
+	return as.Tuple21(r.Embed, r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) Unapply() (fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypes) Unapply() (Embed, fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -502,31 +502,32 @@ func (r AllKindTypes) Unapply() (fp.Option[int], reflect.Type, []os.File, map[st
 	io.Closer
 	Hello() fp.Try[int]
 }) {
-	return r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2
+	return r.Embed, r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2
 }
 
 func (r AllKindTypes) AsMutable() AllKindTypesMutable {
 	return AllKindTypesMutable{
-		Hi:   r.hi,
-		Tpe:  r.tpe,
-		Arr:  r.arr,
-		M:    r.m,
-		A:    r.a,
-		P:    r.p,
-		L:    r.l,
-		T:    r.t,
-		M2:   r.m2,
-		Mm:   r.mm,
-		Intf: r.intf,
-		Ch:   r.ch,
-		Ch2:  r.ch2,
-		Ch3:  r.ch3,
-		Fn3:  r.fn3,
-		Fn:   r.fn,
-		Fn2:  r.fn2,
-		Arr2: r.arr2,
-		St:   r.st,
-		I2:   r.i2,
+		Embed: r.Embed,
+		Hi:    r.hi,
+		Tpe:   r.tpe,
+		Arr:   r.arr,
+		M:     r.m,
+		A:     r.a,
+		P:     r.p,
+		L:     r.l,
+		T:     r.t,
+		M2:    r.m2,
+		Mm:    r.mm,
+		Intf:  r.intf,
+		Ch:    r.ch,
+		Ch2:   r.ch2,
+		Ch3:   r.ch3,
+		Fn3:   r.fn3,
+		Fn:    r.fn,
+		Fn2:   r.fn2,
+		Arr2:  r.arr2,
+		St:    r.st,
+		I2:    r.i2,
 	}
 }
 
@@ -556,7 +557,7 @@ func (r AllKindTypesMutable) AsImmutable() AllKindTypes {
 	}
 }
 
-func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypesBuilder) FromTuple(t fp.Tuple21[Embed, fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -564,30 +565,31 @@ func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type
 	io.Closer
 	Hello() fp.Try[int]
 }]) AllKindTypesBuilder {
-	r.hi = t.I1
-	r.tpe = t.I2
-	r.arr = t.I3
-	r.m = t.I4
-	r.a = t.I5
-	r.p = t.I6
-	r.l = t.I7
-	r.t = t.I8
-	r.m2 = t.I9
-	r.mm = t.I10
-	r.intf = t.I11
-	r.ch = t.I12
-	r.ch2 = t.I13
-	r.ch3 = t.I14
-	r.fn3 = t.I15
-	r.fn = t.I16
-	r.fn2 = t.I17
-	r.arr2 = t.I18
-	r.st = t.I19
-	r.i2 = t.I20
+	r.Embed = t.I1
+	r.hi = t.I2
+	r.tpe = t.I3
+	r.arr = t.I4
+	r.m = t.I5
+	r.a = t.I6
+	r.p = t.I7
+	r.l = t.I8
+	r.t = t.I9
+	r.m2 = t.I10
+	r.mm = t.I11
+	r.intf = t.I12
+	r.ch = t.I13
+	r.ch2 = t.I14
+	r.ch3 = t.I15
+	r.fn3 = t.I16
+	r.fn = t.I17
+	r.fn2 = t.I18
+	r.arr2 = t.I19
+	r.st = t.I20
+	r.i2 = t.I21
 	return r
 }
 
-func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.Try[fp.Option[Local]], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
+func (r AllKindTypesBuilder) Apply(Embed Embed, hi fp.Option[int], tpe reflect.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.Try[fp.Option[Local]], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -595,6 +597,7 @@ func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os
 	io.Closer
 	Hello() fp.Try[int]
 }) AllKindTypesBuilder {
+	r.Embed = Embed
 	r.hi = hi
 	r.tpe = tpe
 	r.arr = arr
@@ -620,6 +623,7 @@ func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os
 
 func (r AllKindTypes) AsMap() map[string]any {
 	m := map[string]any{}
+	m["Embed"] = r.Embed
 	if r.hi.IsDefined() {
 		m["hi"] = r.hi.Get()
 	}
@@ -646,6 +650,10 @@ func (r AllKindTypes) AsMap() map[string]any {
 }
 
 func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
+
+	if v, ok := m["Embed"].(Embed); ok {
+		r.Embed = v
+	}
 
 	if v, ok := m["hi"].(fp.Option[int]); ok {
 		r.hi = v
@@ -920,15 +928,14 @@ func (r Person) AsMutable() PersonMutable {
 
 func (r PersonMutable) AsImmutable() Person {
 	return Person{
-		name:       r.Name,
-		age:        r.Age,
-		height:     r.Height,
-		phone:      r.Phone,
-		addr:       r.Addr,
-		list:       r.List,
-		seq:        r.Seq,
-		blob:       r.Blob,
-		_notExport: r._notExport,
+		name:   r.Name,
+		age:    r.Age,
+		height: r.Height,
+		phone:  r.Phone,
+		addr:   r.Addr,
+		list:   r.List,
+		seq:    r.Seq,
+		blob:   r.Blob,
 	}
 }
 
@@ -1967,4 +1974,104 @@ func (r NamedTwo[T]) Value() T {
 func (r NamedTwo[T]) WithValue(v T) NamedTwo[T] {
 	r.I1 = v
 	return r
+}
+
+func (r AliasedStruct) GetPubField() string {
+	return r.PubField
+}
+
+func (r AliasedStruct) Unwrap() testpk1.DefinedOtherPackage {
+	return testpk1.DefinedOtherPackage(r)
+}
+
+func (r *AliasedStruct) PtrRecvRet() string {
+	return (*testpk1.DefinedOtherPackage)(r).PtrRecvRet()
+}
+
+func (r *AliasedStruct) GetDupGetter() string {
+	return (*testpk1.DefinedOtherPackage)(r).GetDupGetter()
+}
+
+func (r AliasedStruct) Builder() testpk1.DefinedOtherPackageBuilder {
+	return testpk1.DefinedOtherPackage(r).Builder()
+}
+
+func (r AliasedStruct) AsTuple() fp.Tuple2[string, string] {
+	return testpk1.DefinedOtherPackage(r).AsTuple()
+}
+
+func (r *AliasedStruct) PtrRecv() {
+	(*testpk1.DefinedOtherPackage)(r).PtrRecv()
+}
+
+func (r AliasedStruct) PrivField() string {
+	return testpk1.DefinedOtherPackage(r).PrivField()
+}
+
+func (r AliasedStruct) WithPrivField(v string) testpk1.DefinedOtherPackage {
+	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
+}
+
+func (r AliasedStruct) Unapply() (string, string) {
+	return testpk1.DefinedOtherPackage(r).Unapply()
+}
+
+func (r AliasedStruct) AsMutable() testpk1.DefinedOtherPackageMutable {
+	return testpk1.DefinedOtherPackage(r).AsMutable()
+}
+
+func (r AliasedStruct) AsMap() map[string]any {
+	return testpk1.DefinedOtherPackage(r).AsMap()
+}
+
+func (r GetterOverride) GetPubField() string {
+	return r.PubField
+}
+
+func (r GetterOverride) GetDupGetter() string {
+	return r.DupGetter
+}
+
+func (r GetterOverride) Unwrap() testpk1.DefinedOtherPackage {
+	return testpk1.DefinedOtherPackage(r)
+}
+
+func (r GetterOverride) PrivField() string {
+	return testpk1.DefinedOtherPackage(r).PrivField()
+}
+
+func (r GetterOverride) WithPrivField(v string) testpk1.DefinedOtherPackage {
+	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
+}
+
+func (r GetterOverride) String() string {
+	return testpk1.DefinedOtherPackage(r).String()
+}
+
+func (r GetterOverride) Unapply() (string, string) {
+	return testpk1.DefinedOtherPackage(r).Unapply()
+}
+
+func (r GetterOverride) AsMutable() testpk1.DefinedOtherPackageMutable {
+	return testpk1.DefinedOtherPackage(r).AsMutable()
+}
+
+func (r GetterOverride) Builder() testpk1.DefinedOtherPackageBuilder {
+	return testpk1.DefinedOtherPackage(r).Builder()
+}
+
+func (r GetterOverride) AsTuple() fp.Tuple2[string, string] {
+	return testpk1.DefinedOtherPackage(r).AsTuple()
+}
+
+func (r GetterOverride) AsMap() map[string]any {
+	return testpk1.DefinedOtherPackage(r).AsMap()
+}
+
+func (r *GetterOverride) PtrRecv() {
+	(*testpk1.DefinedOtherPackage)(r).PtrRecv()
+}
+
+func (r *GetterOverride) PtrRecvRet() string {
+	return (*testpk1.DefinedOtherPackage)(r).PtrRecvRet()
 }

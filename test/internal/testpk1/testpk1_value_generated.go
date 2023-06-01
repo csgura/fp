@@ -2077,6 +2077,93 @@ func (r Over21Builder) FromMap(m map[string]any) Over21Builder {
 	return r
 }
 
+type DefinedOtherPackageBuilder DefinedOtherPackage
+
+type DefinedOtherPackageMutable struct {
+	PubField  string
+	PrivField string
+}
+
+func (r DefinedOtherPackageBuilder) Build() DefinedOtherPackage {
+	return DefinedOtherPackage(r)
+}
+
+func (r DefinedOtherPackage) Builder() DefinedOtherPackageBuilder {
+	return DefinedOtherPackageBuilder(r)
+}
+
+func (r DefinedOtherPackage) PrivField() string {
+	return r.privField
+}
+
+func (r DefinedOtherPackage) WithPrivField(v string) DefinedOtherPackage {
+	r.privField = v
+	return r
+}
+
+func (r DefinedOtherPackageBuilder) PrivField(v string) DefinedOtherPackageBuilder {
+	r.privField = v
+	return r
+}
+
+func (r DefinedOtherPackage) String() string {
+	return fmt.Sprintf("DefinedOtherPackage(PubField=%v, privField=%v)", r.PubField, r.privField)
+}
+
+func (r DefinedOtherPackage) AsTuple() fp.Tuple2[string, string] {
+	return as.Tuple2(r.PubField, r.privField)
+}
+
+func (r DefinedOtherPackage) Unapply() (string, string) {
+	return r.PubField, r.privField
+}
+
+func (r DefinedOtherPackage) AsMutable() DefinedOtherPackageMutable {
+	return DefinedOtherPackageMutable{
+		PubField:  r.PubField,
+		PrivField: r.privField,
+	}
+}
+
+func (r DefinedOtherPackageMutable) AsImmutable() DefinedOtherPackage {
+	return DefinedOtherPackage{
+		PubField:  r.PubField,
+		privField: r.PrivField,
+	}
+}
+
+func (r DefinedOtherPackageBuilder) FromTuple(t fp.Tuple2[string, string]) DefinedOtherPackageBuilder {
+	r.PubField = t.I1
+	r.privField = t.I2
+	return r
+}
+
+func (r DefinedOtherPackageBuilder) Apply(PubField string, privField string) DefinedOtherPackageBuilder {
+	r.PubField = PubField
+	r.privField = privField
+	return r
+}
+
+func (r DefinedOtherPackage) AsMap() map[string]any {
+	m := map[string]any{}
+	m["PubField"] = r.PubField
+	m["privField"] = r.privField
+	return m
+}
+
+func (r DefinedOtherPackageBuilder) FromMap(m map[string]any) DefinedOtherPackageBuilder {
+
+	if v, ok := m["PubField"].(string); ok {
+		r.PubField = v
+	}
+
+	if v, ok := m["privField"].(string); ok {
+		r.privField = v
+	}
+
+	return r
+}
+
 type NamedAddr[T any] fp.Tuple1[T]
 
 func (r NamedAddr[T]) Name() string {
