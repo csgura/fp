@@ -92,10 +92,10 @@ func (r PersonBuilder) Apply(name string, age int) PersonBuilder {
 }
 
 func (r Person) AsMap() map[string]any {
-	return map[string]any{
-		"name": r.name,
-		"age":  r.age,
-	}
+	m := map[string]any{}
+	m["name"] = r.name
+	m["age"] = r.age
+	return m
 }
 
 func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
@@ -212,11 +212,11 @@ func (r AddressBuilder) Apply(country string, city string, street string) Addres
 }
 
 func (r Address) AsMap() map[string]any {
-	return map[string]any{
-		"country": r.country,
-		"city":    r.city,
-		"street":  r.street,
-	}
+	m := map[string]any{}
+	m["country"] = r.country
+	m["city"] = r.city
+	m["street"] = r.street
+	return m
 }
 
 func (r AddressBuilder) FromMap(m map[string]any) AddressBuilder {
@@ -354,11 +354,11 @@ func (r CarBuilder) Apply(company string, model string, year int) CarBuilder {
 }
 
 func (r Car) AsMap() map[string]any {
-	return map[string]any{
-		"company": r.company,
-		"model":   r.model,
-		"year":    r.year,
-	}
+	m := map[string]any{}
+	m["company"] = r.company
+	m["model"] = r.model
+	m["year"] = r.year
+	return m
 }
 
 func (r CarBuilder) FromMap(m map[string]any) CarBuilder {
@@ -471,10 +471,10 @@ func (r EntryBuilder[A, B]) Apply(key A, value B) EntryBuilder[A, B] {
 }
 
 func (r Entry[A, B]) AsMap() map[string]any {
-	return map[string]any{
-		"key":   r.key,
-		"value": r.value,
-	}
+	m := map[string]any{}
+	m["key"] = r.key
+	m["value"] = r.value
+	return m
 }
 
 func (r EntryBuilder[A, B]) FromMap(m map[string]any) EntryBuilder[A, B] {
@@ -572,10 +572,10 @@ func (r CarsOwnedBuilder) Apply(owner Person, cars fp.Seq[Car]) CarsOwnedBuilder
 }
 
 func (r CarsOwned) AsMap() map[string]any {
-	return map[string]any{
-		"owner": r.owner,
-		"cars":  r.cars,
-	}
+	m := map[string]any{}
+	m["owner"] = r.owner
+	m["cars"] = r.cars
+	return m
 }
 
 func (r CarsOwnedBuilder) FromMap(m map[string]any) CarsOwnedBuilder {
@@ -712,11 +712,13 @@ func (r UserBuilder) Apply(name string, email fp.Option[string], active bool) Us
 }
 
 func (r User) AsMap() map[string]any {
-	return map[string]any{
-		"name":   r.name,
-		"email":  r.email,
-		"active": r.active,
+	m := map[string]any{}
+	m["name"] = r.name
+	if r.email.IsDefined() {
+		m["email"] = r.email.Get()
 	}
+	m["active"] = r.active
+	return m
 }
 
 func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
@@ -727,6 +729,8 @@ func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
 
 	if v, ok := m["email"].(fp.Option[string]); ok {
 		r.email = v
+	} else if v, ok := m["email"].(string); ok {
+		r.email = option.Some(v)
 	}
 
 	if v, ok := m["active"].(bool); ok {

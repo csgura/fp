@@ -2082,6 +2082,7 @@ type DefinedOtherPackageBuilder DefinedOtherPackage
 type DefinedOtherPackageMutable struct {
 	PubField  string
 	PrivField string
+	DupGetter string
 }
 
 func (r DefinedOtherPackageBuilder) Build() DefinedOtherPackage {
@@ -2107,21 +2108,22 @@ func (r DefinedOtherPackageBuilder) PrivField(v string) DefinedOtherPackageBuild
 }
 
 func (r DefinedOtherPackage) String() string {
-	return fmt.Sprintf("DefinedOtherPackage(PubField=%v, privField=%v)", r.PubField, r.privField)
+	return fmt.Sprintf("DefinedOtherPackage(PubField=%v, privField=%v, DupGetter=%v)", r.PubField, r.privField, r.DupGetter)
 }
 
-func (r DefinedOtherPackage) AsTuple() fp.Tuple2[string, string] {
-	return as.Tuple2(r.PubField, r.privField)
+func (r DefinedOtherPackage) AsTuple() fp.Tuple3[string, string, string] {
+	return as.Tuple3(r.PubField, r.privField, r.DupGetter)
 }
 
-func (r DefinedOtherPackage) Unapply() (string, string) {
-	return r.PubField, r.privField
+func (r DefinedOtherPackage) Unapply() (string, string, string) {
+	return r.PubField, r.privField, r.DupGetter
 }
 
 func (r DefinedOtherPackage) AsMutable() DefinedOtherPackageMutable {
 	return DefinedOtherPackageMutable{
 		PubField:  r.PubField,
 		PrivField: r.privField,
+		DupGetter: r.DupGetter,
 	}
 }
 
@@ -2129,18 +2131,21 @@ func (r DefinedOtherPackageMutable) AsImmutable() DefinedOtherPackage {
 	return DefinedOtherPackage{
 		PubField:  r.PubField,
 		privField: r.PrivField,
+		DupGetter: r.DupGetter,
 	}
 }
 
-func (r DefinedOtherPackageBuilder) FromTuple(t fp.Tuple2[string, string]) DefinedOtherPackageBuilder {
+func (r DefinedOtherPackageBuilder) FromTuple(t fp.Tuple3[string, string, string]) DefinedOtherPackageBuilder {
 	r.PubField = t.I1
 	r.privField = t.I2
+	r.DupGetter = t.I3
 	return r
 }
 
-func (r DefinedOtherPackageBuilder) Apply(PubField string, privField string) DefinedOtherPackageBuilder {
+func (r DefinedOtherPackageBuilder) Apply(PubField string, privField string, DupGetter string) DefinedOtherPackageBuilder {
 	r.PubField = PubField
 	r.privField = privField
+	r.DupGetter = DupGetter
 	return r
 }
 
@@ -2148,6 +2153,7 @@ func (r DefinedOtherPackage) AsMap() map[string]any {
 	m := map[string]any{}
 	m["PubField"] = r.PubField
 	m["privField"] = r.privField
+	m["DupGetter"] = r.DupGetter
 	return m
 }
 
@@ -2159,6 +2165,10 @@ func (r DefinedOtherPackageBuilder) FromMap(m map[string]any) DefinedOtherPackag
 
 	if v, ok := m["privField"].(string); ok {
 		r.privField = v
+	}
+
+	if v, ok := m["DupGetter"].(string); ok {
+		r.DupGetter = v
 	}
 
 	return r
