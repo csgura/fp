@@ -146,7 +146,7 @@ func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
 }
 
 // 하스켈 : m( a -> r ) -> a -> m r
-// 스칼라 : M[ A => r ] => A => M[R]
+// 스칼라 : M[ A => R ] => A => M[R]
 // 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
 // hoogle 에서 검색해 보면
 // https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
@@ -173,7 +173,7 @@ func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Option[A]) func(B) fp.Option[R
 	return Flap(Map(a, as.Curried2(tfab)))
 }
 
-// ( a -> b -> m r) -> m a -> b -> m r
+// ( a -> b -> m r ) -> m a -> b -> m r
 //
 //	Flatten . FlapMap
 //
@@ -367,8 +367,8 @@ func (r ApplicativeFunctor1[A, R]) ApFunc(a func() A) fp.Option[R] {
 	})
 }
 
-func Applicative1[A, R any](fn fp.Func1[A, R]) MonadChain1[hlist.Nil, hlist.Nil, A, R] {
-	return MonadChain1[hlist.Nil, hlist.Nil, A, R]{Some(hlist.Empty()), Some(fn)}
+func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
+	return ApplicativeFunctor1[A, R]{fn: Some(fn)}
 }
 
 // type ApplicativeFunctor2[H hlist.Header[HT], HT, A, B, R any] struct {
