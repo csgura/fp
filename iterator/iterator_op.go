@@ -39,6 +39,30 @@ func Of[T any](list ...T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(list)
 }
 
+func FromSeq[T any](seq []T) fp.Iterator[T] {
+	return fp.IteratorOfSeq(seq)
+}
+
+func FromPtr[T any](ptr *T) fp.Iterator[T] {
+	if ptr == nil {
+		return Empty[T]()
+	} else {
+		return Of(*ptr)
+	}
+}
+
+func FromMap[K comparable, V any](m map[K]V) fp.Iterator[fp.Tuple2[K, V]] {
+	return fp.IteratorOfGoMap(m)
+}
+
+func FromMapKey[K comparable, V any](m map[K]V) fp.Iterator[K] {
+	return mutable.MapOf(m).Keys()
+}
+
+func FromMapValue[K comparable, V any](m map[K]V) fp.Iterator[V] {
+	return mutable.MapOf(m).Values()
+}
+
 func Ap[T, U any](t fp.Iterator[fp.Func1[T, U]], a fp.Iterator[T]) fp.Iterator[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Iterator[U] {
 		return Map(a, f)

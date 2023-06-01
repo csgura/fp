@@ -32,6 +32,15 @@ func (r Option[T]) Get() T {
 	panic("Option.empty")
 }
 
+func (r Option[T]) Unapply() (T, bool) {
+	if r.IsDefined() {
+		return r.Get(), true
+	} else {
+		var zero T
+		return zero, false
+	}
+}
+
 func (r Option[T]) String() string {
 	if r.IsDefined() {
 		return fmt.Sprintf("Some(%v)", r.v)
