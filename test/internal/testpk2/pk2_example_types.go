@@ -199,7 +199,7 @@ type Tree struct {
 var _ eq.Derives[fp.Eq[Tree]]
 
 // @fp.GetterPubField
-// @fp.Alias
+// @fp.Deref
 // @fp.WithPubField
 type AliasedStruct testpk1.DefinedOtherPackage
 
@@ -208,5 +208,5 @@ func (r AliasedStruct) String() string {
 }
 
 // @fp.GetterPubField(override=true)
-// @fp.Alias
+// @fp.Deref
 type GetterOverride testpk1.DefinedOtherPackage

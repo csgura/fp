@@ -1848,28 +1848,12 @@ func (r AliasedStruct) WithDupGetter(v string) AliasedStruct {
 	return r
 }
 
-func (r AliasedStruct) Unwrap() testpk1.DefinedOtherPackage {
+func (r AliasedStruct) Deref() testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r)
 }
 
-func CastAliasedStruct(v testpk1.DefinedOtherPackage) AliasedStruct {
+func IntoAliasedStruct(v testpk1.DefinedOtherPackage) AliasedStruct {
 	return AliasedStruct(v)
-}
-
-func (r *AliasedStruct) PtrRecv() {
-	(*testpk1.DefinedOtherPackage)(r).PtrRecv()
-}
-
-func (r *AliasedStruct) PtrRecvRet() string {
-	return (*testpk1.DefinedOtherPackage)(r).PtrRecvRet()
-}
-
-func (r AliasedStruct) Builder() testpk1.DefinedOtherPackageBuilder {
-	return testpk1.DefinedOtherPackage(r).Builder()
-}
-
-func (r AliasedStruct) PrivField() string {
-	return testpk1.DefinedOtherPackage(r).PrivField()
 }
 
 func (r AliasedStruct) WithPrivField(v string) testpk1.DefinedOtherPackage {
@@ -1888,8 +1872,24 @@ func (r AliasedStruct) AsMap() map[string]any {
 	return testpk1.DefinedOtherPackage(r).AsMap()
 }
 
+func (r *AliasedStruct) PtrRecv() {
+	(*testpk1.DefinedOtherPackage)(r).PtrRecv()
+}
+
+func (r *AliasedStruct) PtrRecvRet() string {
+	return (*testpk1.DefinedOtherPackage)(r).PtrRecvRet()
+}
+
 func (r *AliasedStruct) GetDupGetter() string {
 	return (*testpk1.DefinedOtherPackage)(r).GetDupGetter()
+}
+
+func (r AliasedStruct) Builder() testpk1.DefinedOtherPackageBuilder {
+	return testpk1.DefinedOtherPackage(r).Builder()
+}
+
+func (r AliasedStruct) PrivField() string {
+	return testpk1.DefinedOtherPackage(r).PrivField()
 }
 
 func (r AliasedStruct) AsTuple() fp.Tuple3[string, string, string] {
@@ -1904,16 +1904,36 @@ func (r GetterOverride) GetDupGetter() string {
 	return r.DupGetter
 }
 
-func (r GetterOverride) Unwrap() testpk1.DefinedOtherPackage {
+func (r GetterOverride) Deref() testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r)
 }
 
-func CastGetterOverride(v testpk1.DefinedOtherPackage) GetterOverride {
+func IntoGetterOverride(v testpk1.DefinedOtherPackage) GetterOverride {
 	return GetterOverride(v)
 }
 
 func (r *GetterOverride) PtrRecv() {
 	(*testpk1.DefinedOtherPackage)(r).PtrRecv()
+}
+
+func (r *GetterOverride) PtrRecvRet() string {
+	return (*testpk1.DefinedOtherPackage)(r).PtrRecvRet()
+}
+
+func (r GetterOverride) AsTuple() fp.Tuple3[string, string, string] {
+	return testpk1.DefinedOtherPackage(r).AsTuple()
+}
+
+func (r GetterOverride) Unapply() (string, string, string) {
+	return testpk1.DefinedOtherPackage(r).Unapply()
+}
+
+func (r GetterOverride) AsMap() map[string]any {
+	return testpk1.DefinedOtherPackage(r).AsMap()
+}
+
+func (r GetterOverride) AsMutable() testpk1.DefinedOtherPackageMutable {
+	return testpk1.DefinedOtherPackage(r).AsMutable()
 }
 
 func (r GetterOverride) Builder() testpk1.DefinedOtherPackageBuilder {
@@ -1926,26 +1946,6 @@ func (r GetterOverride) PrivField() string {
 
 func (r GetterOverride) WithPrivField(v string) testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
-}
-
-func (r GetterOverride) AsTuple() fp.Tuple3[string, string, string] {
-	return testpk1.DefinedOtherPackage(r).AsTuple()
-}
-
-func (r GetterOverride) Unapply() (string, string, string) {
-	return testpk1.DefinedOtherPackage(r).Unapply()
-}
-
-func (r GetterOverride) AsMutable() testpk1.DefinedOtherPackageMutable {
-	return testpk1.DefinedOtherPackage(r).AsMutable()
-}
-
-func (r GetterOverride) AsMap() map[string]any {
-	return testpk1.DefinedOtherPackage(r).AsMap()
-}
-
-func (r *GetterOverride) PtrRecvRet() string {
-	return (*testpk1.DefinedOtherPackage)(r).PtrRecvRet()
 }
 
 func (r GetterOverride) String() string {

@@ -65,98 +65,101 @@ func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) fp.
 
 func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
-	if rhs, ok := ts.RhsType.Unapply(); ok {
-		valuetp := ""
-		if len(ts.Info.TypeParam) > 0 {
-			//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-			valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-		}
-		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+	if _, ok := ts.Tags.Get("@fp.Deref").Unapply(); ok {
 
-		rhsTypeName := w.TypeName(workingPackage, rhs.Type)
+		if rhs, ok := ts.RhsType.Unapply(); ok {
+			valuetp := ""
+			if len(ts.Info.TypeParam) > 0 {
+				//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
+				valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
+			}
+			valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
-		unwrapFunc := "Unwrap"
-		if ts.Info.Method.Get(unwrapFunc).IsEmpty() {
+			rhsTypeName := w.TypeName(workingPackage, rhs.Type)
 
-			fmt.Fprintf(w, `
+			unwrapFunc := "Deref"
+			if ts.Info.Method.Get(unwrapFunc).IsEmpty() {
+
+				fmt.Fprintf(w, `
 					func (r %s) %s() %s {
 						return %s(r)
 					}
 				`, valuereceiver, unwrapFunc, rhsTypeName, rhsTypeName)
-			genMethod = genMethod.Incl(unwrapFunc)
-		}
+				genMethod = genMethod.Incl(unwrapFunc)
+			}
 
-		castFunc := fmt.Sprintf("Cast%s", ts.Name)
-		if workingPackage.Scope().Lookup(castFunc) == nil {
-			fmt.Fprintf(w, `
+			castFunc := fmt.Sprintf("Into%s", ts.Name)
+			if workingPackage.Scope().Lookup(castFunc) == nil {
+				fmt.Fprintf(w, `
 					func %s(v %s) %s {
 						return %s(v)
 					}
 				`, castFunc, rhsTypeName, valuereceiver,
-				ts.Name,
-			)
-		}
+					ts.Name,
+				)
+			}
 
-		rhs.Method.Iterator().Foreach(func(t fp.Tuple2[string, *types.Func]) {
-			name, f := t.Unapply()
-			if ts.Info.Method.Get(name).IsEmpty() && !genMethod.Contains(name) {
+			rhs.Method.Iterator().Foreach(func(t fp.Tuple2[string, *types.Func]) {
+				name, f := t.Unapply()
+				if ts.Info.Method.Get(name).IsEmpty() && !genMethod.Contains(name) {
 
-				if sig, ok := f.Type().(*types.Signature); ok {
+					if sig, ok := f.Type().(*types.Signature); ok {
 
-					isPtrReceiver := false
-					if sig.Recv() != nil && sig.Recv().Type() != nil {
-						if _, ok := sig.Recv().Type().(*types.Pointer); ok {
-							isPtrReceiver = true
+						isPtrReceiver := false
+						if sig.Recv() != nil && sig.Recv().Type() != nil {
+							if _, ok := sig.Recv().Type().(*types.Pointer); ok {
+								isPtrReceiver = true
+							}
 						}
-					}
-					argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-						return fmt.Sprintf("%s %s", t.Name(), w.TypeName(workingPackage, t.Type()))
-					}).MakeString(",")
+						argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+							return fmt.Sprintf("%s %s", t.Name(), w.TypeName(workingPackage, t.Type()))
+						}).MakeString(",")
 
-					argstr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-						return t.Name()
-					}).MakeString(",")
+						argstr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+							return t.Name()
+						}).MakeString(",")
 
-					resstr := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-						return w.TypeName(workingPackage, t.Type())
-					}).MakeString(",")
+						resstr := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+							return w.TypeName(workingPackage, t.Type())
+						}).MakeString(",")
 
-					if resstr != "" {
-						if isPtrReceiver {
-							fmt.Fprintf(w, `
+						if resstr != "" {
+							if isPtrReceiver {
+								fmt.Fprintf(w, `
 									func (r *%s) %s(%s) (%s) {
 										return (*%s)(r).%s(%s)
 									}
 								`, valuereceiver, name, argTypeStr, resstr, rhsTypeName, name, argstr)
-						} else {
-							fmt.Fprintf(w, `
+							} else {
+								fmt.Fprintf(w, `
 									func (r %s) %s(%s) (%s) {
 										return %s(r).%s(%s)
 									}
 								`, valuereceiver, name, argTypeStr, resstr, rhsTypeName, name, argstr)
-						}
-					} else {
-						if isPtrReceiver {
+							}
+						} else {
+							if isPtrReceiver {
 
-							fmt.Fprintf(w, `
+								fmt.Fprintf(w, `
 									func (r *%s) %s(%s) {
 										(*%s)(r).%s(%s)
 									}
 								`, valuereceiver, name, argTypeStr, rhsTypeName, name, argstr)
-						} else {
-							fmt.Fprintf(w, `
+							} else {
+								fmt.Fprintf(w, `
 									func (r %s) %s(%s) {
 										%s(r).%s(%s)
 									}
 								`, valuereceiver, name, argTypeStr, rhsTypeName, name, argstr)
+							}
 						}
+						genMethod = genMethod.Incl(name)
+
 					}
-					genMethod = genMethod.Incl(name)
-
 				}
-			}
 
-		})
+			})
+		}
 	}
 	return genMethod
 }
@@ -185,7 +188,7 @@ func genGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedSt
 			getterName := fmt.Sprintf("Get%s", f.Name)
 
 			if ts.Info.Method.Get(getterName).IsEmpty() && !genMethod.Contains(getterName) {
-				if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Alias") && ts.RhsType.IsDefined() {
+				if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
 					if ts.RhsType.Get().Method.Contains(getterName) {
 						return
 					}
@@ -230,7 +233,7 @@ func genWith(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStru
 			funcName := fmt.Sprintf("With%s", f.Name)
 
 			if ts.Info.Method.Get(funcName).IsEmpty() && !genMethod.Contains(funcName) {
-				if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Alias") && ts.RhsType.IsDefined() {
+				if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
 					if ts.RhsType.Get().Method.Contains(funcName) {
 						return
 					}
@@ -826,7 +829,7 @@ func genValueAndGetter() {
 
 		workingPackage := pkgs[0].Types
 
-		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Alias", "@fp.WithPubField")
+		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField")
 
 		if st.Size() == 0 {
 			return
