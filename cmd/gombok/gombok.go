@@ -254,19 +254,45 @@ func genWith(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStru
 	return genMethod
 }
 
-func genGetterAndAlias(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct]) {
+func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct]) {
+	keyTags := mutable.EmptySet[string]()
+
 	st.Foreach(func(ts metafp.TaggedStruct) {
-		genMethod := genGetter(w, workingPackage, ts, fp.Set[string]{})
+		genMethod := fp.Set[string]{}
+		genMethod, keyTags = genValue(w, workingPackage, ts, genMethod, keyTags)
+
+		genMethod = genGetter(w, workingPackage, ts, genMethod)
 		genMethod = genWith(w, workingPackage, ts, genMethod)
 		genMethod = genAlias(w, workingPackage, ts, genMethod)
 
 	})
+
+	klist := keyTags.Iterator().ToSeq()
+	seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
+		fmt.Fprintf(w, `type Named%s[T any] fp.Tuple1[T]
+			`, namedName(name))
+
+		fmt.Fprintf(w, `func (r Named%s[T]) Name() string {
+				return "%s"
+			}
+			`, namedName(name), name)
+
+		fmt.Fprintf(w, `func (r Named%s[T]) Value() T {
+				return r.I1
+			}
+			`, namedName(name))
+
+		fmt.Fprintf(w, `func (r Named%s[T]) WithValue(v T) Named%s[T] {
+				r.I1 = v
+				return r
+			}
+			`, namedName(name), namedName(name))
+	})
 }
 
-func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct]) {
-	keyTags := mutable.EmptySet[string]()
+func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
 
-	st.Foreach(func(ts metafp.TaggedStruct) {
+	if _, ok := ts.Tags.Get("@fp.Value").Unapply(); ok {
 
 		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 		allFields := ts.Fields.FilterNot(func(v metafp.StructField) bool {
@@ -274,7 +300,7 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 		})
 
 		if allFields.Size() == 0 {
-			return
+			return genMethod, keyTags
 		}
 
 		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
@@ -359,32 +385,39 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 					return %s(r)
 				}
 			`, valuereceiver, builderreceiver, builderreceiver)
+			genMethod = genMethod.Incl("Builder")
 		}
 
 		privateFields.Foreach(func(f metafp.StructField) {
 
 			uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
 
-			if ts.Info.Method.Get(uname).IsEmpty() {
+			fnName := uname
+			if ts.Info.Method.Get(fnName).IsEmpty() {
 				ftp := w.TypeName(workingPackage, f.Type.Type)
 
 				fmt.Fprintf(w, `
 						func (r %s) %s() %s {
 							return r.%s
 						}
-					`, valuereceiver, uname, ftp, f.Name)
+					`, valuereceiver, fnName, ftp, f.Name)
+				genMethod = genMethod.Incl(fnName)
 
 			}
 
-			if ts.Info.Method.Get("With" + uname).IsEmpty() {
+			fnName = "With" + uname
+
+			if ts.Info.Method.Get(fnName).IsEmpty() {
 				ftp := w.TypeName(workingPackage, f.Type.Type)
 
 				fmt.Fprintf(w, `
-						func (r %s) With%s(v %s) %s {
+						func (r %s) %s(v %s) %s {
 							r.%s = v
 							return r
 						}
-					`, valuereceiver, uname, ftp, valuereceiver, f.Name)
+					`, valuereceiver, fnName, ftp, valuereceiver, f.Name)
+				genMethod = genMethod.Incl(fnName)
+
 			}
 
 			if !isMethodDefined(workingPackage, builderTypeName, uname) {
@@ -402,24 +435,30 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
 				optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
 
-				if ts.Info.Method.Get("WithSome" + uname).IsEmpty() {
+				fnName := "WithSome" + uname
+				if ts.Info.Method.Get(fnName).IsEmpty() {
 
 					fmt.Fprintf(w, `
-							func (r %s) WithSome%s(v %s) %s {
+							func (r %s) %s(v %s) %s {
 								r.%s = %s.Some(v)
 								return r
 							}
-						`, valuereceiver, uname, optiont, valuereceiver, f.Name, optionpk)
+						`, valuereceiver, fnName, optiont, valuereceiver, f.Name, optionpk)
+					genMethod = genMethod.Incl(fnName)
+
 				}
 
-				if ts.Info.Method.Get("WithNone" + uname).IsEmpty() {
+				fnName = "WithNone" + uname
+				if ts.Info.Method.Get(fnName).IsEmpty() {
 
 					fmt.Fprintf(w, `
-							func (r %s) WithNone%s() %s {
+							func (r %s) %s() %s {
 								r.%s = %s.None[%s]()
 								return r
 							}
-						`, valuereceiver, uname, valuereceiver, f.Name, optionpk, optiont)
+						`, valuereceiver, fnName, valuereceiver, f.Name, optionpk, optiont)
+					genMethod = genMethod.Incl(fnName)
+
 				}
 
 				if !isMethodDefined(workingPackage, builderTypeName, "Some"+uname) {
@@ -467,6 +506,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				`, valuereceiver,
 				fmtalias, ts.Name, fm, fields,
 			)
+			genMethod = genMethod.Incl("String")
+
 		}
 
 		if allFields.Size() < max.Product {
@@ -490,6 +531,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				`, valuereceiver, fppkg, arity, tp,
 					asalias, arity, fields,
 				)
+				genMethod = genMethod.Incl("AsTuple")
+
 			}
 		}
 		if ts.Info.Method.Get("Unapply").IsEmpty() {
@@ -510,6 +553,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				`, valuereceiver, tp,
 				fields,
 			)
+			genMethod = genMethod.Incl("Unapply")
+
 		}
 
 		if ts.Info.Method.Get("AsMutable").IsEmpty() {
@@ -528,6 +573,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				`, valuereceiver, mutablereceiver,
 				mutablereceiver, fields,
 			)
+			genMethod = genMethod.Incl("AsMutable")
+
 		}
 
 		if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
@@ -616,6 +663,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				`, valuereceiver,
 				fields,
 			)
+			genMethod = genMethod.Incl("AsMap")
+
 		}
 
 		if !isMethodDefined(workingPackage, builderTypeName, "FromMap") {
@@ -685,6 +734,7 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 				`, valuereceiver, fppkg, arity, tp,
 						asalias, arity, fields,
 					)
+					genMethod = genMethod.Incl("AsLabelled")
 
 				}
 				if !isMethodDefined(workingPackage, builderTypeName, "FromLabelled") {
@@ -719,6 +769,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 						return %s.Marshal(m)
 					}
 				`, valuereceiver, jsonpk)
+				genMethod = genMethod.Incl("MarshalJSON")
+
 			}
 
 			if ts.Info.Method.Get("UnmarshalJSON").IsEmpty() {
@@ -742,33 +794,15 @@ func genValue(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.Ta
 					fppk, httppk,
 					jsonpk,
 				)
+				genMethod = genMethod.Incl("UnmarshalJSON")
+
 			}
 		}
 
-	})
-
-	klist := keyTags.Iterator().ToSeq()
-	seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
-		fmt.Fprintf(w, `type Named%s[T any] fp.Tuple1[T]
-			`, namedName(name))
-
-		fmt.Fprintf(w, `func (r Named%s[T]) Name() string {
-				return "%s"
-			}
-			`, namedName(name), name)
-
-		fmt.Fprintf(w, `func (r Named%s[T]) Value() T {
-				return r.I1
-			}
-			`, namedName(name))
-
-		fmt.Fprintf(w, `func (r Named%s[T]) WithValue(v T) Named%s[T] {
-				r.I1 = v
-				return r
-			}
-			`, namedName(name), namedName(name))
-	})
+	}
+	return genMethod, keyTags
 }
+
 func genValueAndGetter() {
 	pack := os.Getenv("GOPACKAGE")
 
@@ -792,15 +826,13 @@ func genValueAndGetter() {
 
 		workingPackage := pkgs[0].Types
 
-		st := metafp.FindTaggedStruct(pkgs, "@fp.Value")
-		gt := metafp.FindTaggedStruct(pkgs, "@fp.GetterPubField", "@fp.Alias")
+		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Alias", "@fp.WithPubField")
 
-		if st.Size() == 0 && gt.Size() == 0 {
+		if st.Size() == 0 {
 			return
 		}
 
-		genValue(w, workingPackage, st)
-		genGetterAndAlias(w, workingPackage, gt)
+		genTaggedStruct(w, workingPackage, st)
 
 	})
 }
