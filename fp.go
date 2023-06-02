@@ -357,8 +357,16 @@ func Test[A, B any](testf func(A, B) bool, v B) Predicate[A] {
 	return Predicate[A](Flip2(testf)(v))
 }
 
-func TestField[A, B any](getter func(A) B, pf Predicate[B]) Predicate[A] {
+func TestWith[A, B any](getter func(A) B, pf Predicate[B]) Predicate[A] {
 	return func(a A) bool {
 		return pf(getter(a))
 	}
 }
+
+// func TestWith[A, B any](contramap func(B) A) func(pa Predicate[A]) Predicate[B] {
+// 	return func(pa Predicate[A]) Predicate[B] {
+// 		return func(b B) bool {
+// 			return pa(contramap(b))
+// 		}
+// 	}
+// }
