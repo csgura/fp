@@ -55,7 +55,7 @@ func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) fp.
 	return ret
 }
 
-func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) {
+func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
 	if rhs, ok := ts.RhsType.Unapply(); ok {
 		valuetp := ""
@@ -67,12 +67,26 @@ func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 
 		rhsTypeName := w.TypeName(workingPackage, rhs.Type)
 
-		if ts.Info.Method.Get("Unwrap").IsEmpty() {
+		unwrapFunc := "Unwrap"
+		if ts.Info.Method.Get(unwrapFunc).IsEmpty() {
+
 			fmt.Fprintf(w, `
-					func (r %s) Unwrap() %s {
+					func (r %s) %s() %s {
 						return %s(r)
 					}
-				`, valuereceiver, rhsTypeName, rhsTypeName)
+				`, valuereceiver, unwrapFunc, rhsTypeName, rhsTypeName)
+			genMethod = genMethod.Incl(unwrapFunc)
+		}
+
+		castFunc := fmt.Sprintf("Cast%s", ts.Name)
+		if workingPackage.Scope().Lookup(castFunc) == nil {
+			fmt.Fprintf(w, `
+					func %s(v %s) %s {
+						return %s(v)
+					}
+				`, castFunc, rhsTypeName, valuereceiver,
+				ts.Name,
+			)
 		}
 
 		rhs.Method.Iterator().Foreach(func(t fp.Tuple2[string, *types.Func]) {
@@ -129,12 +143,14 @@ func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 								`, valuereceiver, name, argTypeStr, rhsTypeName, name, argstr)
 						}
 					}
+					genMethod = genMethod.Incl(name)
 
 				}
 			}
 
 		})
 	}
+	return genMethod
 }
 func genGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct) fp.Set[string] {
 	ret := fp.Set[string]{}
@@ -185,7 +201,7 @@ func genGetterAndAlias(w genfp.Writer, workingPackage *types.Package, st fp.Seq[
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := genGetter(w, workingPackage, ts)
 
-		genAlias(w, workingPackage, ts, genMethod)
+		genMethod = genAlias(w, workingPackage, ts, genMethod)
 
 	})
 }

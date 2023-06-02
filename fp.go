@@ -55,6 +55,54 @@ func (r Labelled1[T1]) Tail() Unit {
 
 type Supplier[R any] func() R
 
+type Predicate[T any] func(T) bool
+
+func (r Predicate[T]) Negate() Predicate[T] {
+	return func(t T) bool {
+		return !r(t)
+	}
+}
+
+func (r Predicate[T]) And(and Predicate[T]) Predicate[T] {
+	return func(t T) bool {
+		return r(t) && and(t)
+	}
+}
+
+func (r Predicate[T]) Or(or Predicate[T]) Predicate[T] {
+	return func(t T) bool {
+		return r(t) || or(t)
+	}
+}
+
+func Not[T any](f Predicate[T]) Predicate[T] {
+	return func(v T) bool {
+		return !f(v)
+	}
+}
+
+func And[T any](flist ...func(v T) bool) Predicate[T] {
+	return func(v T) bool {
+		for _, f := range flist {
+			if !f(v) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+func Or[T any](flist ...func(v T) bool) Predicate[T] {
+	return func(v T) bool {
+		for _, f := range flist {
+			if f(v) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 type Func0[R any] Func1[Unit, R]
 
 func (r Func0[R]) Apply() R {

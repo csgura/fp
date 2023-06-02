@@ -60,6 +60,10 @@ func Supplier[T any](v T) fp.Supplier[T] {
 	}
 }
 
+func Predicate[T any](f func(T) bool) fp.Predicate[T] {
+	return f
+}
+
 func Tupled2[A1, A2, R any](fn fp.Func2[A1, A2, R]) func(fp.Tuple2[A1, A2]) R {
 	return func(t fp.Tuple2[A1, A2]) R {
 		return fn(t.Unapply())
