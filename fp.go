@@ -301,6 +301,14 @@ func Flip[A, B, R any](f Func1[A, Func1[B, R]]) Func1[B, Func1[A, R]] {
 	}
 }
 
+func Flip2[A, B, R any](f func(A, B) R) Func1[B, Func1[A, R]] {
+	return func(b B) Func1[A, R] {
+		return func(a A) R {
+			return f(a, b)
+		}
+	}
+}
+
 func IsInstanceOf[T, I any](v I) bool {
 	if _, ok := any(v).(T); ok {
 		return true
@@ -331,4 +339,20 @@ func Const[B, A any](a A) func(b B) A {
 	return func(b B) A {
 		return a
 	}
+}
+
+// (  A -> B -> A  ) -> B -> A -> A  인 함수인데
+// flip 함수가 ( A -> B -> C ) -> B -> A -> C  이니까..
+// 사실 같은거고 , 중복 정의할 필요가 없는데
+// option.Map(optA ,  fp.With(A.WithValue, "2"))
+// 형태로 코딩하기 위해 정의
+func With[A, B any](withf func(A, B) A, v B) func(A) A {
+	return Flip2(withf)(v)
+}
+
+// With 와 마찬가지로 Flip2 와 동일한 함수 인데
+// option.Filter(optA, fp.Test(A.Contains, "2"))
+// 형태로 코딩하기 위해 정의
+func Test[A, B any](testf func(A, B) bool, v B) Predicate[A] {
+	return Predicate[A](Flip2(testf)(v))
 }
