@@ -14,8 +14,10 @@ import (
 type WorldBuilder World
 
 type WorldMutable struct {
-	Message   string    `json:"message,omitempty"`
-	Timestamp time.Time `json:"timestamp"`
+	Message    string    `json:"message,omitempty"`
+	Timestamp  time.Time `json:"timestamp"`
+	Pub        string    `json:"Pub,omitempty"`
+	_notExport string
 }
 
 func (r WorldBuilder) Build() World {
@@ -55,21 +57,22 @@ func (r WorldBuilder) Timestamp(v time.Time) WorldBuilder {
 }
 
 func (r World) String() string {
-	return fmt.Sprintf("World(message=%v, timestamp=%v)", r.message, r.timestamp)
+	return fmt.Sprintf("World(message=%v, timestamp=%v, Pub=%v)", r.message, r.timestamp, r.Pub)
 }
 
-func (r World) AsTuple() fp.Tuple2[string, time.Time] {
-	return as.Tuple2(r.message, r.timestamp)
+func (r World) AsTuple() fp.Tuple3[string, time.Time, string] {
+	return as.Tuple3(r.message, r.timestamp, r.Pub)
 }
 
-func (r World) Unapply() (string, time.Time) {
-	return r.message, r.timestamp
+func (r World) Unapply() (string, time.Time, string) {
+	return r.message, r.timestamp, r.Pub
 }
 
 func (r World) AsMutable() WorldMutable {
 	return WorldMutable{
 		Message:   r.message,
 		Timestamp: r.timestamp,
+		Pub:       r.Pub,
 	}
 }
 
@@ -77,18 +80,21 @@ func (r WorldMutable) AsImmutable() World {
 	return World{
 		message:   r.Message,
 		timestamp: r.Timestamp,
+		Pub:       r.Pub,
 	}
 }
 
-func (r WorldBuilder) FromTuple(t fp.Tuple2[string, time.Time]) WorldBuilder {
+func (r WorldBuilder) FromTuple(t fp.Tuple3[string, time.Time, string]) WorldBuilder {
 	r.message = t.I1
 	r.timestamp = t.I2
+	r.Pub = t.I3
 	return r
 }
 
-func (r WorldBuilder) Apply(message string, timestamp time.Time) WorldBuilder {
+func (r WorldBuilder) Apply(message string, timestamp time.Time, Pub string) WorldBuilder {
 	r.message = message
 	r.timestamp = timestamp
+	r.Pub = Pub
 	return r
 }
 
@@ -96,6 +102,7 @@ func (r World) AsMap() map[string]any {
 	m := map[string]any{}
 	m["message"] = r.message
 	m["timestamp"] = r.timestamp
+	m["Pub"] = r.Pub
 	return m
 }
 
@@ -109,16 +116,21 @@ func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
 		r.timestamp = v
 	}
 
+	if v, ok := m["Pub"].(string); ok {
+		r.Pub = v
+	}
+
 	return r
 }
 
-func (r World) AsLabelled() fp.Labelled2[NamedMessage[string], NamedTimestamp[time.Time]] {
-	return as.Labelled2(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp})
+func (r World) AsLabelled() fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]] {
+	return as.Labelled3(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp}, NamedPubPub[string]{r.Pub})
 }
 
-func (r WorldBuilder) FromLabelled(t fp.Labelled2[NamedMessage[string], NamedTimestamp[time.Time]]) WorldBuilder {
+func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]]) WorldBuilder {
 	r.message = t.I1.Value()
 	r.timestamp = t.I2.Value()
+	r.Pub = t.I3.Value()
 	return r
 }
 
@@ -412,8 +424,10 @@ func (r CustomValueBuilder) FromMap(m map[string]any) CustomValueBuilder {
 type AliasedStructBuilder AliasedStruct
 
 type AliasedStructMutable struct {
-	Message   string
-	Timestamp time.Time
+	Message    string
+	Timestamp  time.Time
+	Pub        string
+	_notExport string
 }
 
 func (r AliasedStructBuilder) Build() AliasedStruct {
@@ -453,21 +467,22 @@ func (r AliasedStructBuilder) Timestamp(v time.Time) AliasedStructBuilder {
 }
 
 func (r AliasedStruct) String() string {
-	return fmt.Sprintf("AliasedStruct(message=%v, timestamp=%v)", r.message, r.timestamp)
+	return fmt.Sprintf("AliasedStruct(message=%v, timestamp=%v, Pub=%v)", r.message, r.timestamp, r.Pub)
 }
 
-func (r AliasedStruct) AsTuple() fp.Tuple2[string, time.Time] {
-	return as.Tuple2(r.message, r.timestamp)
+func (r AliasedStruct) AsTuple() fp.Tuple3[string, time.Time, string] {
+	return as.Tuple3(r.message, r.timestamp, r.Pub)
 }
 
-func (r AliasedStruct) Unapply() (string, time.Time) {
-	return r.message, r.timestamp
+func (r AliasedStruct) Unapply() (string, time.Time, string) {
+	return r.message, r.timestamp, r.Pub
 }
 
 func (r AliasedStruct) AsMutable() AliasedStructMutable {
 	return AliasedStructMutable{
 		Message:   r.message,
 		Timestamp: r.timestamp,
+		Pub:       r.Pub,
 	}
 }
 
@@ -475,18 +490,21 @@ func (r AliasedStructMutable) AsImmutable() AliasedStruct {
 	return AliasedStruct{
 		message:   r.Message,
 		timestamp: r.Timestamp,
+		Pub:       r.Pub,
 	}
 }
 
-func (r AliasedStructBuilder) FromTuple(t fp.Tuple2[string, time.Time]) AliasedStructBuilder {
+func (r AliasedStructBuilder) FromTuple(t fp.Tuple3[string, time.Time, string]) AliasedStructBuilder {
 	r.message = t.I1
 	r.timestamp = t.I2
+	r.Pub = t.I3
 	return r
 }
 
-func (r AliasedStructBuilder) Apply(message string, timestamp time.Time) AliasedStructBuilder {
+func (r AliasedStructBuilder) Apply(message string, timestamp time.Time, Pub string) AliasedStructBuilder {
 	r.message = message
 	r.timestamp = timestamp
+	r.Pub = Pub
 	return r
 }
 
@@ -494,6 +512,7 @@ func (r AliasedStruct) AsMap() map[string]any {
 	m := map[string]any{}
 	m["message"] = r.message
 	m["timestamp"] = r.timestamp
+	m["Pub"] = r.Pub
 	return m
 }
 
@@ -505,6 +524,10 @@ func (r AliasedStructBuilder) FromMap(m map[string]any) AliasedStructBuilder {
 
 	if v, ok := m["timestamp"].(time.Time); ok {
 		r.timestamp = v
+	}
+
+	if v, ok := m["Pub"].(string); ok {
+		r.Pub = v
 	}
 
 	return r
@@ -1342,6 +1365,69 @@ func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
 	return r
 }
 
+type NoPrivateBuilder NoPrivate
+
+type NoPrivateMutable struct {
+	Value int
+}
+
+func (r NoPrivateBuilder) Build() NoPrivate {
+	return NoPrivate(r)
+}
+
+func (r NoPrivate) Builder() NoPrivateBuilder {
+	return NoPrivateBuilder(r)
+}
+
+func (r NoPrivate) String() string {
+	return fmt.Sprintf("NoPrivate(Value=%v)", r.Value)
+}
+
+func (r NoPrivate) AsTuple() fp.Tuple1[int] {
+	return as.Tuple1(r.Value)
+}
+
+func (r NoPrivate) Unapply() int {
+	return r.Value
+}
+
+func (r NoPrivate) AsMutable() NoPrivateMutable {
+	return NoPrivateMutable{
+		Value: r.Value,
+	}
+}
+
+func (r NoPrivateMutable) AsImmutable() NoPrivate {
+	return NoPrivate{
+		Value: r.Value,
+	}
+}
+
+func (r NoPrivateBuilder) FromTuple(t fp.Tuple1[int]) NoPrivateBuilder {
+	r.Value = t.I1
+	return r
+}
+
+func (r NoPrivateBuilder) Apply(Value int) NoPrivateBuilder {
+	r.Value = Value
+	return r
+}
+
+func (r NoPrivate) AsMap() map[string]any {
+	m := map[string]any{}
+	m["Value"] = r.Value
+	return m
+}
+
+func (r NoPrivateBuilder) FromMap(m map[string]any) NoPrivateBuilder {
+
+	if v, ok := m["Value"].(int); ok {
+		r.Value = v
+	}
+
+	return r
+}
+
 type Over21Builder Over21
 
 type Over21Mutable struct {
@@ -2171,6 +2257,19 @@ func (r DefinedOtherPackageBuilder) FromMap(m map[string]any) DefinedOtherPackag
 		r.DupGetter = v
 	}
 
+	return r
+}
+
+type NamedPubPub[T any] fp.Tuple1[T]
+
+func (r NamedPubPub[T]) Name() string {
+	return "Pub"
+}
+func (r NamedPubPub[T]) Value() T {
+	return r.I1
+}
+func (r NamedPubPub[T]) WithValue(v T) NamedPubPub[T] {
+	r.I1 = v
 	return r
 }
 

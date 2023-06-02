@@ -39,6 +39,9 @@ var DecoderString = NewDecoder(func(ctx DecoderContext, a string) fp.Try[string]
 	if a[0] == '"' {
 		return try.Success(a[1 : len(a)-1])
 	}
+	if a[0] == 'n' {
+		return try.Success("")
+	}
 	return try.Failure[string](fmt.Errorf("invalid string literal"))
 })
 

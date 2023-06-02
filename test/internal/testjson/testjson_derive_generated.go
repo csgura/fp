@@ -4,7 +4,6 @@ package testjson
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -157,15 +156,21 @@ var EncoderMovie = js.EncoderContraMap(
 )
 
 var EncoderNoPrivate = js.EncoderContraMap(
-	js.EncoderHNil,
-	func(NoPrivate) hlist.Nil {
-		return hlist.Empty()
-	},
+	js.EncoderLabelled1(js.EncoderNamed[NamedPubRoot[string]](js.EncoderString)),
+	NoPrivate.AsLabelled,
 )
 
 var DecoderNoPrivate = js.DecoderMap(
-	js.DecoderHNil,
-	func(hlist.Nil) NoPrivate {
-		return NoPrivate{}
-	},
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[NamedPubRoot[string]](js.DecoderString),
+		js.DecoderHNil,
+	),
+
+	fp.Compose(
+		product.LabelledFromHList1[NamedPubRoot[string]],
+		fp.Compose(
+			as.Curried2(NoPrivateBuilder.FromLabelled)(NoPrivateBuilder{}),
+			NoPrivateBuilder.Build,
+		),
+	),
 )

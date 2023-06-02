@@ -17,20 +17,45 @@ import (
 )
 
 var EqWorld = eq.ContraMap(
-	eq.Tuple2(eq.String, eq.Given[time.Time]()),
+	eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
 	World.AsTuple,
 )
 
 var EncoderWorld = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NamedMessage[string]](js.EncoderString), js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime)),
-	World.AsLabelled,
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[NamedMessage[string]](js.EncoderString),
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NamedPubPub[string]](js.EncoderString),
+				js.EncoderHNil,
+			),
+		),
+	),
+	fp.Compose(
+		World.AsLabelled,
+		as.HList3Labelled[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]],
+	),
 )
 
 var DecoderWorld = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[NamedMessage[string]](js.DecoderString), js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime)),
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[NamedMessage[string]](js.DecoderString),
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[NamedPubPub[string]](js.DecoderString),
+				js.DecoderHNil,
+			),
+		),
+	),
+
 	fp.Compose(
-		as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
-		WorldBuilder.Build,
+		product.LabelledFromHList3[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]],
+		fp.Compose(
+			as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
+			WorldBuilder.Build,
+		),
 	),
 )
 
@@ -39,11 +64,11 @@ var ShowWorld = show.Generic(
 		"testpk1.World",
 		fp.Compose(
 			World.AsTuple,
-			as.HList2[string, time.Time],
+			as.HList3[string, time.Time, string],
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[string, time.Time],
+			product.TupleFromHList3[string, time.Time, string],
 			fp.Compose(
 				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 				WorldBuilder.Build,
@@ -54,7 +79,10 @@ var ShowWorld = show.Generic(
 		show.String,
 		show.HCons(
 			show.Time,
-			show.HNil,
+			show.HCons(
+				show.String,
+				show.HNil,
+			),
 		),
 	),
 )
@@ -80,7 +108,7 @@ var EncoderHasOption = js.EncoderContraMap(
 )
 
 var EqAliasedStruct = eq.ContraMap(
-	eq.Tuple2(eq.String, eq.Given[time.Time]()),
+	eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
 	AliasedStruct.AsTuple,
 )
 
@@ -171,11 +199,11 @@ var ReadWorld = read.Generic(
 		"testpk1.World",
 		fp.Compose(
 			World.AsTuple,
-			as.HList2[string, time.Time],
+			as.HList3[string, time.Time, string],
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[string, time.Time],
+			product.TupleFromHList3[string, time.Time, string],
 			fp.Compose(
 				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 				WorldBuilder.Build,
@@ -186,7 +214,10 @@ var ReadWorld = read.Generic(
 		read.String,
 		read.HCons(
 			read.Time,
-			read.HNil,
+			read.HCons(
+				read.String,
+				read.HNil,
+			),
 		),
 	),
 )
@@ -262,10 +293,8 @@ func EqNode() fp.Eq[Node] {
 }
 
 var EqNoPrivate = eq.ContraMap(
-	eq.HNil,
-	func(NoPrivate) hlist.Nil {
-		return hlist.Empty()
-	},
+	eq.Tuple1(eq.Given[int]()),
+	NoPrivate.AsTuple,
 )
 
 var EqOver21 = eq.ContraMap(

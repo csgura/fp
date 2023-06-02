@@ -19,8 +19,10 @@ import (
 // @fp.Json
 // @fp.GenLabelled
 type World struct {
-	message   string
-	timestamp time.Time
+	message    string
+	timestamp  time.Time
+	Pub        string
+	_notExport string
 }
 
 // @fp.Derive

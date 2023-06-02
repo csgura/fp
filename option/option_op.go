@@ -23,6 +23,17 @@ func None[T any]() fp.Option[T] {
 	return fp.None[T]()
 }
 
+func isNil(v reflect.Value) bool {
+	k := v.Kind()
+	switch k {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
+		return v.IsNil()
+	case reflect.Interface, reflect.Slice:
+		return v.IsNil()
+	}
+	return false
+}
+
 func Of[T any](v T) fp.Option[T] {
 	var i any = v
 	if i == nil {
@@ -30,7 +41,7 @@ func Of[T any](v T) fp.Option[T] {
 	}
 
 	rv := reflect.ValueOf(i)
-	if rv.Kind() == reflect.Ptr && rv.IsNil() {
+	if isNil(rv) {
 		return None[T]()
 	}
 	return Some(v)

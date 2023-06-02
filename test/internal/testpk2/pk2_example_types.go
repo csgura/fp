@@ -200,6 +200,7 @@ var _ eq.Derives[fp.Eq[Tree]]
 
 // @fp.GetterPubField
 // @fp.Alias
+// @fp.WithPubField
 type AliasedStruct testpk1.DefinedOtherPackage
 
 func (r AliasedStruct) String() string {

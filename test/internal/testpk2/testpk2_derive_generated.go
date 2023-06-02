@@ -175,7 +175,7 @@ var ReadThree = read.Generic(
 )
 
 var EqTestpk1World = eq.ContraMap(
-	eq.Tuple2(eq.String, eq.Given[time.Time]()),
+	eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
 	testpk1.World.AsTuple,
 )
 

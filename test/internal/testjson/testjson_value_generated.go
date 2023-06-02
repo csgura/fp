@@ -959,6 +959,91 @@ func (r MovieBuilder) FromLabelled(t fp.Labelled3[NamedName[string], NamedCastin
 	return r
 }
 
+type NoPrivateBuilder NoPrivate
+
+type NoPrivateMutable struct {
+	Root string
+}
+
+func (r NoPrivateBuilder) Build() NoPrivate {
+	return NoPrivate(r)
+}
+
+func (r NoPrivate) Builder() NoPrivateBuilder {
+	return NoPrivateBuilder(r)
+}
+
+func (r NoPrivate) String() string {
+	return fmt.Sprintf("NoPrivate(Root=%v)", r.Root)
+}
+
+func (r NoPrivate) AsTuple() fp.Tuple1[string] {
+	return as.Tuple1(r.Root)
+}
+
+func (r NoPrivate) Unapply() string {
+	return r.Root
+}
+
+func (r NoPrivate) AsMutable() NoPrivateMutable {
+	return NoPrivateMutable{
+		Root: r.Root,
+	}
+}
+
+func (r NoPrivateMutable) AsImmutable() NoPrivate {
+	return NoPrivate{
+		Root: r.Root,
+	}
+}
+
+func (r NoPrivateBuilder) FromTuple(t fp.Tuple1[string]) NoPrivateBuilder {
+	r.Root = t.I1
+	return r
+}
+
+func (r NoPrivateBuilder) Apply(Root string) NoPrivateBuilder {
+	r.Root = Root
+	return r
+}
+
+func (r NoPrivate) AsMap() map[string]any {
+	m := map[string]any{}
+	m["Root"] = r.Root
+	return m
+}
+
+func (r NoPrivateBuilder) FromMap(m map[string]any) NoPrivateBuilder {
+
+	if v, ok := m["Root"].(string); ok {
+		r.Root = v
+	}
+
+	return r
+}
+
+func (r NoPrivate) AsLabelled() fp.Labelled1[NamedPubRoot[string]] {
+	return as.Labelled1(NamedPubRoot[string]{r.Root})
+}
+
+func (r NoPrivateBuilder) FromLabelled(t fp.Labelled1[NamedPubRoot[string]]) NoPrivateBuilder {
+	r.Root = t.I1.Value()
+	return r
+}
+
+type NamedPubRoot[T any] fp.Tuple1[T]
+
+func (r NamedPubRoot[T]) Name() string {
+	return "Root"
+}
+func (r NamedPubRoot[T]) Value() T {
+	return r.I1
+}
+func (r NamedPubRoot[T]) WithValue(v T) NamedPubRoot[T] {
+	r.I1 = v
+	return r
+}
+
 type NamedA[T any] fp.Tuple1[T]
 
 func (r NamedA[T]) Name() string {

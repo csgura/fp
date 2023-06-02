@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"os"
+	"strings"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
@@ -683,7 +684,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
 						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-							return fmt.Sprintf("Named%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
+							return fmt.Sprintf("Named%s[%s]", namedName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
 						return fmt.Sprintf(`%s.Compose(
@@ -700,7 +701,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, f fp.Tuple2[string, metafp.TypeInfo]) string {
 							name, a := f.Unapply()
-							return fmt.Sprintf("%s.Cons[Named%s[%s],%s]", hlistpk, publicName(name), r.w.TypeName(ctx.working, a.Type), b)
+							return fmt.Sprintf("%s.Cons[Named%s[%s],%s]", hlistpk, namedName(name), r.w.TypeName(ctx.working, a.Type), b)
 						})
 
 						varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
@@ -712,7 +713,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 							name, tp := t2.Unapply()
 							return fmt.Sprintf(`%s.Concat(Named%s[%s]{i%d}, 
 						%s,
-					)`, hlistpk, publicName(name), r.w.TypeName(ctx.working, tp.Type), idx, expr)
+					)`, hlistpk, namedName(name), r.w.TypeName(ctx.working, tp.Type), idx, expr)
 						})
 
 						return fmt.Sprintf(`func(v %s) %s {
@@ -742,7 +743,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
 						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-							return fmt.Sprintf("Named%s[%s]", publicName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
+							return fmt.Sprintf("Named%s[%s]", namedName(f.I1), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
 						hlistToTuple := fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
@@ -769,7 +770,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, t2 fp.Tuple2[string, metafp.TypeInfo]) string {
 							name, a := t2.Unapply()
-							return fmt.Sprintf("%s.Cons[Named%s[%s],%s]", hlistpk, publicName(name), r.w.TypeName(ctx.working, a.Type), b)
+							return fmt.Sprintf("%s.Cons[Named%s[%s],%s]", hlistpk, namedName(name), r.w.TypeName(ctx.working, a.Type), b)
 						})
 
 						expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
@@ -1036,7 +1037,7 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 		Type:      t,
 	})
 
-	return newSummonExpr(fmt.Sprintf("%s[Named%s[%s]](%s)", instance.PackagedName(r.w, ctx.working), publicName(name),
+	return newSummonExpr(fmt.Sprintf("%s[Named%s[%s]](%s)", instance.PackagedName(r.w, ctx.working), namedName(name),
 		r.w.TypeName(ctx.working, t.Type), expr.expr), expr.paramInstance)
 
 	// pk := r.w.GetImportedName(ctx.working)
@@ -1266,9 +1267,12 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 
 	mapExpr := option.Map(tc.StructInfo, func(s metafp.TaggedStruct) SummonExpr {
 		fields := s.Fields
-		privateFields := fields.FilterNot(metafp.StructField.Public)
+		//privateFields := fields.FilterNot(metafp.StructField.Public)
+		allFields := fields.FilterNot(func(v metafp.StructField) bool {
+			return strings.HasPrefix(v.Name, "_")
+		})
 
-		return r.summonStruct(ctx, tc.TypeClass, tc.DeriveFor, privateFields)
+		return r.summonStruct(ctx, tc.TypeClass, tc.DeriveFor, allFields)
 	}).OrElseGet(func() SummonExpr {
 		return r.summonNamed(ctx, tc.TypeClass, tc.DeriveFor)
 	})

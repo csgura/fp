@@ -76,7 +76,7 @@ func TestJson(t *testing.T) {
 	}.AsImmutable()
 
 	res := testpk2.EncoderGreeting.Encode(g).Get()
-	fmt.Println(res)
+	fmt.Printf("res = %s\n", res)
 
 	parsedG := testpk2.DecoderGreeting.Decode(js.DecoderContext{}, res)
 	parsedG.Failed().Foreach(func(v error) {

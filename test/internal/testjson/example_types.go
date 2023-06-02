@@ -89,7 +89,6 @@ var _ js.Derives[js.Encoder[Movie]]
 
 // @fp.Value
 // @fp.GenLabelled
-
 type NoPrivate struct {
 	Root string
 }
