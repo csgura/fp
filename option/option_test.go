@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
 )
@@ -150,4 +151,55 @@ func TestPtr(t *testing.T) {
 	assert.Equal(*ptr, 20)
 	assert.Equal(opt.Get(), 10)
 
+}
+
+type World struct {
+	name    string
+	address *string
+	age     int
+}
+
+func (r World) Name() string {
+	return r.name
+}
+
+func (r World) Age() int {
+	return r.age
+}
+
+func (r World) Address() *string {
+	return r.address
+}
+
+type Hello struct {
+	world World
+}
+
+func (r Hello) World() World {
+	return r.world
+}
+
+func TestFilter(t *testing.T) {
+
+	opt := option.Some(Hello{
+		world: World{
+			name:    "gura",
+			age:     17,
+			address: as.Ptr("seoul"),
+		},
+	})
+
+	res := opt.Exists(fp.TestField(Hello.World,
+		fp.TestField(World.Name, eq.GivenValue("gura")).
+			And(fp.TestField(World.Age, eq.GivenValue(17))).
+			And(fp.TestField(World.Address, eq.NotNilAnd(eq.GivenValue("seoul")))),
+	))
+	assert.True(res)
+
+	res = opt.Exists(fp.TestField(Hello.World,
+		eq.GivenFieldValue(World.Name, "gura").
+			And(eq.GivenFieldValue(World.Age, 17)).
+			And(eq.FieldNotNilAnd(World.Address, eq.GivenValue("suji"))),
+	))
+	assert.False(res)
 }

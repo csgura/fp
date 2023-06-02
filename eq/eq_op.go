@@ -143,3 +143,79 @@ func FpMap[K, V any](eqV fp.Eq[V]) fp.Eq[fp.Map[K, V]] {
 		})
 	})
 }
+
+func NotNilAnd[A any](pf fp.Predicate[A]) fp.Predicate[*A] {
+	return func(a *A) bool {
+		if a == nil {
+			return false
+		}
+		return pf(*a)
+	}
+}
+
+func NilOr[A any](pf fp.Predicate[A]) fp.Predicate[*A] {
+	return func(a *A) bool {
+		if a == nil {
+			return true
+		}
+		return pf(*a)
+	}
+}
+
+func SomeAnd[A any](pf fp.Predicate[A]) fp.Predicate[fp.Option[A]] {
+	return func(a fp.Option[A]) bool {
+		if a.IsEmpty() {
+			return false
+		}
+		return pf(a.Get())
+	}
+}
+
+func NoneOr[A any](pf fp.Predicate[A]) fp.Predicate[fp.Option[A]] {
+	return func(a fp.Option[A]) bool {
+		if a.IsEmpty() {
+			return true
+		}
+		return pf(a.Get())
+	}
+}
+
+func FieldNotNilAnd[A, B any](getter func(A) *B, pf fp.Predicate[B]) fp.Predicate[A] {
+	return func(a A) bool {
+		p := getter(a)
+		if p == nil {
+			return false
+		}
+		return pf(*p)
+	}
+}
+
+func FieldNilOr[A, B any](getter func(A) *B, pf fp.Predicate[B]) fp.Predicate[A] {
+	return func(a A) bool {
+		p := getter(a)
+		if p == nil {
+			return true
+		}
+		return pf(*p)
+	}
+}
+
+func FieldSomeAnd[A, B any](getter func(A) fp.Option[B], pf fp.Predicate[B]) fp.Predicate[A] {
+	return func(a A) bool {
+		p := getter(a)
+		if p.IsEmpty() {
+			return false
+		}
+		return pf(p.Get())
+	}
+}
+
+func FieldNoneOr[A, B any](getter func(A) fp.Option[B], pf fp.Predicate[B]) fp.Predicate[A] {
+	return func(a A) bool {
+		p := getter(a)
+		if p.IsEmpty() {
+			return true
+		}
+		return pf(p.Get())
+	}
+}
