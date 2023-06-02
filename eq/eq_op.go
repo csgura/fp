@@ -69,13 +69,13 @@ func Given[T comparable]() fp.Eq[T] {
 	return fp.EqGiven[T]()
 }
 
-func GivenValue[T comparable](a T) func(b T) bool {
+func GivenValue[T comparable](a T) fp.Predicate[T] {
 	return func(b T) bool {
 		return Given[T]().Eqv(a, b)
 	}
 }
 
-func GivenFieldValue[S any, T comparable](getter func(S) T, a T) func(s S) bool {
+func GivenFieldValue[S any, T comparable](getter func(S) T, a T) fp.Predicate[S] {
 	return func(s S) bool {
 		return Given[T]().Eqv(getter(s), a)
 	}
