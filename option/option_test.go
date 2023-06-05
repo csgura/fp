@@ -189,21 +189,21 @@ func TestFilter(t *testing.T) {
 		},
 	})
 
-	res := opt.Exists(fp.TestWith(Hello.World,
-		fp.TestWith(World.Name, eq.GivenValue("gura")).
-			And(fp.TestWith(World.Age, eq.GivenValue(17))).
-			And(fp.TestWith(World.Address, eq.NotNilAnd(eq.GivenValue("seoul")))),
+	res := opt.Exists(fp.TestWith(Hello.World)(
+		fp.TestWith(World.Name)(eq.GivenValue("gura")).
+			And(fp.TestWith(World.Age)(eq.GivenValue(17))).
+			And(fp.TestWith(World.Address)(eq.NotNilAnd(eq.GivenValue("seoul")))),
 	))
 	assert.True(res)
 
-	res = opt.Exists(fp.TestWith(Hello.World,
+	res = opt.Exists(fp.TestWith(Hello.World)(
 		eq.GivenFieldValue(World.Name, "gura").
 			And(eq.GivenFieldValue(World.Age, 17)).
 			And(eq.FieldNotNilAnd(World.Address, eq.GivenValue("suji"))),
 	))
 	assert.False(res)
 
-	res = opt.Exists(fp.TestWith(Hello.World, func(w World) bool {
+	res = opt.Exists(fp.TestWith(Hello.World)(func(w World) bool {
 		return true
 	}))
 }

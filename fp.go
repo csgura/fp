@@ -293,6 +293,7 @@ func Memoize[T any](f func() T) Func0[T] {
 	}
 }
 
+// ( A -> B -> R  ) -> B -> A -> R
 func Flip[A, B, R any](f Func1[A, Func1[B, R]]) Func1[B, Func1[A, R]] {
 	return func(b B) Func1[A, R] {
 		return func(a A) R {
@@ -301,6 +302,8 @@ func Flip[A, B, R any](f Func1[A, Func1[B, R]]) Func1[B, Func1[A, R]] {
 	}
 }
 
+// flip 의 tupled 버젼
+// ( ( A , B ) -> R ) -> B -> A -> R
 func Flip2[A, B, R any](f func(A, B) R) Func1[B, Func1[A, R]] {
 	return func(b B) Func1[A, R] {
 		return func(a A) R {
@@ -335,6 +338,7 @@ func Zero[T any]() T {
 
 // https://hackage.haskell.org/package/base/docs/Prelude.html#v:const
 // const a b always evaluates to a, ignoring its second argument.
+// A -> B -> A
 func Const[B, A any](a A) func(b B) A {
 	return func(b B) A {
 		return a
@@ -344,7 +348,7 @@ func Const[B, A any](a A) func(b B) A {
 // (  A -> B -> A  ) -> B -> A -> A  인 함수인데
 // flip 함수가 ( A -> B -> C ) -> B -> A -> C  이니까..
 // 사실 같은거고 , 중복 정의할 필요가 없는데
-// option.Map(optA ,  fp.With(A.WithValue, "2"))
+// option.Map(optA ,  fp.With(A.WithField, "2"))
 // 형태로 코딩하기 위해 정의
 func With[A, B any](withf func(A, B) A, v B) func(A) A {
 	return Flip2(withf)(v)
@@ -357,16 +361,14 @@ func Test[A, B any](testf func(A, B) bool, v B) Predicate[A] {
 	return Predicate[A](Flip2(testf)(v))
 }
 
-func TestWith[A, B any](getter func(A) B, pf Predicate[B]) Predicate[A] {
-	return func(a A) bool {
-		return pf(getter(a))
+// option.Filter(optA, fp.TestWith(A.GetField)(eq.GivenValue(17)))
+// pf아규먼트가 커링되어 있는데, 이유는,  커링되어 있으면 gopls 에서  타입추론되어서 자동완성이 되지만
+// 커링 안되어 있으면 getter 로 부터 pf 타입을 추론하지 못하기 때문
+// 가독성은 커링안되어 있는게 보기가 더 좋은데 어쩔 수 없지.
+func TestWith[A, B any](getter func(A) B) func(pf Predicate[B]) Predicate[A] {
+	return func(pf Predicate[B]) Predicate[A] {
+		return func(a A) bool {
+			return pf(getter(a))
+		}
 	}
 }
-
-// func TestWith[A, B any](contramap func(B) A) func(pa Predicate[A]) Predicate[B] {
-// 	return func(pa Predicate[A]) Predicate[B] {
-// 		return func(b B) bool {
-// 			return pa(contramap(b))
-// 		}
-// 	}
-// }
