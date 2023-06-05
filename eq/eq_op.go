@@ -75,9 +75,21 @@ func GivenValue[T comparable](a T) fp.Predicate[T] {
 	}
 }
 
+func GivenPtr[T comparable](a *T) fp.Predicate[*T] {
+	return func(b *T) bool {
+		return PtrGiven[T]().Eqv(a, b)
+	}
+}
+
 func GivenFieldValue[S any, T comparable](getter func(S) T, a T) fp.Predicate[S] {
 	return func(s S) bool {
 		return Given[T]().Eqv(getter(s), a)
+	}
+}
+
+func GivenFieldPtr[S any, T comparable](getter func(S) *T, a *T) fp.Predicate[S] {
+	return func(s S) bool {
+		return PtrGiven[T]().Eqv(getter(s), a)
 	}
 }
 
@@ -93,6 +105,10 @@ func Ptr[T any](eq lazy.Eval[fp.Eq[T]]) fp.Eq[*T] {
 
 		return false
 	})
+}
+
+func PtrGiven[T comparable]() fp.Eq[*T] {
+	return Ptr(lazy.Done(Given[T]()))
 }
 
 func ContraMap[T, U any](instance fp.Eq[T], fn func(U) T) fp.Eq[U] {
