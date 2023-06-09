@@ -178,7 +178,11 @@ func NilOr[A any](pf fp.Predicate[A]) fp.Predicate[*A] {
 	}
 }
 
+// as.Func2(fp.Option[A].Exists).ApplyLast 와 같은 함수
 func SomeAnd[A any](pf fp.Predicate[A]) fp.Predicate[fp.Option[A]] {
+	//return as.Func2(fp.Option[A].Exists).ApplyLast(pf)
+	//return fp.Predicate[fp.Option[A]](fp.Flip2(fp.Option[A].Exists)(pf))
+
 	return func(a fp.Option[A]) bool {
 		if a.IsEmpty() {
 			return false
@@ -187,6 +191,7 @@ func SomeAnd[A any](pf fp.Predicate[A]) fp.Predicate[fp.Option[A]] {
 	}
 }
 
+// as.Func2(fp.Option[A].ForAll).ApplyLast  와 같은 함수
 func NoneOr[A any](pf fp.Predicate[A]) fp.Predicate[fp.Option[A]] {
 	return func(a fp.Option[A]) bool {
 		if a.IsEmpty() {

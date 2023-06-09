@@ -16,6 +16,10 @@ func (r Unit) String() string {
 	return "()"
 }
 
+func (r Unit) MarshalJSON() ([]byte, error) {
+	return []byte("null"), nil
+}
+
 func (r *Unit) UnmarshalJSON(data []byte) error {
 	return nil
 }
