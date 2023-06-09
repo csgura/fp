@@ -55,10 +55,14 @@ func Ptr[T any](v *T) fp.Option[T] {
 }
 
 func String(v string) fp.Option[string] {
-	if v == "" {
-		return None[string]()
+	return NonZero(v)
+}
+
+func NonZero[T comparable](t T) fp.Option[T] {
+	if t == fp.Zero[T]() {
+		return None[T]()
 	}
-	return Some(v)
+	return Some(t)
 }
 
 func FromTry[T any](t fp.Try[T]) fp.Option[T] {
