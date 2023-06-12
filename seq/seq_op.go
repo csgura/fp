@@ -273,3 +273,39 @@ func Sort[T any](r fp.Seq[T], ord fp.Ord[T]) fp.Seq[T] {
 	sort.Sort(&seqSorter[T]{ns, ord})
 	return ns
 }
+
+func Span[T any](r fp.Seq[T], p func(T) bool) (fp.Seq[T], fp.Seq[T]) {
+	left := fp.Seq[T]{}
+	right := fp.Seq[T]{}
+
+	span := false
+	for _, v := range r {
+		if span {
+			right = append(right, v)
+		} else {
+			if p(v) {
+				left = append(left, v)
+			} else {
+				span = true
+				right = append(right, v)
+			}
+		}
+	}
+
+	return left, right
+
+}
+
+func Partition[T any](r fp.Seq[T], p func(T) bool) (fp.Seq[T], fp.Seq[T]) {
+	left := fp.Seq[T]{}
+	right := fp.Seq[T]{}
+
+	for _, v := range r {
+		if p(v) {
+			left = append(left, v)
+		} else {
+			right = append(right, v)
+		}
+	}
+	return left, right
+}
