@@ -103,4 +103,6 @@ func TestTakeDrop(t *testing.T) {
 
 	assert.Equal(s.MakeString(","), seq.Iterator(s).MakeString(","))
 
+	assert.Equal(s.Last(), option.Some(9))
+
 }
