@@ -35,6 +35,14 @@ func (r Seq[T]) Head() Option[T] {
 	}
 }
 
+func (r Seq[T]) Init() Seq[T] {
+	if r.Size() > 1 {
+		return r[:r.Size()-1]
+	} else {
+		return nil
+	}
+}
+
 func (r Seq[T]) Last() Option[T] {
 	if r.Size() > 0 {
 		return Some(r[r.Size()-1])

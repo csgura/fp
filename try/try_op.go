@@ -263,6 +263,10 @@ func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Itera
 	})
 }
 
+func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.Try[fp.Option[R]] {
+	return Map(Traverse(fp.IteratorOfOption(opta), fa), fp.Iterator[R].NextOption)
+}
+
 func TraverseSeq[A, R any](sa []A, fa func(A) fp.Try[R]) fp.Try[[]R] {
 	return Map(Traverse(fp.IteratorOfSeq(sa), fa), fp.Iterator[R].ToSeq)
 }
