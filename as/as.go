@@ -13,6 +13,16 @@ func Seq[T any](s []T) fp.Seq[T] {
 	return fp.Seq[T](s)
 }
 
+func SeqNonNil[T any](s []*T) fp.Seq[T] {
+	ret := make([]T, 0, len(s))
+	for _, v := range s {
+		if v != nil {
+			ret = append(ret, *v)
+		}
+	}
+	return ret
+}
+
 func Ptr[T any](v T) *T {
 	return &v
 }
