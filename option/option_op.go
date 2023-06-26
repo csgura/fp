@@ -160,6 +160,12 @@ func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
 	})
 }
 
+func FlatPtr[T any](opt fp.Option[*T]) fp.Option[T] {
+	return FlatMap(opt, func(v *T) fp.Option[T] {
+		return Ptr(v)
+	})
+}
+
 // 하스켈 : m( a -> r ) -> a -> m r
 // 스칼라 : M[ A => R ] => A => M[R]
 // 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
