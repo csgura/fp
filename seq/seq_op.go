@@ -99,6 +99,10 @@ func FilterMap[T, U any](opt fp.Seq[T], fn func(v T) fp.Option[U]) fp.Seq[U] {
 	return FlatMap(opt, fp.Compose(fn, option.ToSeq[U]))
 }
 
+func FilterNil[T any](opt fp.Seq[*T]) fp.Seq[T] {
+	return FilterMap(opt, option.Ptr[T])
+}
+
 func Lift[T, U any](f func(v T) U) func(fp.Seq[T]) fp.Seq[U] {
 	return func(opt fp.Seq[T]) fp.Seq[U] {
 		return Map(opt, f)
