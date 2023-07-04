@@ -81,9 +81,9 @@ func Compose[A, B, C any](f1 func(A) fp.Iterator[B], f2 func(B) fp.Iterator[C]) 
 	}
 }
 
-func ComposePure[A, B, C any](f1 func(A) fp.Iterator[B], f2 func(B) C) func(A) fp.Iterator[C] {
-	return func(a A) fp.Iterator[C] {
-		return Map(f1(a), f2)
+func ComposePure[A, B any](fab func(A) B) func(A) fp.Iterator[B] {
+	return func(a A) fp.Iterator[B] {
+		return Of(fab(a))
 	}
 }
 

@@ -249,9 +249,9 @@ func Compose[A, B, C any](f1 func(A) fp.List[B], f2 func(B) fp.List[C]) func(A) 
 	}
 }
 
-func ComposePure[A, B, C any](f1 func(A) fp.List[B], f2 func(B) C) func(A) fp.List[C] {
-	return func(a A) fp.List[C] {
-		return Map(f1(a), f2)
+func ComposePure[A, B any](fab func(A) B) func(A) fp.List[B] {
+	return func(a A) fp.List[B] {
+		return Of(fab(a))
 	}
 }
 

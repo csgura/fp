@@ -141,10 +141,8 @@ func Compose2[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) fp.Option[C]) fun
 	}
 }
 
-func ComposePure[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) C) func(A) fp.Option[C] {
-	return func(a A) fp.Option[C] {
-		return Map(f1(a), f2)
-	}
+func ComposePure[A, B any](fab func(A) B) func(A) fp.Option[B] {
+	return fp.Compose(fab, Some[B])
 }
 
 func FlatMap[T, U any](opt fp.Option[T], fn func(v T) fp.Option[U]) fp.Option[U] {

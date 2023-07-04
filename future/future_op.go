@@ -175,10 +175,8 @@ func ComposeTry[A, B, C any](f1 func(A) fp.Try[B], f2 func(B) fp.Future[C], ctx 
 	}
 }
 
-func ComposePure[A, B, C any](f1 func(A) fp.Future[B], f2 func(B) C, ctx ...fp.Executor) func(A) fp.Future[C] {
-	return func(a A) fp.Future[C] {
-		return Map(f1(a), f2, ctx...)
-	}
+func ComposePure[A, B any](fab func(A) B, ctx ...fp.Executor) func(A) fp.Future[B] {
+	return fp.Compose(fab, Successful[B])
 }
 
 func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.Executor) fp.Future[U] {

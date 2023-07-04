@@ -89,10 +89,8 @@ func ComposeOption[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) fp.Try[C]) f
 	}
 }
 
-func ComposePure[A, B, C any](f1 func(A) fp.Try[B], f2 func(B) C) func(A) fp.Try[C] {
-	return func(a A) fp.Try[C] {
-		return Map(f1(a), f2)
-	}
+func ComposePure[A, B any](fab func(A) B) func(A) fp.Try[B] {
+	return fp.Compose(fab, Success[B])
 }
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
