@@ -310,6 +310,14 @@ func Func%d[%s,R any]( f func(%s) (R,error)) fp.Func%d[%s,fp.Try[R]] {
 `, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
 
 			fmt.Fprintf(f, `
+func Pure%d[%s,R any]( f func(%s) R) fp.Func%d[%s,fp.Try[R]] {
+	return func(%s) fp.Try[R] {
+		return Success(f(%s))
+	}
+}
+`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
+
+			fmt.Fprintf(f, `
 func Unit%d[%s any]( f func(%s) error) fp.Func%d[%s,fp.Try[fp.Unit]] {
 	return func(%s) fp.Try[fp.Unit] {
 		err := f(%s)

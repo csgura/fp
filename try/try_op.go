@@ -421,6 +421,12 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
 	return ApplicativeFunctor1[A, R]{Success(fn)}
 }
 
+func Pure0[R any](f func() R) fp.Func1[fp.Unit, fp.Try[R]] {
+	return func(fp.Unit) fp.Try[R] {
+		return Success(f())
+	}
+}
+
 func Func0[R any](f func() (R, error)) fp.Func1[fp.Unit, fp.Try[R]] {
 	return func(fp.Unit) fp.Try[R] {
 		ret, err := f()

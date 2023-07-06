@@ -320,6 +320,12 @@ func Func1[A1, R any](f func(A1) (R, error)) fp.Func1[A1, fp.Try[R]] {
 	}
 }
 
+func Pure1[A1, R any](f func(A1) R) fp.Func1[A1, fp.Try[R]] {
+	return func(a1 A1) fp.Try[R] {
+		return Success(f(a1))
+	}
+}
+
 func Unit1[A1 any](f func(A1) error) fp.Func1[A1, fp.Try[fp.Unit]] {
 	return func(a1 A1) fp.Try[fp.Unit] {
 		err := f(a1)
@@ -331,6 +337,12 @@ func Func2[A1, A2, R any](f func(A1, A2) (R, error)) fp.Func2[A1, A2, fp.Try[R]]
 	return func(a1 A1, a2 A2) fp.Try[R] {
 		ret, err := f(a1, a2)
 		return Apply(ret, err)
+	}
+}
+
+func Pure2[A1, A2, R any](f func(A1, A2) R) fp.Func2[A1, A2, fp.Try[R]] {
+	return func(a1 A1, a2 A2) fp.Try[R] {
+		return Success(f(a1, a2))
 	}
 }
 
@@ -348,6 +360,12 @@ func Func3[A1, A2, A3, R any](f func(A1, A2, A3) (R, error)) fp.Func3[A1, A2, A3
 	}
 }
 
+func Pure3[A1, A2, A3, R any](f func(A1, A2, A3) R) fp.Func3[A1, A2, A3, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3) fp.Try[R] {
+		return Success(f(a1, a2, a3))
+	}
+}
+
 func Unit3[A1, A2, A3 any](f func(A1, A2, A3) error) fp.Func3[A1, A2, A3, fp.Try[fp.Unit]] {
 	return func(a1 A1, a2 A2, a3 A3) fp.Try[fp.Unit] {
 		err := f(a1, a2, a3)
@@ -359,6 +377,12 @@ func Func4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) (R, error)) fp.Func4[A1
 	return func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try[R] {
 		ret, err := f(a1, a2, a3, a4)
 		return Apply(ret, err)
+	}
+}
+
+func Pure4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) fp.Func4[A1, A2, A3, A4, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4))
 	}
 }
 
@@ -376,6 +400,12 @@ func Func5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) (R, error)) fp.
 	}
 }
 
+func Pure5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) fp.Func5[A1, A2, A3, A4, A5, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5))
+	}
+}
+
 func Unit5[A1, A2, A3, A4, A5 any](f func(A1, A2, A3, A4, A5) error) fp.Func5[A1, A2, A3, A4, A5, fp.Try[fp.Unit]] {
 	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Try[fp.Unit] {
 		err := f(a1, a2, a3, a4, a5)
@@ -387,6 +417,12 @@ func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) (R, err
 	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[R] {
 		ret, err := f(a1, a2, a3, a4, a5, a6)
 		return Apply(ret, err)
+	}
+}
+
+func Pure6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func6[A1, A2, A3, A4, A5, A6, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6))
 	}
 }
 
@@ -404,6 +440,12 @@ func Func7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7)
 	}
 }
 
+func Pure7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R) fp.Func7[A1, A2, A3, A4, A5, A6, A7, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6, a7))
+	}
+}
+
 func Unit7[A1, A2, A3, A4, A5, A6, A7 any](f func(A1, A2, A3, A4, A5, A6, A7) error) fp.Func7[A1, A2, A3, A4, A5, A6, A7, fp.Try[fp.Unit]] {
 	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Try[fp.Unit] {
 		err := f(a1, a2, a3, a4, a5, a6, a7)
@@ -418,6 +460,12 @@ func Func8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6,
 	}
 }
 
+func Pure8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R) fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6, a7, a8))
+	}
+}
+
 func Unit8[A1, A2, A3, A4, A5, A6, A7, A8 any](f func(A1, A2, A3, A4, A5, A6, A7, A8) error) fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, fp.Try[fp.Unit]] {
 	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Try[fp.Unit] {
 		err := f(a1, a2, a3, a4, a5, a6, a7, a8)
@@ -429,6 +477,12 @@ func Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5,
 	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Try[R] {
 		ret, err := f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
 		return Apply(ret, err)
+	}
+}
+
+func Pure9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R) fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, fp.Try[R]] {
+	return func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6, a7, a8, a9))
 	}
 }
 
