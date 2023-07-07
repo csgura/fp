@@ -22,6 +22,15 @@ func (r Iterator[T]) ToSeq() []T {
 	return ret
 }
 
+func (r Iterator[T]) Count() int {
+	ret := 0
+	for r.HasNext() {
+		r.Next()
+		ret++
+	}
+	return ret
+}
+
 // func (r Iterator[T]) ToList() List[T] {
 
 // 	head := r.NextOption()
