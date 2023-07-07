@@ -27,3 +27,23 @@ func TupleFromHList1[A1 any](list hlist.Cons[A1, hlist.Nil]) fp.Tuple1[A1] {
 func LabelledFromHList1[A1 fp.Named](list hlist.Cons[A1, hlist.Nil]) fp.Labelled1[A1] {
 	return as.Labelled1(list.Head())
 }
+
+func MapKey[K, V, R any](t fp.Tuple2[K, V], mapf func(K) R) fp.Tuple2[R, V] {
+	return as.Tuple2(mapf(t.I1), t.I2)
+}
+
+func MapValue[K, V, R any](t fp.Tuple2[K, V], mapf func(V) R) fp.Tuple2[K, R] {
+	return as.Tuple2(t.I1, mapf(t.I2))
+}
+
+func LiftKey[K, V, R any](mapf func(K) R) fp.Func1[fp.Tuple2[K, V], fp.Tuple2[R, V]] {
+	return func(a1 fp.Tuple2[K, V]) fp.Tuple2[R, V] {
+		return MapKey(a1, mapf)
+	}
+}
+
+func LiftValue[K, V, R any](mapf func(V) R) fp.Func1[fp.Tuple2[K, V], fp.Tuple2[K, R]] {
+	return func(a1 fp.Tuple2[K, V]) fp.Tuple2[K, R] {
+		return MapValue(a1, mapf)
+	}
+}
