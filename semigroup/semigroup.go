@@ -70,3 +70,15 @@ func Ptr[T any](sgT lazy.Eval[fp.Semigroup[T]]) fp.Semigroup[*T] {
 		return a
 	})
 }
+
+func Option[T any](sg fp.Semigroup[T]) fp.Semigroup[fp.Option[T]] {
+	return New(func(a, b fp.Option[T]) fp.Option[T] {
+		if a.IsDefined() && b.IsDefined() {
+			return fp.Some(sg.Combine(a.Get(), b.Get()))
+		}
+		if a.IsEmpty() {
+			return b
+		}
+		return a
+	})
+}
