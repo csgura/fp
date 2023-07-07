@@ -36,14 +36,14 @@ func MapValue[K, V, R any](t fp.Tuple2[K, V], mapf func(V) R) fp.Tuple2[K, R] {
 	return as.Tuple2(t.I1, mapf(t.I2))
 }
 
-func LiftKey[K, V, R any](mapf func(K) R) fp.Func1[fp.Tuple2[K, V], fp.Tuple2[R, V]] {
+func LiftKey[K, V, R any](mapf func(K, V) R) fp.Func1[fp.Tuple2[K, V], fp.Tuple2[R, V]] {
 	return func(a1 fp.Tuple2[K, V]) fp.Tuple2[R, V] {
-		return MapKey(a1, mapf)
+		return as.Tuple2(mapf(a1.I1, a1.I2), a1.I2)
 	}
 }
 
-func LiftValue[K, V, R any](mapf func(V) R) fp.Func1[fp.Tuple2[K, V], fp.Tuple2[K, R]] {
+func LiftValue[K, V, R any](mapf func(K, V) R) fp.Func1[fp.Tuple2[K, V], fp.Tuple2[K, R]] {
 	return func(a1 fp.Tuple2[K, V]) fp.Tuple2[K, R] {
-		return MapValue(a1, mapf)
+		return as.Tuple2(a1.I1, mapf(a1.I1, a1.I2))
 	}
 }
