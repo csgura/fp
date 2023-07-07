@@ -241,6 +241,10 @@ func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) map[K]fp.Seq[A
 	})
 }
 
+func Distinct[V comparable](s fp.Seq[V]) fp.Seq[V] {
+	return ToGoSet(s).Iterator().ToSeq()
+}
+
 func ToMap[K, V any](s fp.Seq[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
 	ret := immutable.MapBuilder[K, V](hasher)
 
