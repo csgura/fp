@@ -44,6 +44,20 @@ func (r Try[T]) Unapply() (T, error) {
 	}
 }
 
+func (r Try[T]) Map(mf func(T) T) Try[T] {
+	if r.IsSuccess() {
+		r.v = mf(r.v)
+	}
+	return r
+}
+
+func (r Try[T]) FlatMap(mf func(T) Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return mf(r.v)
+	}
+	return r
+}
+
 func (r Try[T]) Foreach(f func(v T)) {
 	if r.IsSuccess() {
 		f(r.Get())
@@ -63,6 +77,10 @@ func (r Try[T]) OrElse(t T) T {
 		return r.Get()
 	}
 	return t
+}
+
+func (r Try[T]) OrZero() T {
+	return r.OrElseGet(Zero[T])
 }
 
 func (r Try[T]) OrElseGet(f func() T) T {

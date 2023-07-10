@@ -59,6 +59,20 @@ func (r Option[T]) Filter(p func(v T) bool) Option[T] {
 
 }
 
+func (r Option[T]) Map(mf func(T) T) Option[T] {
+	if r.IsDefined() {
+		r.v = mf(r.v)
+	}
+	return r
+}
+
+func (r Option[T]) FlatMap(mf func(T) Option[T]) Option[T] {
+	if r.IsDefined() {
+		return mf(r.v)
+	}
+	return r
+}
+
 func (r Option[T]) FilterNot(p func(v T) bool) Option[T] {
 	if r.IsDefined() {
 		if !p(r.Get()) {
