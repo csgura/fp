@@ -217,6 +217,38 @@ func (r Future[T]) Failed() Future[error] {
 	return np.Future()
 }
 
+func (r Future[T]) Or(f func() Future[T]) Future[T] {
+	np := NewPromise[T]()
+
+	r.OnComplete(func(t Try[T]) {
+		if t.IsSuccess() {
+			np.Success(t.Get())
+		} else {
+			f().OnComplete(func(try Try[T]) {
+				np.Complete(try)
+			})
+		}
+	})
+
+	return np.Future()
+}
+
+func (r Future[T]) OrFuture(v Future[T]) Future[T] {
+	np := NewPromise[T]()
+
+	r.OnComplete(func(t Try[T]) {
+		if t.IsSuccess() {
+			np.Success(t.Get())
+		} else {
+			v.OnComplete(func(try Try[T]) {
+				np.Complete(try)
+			})
+		}
+	})
+
+	return np.Future()
+}
+
 func (r Future[T]) Recover(f func(err error) T, ctx ...Executor) Future[T] {
 	np := NewPromise[T]()
 

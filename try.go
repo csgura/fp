@@ -89,11 +89,19 @@ func (r Try[T]) OrElseGet(f func() T) T {
 	}
 	return f()
 }
+
 func (r Try[T]) Or(f func() Try[T]) Try[T] {
 	if r.IsSuccess() {
 		return r
 	}
 	return f()
+}
+
+func (r Try[T]) OrTry(v Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+	return v
 }
 
 func (r Try[T]) Recover(f func(err error) T) Try[T] {
