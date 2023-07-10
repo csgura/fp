@@ -247,6 +247,36 @@ func (r Future[T]) RecoverWith(f func(err error) Future[T], ctx ...Executor) Fut
 	return np.Future()
 }
 
+func (r Future[T]) Map(mf func(T) T, ctx ...Executor) Future[T] {
+	np := NewPromise[T]()
+
+	r.OnComplete(func(t Try[T]) {
+		if t.IsSuccess() {
+			np.Success(mf(t.Get()))
+		} else {
+			np.Failure(t.Failed().Get())
+		}
+	}, ctx...)
+
+	return np.Future()
+}
+
+func (r Future[T]) FlatMap(mf func(T) Future[T], ctx ...Executor) Future[T] {
+	np := NewPromise[T]()
+
+	r.OnComplete(func(t Try[T]) {
+		if t.IsSuccess() {
+			mf(t.Get()).OnComplete(func(t Try[T]) {
+				np.Complete(t)
+			}, ctx...)
+		} else {
+			np.Failure(t.Failed().Get())
+		}
+	}, ctx...)
+
+	return np.Future()
+}
+
 // type Future[T any] interface {
 // 	OnFailure(cb func(err error), ctx ...Executor)
 // 	OnSuccess(cb func(success T), ctx ...Executor)
