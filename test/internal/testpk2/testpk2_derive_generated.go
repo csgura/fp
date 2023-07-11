@@ -68,7 +68,7 @@ var EqGreeting = eq.ContraMap(
 )
 
 var EncoderGreeting = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NamedHello[testpk1.World]](testpk1.EncoderWorld), js.EncoderNamed[NamedLanguage[string]](js.EncoderString)),
+	js.EncoderLabelled2(js.EncoderNamed[NamedHello[testpk1.World]](EncoderTestpk1World), js.EncoderNamed[NamedLanguage[string]](js.EncoderString)),
 	Greeting.AsLabelled,
 )
 
@@ -189,4 +189,21 @@ func EqTestpk1Wrapper[T any](eqT fp.Eq[T]) fp.Eq[testpk1.Wrapper[T]] {
 var EqTree = eq.ContraMap(
 	eq.Tuple1(testpk1.EqNode()),
 	Tree.AsTuple,
+)
+
+var EncoderTestpk1World = js.EncoderContraMap(
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[testpk1.NamedMessage[string]](js.EncoderString),
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[testpk1.NamedTimestamp[time.Time]](js.EncoderTime),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[testpk1.PubNamedPub[string]](js.EncoderString),
+				js.EncoderHNil,
+			),
+		),
+	),
+	fp.Compose(
+		testpk1.World.AsLabelled,
+		as.HList3Labelled[testpk1.NamedMessage[string], testpk1.NamedTimestamp[time.Time], testpk1.PubNamedPub[string]],
+	),
 )

@@ -156,18 +156,18 @@ var EncoderMovie = js.EncoderContraMap(
 )
 
 var EncoderNoPrivate = js.EncoderContraMap(
-	js.EncoderLabelled1(js.EncoderNamed[NamedPubRoot[string]](js.EncoderString)),
+	js.EncoderLabelled1(js.EncoderNamed[PubNamedRoot[string]](js.EncoderString)),
 	NoPrivate.AsLabelled,
 )
 
 var DecoderNoPrivate = js.DecoderMap(
 	js.DecoderHConsLabelled(
-		js.DecoderNamed[NamedPubRoot[string]](js.DecoderString),
+		js.DecoderNamed[PubNamedRoot[string]](js.DecoderString),
 		js.DecoderHNil,
 	),
 
 	fp.Compose(
-		product.LabelledFromHList1[NamedPubRoot[string]],
+		product.LabelledFromHList1[PubNamedRoot[string]],
 		fp.Compose(
 			as.Curried2(NoPrivateBuilder.FromLabelled)(NoPrivateBuilder{}),
 			NoPrivateBuilder.Build,

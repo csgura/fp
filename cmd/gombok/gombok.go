@@ -18,12 +18,32 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func namedName(name string) string {
+func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
+	if p1 == nil && p2 == nil {
+		return true
+	}
+	if p1 == nil || p2 == nil {
+		return false
+	}
+
+	return p1.Path() == p2.Path()
+}
+
+func namedName(w genfp.Writer, working *types.Package, typePkg *types.Package, name string) string {
+
 	ret := publicName(name)
 	if ret == name {
-		return "Pub" + ret
+		ret = fmt.Sprintf("PubNamed%s", ret)
+	} else {
+		ret = fmt.Sprintf("Named%s", ret)
 	}
-	return ret
+
+	if isSamePkg(working, typePkg) {
+		return ret
+	} else {
+		return fmt.Sprintf("%s.%s", w.GetImportedName(typePkg), ret)
+	}
+
 }
 
 func publicName(name string) string {
@@ -272,24 +292,24 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 
 	klist := keyTags.Iterator().ToSeq()
 	seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
-		fmt.Fprintf(w, `type Named%s[T any] fp.Tuple1[T]
-			`, namedName(name))
+		fmt.Fprintf(w, `type %s[T any] fp.Tuple1[T]
+			`, namedName(w, workingPackage, workingPackage, name))
 
-		fmt.Fprintf(w, `func (r Named%s[T]) Name() string {
+		fmt.Fprintf(w, `func (r %s[T]) Name() string {
 				return "%s"
 			}
-			`, namedName(name), name)
+			`, namedName(w, workingPackage, workingPackage, name), name)
 
-		fmt.Fprintf(w, `func (r Named%s[T]) Value() T {
+		fmt.Fprintf(w, `func (r %s[T]) Value() T {
 				return r.I1
 			}
-			`, namedName(name))
+			`, namedName(w, workingPackage, workingPackage, name))
 
-		fmt.Fprintf(w, `func (r Named%s[T]) WithValue(v T) Named%s[T] {
+		fmt.Fprintf(w, `func (r %s[T]) WithValue(v T) %s[T] {
 				r.I1 = v
 				return r
 			}
-			`, namedName(name), namedName(name))
+			`, namedName(w, workingPackage, workingPackage, name), namedName(w, workingPackage, workingPackage, name))
 	})
 }
 
@@ -719,11 +739,11 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 				arity := fp.Min(allFields.Size(), max.Product-1)
 
 				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-					return fmt.Sprintf("Named%s[%s]", namedName(v.Name), w.TypeName(workingPackage, v.Type.Type))
+					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), w.TypeName(workingPackage, v.Type.Type))
 				}).MakeString(",")
 
 				fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
-					return fmt.Sprintf(`Named%s[%s]{r.%s}`, namedName(f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
+					return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
 				})).Take(arity).MakeString(",")
 
 				if ts.Info.Method.Get("AsLabelled").IsEmpty() {

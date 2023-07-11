@@ -1022,24 +1022,24 @@ func (r NoPrivateBuilder) FromMap(m map[string]any) NoPrivateBuilder {
 	return r
 }
 
-func (r NoPrivate) AsLabelled() fp.Labelled1[NamedPubRoot[string]] {
-	return as.Labelled1(NamedPubRoot[string]{r.Root})
+func (r NoPrivate) AsLabelled() fp.Labelled1[PubNamedRoot[string]] {
+	return as.Labelled1(PubNamedRoot[string]{r.Root})
 }
 
-func (r NoPrivateBuilder) FromLabelled(t fp.Labelled1[NamedPubRoot[string]]) NoPrivateBuilder {
+func (r NoPrivateBuilder) FromLabelled(t fp.Labelled1[PubNamedRoot[string]]) NoPrivateBuilder {
 	r.Root = t.I1.Value()
 	return r
 }
 
-type NamedPubRoot[T any] fp.Tuple1[T]
+type PubNamedRoot[T any] fp.Tuple1[T]
 
-func (r NamedPubRoot[T]) Name() string {
+func (r PubNamedRoot[T]) Name() string {
 	return "Root"
 }
-func (r NamedPubRoot[T]) Value() T {
+func (r PubNamedRoot[T]) Value() T {
 	return r.I1
 }
-func (r NamedPubRoot[T]) WithValue(v T) NamedPubRoot[T] {
+func (r PubNamedRoot[T]) WithValue(v T) PubNamedRoot[T] {
 	r.I1 = v
 	return r
 }

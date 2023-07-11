@@ -27,14 +27,14 @@ var EncoderWorld = js.EncoderContraMap(
 		js.EncoderHConsLabelled(
 			js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedPubPub[string]](js.EncoderString),
+				js.EncoderNamed[PubNamedPub[string]](js.EncoderString),
 				js.EncoderHNil,
 			),
 		),
 	),
 	fp.Compose(
 		World.AsLabelled,
-		as.HList3Labelled[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]],
+		as.HList3Labelled[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]],
 	),
 )
 
@@ -44,14 +44,14 @@ var DecoderWorld = js.DecoderMap(
 		js.DecoderHConsLabelled(
 			js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedPubPub[string]](js.DecoderString),
+				js.DecoderNamed[PubNamedPub[string]](js.DecoderString),
 				js.DecoderHNil,
 			),
 		),
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]],
+		product.LabelledFromHList3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]],
 		fp.Compose(
 			as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
 			WorldBuilder.Build,

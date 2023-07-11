@@ -123,11 +123,11 @@ func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
 	return r
 }
 
-func (r World) AsLabelled() fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]] {
-	return as.Labelled3(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp}, NamedPubPub[string]{r.Pub})
+func (r World) AsLabelled() fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]] {
+	return as.Labelled3(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp}, PubNamedPub[string]{r.Pub})
 }
 
-func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], NamedPubPub[string]]) WorldBuilder {
+func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]]) WorldBuilder {
 	r.message = t.I1.Value()
 	r.timestamp = t.I2.Value()
 	r.Pub = t.I3.Value()
@@ -2260,15 +2260,15 @@ func (r DefinedOtherPackageBuilder) FromMap(m map[string]any) DefinedOtherPackag
 	return r
 }
 
-type NamedPubPub[T any] fp.Tuple1[T]
+type PubNamedPub[T any] fp.Tuple1[T]
 
-func (r NamedPubPub[T]) Name() string {
+func (r PubNamedPub[T]) Name() string {
 	return "Pub"
 }
-func (r NamedPubPub[T]) Value() T {
+func (r PubNamedPub[T]) Value() T {
 	return r.I1
 }
-func (r NamedPubPub[T]) WithValue(v T) NamedPubPub[T] {
+func (r PubNamedPub[T]) WithValue(v T) PubNamedPub[T] {
 	r.I1 = v
 	return r
 }

@@ -210,3 +210,6 @@ func (r AliasedStruct) String() string {
 // @fp.GetterPubField(override=true)
 // @fp.Deref
 type GetterOverride testpk1.DefinedOtherPackage
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[testpk1.World]]
