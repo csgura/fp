@@ -35,6 +35,13 @@ func Number[T fp.ImplicitNum]() fp.Show[T] {
 	return fp.Sprint[T]()
 }
 
+var Bool = New(func(t bool) string {
+	if t {
+		return "true"
+	}
+	return "false"
+})
+
 func Ptr[T any](tshow lazy.Eval[fp.Show[T]]) fp.Show[*T] {
 	return New(func(pt *T) string {
 		if pt != nil {

@@ -476,6 +476,20 @@ func (r *TypeClassInstanceCache) Load(pk *types.Package, tc TypeClass) TypeClass
 	return found.Get()
 }
 
+func (r *TypeClassInstanceCache) IsWillGenerated(tc TypeClassDerive) bool {
+	list := r.tcMap.Get(tc.TypeClass.Id()).OrZero()
+
+	pkPred := func(v TypeClassInstancesOfPackage) bool {
+		return v.Package.Path() == tc.Package.Path()
+	}
+
+	found := list.Find(pkPred)
+	if found.IsDefined() {
+		return found.Get().ByName.Contains(tc.GeneratedInstanceName())
+	}
+	return false
+}
+
 func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInstancesOfPackage {
 	list := r.tcMap.Get(tc.TypeClass.Id()).OrZero()
 

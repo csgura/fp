@@ -27,6 +27,8 @@ type Collection struct {
 	Option      fp.Option[string]
 	NoDerive    NoDerive
 	Stringer    HasStringMethod
+	BoolPtr     *bool
+	NoMap       map[string]NoDerive
 }
 
 // @fp.Derive(recursive=true)

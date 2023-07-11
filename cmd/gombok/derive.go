@@ -234,7 +234,6 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 		return tci
 	})
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
-
 		return r.checkRequired(ctx, tci.RequiredInstance)
 	})
 
@@ -340,6 +339,30 @@ func (r *TypeClassSummonContext) checkRequired(ctx CurrentContext, required fp.S
 		} else {
 			res := r.lookupTypeClassInstance(ctx, v)
 			if res.available.IsEmpty() {
+				if ctx.recursiveGen && v.TypeClass.Id() == ctx.tc.TypeClass.Id() {
+					named := res.must.instanceOf.AsNamed()
+					if named.IsDefined() {
+
+						deriveFor := named.Get().Info
+
+						vt := metafp.LookupStruct(deriveFor.Pkg, deriveFor.Name().Get())
+
+						tc := metafp.TypeClassDerive{
+							Package:              ctx.tc.Package,
+							PrimitiveInstancePkg: ctx.tc.PrimitiveInstancePkg,
+							TypeClass:            ctx.tc.TypeClass,
+							DeriveFor:            named.Get(),
+							StructInfo:           vt,
+							Tags:                 ctx.tc.Tags,
+						}
+
+						if !r.tcCache.IsWillGenerated(tc) {
+							r.recursiveGen = append(r.recursiveGen, tc)
+							r.tcCache.WillGenerated(tc)
+						}
+						continue
+					}
+				}
 				return false
 			}
 		}
@@ -370,7 +393,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx Current
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
 		return option.Iterator(scope.FindByName(v, f))
-	}).Concat(seq.Iterator(scope.Find(f)))
+	})
 
 	if f.TypeArgs.Size() > 0 {
 		ins = seq.Iterator(scope.Find(f)).Concat(ins)
@@ -1286,62 +1309,7 @@ func (r *TypeClassSummonContext) summon(ctx CurrentContext, req metafp.RequiredI
 		return r.exprTypeClassInstance(ctx, result.available.Get())
 	}
 
-	// instance := r.lookupTypeClassMember("UInt")
-	// if instance.IsDefined() {
-	// 	if _, ok := instance.Get().Type().(*types.Signature); ok {
-	// 		ctx := types.NewContext()
-	// 		_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
-	// 		if err == nil {
-	// 			return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.Type))
-	// 		}
-	// 	}
-	// }
-
-	// instance = r.lookupTypeClassMember("Int")
-	// if instance.IsDefined() {
-	// 	if _, ok := instance.Get().Type().(*types.Signature); ok {
-	// 		ctx := types.NewContext()
-	// 		_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
-	// 		if err == nil {
-	// 			return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.Type))
-	// 		}
-	// 	}
-	// }
-
-	// instance = r.lookupTypeClassMember("Float")
-	// if instance.IsDefined() {
-	// 	if _, ok := instance.Get().Type().(*types.Signature); ok {
-	// 		ctx := types.NewContext()
-	// 		_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
-	// 		if err == nil {
-	// 			return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.Type))
-	// 		}
-	// 	}
-	// }
-
-	// instance = r.lookupTypeClassMember("Number")
-	// if instance.IsDefined() {
-	// 	if _, ok := instance.Get().Type().(*types.Signature); ok {
-	// 		ctx := types.NewContext()
-	// 		_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
-	// 		if err == nil {
-	// 			return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.Type))
-	// 		}
-	// 	}
-	// }
-
-	// instance = r.lookupTypeClassMember("Given")
-	// if instance.IsDefined() {
-	// 	if _, ok := instance.Get().Type().(*types.Signature); ok {
-	// 		ctx := types.NewContext()
-	// 		_, err := types.Instantiate(ctx, instance.Get().Type(), []types.Type{t.Type}, true)
-	// 		if err == nil {
-	// 			return fmt.Sprintf("%s[%s]()", instance.Get().PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.Type))
-	// 		}
-	// 	}
-	// }
-
-	if ctx.recursiveGen {
+	if ctx.recursiveGen && req.TypeClass.Id() == ctx.tc.TypeClass.Id() {
 		named := result.must.instanceOf.AsNamed()
 		if named.IsDefined() {
 			deriveFor := named.Get().Info
@@ -1357,8 +1325,10 @@ func (r *TypeClassSummonContext) summon(ctx CurrentContext, req metafp.RequiredI
 				Tags:                 ctx.tc.Tags,
 			}
 
-			r.recursiveGen = append(r.recursiveGen, tc)
-			r.tcCache.WillGenerated(tc)
+			if !r.tcCache.IsWillGenerated(tc) {
+				r.recursiveGen = append(r.recursiveGen, tc)
+				r.tcCache.WillGenerated(tc)
+			}
 			return r.exprTypeClassInstance(ctx, result.must)
 		}
 
