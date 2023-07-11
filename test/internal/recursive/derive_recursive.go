@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
+	"github.com/csgura/fp/test/internal/testpk1"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -96,3 +97,27 @@ var _ js.Derives[js.Encoder[Over21[any]]]
 
 // @fp.Derive
 var _ js.Derives[js.Decoder[Over21[any]]]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[testpk1.LegacyStruct]]
+
+// @fp.Derive
+var _ monoid.Derives[fp.Monoid[testpk1.LegacyStruct]]
+
+// @fp.Derive
+var _ show.Derives[fp.Show[testpk1.LegacyStruct]]
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[testpk1.LegacyStruct]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[testpk1.LegacyStruct]]
+
+// @fp.Derive
+var _ monoid.Derives[fp.Monoid[testpk1.LegacyStructCompose]]
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[testpk1.LegacyPhoneBook]]
+
+// @fp.Derive(recursive=true)
+var _ monoid.Derives[fp.Monoid[testpk1.LegacyPhoneBook]]

@@ -10,6 +10,7 @@ import (
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
+	"github.com/csgura/fp/test/internal/testpk1"
 )
 
 var EqNormalStruct = eq.ContraMap(
@@ -987,3 +988,113 @@ func DecoderOver21[T any](decoderT js.Decoder[T]) js.Decoder[Over21[T]] {
 		},
 	)
 }
+
+var EqTestpk1LegacyStruct = eq.ContraMap(
+	eq.Tuple2(eq.String, eq.Given[int]()),
+	func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
+		return as.Tuple2(v.Name, v.Age)
+	},
+)
+
+var MonoidTestpk1LegacyStruct = monoid.IMap(
+	monoid.Tuple2(monoid.String, monoid.Product[int]()),
+	func(t fp.Tuple2[string, int]) testpk1.LegacyStruct {
+		return testpk1.LegacyStruct{
+			Name: t.I1,
+			Age:  t.I2,
+		}
+	},
+	func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
+		return as.Tuple2(v.Name, v.Age)
+	},
+)
+
+var ShowTestpk1LegacyStruct = show.Generic(
+	as.Generic(
+		"testpk1.LegacyStruct",
+		fp.Compose(
+			func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
+				return as.Tuple2(v.Name, v.Age)
+			},
+			as.HList2[string, int],
+		),
+
+		fp.Compose(
+			product.TupleFromHList2[string, int],
+			func(t fp.Tuple2[string, int]) testpk1.LegacyStruct {
+				return testpk1.LegacyStruct{
+					Name: t.I1,
+					Age:  t.I2,
+				}
+			},
+		),
+	),
+	show.HCons(
+		show.String,
+		show.HCons(
+			show.Int[int](),
+			show.HNil,
+		),
+	),
+)
+
+var EncoderTestpk1LegacyStruct = js.EncoderContraMap(
+	js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString), js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]())),
+	func(v testpk1.LegacyStruct) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
+		i0, i1 := v.Name, v.Age
+		return as.Labelled2(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1})
+	},
+)
+
+var DecoderTestpk1LegacyStruct = js.DecoderMap(
+	js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
+	func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) testpk1.LegacyStruct {
+		return testpk1.LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value()}
+	},
+)
+
+var MonoidTestpk1LegacyStructCompose = monoid.IMap(
+	monoid.Tuple2(MonoidTestpk1LegacyStruct, monoid.String),
+	func(t fp.Tuple2[testpk1.LegacyStruct, string]) testpk1.LegacyStructCompose {
+		return testpk1.LegacyStructCompose{
+			Person: t.I1,
+			Phone:  t.I2,
+		}
+	},
+	func(v testpk1.LegacyStructCompose) fp.Tuple2[testpk1.LegacyStruct, string] {
+		return as.Tuple2(v.Person, v.Phone)
+	},
+)
+
+var EqTestpk1LegacyPhoneBook = eq.ContraMap(
+	eq.Tuple2(eq.Given[testpk1.LegacyPerson](), eq.String),
+	func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
+		return as.Tuple2(v.Person, v.Phone)
+	},
+)
+
+var MonoidTestpk1LegacyPhoneBook = monoid.IMap(
+	monoid.Tuple2(MonoidTestpk1LegacyPerson, monoid.String),
+	func(t fp.Tuple2[testpk1.LegacyPerson, string]) testpk1.LegacyPhoneBook {
+		return testpk1.LegacyPhoneBook{
+			Person: t.I1,
+			Phone:  t.I2,
+		}
+	},
+	func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
+		return as.Tuple2(v.Person, v.Phone)
+	},
+)
+
+var MonoidTestpk1LegacyPerson = monoid.IMap(
+	monoid.Tuple2(monoid.String, monoid.Product[int]()),
+	func(t fp.Tuple2[string, int]) testpk1.LegacyPerson {
+		return testpk1.LegacyPerson{
+			Name: t.I1,
+			Age:  t.I2,
+		}
+	},
+	func(v testpk1.LegacyPerson) fp.Tuple2[string, int] {
+		return as.Tuple2(v.Name, v.Age)
+	},
+)

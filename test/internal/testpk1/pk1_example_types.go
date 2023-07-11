@@ -273,3 +273,25 @@ func (r *DefinedOtherPackage) PtrRecvRet() string {
 func (r *DefinedOtherPackage) GetDupGetter() string {
 	return "dup"
 }
+
+type LegacyStruct struct {
+	Name    string
+	Age     int
+	privacy string
+}
+
+type LegacyStructCompose struct {
+	Person LegacyStruct
+	Phone  string
+}
+
+type LegacyPerson struct {
+	Name    string
+	Age     int
+	privacy string
+}
+
+type LegacyPhoneBook struct {
+	Person LegacyPerson
+	Phone  string
+}

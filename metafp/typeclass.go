@@ -71,6 +71,7 @@ type TypeClassDerive struct {
 	TypeClass            TypeClass
 	DeriveFor            NamedTypeInfo
 	StructInfo           fp.Option[TaggedStruct]
+	Tags                 fp.Map[string, Annotation]
 }
 
 func (r TypeClassDerive) IsRecursive() bool {
@@ -92,6 +93,7 @@ type TypeClassDirective struct {
 	PrimitiveInstancePkg *types.Package
 	TypeClass            TypeClass
 	TypeArgs             fp.Seq[TypeInfo]
+	Tags                 fp.Map[string, Annotation]
 }
 
 func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[TypeClassDirective] {
@@ -139,6 +141,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 										TypeParam: tcType.TypeParam,
 									},
 									TypeArgs: typeArgs(tt.TypeArgs()),
+									Tags:     option.Map(doc, extractTag).OrZero(),
 								})
 							}
 						}
@@ -164,6 +167,7 @@ func FindTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 				TypeClass:            v.TypeClass,
 				DeriveFor:            typeInfo(obj.Type()).AsNamed().Get(),
 				StructInfo:           vt,
+				Tags:                 v.Tags,
 			})
 
 		}

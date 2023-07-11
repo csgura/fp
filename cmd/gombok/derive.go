@@ -26,10 +26,11 @@ type TypeClassInstanceGenerated struct {
 }
 
 type TypeClassSummonContext struct {
-	w         genfp.Writer
-	tcCache   *metafp.TypeClassInstanceCache
-	summoned  fp.Map[string, TypeClassInstanceGenerated]
-	loopCheck fp.Set[string]
+	w            genfp.Writer
+	tcCache      *metafp.TypeClassInstanceCache
+	summoned     fp.Map[string, TypeClassInstanceGenerated]
+	loopCheck    fp.Set[string]
+	recursiveGen fp.Seq[metafp.TypeClassDerive]
 }
 
 type CurrentContext struct {
@@ -37,6 +38,7 @@ type CurrentContext struct {
 	tc           metafp.TypeClassDerive
 	primScope    metafp.TypeClassScope
 	workingScope metafp.TypeClassScope
+	recursiveGen bool
 }
 
 type GenericRepr struct {
@@ -151,11 +153,17 @@ func (r lookupTarget) instanceExpr(w genfp.Writer, workingPkg *types.Package) Su
 
 func (r *TypeClassSummonContext) typeclassInstanceMust(ctx CurrentContext, req metafp.RequiredInstance, name string) lookupTarget {
 
+	genName := req.TypeClass.Name + publicName(name)
+
+	if req.Type.Pkg != nil && req.Type.Pkg.Path() != "" && !isSamePkg(ctx.working, req.Type.Pkg) {
+		genName = req.TypeClass.Name + publicName(req.Type.Pkg.Name()) + publicName(name)
+	}
+
 	f := req.Type
 	return lookupTarget{
 		instanceOf: f,
 		pk:         ctx.working,
-		name:       req.TypeClass.Name + publicName(name),
+		name:       genName,
 		required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
 				TypeClass: req.TypeClass,
@@ -1333,6 +1341,24 @@ func (r *TypeClassSummonContext) summon(ctx CurrentContext, req metafp.RequiredI
 	// 	}
 	// }
 
+	if ctx.recursiveGen {
+		named := result.must.instanceOf.AsNamed()
+		if named.IsDefined() {
+			deriveFor := named.Get().Info
+
+			vt := metafp.LookupStruct(deriveFor.Pkg, deriveFor.Name().Get())
+			r.recursiveGen = append(r.recursiveGen, metafp.TypeClassDerive{
+				Package:              ctx.tc.Package,
+				PrimitiveInstancePkg: ctx.tc.PrimitiveInstancePkg,
+				TypeClass:            ctx.tc.TypeClass,
+				DeriveFor:            named.Get(),
+				StructInfo:           vt,
+				Tags:                 ctx.tc.Tags,
+			})
+			return r.exprTypeClassInstance(ctx, result.must)
+		}
+
+	}
 	return r.exprTypeClassInstance(ctx, result.must)
 
 }
@@ -1450,6 +1476,8 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 		primScope:    r.tcCache.Get(tc.PrimitiveInstancePkg, tc.TypeClass),
 		tc:           tc,
 		working:      workingPackage,
+		recursiveGen: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("recursive"))).Exists(eq.GivenValue("true")),
 	}
 
 	valuetpdec := ""
@@ -1573,14 +1601,20 @@ func genDerive() {
 		})
 
 		summonCtx := TypeClassSummonContext{
-			w:       w,
-			tcCache: &tccache,
+			w:            w,
+			tcCache:      &tccache,
+			recursiveGen: d,
 		}
 
-		d.Foreach(func(v metafp.TypeClassDerive) {
-			summonCtx.summonVar(v).Foreach(func(v SummonExpr) {
-				fmt.Fprintf(w, "%s\n", v.expr)
+		for len(summonCtx.recursiveGen) > 0 {
+			d := summonCtx.recursiveGen
+			summonCtx.recursiveGen = nil
+			d.Foreach(func(v metafp.TypeClassDerive) {
+				summonCtx.summonVar(v).Foreach(func(v SummonExpr) {
+					fmt.Fprintf(w, "%s\n", v.expr)
+				})
 			})
-		})
+		}
+
 	})
 }
