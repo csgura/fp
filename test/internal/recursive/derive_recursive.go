@@ -32,6 +32,9 @@ var _ show.Derives[fp.Show[NormalStruct]]
 // @fp.Derive
 var _ js.Derives[js.Encoder[NormalStruct]]
 
+// @fp.Derive
+var _ js.Derives[js.Decoder[NormalStruct]]
+
 type Tuple2Struct struct {
 	Name string
 	Age  int
@@ -42,6 +45,9 @@ var _ show.Derives[fp.Show[Tuple2Struct]]
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Tuple2Struct]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[Tuple2Struct]]
 
 type Over21[T any] struct {
 	I1  T
@@ -87,3 +93,6 @@ var _ show.Derives[fp.Show[Over21[any]]]
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Over21[any]]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[Over21[any]]]

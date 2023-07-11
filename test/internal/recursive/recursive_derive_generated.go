@@ -86,6 +86,26 @@ var EncoderNormalStruct = js.EncoderContraMap(
 	),
 )
 
+var DecoderNormalStruct = js.DecoderMap(
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+				js.DecoderHNil,
+			),
+		),
+	),
+
+	fp.Compose(
+		product.LabelledFromHList3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
+		func(t fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]]) NormalStruct {
+			return NormalStruct{Name: t.I1.Value(), Age: t.I2.Value(), Address: t.I3.Value()}
+		},
+	),
+)
+
 var ShowTuple2Struct = show.Generic(
 	as.Generic(
 		"recursive.Tuple2Struct",
@@ -120,6 +140,13 @@ var EncoderTuple2Struct = js.EncoderContraMap(
 	func(v Tuple2Struct) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
 		i0, i1 := v.Name, v.Age
 		return as.Labelled2(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1})
+	},
+)
+
+var DecoderTuple2Struct = js.DecoderMap(
+	js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
+	func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) Tuple2Struct {
+		return Tuple2Struct{Name: t.I1.Value(), Age: t.I2.Value()}
 	},
 )
 
@@ -828,6 +855,135 @@ func EncoderOver21[T any](encoderT js.Encoder[T]) js.Encoder[Over21[T]] {
 					),
 				),
 			)
+		},
+	)
+}
+
+func DecoderOver21[T any](decoderT js.Decoder[T]) js.Decoder[Over21[T]] {
+	return js.DecoderMap(
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[fp.RuntimeNamed[T]](decoderT),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+				js.DecoderHConsLabelled(
+					js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+					js.DecoderHConsLabelled(
+						js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+						js.DecoderHConsLabelled(
+							js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+							js.DecoderHConsLabelled(
+								js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+								js.DecoderHConsLabelled(
+									js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+									js.DecoderHConsLabelled(
+										js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+										js.DecoderHConsLabelled(
+											js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+											js.DecoderHConsLabelled(
+												js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+												js.DecoderHConsLabelled(
+													js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+													js.DecoderHConsLabelled(
+														js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+														js.DecoderHConsLabelled(
+															js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+															js.DecoderHConsLabelled(
+																js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																js.DecoderHConsLabelled(
+																	js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																	js.DecoderHConsLabelled(
+																		js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																		js.DecoderHConsLabelled(
+																			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																			js.DecoderHConsLabelled(
+																				js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																				js.DecoderHConsLabelled(
+																					js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																					js.DecoderHConsLabelled(
+																						js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																						js.DecoderHConsLabelled(
+																							js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																							js.DecoderHConsLabelled(
+																								js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																								js.DecoderHConsLabelled(
+																									js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																									js.DecoderHConsLabelled(
+																										js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																										js.DecoderHConsLabelled(
+																											js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																											js.DecoderHConsLabelled(
+																												js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																												js.DecoderHConsLabelled(
+																													js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																													js.DecoderHConsLabelled(
+																														js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																														js.DecoderHConsLabelled(
+																															js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																															js.DecoderHConsLabelled(
+																																js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																																js.DecoderHNil,
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		),
+		func(hl0 hlist.Cons[fp.RuntimeNamed[T], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21[T] {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2, hl3 := hlist.Unapply(hl2)
+			i3, hl4 := hlist.Unapply(hl3)
+			i4, hl5 := hlist.Unapply(hl4)
+			i5, hl6 := hlist.Unapply(hl5)
+			i6, hl7 := hlist.Unapply(hl6)
+			i7, hl8 := hlist.Unapply(hl7)
+			i8, hl9 := hlist.Unapply(hl8)
+			i9, hl10 := hlist.Unapply(hl9)
+			i10, hl11 := hlist.Unapply(hl10)
+			i11, hl12 := hlist.Unapply(hl11)
+			i12, hl13 := hlist.Unapply(hl12)
+			i13, hl14 := hlist.Unapply(hl13)
+			i14, hl15 := hlist.Unapply(hl14)
+			i15, hl16 := hlist.Unapply(hl15)
+			i16, hl17 := hlist.Unapply(hl16)
+			i17, hl18 := hlist.Unapply(hl17)
+			i18, hl19 := hlist.Unapply(hl18)
+			i19, hl20 := hlist.Unapply(hl19)
+			i20, hl21 := hlist.Unapply(hl20)
+			i21, hl22 := hlist.Unapply(hl21)
+			i22, hl23 := hlist.Unapply(hl22)
+			i23, hl24 := hlist.Unapply(hl23)
+			i24, hl25 := hlist.Unapply(hl24)
+			i25, hl26 := hlist.Unapply(hl25)
+			i26, hl27 := hlist.Unapply(hl26)
+			i27, hl28 := hlist.Unapply(hl27)
+			i28, hl29 := hlist.Unapply(hl28)
+			i29 := hl29.Head()
+			return Over21[T]{I1: i0.Value(), I2: i1.Value(), I3: i2.Value(), I4: i3.Value(), I5: i4.Value(), I6: i5.Value(), I7: i6.Value(), I8: i7.Value(), I9: i8.Value(), I10: i9.Value(), I11: i10.Value(), I12: i11.Value(), I13: i12.Value(), I14: i13.Value(), I15: i14.Value(), I16: i15.Value(), I17: i16.Value(), I18: i17.Value(), I19: i18.Value(), I20: i19.Value(), I21: i20.Value(), I22: i21.Value(), I23: i22.Value(), I24: i23.Value(), I25: i24.Value(), I26: i25.Value(), I27: i26.Value(), I28: i27.Value(), I29: i28.Value(), I30: i29.Value()}
 		},
 	)
 }
