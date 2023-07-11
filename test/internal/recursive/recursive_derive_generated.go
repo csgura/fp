@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/product"
+	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
 
@@ -38,5 +39,25 @@ var ShowNormalStruct = show.Generic(
 				show.HNil,
 			),
 		),
+	),
+)
+
+var EncoderNormalStruct = js.EncoderContraMap(
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString),
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString),
+				js.EncoderHNil,
+			),
+		),
+	),
+	fp.Compose(
+		func(v NormalStruct) fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]] {
+			i0, i1, i2 := v.Name, v.Age, v.Address
+			return as.Labelled3(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1}, fp.RuntimeNamed[string]{I1: "Address", I2: i2})
+		},
+		as.HList3Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
 	),
 )

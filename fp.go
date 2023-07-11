@@ -45,6 +45,20 @@ type NamedField[T any] interface {
 	Value() T
 }
 
+type RuntimeNamed[T any] Tuple2[string, T]
+
+func (r RuntimeNamed[T]) Name() string {
+	return r.I1
+}
+
+func (r RuntimeNamed[T]) Value() T {
+	return r.I2
+}
+
+func (r RuntimeNamed[T]) WithValue(v T) RuntimeNamed[T] {
+	return RuntimeNamed[T]{r.I1, v}
+}
+
 type Labelled1[T1 Named] struct {
 	I1 T1
 }

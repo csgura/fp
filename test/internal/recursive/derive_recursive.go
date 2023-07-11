@@ -2,6 +2,7 @@ package recursive
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
 
@@ -20,5 +21,5 @@ func (r NormalStruct) Print() {
 // @fp.Derive
 var _ show.Derives[fp.Show[NormalStruct]]
 
-// // @fp.Derive
-// var _ js.Derives[js.Encoder[NormalStruct]]
+// @fp.Derive
+var _ js.Derives[js.Encoder[NormalStruct]]
