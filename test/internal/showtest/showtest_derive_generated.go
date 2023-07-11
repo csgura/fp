@@ -40,17 +40,17 @@ var ShowCollection = show.Generic(
 	as.Generic(
 		"showtest.Collection",
 		fp.Compose(
-			func(v Collection) fp.Labelled4[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]]] {
-				i0, i1, i2, i3 := v.Index, v.List, v.Description, v.Set
-				return as.Labelled4(fp.RuntimeNamed[map[string]Person]{I1: "Index", I2: i0}, fp.RuntimeNamed[[]Person]{I1: "List", I2: i1}, fp.RuntimeNamed[*string]{I1: "Description", I2: i2}, fp.RuntimeNamed[fp.Set[int]]{I1: "Set", I2: i3})
+			func(v Collection) fp.Labelled5[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]] {
+				i0, i1, i2, i3, i4 := v.Index, v.List, v.Description, v.Set, v.Option
+				return as.Labelled5(fp.RuntimeNamed[map[string]Person]{I1: "Index", I2: i0}, fp.RuntimeNamed[[]Person]{I1: "List", I2: i1}, fp.RuntimeNamed[*string]{I1: "Description", I2: i2}, fp.RuntimeNamed[fp.Set[int]]{I1: "Set", I2: i3}, fp.RuntimeNamed[fp.Option[string]]{I1: "Option", I2: i4})
 			},
-			as.HList4Labelled[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]]],
+			as.HList5Labelled[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]],
 		),
 
 		fp.Compose(
-			product.LabelledFromHList4[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]]],
-			func(t fp.Labelled4[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]]]) Collection {
-				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value()}
+			product.LabelledFromHList5[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]],
+			func(t fp.Labelled5[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]]) Collection {
+				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value()}
 			},
 		),
 	),
@@ -64,7 +64,10 @@ var ShowCollection = show.Generic(
 				}))),
 				show.HConsLabelled(
 					show.Named[fp.RuntimeNamed[fp.Set[int]]](show.Set(show.Int[int]())),
-					show.HNil,
+					show.HConsLabelled(
+						show.Named[fp.RuntimeNamed[fp.Option[string]]](show.Option(show.String)),
+						show.HNil,
+					),
 				),
 			),
 		),

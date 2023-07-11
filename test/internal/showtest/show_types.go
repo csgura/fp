@@ -20,6 +20,7 @@ type Collection struct {
 	List        []Person
 	Description *string
 	Set         fp.Set[int]
+	Option      fp.Option[string]
 }
 
 // @fp.Derive

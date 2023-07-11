@@ -54,37 +54,46 @@ var HNil = New(func(hlist.Nil) string {
 
 func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
 	return New(func(s fp.Seq[T]) string {
-		return "[" + seq.Map(s, tshow.Show).MakeString(",") + "]"
+		return "Seq(" + seq.Map(s, tshow.Show).MakeString(",") + ")"
 	})
 }
 
 func Set[V any](showv fp.Show[V]) fp.Show[fp.Set[V]] {
 	return New(func(v fp.Set[V]) string {
-		return "[" + iterator.Map(v.Iterator(), func(v V) string {
+		return "Set(" + iterator.Map(v.Iterator(), func(v V) string {
 			return fmt.Sprintf("%s", showv.Show(v))
-		}).MakeString(",") + "]"
+		}).MakeString(",") + ")"
 	})
 }
 
 func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 	return New(func(v fp.Map[K, V]) string {
-		return "{" + iterator.Map(v.Iterator(), func(t fp.Tuple2[K, V]) string {
+		return "Map(" + iterator.Map(v.Iterator(), func(t fp.Tuple2[K, V]) string {
 			return fmt.Sprintf("%s: %s", showk.Show(t.I1), showv.Show(t.I2))
-		}).MakeString(",") + "}"
+		}).MakeString(",") + ")"
 	})
 }
 
 func GoMap[K comparable, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[map[K]V] {
 	return New(func(v map[K]V) string {
-		return "{" + iterator.Map(mutable.MapOf(v).Iterator(), func(t fp.Tuple2[K, V]) string {
+		return "Map(" + iterator.Map(mutable.MapOf(v).Iterator(), func(t fp.Tuple2[K, V]) string {
 			return fmt.Sprintf("%s: %s", showk.Show(t.I1), showv.Show(t.I2))
-		}).MakeString(",") + "}"
+		}).MakeString(",") + ")"
 	})
 }
 
 func Slice[T any](tshow fp.Show[T]) fp.Show[[]T] {
 	return New(func(s []T) string {
-		return "[" + seq.Map(s, tshow.Show).MakeString(",") + "]"
+		return "Seq(" + seq.Map(s, tshow.Show).MakeString(",") + ")"
+	})
+}
+
+func Option[T any](tshow fp.Show[T]) fp.Show[fp.Option[T]] {
+	return New(func(s fp.Option[T]) string {
+		if s.IsDefined() {
+			return fmt.Sprintf("Some(%s)", tshow.Show(s.Get()))
+		}
+		return "None"
 	})
 }
 
