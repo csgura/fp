@@ -1086,6 +1086,114 @@ var MonoidTestpk1LegacyPhoneBook = monoid.IMap(
 	},
 )
 
+var ShowTestpk1LegacyPhoneBook = show.Generic(
+	as.Generic(
+		"testpk1.LegacyPhoneBook",
+		fp.Compose(
+			func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
+				return as.Tuple2(v.Person, v.Phone)
+			},
+			as.HList2[testpk1.LegacyPerson, string],
+		),
+
+		fp.Compose(
+			product.TupleFromHList2[testpk1.LegacyPerson, string],
+			func(t fp.Tuple2[testpk1.LegacyPerson, string]) testpk1.LegacyPhoneBook {
+				return testpk1.LegacyPhoneBook{
+					Person: t.I1,
+					Phone:  t.I2,
+				}
+			},
+		),
+	),
+	show.HCons(
+		show.Given[testpk1.LegacyPerson](),
+		show.HCons(
+			show.String,
+			show.HNil,
+		),
+	),
+)
+
+var EncoderTestpk1LegacyPhoneBook = js.EncoderContraMap(
+	js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[testpk1.LegacyPerson]](js.EncoderGiven[testpk1.LegacyPerson]()), js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString)),
+	func(v testpk1.LegacyPhoneBook) fp.Labelled2[fp.RuntimeNamed[testpk1.LegacyPerson], fp.RuntimeNamed[string]] {
+		i0, i1 := v.Person, v.Phone
+		return as.Labelled2(fp.RuntimeNamed[testpk1.LegacyPerson]{I1: "Person", I2: i0}, fp.RuntimeNamed[string]{I1: "Phone", I2: i1})
+	},
+)
+
+var DecoderTestpk1LegacyPhoneBook = js.DecoderMap(
+	js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[testpk1.LegacyPerson]](js.DecoderGiven[testpk1.LegacyPerson]()), js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString)),
+	func(t fp.Labelled2[fp.RuntimeNamed[testpk1.LegacyPerson], fp.RuntimeNamed[string]]) testpk1.LegacyPhoneBook {
+		return testpk1.LegacyPhoneBook{Person: t.I1.Value(), Phone: t.I2.Value()}
+	},
+)
+
+var EqLocalPhoneBook = eq.ContraMap(
+	eq.Tuple2(eq.Given[LocalPerson](), eq.String),
+	func(v LocalPhoneBook) fp.Tuple2[LocalPerson, string] {
+		return as.Tuple2(v.Person, v.Phone)
+	},
+)
+
+var MonoidLocalPhoneBook = monoid.IMap(
+	monoid.Tuple2(MonoidLocalPerson, monoid.String),
+	func(t fp.Tuple2[LocalPerson, string]) LocalPhoneBook {
+		return LocalPhoneBook{
+			Person: t.I1,
+			Phone:  t.I2,
+		}
+	},
+	func(v LocalPhoneBook) fp.Tuple2[LocalPerson, string] {
+		return as.Tuple2(v.Person, v.Phone)
+	},
+)
+
+var ShowLocalPhoneBook = show.Generic(
+	as.Generic(
+		"recursive.LocalPhoneBook",
+		fp.Compose(
+			func(v LocalPhoneBook) fp.Tuple2[LocalPerson, string] {
+				return as.Tuple2(v.Person, v.Phone)
+			},
+			as.HList2[LocalPerson, string],
+		),
+
+		fp.Compose(
+			product.TupleFromHList2[LocalPerson, string],
+			func(t fp.Tuple2[LocalPerson, string]) LocalPhoneBook {
+				return LocalPhoneBook{
+					Person: t.I1,
+					Phone:  t.I2,
+				}
+			},
+		),
+	),
+	show.HCons(
+		show.Given[LocalPerson](),
+		show.HCons(
+			show.String,
+			show.HNil,
+		),
+	),
+)
+
+var EncoderLocalPhoneBook = js.EncoderContraMap(
+	js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[LocalPerson]](js.EncoderGiven[LocalPerson]()), js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString)),
+	func(v LocalPhoneBook) fp.Labelled2[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string]] {
+		i0, i1 := v.Person, v.Phone
+		return as.Labelled2(fp.RuntimeNamed[LocalPerson]{I1: "Person", I2: i0}, fp.RuntimeNamed[string]{I1: "Phone", I2: i1})
+	},
+)
+
+var DecoderLocalPhoneBook = js.DecoderMap(
+	js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[LocalPerson]](js.DecoderGiven[LocalPerson]()), js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString)),
+	func(t fp.Labelled2[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string]]) LocalPhoneBook {
+		return LocalPhoneBook{Person: t.I1.Value(), Phone: t.I2.Value()}
+	},
+)
+
 var MonoidTestpk1LegacyPerson = monoid.IMap(
 	monoid.Tuple2(monoid.String, monoid.Product[int]()),
 	func(t fp.Tuple2[string, int]) testpk1.LegacyPerson {
@@ -1097,4 +1205,26 @@ var MonoidTestpk1LegacyPerson = monoid.IMap(
 	func(v testpk1.LegacyPerson) fp.Tuple2[string, int] {
 		return as.Tuple2(v.Name, v.Age)
 	},
+)
+
+var MonoidLocalPerson = monoid.IMap(
+	monoid.HCons(
+		monoid.String,
+		monoid.HNil,
+	),
+
+	fp.Compose(
+		product.TupleFromHList1[string],
+		func(t fp.Tuple1[string]) LocalPerson {
+			return LocalPerson{
+				Name: t.I1,
+			}
+		},
+	),
+	fp.Compose(
+		func(v LocalPerson) fp.Tuple1[string] {
+			return as.Tuple1(v.Name)
+		},
+		as.HList1[string],
+	),
 )

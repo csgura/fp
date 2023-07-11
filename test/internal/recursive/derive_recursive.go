@@ -121,3 +121,37 @@ var _ eq.Derives[fp.Eq[testpk1.LegacyPhoneBook]]
 
 // @fp.Derive(recursive=true)
 var _ monoid.Derives[fp.Monoid[testpk1.LegacyPhoneBook]]
+
+// @fp.Derive
+var _ show.Derives[fp.Show[testpk1.LegacyPhoneBook]]
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[testpk1.LegacyPhoneBook]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[testpk1.LegacyPhoneBook]]
+
+type LocalPerson struct {
+	Name string
+	age  int
+}
+
+type LocalPhoneBook struct {
+	Person LocalPerson
+	Phone  string
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[LocalPhoneBook]]
+
+// @fp.Derive(recursive=true)
+var _ monoid.Derives[fp.Monoid[LocalPhoneBook]]
+
+// @fp.Derive
+var _ show.Derives[fp.Show[LocalPhoneBook]]
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[LocalPhoneBook]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[LocalPhoneBook]]
