@@ -1347,14 +1347,18 @@ func (r *TypeClassSummonContext) summon(ctx CurrentContext, req metafp.RequiredI
 			deriveFor := named.Get().Info
 
 			vt := metafp.LookupStruct(deriveFor.Pkg, deriveFor.Name().Get())
-			r.recursiveGen = append(r.recursiveGen, metafp.TypeClassDerive{
+
+			tc := metafp.TypeClassDerive{
 				Package:              ctx.tc.Package,
 				PrimitiveInstancePkg: ctx.tc.PrimitiveInstancePkg,
 				TypeClass:            ctx.tc.TypeClass,
 				DeriveFor:            named.Get(),
 				StructInfo:           vt,
 				Tags:                 ctx.tc.Tags,
-			})
+			}
+
+			r.recursiveGen = append(r.recursiveGen, tc)
+			r.tcCache.WillGenerated(tc)
 			return r.exprTypeClassInstance(ctx, result.must)
 		}
 

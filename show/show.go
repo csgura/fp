@@ -44,8 +44,10 @@ func Ptr[T any](tshow lazy.Eval[fp.Show[T]]) fp.Show[*T] {
 	})
 }
 
-func Given[T any]() fp.Show[T] {
-	return fp.Sprint[T]()
+func Given[T fmt.Stringer]() fp.Show[T] {
+	return New(func(t T) string {
+		return t.String()
+	})
 }
 
 var HNil = New(func(hlist.Nil) string {

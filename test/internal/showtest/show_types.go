@@ -15,13 +15,35 @@ type Person struct {
 // @fp.Derive
 var _ show.Derives[fp.Show[Person]]
 
+type NoDerive struct {
+	Hello string
+}
+
 type Collection struct {
 	Index       map[string]Person
 	List        []Person
 	Description *string
 	Set         fp.Set[int]
 	Option      fp.Option[string]
+	NoDerive    NoDerive
+	Stringer    HasStringMethod
 }
 
-// @fp.Derive
+// @fp.Derive(recursive=true)
 var _ show.Derives[fp.Show[Collection]]
+
+type HasStringMethod struct {
+	There string
+}
+
+func (r HasStringMethod) String() string {
+	return r.There
+}
+
+type DupGenerate struct {
+	NoDerive NoDerive
+	World    string
+}
+
+// @fp.Derive(recursive=true)
+var _ show.Derives[fp.Show[DupGenerate]]

@@ -40,17 +40,17 @@ var ShowCollection = show.Generic(
 	as.Generic(
 		"showtest.Collection",
 		fp.Compose(
-			func(v Collection) fp.Labelled5[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]] {
-				i0, i1, i2, i3, i4 := v.Index, v.List, v.Description, v.Set, v.Option
-				return as.Labelled5(fp.RuntimeNamed[map[string]Person]{I1: "Index", I2: i0}, fp.RuntimeNamed[[]Person]{I1: "List", I2: i1}, fp.RuntimeNamed[*string]{I1: "Description", I2: i2}, fp.RuntimeNamed[fp.Set[int]]{I1: "Set", I2: i3}, fp.RuntimeNamed[fp.Option[string]]{I1: "Option", I2: i4})
+			func(v Collection) fp.Labelled7[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod]] {
+				i0, i1, i2, i3, i4, i5, i6 := v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer
+				return as.Labelled7(fp.RuntimeNamed[map[string]Person]{I1: "Index", I2: i0}, fp.RuntimeNamed[[]Person]{I1: "List", I2: i1}, fp.RuntimeNamed[*string]{I1: "Description", I2: i2}, fp.RuntimeNamed[fp.Set[int]]{I1: "Set", I2: i3}, fp.RuntimeNamed[fp.Option[string]]{I1: "Option", I2: i4}, fp.RuntimeNamed[NoDerive]{I1: "NoDerive", I2: i5}, fp.RuntimeNamed[HasStringMethod]{I1: "Stringer", I2: i6})
 			},
-			as.HList5Labelled[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]],
+			as.HList7Labelled[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod]],
 		),
 
 		fp.Compose(
-			product.LabelledFromHList5[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]],
-			func(t fp.Labelled5[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]]]) Collection {
-				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value()}
+			product.LabelledFromHList7[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod]],
+			func(t fp.Labelled7[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[string]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod]]) Collection {
+				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value(), NoDerive: t.I6.Value(), Stringer: t.I7.Value()}
 			},
 		),
 	),
@@ -66,10 +66,67 @@ var ShowCollection = show.Generic(
 					show.Named[fp.RuntimeNamed[fp.Set[int]]](show.Set(show.Int[int]())),
 					show.HConsLabelled(
 						show.Named[fp.RuntimeNamed[fp.Option[string]]](show.Option(show.String)),
-						show.HNil,
+						show.HConsLabelled(
+							show.Named[fp.RuntimeNamed[NoDerive]](ShowNoDerive),
+							show.HConsLabelled(
+								show.Named[fp.RuntimeNamed[HasStringMethod]](show.Given[HasStringMethod]()),
+								show.HNil,
+							),
+						),
 					),
 				),
 			),
 		),
+	),
+)
+
+var ShowDupGenerate = show.Generic(
+	as.Generic(
+		"showtest.DupGenerate",
+		fp.Compose(
+			func(v DupGenerate) fp.Labelled2[fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[string]] {
+				i0, i1 := v.NoDerive, v.World
+				return as.Labelled2(fp.RuntimeNamed[NoDerive]{I1: "NoDerive", I2: i0}, fp.RuntimeNamed[string]{I1: "World", I2: i1})
+			},
+			as.HList2Labelled[fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[string]],
+		),
+
+		fp.Compose(
+			product.LabelledFromHList2[fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[string]],
+			func(t fp.Labelled2[fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[string]]) DupGenerate {
+				return DupGenerate{NoDerive: t.I1.Value(), World: t.I2.Value()}
+			},
+		),
+	),
+	show.HConsLabelled(
+		show.Named[fp.RuntimeNamed[NoDerive]](ShowNoDerive),
+		show.HConsLabelled(
+			show.Named[fp.RuntimeNamed[string]](show.String),
+			show.HNil,
+		),
+	),
+)
+
+var ShowNoDerive = show.Generic(
+	as.Generic(
+		"showtest.NoDerive",
+		fp.Compose(
+			func(v NoDerive) fp.Labelled1[fp.RuntimeNamed[string]] {
+				i0 := v.Hello
+				return as.Labelled1(fp.RuntimeNamed[string]{I1: "Hello", I2: i0})
+			},
+			as.HList1Labelled[fp.RuntimeNamed[string]],
+		),
+
+		fp.Compose(
+			product.LabelledFromHList1[fp.RuntimeNamed[string]],
+			func(t fp.Labelled1[fp.RuntimeNamed[string]]) NoDerive {
+				return NoDerive{Hello: t.I1.Value()}
+			},
+		),
+	),
+	show.HConsLabelled(
+		show.Named[fp.RuntimeNamed[string]](show.String),
+		show.HNil,
 	),
 )
