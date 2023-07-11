@@ -3,6 +3,7 @@ package showtest
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/show"
+	"github.com/csgura/fp/test/internal/recursive"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -29,6 +30,7 @@ type Collection struct {
 	Stringer    HasStringMethod
 	BoolPtr     *bool
 	NoMap       map[string]NoDerive
+	Alias       recursive.StringAlias
 }
 
 // @fp.Derive(recursive=true)

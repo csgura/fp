@@ -1419,7 +1419,8 @@ func (r *TypeClassSummonContext) summonNamed(ctx CurrentContext, tc metafp.TypeC
 		}).MakeString(",") + "]"
 	}
 
-	nameWithTp := named.Name + valuetp
+	nameWithTp := named.PackagedName(r.w, ctx.working) + valuetp
+
 	summonExpr := GenericRepr{
 		ReprExpr: func() SummonExpr {
 			return r.summon(ctx, metafp.RequiredInstance{

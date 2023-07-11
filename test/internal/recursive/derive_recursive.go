@@ -131,6 +131,8 @@ var _ js.Derives[js.Encoder[testpk1.LegacyPhoneBook]]
 // @fp.Derive
 var _ js.Derives[js.Decoder[testpk1.LegacyPhoneBook]]
 
+type StringAlias string
+
 type LocalPerson struct {
 	Name string
 	age  int
@@ -139,6 +141,7 @@ type LocalPerson struct {
 type LocalPhoneBook struct {
 	Person LocalPerson
 	Phone  string
+	Alias  StringAlias
 }
 
 // @fp.Derive
