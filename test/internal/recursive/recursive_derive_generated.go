@@ -37,6 +37,7 @@ var MonoidNormalStruct = monoid.IMap(
 var ShowNormalStruct = show.Generic(
 	as.Generic(
 		"recursive.NormalStruct",
+		"Struct",
 		fp.Compose(
 			func(v NormalStruct) fp.Tuple3[string, int, string] {
 				return as.Tuple3(v.Name, v.Age, v.Address)
@@ -110,6 +111,7 @@ var DecoderNormalStruct = js.DecoderMap(
 var ShowTuple2Struct = show.Generic(
 	as.Generic(
 		"recursive.Tuple2Struct",
+		"Struct",
 		fp.Compose(
 			func(v Tuple2Struct) fp.Tuple2[string, int] {
 				return as.Tuple2(v.Name, v.Age)
@@ -508,6 +510,7 @@ func ShowOver21[T any](showT fp.Show[T]) fp.Show[Over21[T]] {
 	return show.Generic(
 		as.Generic(
 			"recursive.Over21",
+			"Struct",
 			func(v Over21[T]) hlist.Cons[T, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
 				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.I1, v.I2, v.I3, v.I4, v.I5, v.I6, v.I7, v.I8, v.I9, v.I10, v.I11, v.I12, v.I13, v.I14, v.I15, v.I16, v.I17, v.I18, v.I19, v.I20, v.I21, v.I22, v.I23, v.I24, v.I25, v.I26, v.I27, v.I28, v.I29, v.I30
 				return hlist.Concat(i0,
@@ -1012,6 +1015,7 @@ var MonoidTestpk1LegacyStruct = monoid.IMap(
 var ShowTestpk1LegacyStruct = show.Generic(
 	as.Generic(
 		"testpk1.LegacyStruct",
+		"Struct",
 		fp.Compose(
 			func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
 				return as.Tuple2(v.Name, v.Age)
@@ -1089,6 +1093,7 @@ var MonoidTestpk1LegacyPhoneBook = monoid.IMap(
 var ShowTestpk1LegacyPhoneBook = show.Generic(
 	as.Generic(
 		"testpk1.LegacyPhoneBook",
+		"Struct",
 		fp.Compose(
 			func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
 				return as.Tuple2(v.Person, v.Phone)
@@ -1154,6 +1159,7 @@ var MonoidLocalPhoneBook = monoid.IMap(
 var ShowLocalPhoneBook = show.Generic(
 	as.Generic(
 		"recursive.LocalPhoneBook",
+		"Struct",
 		fp.Compose(
 			func(v LocalPhoneBook) fp.Tuple3[LocalPerson, string, StringAlias] {
 				return as.Tuple3(v.Person, v.Phone, v.Alias)

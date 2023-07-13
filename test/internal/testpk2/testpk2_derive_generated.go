@@ -121,6 +121,7 @@ var DecoderThree = js.DecoderMap(
 var ShowThree = show.Generic(
 	as.Generic(
 		"testpk2.Three",
+		"Struct",
 		fp.Compose(
 			Three.AsTuple,
 			as.HList3[int, string, float64],
@@ -149,6 +150,7 @@ var ShowThree = show.Generic(
 var ReadThree = read.Generic(
 	as.Generic(
 		"testpk2.Three",
+		"Struct",
 		fp.Compose(
 			Three.AsTuple,
 			as.HList3[int, string, float64],

@@ -566,9 +566,10 @@ func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
 }
 
 func (r TypeClassScope) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
-	return seq.FlatMap(r.List, func(p TypeClassInstancesOfPackage) fp.Seq[TypeClassInstance] {
+	ret := seq.FlatMap(r.List, func(p TypeClassInstancesOfPackage) fp.Seq[TypeClassInstance] {
 		return p.Find(t)
 	})
+	return ret
 }
 
 func (r *TypeClassInstanceCache) GetImported(tc TypeClass) TypeClassScope {
@@ -727,8 +728,7 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		ByName:      mutable.EmptyMap[string, TypeClassInstance](),
 		All:         seq.Empty[TypeClassInstance](),
 	}
-	// fmt.Printf("Searching instances of %s from %s", tc.Name, pk.Path())
-	// fmt.Println()
+	// fmt.Printf("Searching instances of %s from %s\n", tc.Name, pk.Path())
 	for _, name := range pk.Scope().Names() {
 		ins := pk.Scope().Lookup(name)
 		AsTypeClassInstance(tc, ins).Foreach(func(tins TypeClassInstance) {

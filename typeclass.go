@@ -2,8 +2,34 @@ package fp
 
 import "fmt"
 
+type ShowOption struct {
+	Indent        string
+	OmitEmpty     bool
+	currentIndent string
+}
+
+func (r ShowOption) CurrentIndent() string {
+	return r.currentIndent
+}
+
+func (r ShowOption) IncreaseIndent() ShowOption {
+	r.currentIndent = r.currentIndent + r.Indent
+	return r
+}
+
 type Show[T any] interface {
 	Show(t T) string
+	ShowIndent(t T, option ShowOption) string
+}
+
+type ShowIndentFunc[T any] func(t T, option ShowOption) string
+
+func (r ShowIndentFunc[T]) Show(t T) string {
+	return r(t, ShowOption{})
+}
+
+func (r ShowIndentFunc[T]) ShowIndent(t T, opt ShowOption) string {
+	return r(t, opt)
 }
 
 type ShowFunc[T any] func(T) string
@@ -15,6 +41,10 @@ func Sprint[T any]() Show[T] {
 }
 
 func (r ShowFunc[T]) Show(t T) string {
+	return r(t)
+}
+
+func (r ShowFunc[T]) ShowIndent(t T, opt ShowOption) string {
 	return r(t)
 }
 

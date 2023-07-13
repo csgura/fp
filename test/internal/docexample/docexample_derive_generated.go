@@ -40,6 +40,7 @@ var EqCarsOwned = eq.ContraMap(
 var ShowAddress = show.Generic(
 	as.Generic(
 		"docexample.Address",
+		"Struct",
 		fp.Compose(
 			Address.AsTuple,
 			as.HList3[string, string, string],

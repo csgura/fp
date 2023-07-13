@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/test/internal/showtest"
 )
 
 func TestShow(t *testing.T) {
 	v := showtest.Person{Name: "gura", Age: 29}
 
-	assert.Equal(showtest.ShowPerson.Show(v), `showtest.Person(Name:"gura",Age:29)`)
+	assert.Equal(showtest.ShowPerson.Show(v), `showtest.Person{Name:"gura",Age:29}`)
 
 	c := showtest.Collection{
 		Index: map[string]showtest.Person{
@@ -23,6 +25,13 @@ func TestShow(t *testing.T) {
 		List:        []showtest.Person{v, {Name: "list", Age: 30}},
 		Description: as.Ptr("example"),
 		Set:         mutable.SetOf(1, 2, 3),
+		Option: option.Some(showtest.Person{
+			Name: "opt",
+			Age:  12,
+		}),
 	}
-	fmt.Println(showtest.ShowCollection.Show(c))
+	fmt.Println(showtest.ShowCollection.ShowIndent(c, fp.ShowOption{
+		Indent:    "  ",
+		OmitEmpty: false,
+	}))
 }

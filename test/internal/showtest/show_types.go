@@ -25,7 +25,7 @@ type Collection struct {
 	List        []Person
 	Description *string
 	Set         fp.Set[int]
-	Option      fp.Option[string]
+	Option      fp.Option[Person]
 	NoDerive    NoDerive
 	Stringer    HasStringMethod
 	BoolPtr     *bool

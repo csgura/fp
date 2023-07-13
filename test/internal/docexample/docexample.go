@@ -10,7 +10,8 @@ import (
 	"github.com/csgura/fp/test/internal/show"
 )
 
-//go:generate gombok
+// not work go:generate gombok
+//go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Value
 type Person struct {

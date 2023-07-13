@@ -62,6 +62,7 @@ var DecoderWorld = js.DecoderMap(
 var ShowWorld = show.Generic(
 	as.Generic(
 		"testpk1.World",
+		"Struct",
 		fp.Compose(
 			World.AsTuple,
 			as.HList3[string, time.Time, string],
@@ -115,6 +116,7 @@ var EqAliasedStruct = eq.ContraMap(
 var ShowHListInsideHList = show.Generic(
 	as.Generic(
 		"testpk1.HListInsideHList",
+		"Struct",
 		fp.Compose(
 			HListInsideHList.AsTuple,
 			as.HList3[fp.Tuple2[string, int], string, World],
@@ -131,7 +133,8 @@ var ShowHListInsideHList = show.Generic(
 	show.HCons(
 		show.Generic(
 			as.Generic(
-				"",
+				"fp.Tuple2",
+				"Tuple",
 				as.HList2[string, int],
 				product.TupleFromHList2[string, int],
 			),
@@ -156,6 +159,7 @@ var ShowHListInsideHList = show.Generic(
 var ReadHListInsideHList = read.Generic(
 	as.Generic(
 		"testpk1.HListInsideHList",
+		"Struct",
 		fp.Compose(
 			HListInsideHList.AsTuple,
 			as.HList3[fp.Tuple2[string, int], string, World],
@@ -172,7 +176,8 @@ var ReadHListInsideHList = read.Generic(
 	read.HCons(
 		read.Generic(
 			as.Generic(
-				"",
+				"fp.Tuple2",
+				"Tuple",
 				as.HList2[string, int],
 				product.TupleFromHList2[string, int],
 			),
@@ -197,6 +202,7 @@ var ReadHListInsideHList = read.Generic(
 var ReadWorld = read.Generic(
 	as.Generic(
 		"testpk1.World",
+		"Struct",
 		fp.Compose(
 			World.AsTuple,
 			as.HList3[string, time.Time, string],
@@ -649,6 +655,7 @@ var MonoidOver21 = monoid.IMap(
 var ReadOver21 = read.Generic(
 	as.Generic(
 		"testpk1.Over21",
+		"Struct",
 		func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
 			i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
 			return hlist.Concat(i0,

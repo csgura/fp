@@ -43,6 +43,7 @@ type CurrentContext struct {
 
 type GenericRepr struct {
 	//	ReprType     func() string
+	Kind         string
 	ToReprExpr   func() string
 	FromReprExpr func() string
 	ReprExpr     func() SummonExpr
@@ -195,7 +196,9 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 	}))
 
 	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
-		return option.Iterator(scope.FindByName(v, f))
+		res := scope.FindByName(v, f)
+		// fmt.Printf("FindByName %s = %s\n", v, res)
+		return option.Iterator(res)
 	})
 
 	ins = iterator.Map(ins, func(tci metafp.TypeClassInstance) metafp.TypeClassInstance {
@@ -233,9 +236,6 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 		}
 		return tci
 	})
-	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
-		return r.checkRequired(ctx, tci.RequiredInstance)
-	})
 
 	if f.TypeArgs.Size() > 0 {
 		ins = seq.Iterator(scope.Find(f)).Concat(ins)
@@ -243,7 +243,11 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
-	return iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
+	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+		return r.checkRequired(ctx, tci.RequiredInstance)
+	})
+
+	ret := iterator.Map(ins, func(v metafp.TypeClassInstance) lookupTarget {
 		return lookupTarget{
 			instanceOf: f,
 			pk:         v.Package,
@@ -256,6 +260,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 
 	}).NextOption()
 
+	return ret
 }
 
 func (r *TypeClassSummonContext) lookupHNilMust(ctx CurrentContext, tc metafp.TypeClass) metafp.TypeClassInstance {
@@ -426,20 +431,25 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx CurrentConte
 		obj := f.Pkg.Scope().Lookup(name)
 
 		if obj != nil {
-			ret := lookupTarget{
-				instanceOf: f,
-				pk:         f.Pkg,
-				name:       name,
-				required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
-					return metafp.RequiredInstance{
-						TypeClass: req.TypeClass,
-						Type:      v,
-					}
-				}),
-				instance: metafp.AsTypeClassInstance(req.TypeClass, obj),
-			}
 
-			return option.Some(ret)
+			ti := metafp.GetTypeInfo(obj.Type())
+			rhsType := ti.ResultType()
+			if rhsType.IsInstanceOf(ctx.tc.TypeClass) {
+				ret := lookupTarget{
+					instanceOf: f,
+					pk:         f.Pkg,
+					name:       name,
+					required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
+						return metafp.RequiredInstance{
+							TypeClass: req.TypeClass,
+							Type:      v,
+						}
+					}),
+					instance: metafp.AsTypeClassInstance(req.TypeClass, obj),
+				}
+
+				return option.Some(ret)
+			}
 
 		}
 	}
@@ -831,6 +841,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
 		return GenericRepr{
+			Kind: fp.GenericKindStruct,
 			// ReprType: func() string {
 			// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
 			// },
@@ -843,6 +854,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 	}).Or(func() fp.Option[GenericRepr] {
 		return option.Map(r.lookupTypeClassFunc(ctx, tc, "HConsLabelled"), func(hcons metafp.TypeClassInstance) GenericRepr {
 			return GenericRepr{
+				Kind: fp.GenericKindStruct,
 				// ReprType: func() string {
 				// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
 				// },
@@ -1086,6 +1098,7 @@ func (r *TypeClassSummonContext) summonGenericRepr(ctx CurrentContext, tc metafp
 		// 	return r.w.TypeName(ctx.working, v.Type)
 		// }).MakeString(",")
 		return GenericRepr{
+			Kind: fp.GenericKindStruct,
 			// ReprType: func() string {
 			// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
 			// },
@@ -1100,6 +1113,8 @@ func (r *TypeClassSummonContext) summonGenericRepr(ctx CurrentContext, tc metafp
 	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs)
 
 	return GenericRepr{
+		Kind: fp.GenericKindStruct,
+
 		// ReprType: func() string {
 		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
 		// },
@@ -1197,6 +1212,7 @@ func (r *TypeClassSummonContext) summonGenericRepr(ctx CurrentContext, tc metafp
 
 func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo]) GenericRepr {
 	return GenericRepr{
+		Kind: fp.GenericKindTuple,
 		// ReprType: func() string {
 		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
 		// },
@@ -1271,7 +1287,7 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 	}
 
 	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs)
-	return r.summonVariant(ctx, tc, "", tupleGeneric)
+	return r.summonVariant(ctx, tc, fmt.Sprintf("fp.Tuple%d", typeArgs.Size()), tupleGeneric)
 
 }
 
@@ -1361,12 +1377,14 @@ func (r *TypeClassSummonContext) summonVariant(ctx CurrentContext, tc metafp.Typ
 		return newSummonExpr(fmt.Sprintf(`%s(
 					%s.Generic(
 							"%s",
+							"%s",
 							%s,
 							%s,
 						), 
 						%s, 
 					)`, generic.PackagedName(r.w, ctx.working), aspk,
 			genericName,
+			genericRepr.Kind,
 			genericRepr.ToReprExpr(),
 			genericRepr.FromReprExpr(),
 			repr), repr.paramInstance)
@@ -1422,6 +1440,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx CurrentContext, tc metafp.TypeC
 	nameWithTp := named.PackagedName(r.w, ctx.working) + valuetp
 
 	summonExpr := GenericRepr{
+		Kind: fp.GenericKindNewType,
 		ReprExpr: func() SummonExpr {
 			return r.summon(ctx, metafp.RequiredInstance{
 				TypeClass: tc,
