@@ -170,7 +170,7 @@ func (r AddressBuilder) Street(v string) AddressBuilder {
 }
 
 func (r Address) String() string {
-	return fmt.Sprintf("Address(country=%v, city=%v, street=%v)", r.country, r.city, r.street)
+	return ShowAddress.Show(r)
 }
 
 func (r Address) AsTuple() fp.Tuple3[string, string, string] {

@@ -1588,15 +1588,12 @@ func (r *TypeClassSummonContext) summonVar(tc metafp.TypeClassDerive) fp.Option[
 }
 
 func genDerive() {
+
 	pack := os.Getenv("GOPACKAGE")
 
 	genfp.Generate(pack, pack+"_derive_generated.go", func(w genfp.Writer) {
 
 		cwd, _ := os.Getwd()
-
-		//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
-
-		//packages.LoadFiles()
 
 		cfg := &packages.Config{
 			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
@@ -1608,14 +1605,14 @@ func genDerive() {
 			return
 		}
 
-		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
-		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		derives := metafp.FindTypeClassDerive(pkgs)
 
-		d := metafp.FindTypeClassDerive(pkgs)
-
-		if d.Size() == 0 {
+		if derives.Size() == 0 {
 			return
 		}
+
+		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 		tccache := metafp.TypeClassInstanceCache{}
 
@@ -1624,14 +1621,14 @@ func genDerive() {
 			tccache.Load(v.PrimitiveInstancePkg, v.TypeClass)
 		})
 
-		seq.Iterator(d).Foreach(func(v metafp.TypeClassDerive) {
+		seq.Iterator(derives).Foreach(func(v metafp.TypeClassDerive) {
 			tccache.WillGenerated(v)
 		})
 
 		summonCtx := TypeClassSummonContext{
 			w:            w,
 			tcCache:      &tccache,
-			recursiveGen: d,
+			recursiveGen: derives,
 		}
 
 		for len(summonCtx.recursiveGen) > 0 {

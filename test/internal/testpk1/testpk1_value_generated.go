@@ -57,7 +57,7 @@ func (r WorldBuilder) Timestamp(v time.Time) WorldBuilder {
 }
 
 func (r World) String() string {
-	return fmt.Sprintf("World(message=%v, timestamp=%v, Pub=%v)", r.message, r.timestamp, r.Pub)
+	return ShowWorld.Show(r)
 }
 
 func (r World) AsTuple() fp.Tuple3[string, time.Time, string] {
@@ -592,7 +592,7 @@ func (r HListInsideHListBuilder) Hello(v World) HListInsideHListBuilder {
 }
 
 func (r HListInsideHList) String() string {
-	return fmt.Sprintf("HListInsideHList(tp=%v, value=%v, hello=%v)", r.tp, r.value, r.hello)
+	return ShowHListInsideHList.Show(r)
 }
 
 func (r HListInsideHList) AsTuple() fp.Tuple3[fp.Tuple2[string, int], string, World] {

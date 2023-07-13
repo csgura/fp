@@ -119,7 +119,9 @@ func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 				)
 			}
 
-			rhs.Method.Iterator().Foreach(func(t fp.Tuple2[string, *types.Func]) {
+			sorted := seq.Sort(rhs.Method.Iterator().ToSeq(), ord.ContraMap(ord.Given[string](), fp.Tuple2[string, *types.Func].Head))
+
+			sorted.Foreach(func(t fp.Tuple2[string, *types.Func]) {
 				name, f := t.Unapply()
 				if ts.Info.Method.Get(name).IsEmpty() && !genMethod.Contains(name) {
 
@@ -277,12 +279,15 @@ func genWith(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStru
 	return genMethod
 }
 
-func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct]) {
+func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], derives fp.Seq[metafp.TypeClassDerive]) {
 	keyTags := mutable.EmptySet[string]()
 
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := fp.Set[string]{}
-		genMethod, keyTags = genValue(w, workingPackage, ts, genMethod, keyTags)
+		stDerives := derives.Filter(func(v metafp.TypeClassDerive) bool {
+			return v.DeriveFor.Name == ts.Name
+		})
+		genMethod, keyTags = genValue(w, workingPackage, ts, stDerives, genMethod, keyTags)
 
 		genMethod = genGetter(w, workingPackage, ts, genMethod)
 		genMethod = genWith(w, workingPackage, ts, genMethod)
@@ -313,7 +318,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 	})
 }
 
-func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
+func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
 
 	if _, ok := ts.Tags.Get("@fp.Value").Unapply(); ok {
 
@@ -509,26 +514,42 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 		})
 
 		if ts.Info.Method.Get("String").IsEmpty() {
-			fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 
-			printable := allFields.Filter(func(v metafp.StructField) bool {
-				return v.Type.IsPrintable()
+			showDerives := derives.Find(func(v metafp.TypeClassDerive) bool {
+				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
 			})
-			fm := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
-				return fmt.Sprintf("%s=%%v", f.Name)
-			})).MakeString(", ")
 
-			fields := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
-				return fmt.Sprintf("r.%s", f.Name)
-			})).MakeString(",")
+			if showDerives.IsDefined() {
+				fmt.Fprintf(w, `
+					func(r %s) String() string {
+						return %s.Show(r)
+					}
+				`, valuereceiver,
+					showDerives.Get().GeneratedInstanceName(),
+				)
+			} else {
 
-			fmt.Fprintf(w, `
+				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+
+				printable := allFields.Filter(func(v metafp.StructField) bool {
+					return v.Type.IsPrintable()
+				})
+				fm := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
+					return fmt.Sprintf("%s=%%v", f.Name)
+				})).MakeString(", ")
+
+				fields := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
+					return fmt.Sprintf("r.%s", f.Name)
+				})).MakeString(",")
+
+				fmt.Fprintf(w, `
 					func(r %s) String() string {
 						return %s.Sprintf("%s(%s)", %s)
 					}
 				`, valuereceiver,
-				fmtalias, ts.Name, fm, fields,
-			)
+					fmtalias, ts.Name, fm, fields,
+				)
+			}
 			genMethod = genMethod.Incl("String")
 
 		}
@@ -833,10 +854,6 @@ func genValueAndGetter() {
 
 		cwd, _ := os.Getwd()
 
-		//	fmt.Printf("cwd = %s , pack = %s file = %s, line = %s\n", try.Apply(os.Getwd()), pack, file, line)
-
-		//packages.LoadFiles()
-
 		cfg := &packages.Config{
 			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
 		}
@@ -847,6 +864,8 @@ func genValueAndGetter() {
 			return
 		}
 
+		derives := metafp.FindTypeClassDerive(pkgs)
+
 		workingPackage := pkgs[0].Types
 
 		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField")
@@ -855,7 +874,7 @@ func genValueAndGetter() {
 			return
 		}
 
-		genTaggedStruct(w, workingPackage, st)
+		genTaggedStruct(w, workingPackage, st, derives)
 
 	})
 }
@@ -866,6 +885,7 @@ func main() {
 		fmt.Println("invalid package. please run gombok using go generate command")
 		return
 	}
+
 	//fmt.Printf("GOPACKAGE = %s\n", pack)
 	genValueAndGetter()
 	genDerive()
