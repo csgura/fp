@@ -4,6 +4,7 @@ package showtest
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/show"
@@ -120,6 +121,48 @@ var ShowDupGenerate = show.Generic(
 		show.Named[fp.RuntimeNamed[NoDerive]](ShowNoDerive),
 		show.HConsLabelled(
 			show.Named[fp.RuntimeNamed[string]](show.String),
+			show.HNil,
+		),
+	),
+)
+
+var ShowHasTuple = show.Generic(
+	as.Generic(
+		"showtest.HasTuple",
+		"Struct",
+		fp.Compose(
+			func(v HasTuple) fp.Labelled2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]] {
+				i0, i1 := v.Entry, v.HList
+				return as.Labelled2(fp.RuntimeNamed[fp.Tuple2[string, int]]{I1: "Entry", I2: i0}, fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{I1: "HList", I2: i1})
+			},
+			as.HList2Labelled[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]],
+		),
+
+		fp.Compose(
+			product.LabelledFromHList2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]],
+			func(t fp.Labelled2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]]) HasTuple {
+				return HasTuple{Entry: t.I1.Value(), HList: t.I2.Value()}
+			},
+		),
+	),
+	show.HConsLabelled(
+		show.Named[fp.RuntimeNamed[fp.Tuple2[string, int]]](show.Generic(
+			as.Generic(
+				"fp.Tuple2",
+				"Tuple",
+				as.HList2[string, int],
+				product.TupleFromHList2[string, int],
+			),
+			show.TupleHCons(
+				show.String,
+				show.TupleHCons(
+					show.Int[int](),
+					show.HNil,
+				),
+			),
+		)),
+		show.HConsLabelled(
+			show.Named[fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]](show.HCons(show.String, show.HCons(show.Int[int](), show.HNil))),
 			show.HNil,
 		),
 	),

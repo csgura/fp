@@ -54,11 +54,11 @@ var ShowAddress = show.Generic(
 			),
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.String,
-		show.HCons(
+		show.StructHCons(
 			show.String,
-			show.HCons(
+			show.StructHCons(
 				show.String,
 				show.HNil,
 			),

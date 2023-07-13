@@ -209,6 +209,13 @@ func Float[T fp.ImplicitFloat]() Read[T] {
 	})
 }
 
+var TupleHNill = New(func(s string) fp.Try[Result[hlist.Nil]] {
+	return try.Success(ResultMutable[hlist.Nil]{
+		Value:   hlist.Empty(),
+		Remains: s,
+	}.AsImmutable())
+})
+
 var HNil = New(func(s string) fp.Try[Result[hlist.Nil]] {
 	r := readTokens(s)
 	if r.Value() == "Nil" {
@@ -226,6 +233,32 @@ func skipColonColon(s string) string {
 		return strings.TrimSpace(s[idx+2:])
 	}
 	return s
+}
+
+func skipComma(s string) string {
+	idx := strings.Index(s, ",")
+	if idx >= 0 {
+		return strings.TrimSpace(s[idx+1:])
+	}
+	return s
+}
+
+func TupleHCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.Cons[H, T]] {
+	return New(func(s string) fp.Try[Result[hlist.Cons[H, T]]] {
+		//var h H
+		//fmt.Printf("read hcons %s, htype = %T\n", s, h)
+		hres := hread.Reads(s)
+		return try.FlatMap(hres, func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
+			//fmt.Printf("remains = %s\n", hr.remains)
+			nextHead := skipComma(hr.Remains())
+			return try.Map(tread.Reads(nextHead), func(tr Result[T]) Result[hlist.Cons[H, T]] {
+				return Result[hlist.Cons[H, T]]{
+					value:   hlist.Concat(hr.value, tr.value),
+					remains: tr.remains,
+				}
+			})
+		})
+	})
 }
 
 func HCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.Cons[H, T]] {

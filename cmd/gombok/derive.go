@@ -263,6 +263,25 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 	return ret
 }
 
+func (r *TypeClassSummonContext) lookupHConsMust(ctx CurrentContext, tc metafp.TypeClass) metafp.TypeClassInstance {
+	ret := r.lookupTypeClassFunc(ctx, tc, "HCons")
+	if ret.IsDefined() {
+		return ret.Get()
+	}
+
+	ret = r.lookupTypeClassFunc(ctx, tc, "HListCons")
+	if ret.IsDefined() {
+		return ret.Get()
+	}
+	nameWithTc := tc.Name + "HCons"
+
+	return metafp.TypeClassInstance{
+		Package: ctx.working,
+		Name:    nameWithTc,
+		Static:  true,
+	}
+}
+
 func (r *TypeClassSummonContext) lookupHNilMust(ctx CurrentContext, tc metafp.TypeClass) metafp.TypeClassInstance {
 	ret := r.lookupTypeClassFunc(ctx, tc, "HNil")
 	if ret.IsDefined() {
@@ -1205,7 +1224,22 @@ func (r *TypeClassSummonContext) summonGenericRepr(ctx CurrentContext, tc metafp
 			}
 		},
 		ReprExpr: func() SummonExpr {
-			return tupleGeneric.ReprExpr()
+			return option.Map(r.lookupTypeClassFunc(ctx, tc, "StructHCons"), func(hcons metafp.TypeClassInstance) SummonExpr {
+				arity := typeArgs.Size()
+				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
+				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfo) SummonExpr {
+					instance := r.summon(ctx, metafp.RequiredInstance{
+						TypeClass: ctx.tc.TypeClass,
+						Type:      ti,
+					})
+					return newSummonExpr(fmt.Sprintf(`%s(
+					%s,
+					%s,
+				)`, hcons.PackagedName(r.w, ctx.working), instance, tail), instance.paramInstance, tail.paramInstance)
+				})
+				return hlist
+
+			}).OrElseGet(tupleGeneric.ReprExpr)
 		},
 	}
 }
@@ -1259,9 +1293,9 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			//arity := fp.Min(typeArgs.Size(), max.Product-1)
 			arity := typeArgs.Size()
 
-			hcons := r.lookupTypeClassFuncMust(ctx, tc, "HCons")
+			hcons := r.lookupTypeClassFunc(ctx, tc, "TupleHCons").OrElseGet(as.Supplier2(r.lookupHConsMust, ctx, tc))
 
-			hnil := r.lookupHNilMust(ctx, tc)
+			hnil := r.lookupTypeClassFunc(ctx, tc, "TupleHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 
 			hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfo) SummonExpr {
 				instance := r.summon(ctx, metafp.RequiredInstance{

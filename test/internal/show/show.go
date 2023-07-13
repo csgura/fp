@@ -46,6 +46,30 @@ func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
 	})
 }
 
+func StructHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
+	return New(func(list hlist.Cons[H, T]) string {
+
+		hstr := hshow.Show(list.Head())
+		tstr := tshow.Show(list.Tail())
+		if list.Tail().IsNil() {
+			return hstr
+		}
+		return fmt.Sprintf("%s , %s", hstr, tstr)
+	})
+}
+
+func TupleHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
+	return New(func(list hlist.Cons[H, T]) string {
+
+		hstr := hshow.Show(list.Head())
+		tstr := tshow.Show(list.Tail())
+		if list.Tail().IsNil() {
+			return hstr
+		}
+		return fmt.Sprintf("%s,%s", hstr, tstr)
+	})
+}
+
 func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
 	return New(func(list hlist.Cons[H, T]) string {
 

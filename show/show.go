@@ -187,14 +187,31 @@ func HConsLabelled[H fp.Named, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]
 		tstr := tshow.ShowIndent(list.Tail(), opt)
 
 		if hstr == "" {
-			if tstr == "Nil" {
+			if list.Tail().IsNil() {
 				return ""
 			}
 			return tstr
 		}
-		if tstr != "Nil" && tstr != "" {
+		if !list.Tail().IsNil() && tstr != "" {
 			if opt.Indent != "" {
 				return fmt.Sprintf("%s,\n%s%s", hstr, opt.CurrentIndent(), tstr)
+			}
+			return fmt.Sprintf("%s,%s", hstr, tstr)
+		}
+		return hstr
+	})
+}
+
+func TupleHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
+	return NewIndent(func(list hlist.Cons[H, T], opt fp.ShowOption) string {
+
+		hstr := hshow.ShowIndent(list.Head(), opt)
+		tstr := tshow.ShowIndent(list.Tail(), opt)
+
+		if !list.Tail().IsNil() {
+			if opt.Indent != "" {
+				return fmt.Sprintf("%s, %s", hstr, tstr)
+
 			}
 			return fmt.Sprintf("%s,%s", hstr, tstr)
 		}
@@ -205,21 +222,15 @@ func HConsLabelled[H fp.Named, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]
 func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
 	return NewIndent(func(list hlist.Cons[H, T], opt fp.ShowOption) string {
 
-		childOpt := opt.IncreaseIndent()
-
-		hstr := hshow.ShowIndent(list.Head(), childOpt)
+		hstr := hshow.ShowIndent(list.Head(), opt)
 		tstr := tshow.ShowIndent(list.Tail(), opt)
 
 		if opt.Indent != "" {
-			return fmt.Sprintf("%s :: \n%s%s", hstr, opt.CurrentIndent(), tstr)
-		}
-		return fmt.Sprintf("%s :: %s", hstr, tstr)
-	})
-}
+			return fmt.Sprintf("%s :: %s", hstr, tstr)
 
-func ContraMap[A, B any](ashow fp.Show[A], fba func(B) A) fp.Show[B] {
-	return NewIndent(func(b B, opt fp.ShowOption) string {
-		return ashow.ShowIndent(fba(b), opt)
+		}
+		return fmt.Sprintf("%s::%s", hstr, tstr)
+
 	})
 }
 
@@ -232,7 +243,8 @@ func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Sh
 		}
 
 		if gen.Kind == fp.GenericKindNewType {
-
+			return fmt.Sprintf("%s(%s)", gen.Type, valueStr)
+		} else if gen.Kind == fp.GenericKindTuple {
 			return fmt.Sprintf("%s(%s)", gen.Type, valueStr)
 		}
 

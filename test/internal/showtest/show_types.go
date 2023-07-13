@@ -2,6 +2,7 @@ package showtest
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/show"
 	"github.com/csgura/fp/test/internal/recursive"
 )
@@ -52,3 +53,11 @@ type DupGenerate struct {
 
 // @fp.Derive(recursive=true)
 var _ show.Derives[fp.Show[DupGenerate]]
+
+type HasTuple struct {
+	Entry fp.Tuple2[string, int]
+	HList hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[HasTuple]]

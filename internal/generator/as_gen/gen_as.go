@@ -15,11 +15,20 @@ func main() {
 
 		for i := 1; i < max.Func; i++ {
 			fmt.Fprintf(f, `
-func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
-	return fp.Func%d[%s,R](f)
-}
-`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i))
+				func Func%d[%s,R any]( f func(%s) R) fp.Func%d[%s,R] {
+					return fp.Func%d[%s,R](f)
+				}
+				`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i))
 
+			fmt.Fprintf(f, `
+				func Supplier%d[%s,R any]( f func(%s) R, %s) func() R {
+					return func() R {
+						return f(%s)
+					}
+				}
+				`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i),
+				genfp.FuncCallArgs(1, i),
+			)
 		}
 
 		fmt.Fprintf(f, `

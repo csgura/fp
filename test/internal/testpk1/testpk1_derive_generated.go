@@ -76,11 +76,11 @@ var ShowWorld = show.Generic(
 			),
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.String,
-		show.HCons(
+		show.StructHCons(
 			show.Time,
-			show.HCons(
+			show.StructHCons(
 				show.String,
 				show.HNil,
 			),
@@ -130,7 +130,7 @@ var ShowHListInsideHList = show.Generic(
 			),
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.Generic(
 			as.Generic(
 				"fp.Tuple2",
@@ -138,17 +138,17 @@ var ShowHListInsideHList = show.Generic(
 				as.HList2[string, int],
 				product.TupleFromHList2[string, int],
 			),
-			show.HCons(
+			show.TupleHCons(
 				show.String,
-				show.HCons(
+				show.TupleHCons(
 					show.Int[int](),
 					show.HNil,
 				),
 			),
 		),
-		show.HCons(
+		show.StructHCons(
 			show.String,
-			show.HCons(
+			show.StructHCons(
 				ShowWorld,
 				show.HNil,
 			),
@@ -173,7 +173,7 @@ var ReadHListInsideHList = read.Generic(
 			),
 		),
 	),
-	read.HCons(
+	read.TupleHCons(
 		read.Generic(
 			as.Generic(
 				"fp.Tuple2",
@@ -181,19 +181,19 @@ var ReadHListInsideHList = read.Generic(
 				as.HList2[string, int],
 				product.TupleFromHList2[string, int],
 			),
-			read.HCons(
+			read.TupleHCons(
 				read.String,
-				read.HCons(
+				read.TupleHCons(
 					read.Int[int](),
-					read.HNil,
+					read.TupleHNill,
 				),
 			),
 		),
-		read.HCons(
+		read.TupleHCons(
 			read.String,
-			read.HCons(
+			read.TupleHCons(
 				ReadWorld,
-				read.HNil,
+				read.TupleHNill,
 			),
 		),
 	),
@@ -216,13 +216,13 @@ var ReadWorld = read.Generic(
 			),
 		),
 	),
-	read.HCons(
+	read.TupleHCons(
 		read.String,
-		read.HCons(
+		read.TupleHCons(
 			read.Time,
-			read.HCons(
+			read.TupleHCons(
 				read.String,
-				read.HNil,
+				read.TupleHNill,
 			),
 		),
 	),
@@ -754,67 +754,67 @@ var ReadOver21 = read.Generic(
 			return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
 		},
 	),
-	read.HCons(
+	read.TupleHCons(
 		read.Int[int](),
-		read.HCons(
+		read.TupleHCons(
 			read.Int[int](),
-			read.HCons(
+			read.TupleHCons(
 				read.Int[int](),
-				read.HCons(
+				read.TupleHCons(
 					read.Int[int](),
-					read.HCons(
+					read.TupleHCons(
 						read.Int[int](),
-						read.HCons(
+						read.TupleHCons(
 							read.Int[int](),
-							read.HCons(
+							read.TupleHCons(
 								read.Int[int](),
-								read.HCons(
+								read.TupleHCons(
 									read.Int[int](),
-									read.HCons(
+									read.TupleHCons(
 										read.Int[int](),
-										read.HCons(
+										read.TupleHCons(
 											read.Int[int](),
-											read.HCons(
+											read.TupleHCons(
 												read.Int[int](),
-												read.HCons(
+												read.TupleHCons(
 													read.Int[int](),
-													read.HCons(
+													read.TupleHCons(
 														read.Int[int](),
-														read.HCons(
+														read.TupleHCons(
 															read.Int[int](),
-															read.HCons(
+															read.TupleHCons(
 																read.Int[int](),
-																read.HCons(
+																read.TupleHCons(
 																	read.Int[int](),
-																	read.HCons(
+																	read.TupleHCons(
 																		read.Int[int](),
-																		read.HCons(
+																		read.TupleHCons(
 																			read.Int[int](),
-																			read.HCons(
+																			read.TupleHCons(
 																				read.Int[int](),
-																				read.HCons(
+																				read.TupleHCons(
 																					read.Int[int](),
-																					read.HCons(
+																					read.TupleHCons(
 																						read.Int[int](),
-																						read.HCons(
+																						read.TupleHCons(
 																							read.Int[int](),
-																							read.HCons(
+																							read.TupleHCons(
 																								read.Int[int](),
-																								read.HCons(
+																								read.TupleHCons(
 																									read.Int[int](),
-																									read.HCons(
+																									read.TupleHCons(
 																										read.Int[int](),
-																										read.HCons(
+																										read.TupleHCons(
 																											read.Int[int](),
-																											read.HCons(
+																											read.TupleHCons(
 																												read.Int[int](),
-																												read.HCons(
+																												read.TupleHCons(
 																													read.Int[int](),
-																													read.HCons(
+																													read.TupleHCons(
 																														read.Int[int](),
-																														read.HCons(
+																														read.TupleHCons(
 																															read.Int[int](),
-																															read.HNil,
+																															read.TupleHNill,
 																														),
 																													),
 																												),

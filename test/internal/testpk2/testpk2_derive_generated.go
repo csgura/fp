@@ -135,11 +135,11 @@ var ShowThree = show.Generic(
 			),
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.Int[int](),
-		show.HCons(
+		show.StructHCons(
 			show.String,
-			show.HCons(
+			show.StructHCons(
 				show.Number[float64](),
 				show.HNil,
 			),
@@ -164,13 +164,13 @@ var ReadThree = read.Generic(
 			),
 		),
 	),
-	read.HCons(
+	read.TupleHCons(
 		read.Int[int](),
-		read.HCons(
+		read.TupleHCons(
 			read.String,
-			read.HCons(
+			read.TupleHCons(
 				read.Float[float64](),
-				read.HNil,
+				read.TupleHNill,
 			),
 		),
 	),

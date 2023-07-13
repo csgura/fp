@@ -56,11 +56,11 @@ var ShowNormalStruct = show.Generic(
 			},
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.String,
-		show.HCons(
+		show.StructHCons(
 			show.Int[int](),
-			show.HCons(
+			show.StructHCons(
 				show.String,
 				show.HNil,
 			),
@@ -129,9 +129,9 @@ var ShowTuple2Struct = show.Generic(
 			},
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.String,
-		show.HCons(
+		show.StructHCons(
 			show.Int[int](),
 			show.HNil,
 		),
@@ -609,65 +609,65 @@ func ShowOver21[T any](showT fp.Show[T]) fp.Show[Over21[T]] {
 				return Over21[T]{I1: i0, I2: i1, I3: i2, I4: i3, I5: i4, I6: i5, I7: i6, I8: i7, I9: i8, I10: i9, I11: i10, I12: i11, I13: i12, I14: i13, I15: i14, I16: i15, I17: i16, I18: i17, I19: i18, I20: i19, I21: i20, I22: i21, I23: i22, I24: i23, I25: i24, I26: i25, I27: i26, I28: i27, I29: i28, I30: i29}
 			},
 		),
-		show.HCons(
+		show.StructHCons(
 			showT,
-			show.HCons(
+			show.StructHCons(
 				show.Int[int](),
-				show.HCons(
+				show.StructHCons(
 					show.Int[int](),
-					show.HCons(
+					show.StructHCons(
 						show.Int[int](),
-						show.HCons(
+						show.StructHCons(
 							show.Int[int](),
-							show.HCons(
+							show.StructHCons(
 								show.Int[int](),
-								show.HCons(
+								show.StructHCons(
 									show.Int[int](),
-									show.HCons(
+									show.StructHCons(
 										show.Int[int](),
-										show.HCons(
+										show.StructHCons(
 											show.Int[int](),
-											show.HCons(
+											show.StructHCons(
 												show.Int[int](),
-												show.HCons(
+												show.StructHCons(
 													show.Int[int](),
-													show.HCons(
+													show.StructHCons(
 														show.Int[int](),
-														show.HCons(
+														show.StructHCons(
 															show.Int[int](),
-															show.HCons(
+															show.StructHCons(
 																show.Int[int](),
-																show.HCons(
+																show.StructHCons(
 																	show.Int[int](),
-																	show.HCons(
+																	show.StructHCons(
 																		show.Int[int](),
-																		show.HCons(
+																		show.StructHCons(
 																			show.Int[int](),
-																			show.HCons(
+																			show.StructHCons(
 																				show.Int[int](),
-																				show.HCons(
+																				show.StructHCons(
 																					show.Int[int](),
-																					show.HCons(
+																					show.StructHCons(
 																						show.Int[int](),
-																						show.HCons(
+																						show.StructHCons(
 																							show.Int[int](),
-																							show.HCons(
+																							show.StructHCons(
 																								show.Int[int](),
-																								show.HCons(
+																								show.StructHCons(
 																									show.Int[int](),
-																									show.HCons(
+																									show.StructHCons(
 																										show.Int[int](),
-																										show.HCons(
+																										show.StructHCons(
 																											show.Int[int](),
-																											show.HCons(
+																											show.StructHCons(
 																												show.Int[int](),
-																												show.HCons(
+																												show.StructHCons(
 																													show.Int[int](),
-																													show.HCons(
+																													show.StructHCons(
 																														show.Int[int](),
-																														show.HCons(
+																														show.StructHCons(
 																															show.Int[int](),
-																															show.HCons(
+																															show.StructHCons(
 																																show.Int[int](),
 																																show.HNil,
 																															),
@@ -1033,9 +1033,9 @@ var ShowTestpk1LegacyStruct = show.Generic(
 			},
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.String,
-		show.HCons(
+		show.StructHCons(
 			show.Int[int](),
 			show.HNil,
 		),
@@ -1111,9 +1111,9 @@ var ShowTestpk1LegacyPhoneBook = show.Generic(
 			},
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.Given[testpk1.LegacyPerson](),
-		show.HCons(
+		show.StructHCons(
 			show.String,
 			show.HNil,
 		),
@@ -1178,11 +1178,11 @@ var ShowLocalPhoneBook = show.Generic(
 			},
 		),
 	),
-	show.HCons(
+	show.StructHCons(
 		show.Given[LocalPerson](),
-		show.HCons(
+		show.StructHCons(
 			show.String,
-			show.HCons(
+			show.StructHCons(
 				show.Given[StringAlias](),
 				show.HNil,
 			),

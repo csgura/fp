@@ -35,4 +35,10 @@ func TestShow(t *testing.T) {
 		Indent:    "  ",
 		OmitEmpty: false,
 	}))
+
+	d := showtest.HasTuple{
+		Entry: as.Tuple2("hello", 10),
+	}
+
+	fmt.Println("d = ", showtest.ShowHasTuple.Show(d))
 }

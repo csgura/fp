@@ -9,36 +9,90 @@ func Func1[A1, R any](f func(A1) R) fp.Func1[A1, R] {
 	return fp.Func1[A1, R](f)
 }
 
+func Supplier1[A1, R any](f func(A1) R, a1 A1) func() R {
+	return func() R {
+		return f(a1)
+	}
+}
+
 func Func2[A1, A2, R any](f func(A1, A2) R) fp.Func2[A1, A2, R] {
 	return fp.Func2[A1, A2, R](f)
+}
+
+func Supplier2[A1, A2, R any](f func(A1, A2) R, a1 A1, a2 A2) func() R {
+	return func() R {
+		return f(a1, a2)
+	}
 }
 
 func Func3[A1, A2, A3, R any](f func(A1, A2, A3) R) fp.Func3[A1, A2, A3, R] {
 	return fp.Func3[A1, A2, A3, R](f)
 }
 
+func Supplier3[A1, A2, A3, R any](f func(A1, A2, A3) R, a1 A1, a2 A2, a3 A3) func() R {
+	return func() R {
+		return f(a1, a2, a3)
+	}
+}
+
 func Func4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) fp.Func4[A1, A2, A3, A4, R] {
 	return fp.Func4[A1, A2, A3, A4, R](f)
+}
+
+func Supplier4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R, a1 A1, a2 A2, a3 A3, a4 A4) func() R {
+	return func() R {
+		return f(a1, a2, a3, a4)
+	}
 }
 
 func Func5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) fp.Func5[A1, A2, A3, A4, A5, R] {
 	return fp.Func5[A1, A2, A3, A4, A5, R](f)
 }
 
+func Supplier5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R, a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) func() R {
+	return func() R {
+		return f(a1, a2, a3, a4, a5)
+	}
+}
+
 func Func6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func6[A1, A2, A3, A4, A5, A6, R] {
 	return fp.Func6[A1, A2, A3, A4, A5, A6, R](f)
+}
+
+func Supplier6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R, a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) func() R {
+	return func() R {
+		return f(a1, a2, a3, a4, a5, a6)
+	}
 }
 
 func Func7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R) fp.Func7[A1, A2, A3, A4, A5, A6, A7, R] {
 	return fp.Func7[A1, A2, A3, A4, A5, A6, A7, R](f)
 }
 
+func Supplier7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R, a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) func() R {
+	return func() R {
+		return f(a1, a2, a3, a4, a5, a6, a7)
+	}
+}
+
 func Func8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R) fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R] {
 	return fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R](f)
 }
 
+func Supplier8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R, a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) func() R {
+	return func() R {
+		return f(a1, a2, a3, a4, a5, a6, a7, a8)
+	}
+}
+
 func Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R) fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R](f)
+}
+
+func Supplier9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R, a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) func() R {
+	return func() R {
+		return f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+	}
 }
 
 func Curried2[A1, A2, R any](f func(A1, A2) R) fp.Func1[A1, fp.Func1[A2, R]] {
