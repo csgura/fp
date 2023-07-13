@@ -346,11 +346,24 @@ const GenericKindStruct = "Struct"
 const GenericKindTuple = "Tuple"
 const GenericKindNewType = "NewType"
 
-// shapeless generic trait
+// Generic 은 shapeless generic trait 같은 것
+//
+// T : Struct 나 Tuple 등의 타입
+// type NewType SomeType  같은 경우에는 NewType 이 T 에 해당
+//
+// Repr :Generic representation ,  보통은 HList 형태
+// 다만 NewType 패턴의 경우,  기존타입임
 type Generic[T, Repr any] struct {
+	// Type 은,  T 의 타입이름.  앞에 패키지 이름 붙어 있음.
 	Type string
+
+	// Kind 는 T 타입의 종류를 표시함. GenericKindStruct, GenericKindTuple , GenericKindNewType 중의 하나
 	Kind string
-	To   func(T) Repr
+
+	// To 는  T를  Generic representation 으로 변환하는 함수
+	To func(T) Repr
+
+	// From 은 Generic represantation 을 T로 변환하는 함수
 	From func(Repr) T
 }
 
