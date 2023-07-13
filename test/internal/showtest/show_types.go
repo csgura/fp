@@ -31,6 +31,7 @@ type Collection struct {
 	BoolPtr     *bool
 	NoMap       map[string]NoDerive
 	Alias       recursive.StringAlias
+	StringSeq   fp.Seq[string]
 }
 
 // @fp.Derive(recursive=true)

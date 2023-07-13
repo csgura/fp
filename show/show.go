@@ -83,6 +83,13 @@ func showSeq(typeName string, itr fp.Iterator[string], opt fp.ShowOption) string
 	if opt.Indent != "" && showseq.Exists(fp.Test(as.Func2(strings.Contains), "\n")) {
 		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
+		if showseq.IsEmpty() {
+			return typeName + " {}"
+		}
+		if opt.Indent != "" {
+			return typeName + " { " + showseq.MakeString(", ") + " }"
+
+		}
 		return typeName + "{" + showseq.MakeString(",") + "}"
 	}
 }
