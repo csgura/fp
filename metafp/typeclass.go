@@ -237,6 +237,10 @@ func (r TypeClassInstance) IsFunc() bool {
 	return r.Type.IsFunc()
 }
 
+func (r TypeClassInstance) IsGivenAny() bool {
+	return r.Implicit && r.TypeParam.Size() == 1 && r.TypeParam[0].IsAny()
+}
+
 type TypeClassInstancesOfPackage struct {
 	Package     *types.Package
 	TypeClass   TypeClass

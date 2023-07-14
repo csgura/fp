@@ -102,3 +102,13 @@ func (r ord[T]) Eqv(a, b T) bool {
 func (r ord[T]) Less(a, b T) bool {
 	return r.less(a, b)
 }
+
+type Clone[T any] interface {
+	Clone(t T) T
+}
+
+type CloneFunc[T any] func(t T) T
+
+func (r CloneFunc[T]) Clone(t T) T {
+	return r(t)
+}

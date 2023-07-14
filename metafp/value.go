@@ -221,6 +221,10 @@ type TypeParam struct {
 	TypeName   *types.TypeName
 }
 
+func (r TypeParam) IsAny() bool {
+	return typeInfo(r.Constraint).IsAny()
+}
+
 type NamedTypeInfo struct {
 	Package    *types.Package
 	Name       string
@@ -245,8 +249,8 @@ func (r NamedTypeInfo) GenericName() string {
 	return r.Name
 }
 
-func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) []string {
-	ret := []string{}
+func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) []R {
+	ret := []R{}
 	for i := 0; i < len; i++ {
 		ret = append(ret, fn(i, getter(i)))
 	}
@@ -362,6 +366,25 @@ type TypeInfo struct {
 	TypeArgs  fp.Seq[TypeInfo]
 	TypeParam fp.Seq[TypeParam]
 	Method    fp.Map[string, *types.Func]
+}
+
+func (r TypeInfo) Fields() fp.Seq[StructField] {
+	switch at := r.Type.(type) {
+	case *types.Named:
+		under := typeInfo(at.Underlying())
+		return under.Fields()
+	case *types.Struct:
+		return iterate(at.NumFields(), at.Field, func(i int, f *types.Var) StructField {
+			tn := typeInfo(f.Type())
+			return StructField{
+				Name:     f.Name(),
+				Type:     tn,
+				Tag:      at.Tag(i),
+				Embedded: f.Embedded(),
+			}
+		})
+	}
+	return nil
 }
 
 func (r TypeInfo) HasTypeReference(checked fp.Set[string], refType TypeInfo) bool {
@@ -634,6 +657,14 @@ func (r TypeInfo) IsSlice() bool {
 func (r TypeInfo) IsArray() bool {
 	switch r.Type.(type) {
 	case *types.Array:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsStruct() bool {
+	switch r.Type.(type) {
+	case *types.Struct:
 		return true
 	}
 	return false

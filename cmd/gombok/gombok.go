@@ -691,6 +691,33 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 
 		}
 
+		cloneDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+			return v.TypeClass.Name == "Cloner" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		})
+
+		if cloneDerive.IsDefined() && ts.Info.Method.Get("Clone").IsEmpty() && valuetp == "" {
+
+			if cloneDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+					func(r %s) Clone() %s {
+						return %s().Clone(r)
+					}
+				`, valuereceiver, valuereceiver,
+					cloneDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+					func(r %s) Clone() %s {
+						return %s.Clone(r)
+					}
+				`, valuereceiver, valuereceiver,
+					cloneDerive.Get().GeneratedInstanceName(),
+				)
+			}
+			genMethod = genMethod.Incl("Eqv")
+
+		}
+
 		if allFields.Size() < max.Product {
 			if ts.Info.Method.Get("AsTuple").IsEmpty() {
 				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))

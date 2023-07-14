@@ -394,6 +394,22 @@ func (r *TypeClassSummonContext) checkRequired(ctx CurrentContext, required fp.S
 	return true
 }
 
+func isRecursiveDerivable(req metafp.RequiredInstance) bool {
+	if req.Type.IsNamed() {
+		namedType := req.Type.AsNamed().Get()
+		if namedType.Underlying.IsStruct() {
+			if namedType.Underlying.Fields().Exists(metafp.StructField.Public) || req.Type.Method.Contains("Unapply") {
+				return true
+			} else {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+
+}
+
 func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx CurrentContext, req metafp.RequiredInstance, name ...string) fp.Option[lookupTarget] {
 
 	scope := ctx.primScope
@@ -426,6 +442,12 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx Current
 	}
 
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+		//fmt.Printf("result for %s[%s] is %s, is given %t\n", req.TypeClass.Name, req.Type, tci.Name, tci.IsGivenAny())
+
+		if tci.IsGivenAny() && ctx.recursiveGen && isRecursiveDerivable(req) {
+			return false
+			//fmt.Printf("%s is recursive derivable\n", req.Type)
+		}
 		return r.checkRequired(ctx, tci.RequiredInstance)
 	})
 
