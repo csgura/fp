@@ -394,11 +394,16 @@ func (r *TypeClassSummonContext) checkRequired(ctx CurrentContext, required fp.S
 	return true
 }
 
+func isValueGeneratedType(t metafp.TypeInfo) bool {
+
+	return t.Method.Contains("Unapply") && t.Method.Contains("Builder")
+}
+
 func isRecursiveDerivable(req metafp.RequiredInstance) bool {
 	if req.Type.IsNamed() {
 		namedType := req.Type.AsNamed().Get()
 		if namedType.Underlying.IsStruct() {
-			if namedType.Underlying.Fields().Exists(metafp.StructField.Public) || req.Type.Method.Contains("Unapply") {
+			if namedType.Underlying.Fields().Exists(metafp.StructField.Public) || isValueGeneratedType(req.Type) {
 				return true
 			} else {
 				return false
