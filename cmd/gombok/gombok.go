@@ -513,20 +513,55 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 
 		})
 
+		showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+			return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		})
+
+		if showDerive.IsDefined() && ts.Info.Method.Get("ShowIndent").IsEmpty() && valuetp == "" {
+			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+			if showDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+					func(r %s) ShowIndent(opt %s.ShowOption) string {
+						return %s().ShowIndent(r, opt)
+					}
+				`, valuereceiver, fppkg,
+					showDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+					func(r %s) ShowIndent(opt %s.ShowOption) string {
+						return %s.ShowIndent(r, opt)
+					}
+				`, valuereceiver, fppkg,
+					showDerive.Get().GeneratedInstanceName(),
+				)
+			}
+
+			genMethod = genMethod.Incl("ShowIndent")
+
+		}
+
 		if ts.Info.Method.Get("String").IsEmpty() {
 
-			showDerives := derives.Find(func(v metafp.TypeClassDerive) bool {
-				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-			})
-
-			if showDerives.IsDefined() {
-				fmt.Fprintf(w, `
-					func(r %s) String() string {
-						return %s.Show(r)
-					}
-				`, valuereceiver,
-					showDerives.Get().GeneratedInstanceName(),
-				)
+			if showDerive.IsDefined() && valuetp == "" {
+				if showDerive.Get().IsRecursive() {
+					fmt.Fprintf(w, `
+						func(r %s) String() string {
+							return %s().Show(r)
+						}
+					`, valuereceiver,
+						showDerive.Get().GeneratedInstanceName(),
+					)
+				} else {
+					fmt.Fprintf(w, `
+						func(r %s) String() string {
+							return %s.Show(r)
+						}
+					`, valuereceiver,
+						showDerive.Get().GeneratedInstanceName(),
+					)
+				}
 			} else {
 
 				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
@@ -551,6 +586,108 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 				)
 			}
 			genMethod = genMethod.Incl("String")
+
+		}
+
+		eqDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+			return v.TypeClass.Name == "Eq" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		})
+
+		if eqDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && valuetp == "" {
+
+			if eqDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+					func(r %s) Eqv(other %s) bool {
+						return %s().Eqv(r, other)
+					}
+				`, valuereceiver, valuereceiver,
+					eqDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+					func(r %s) Eqv(other %s) bool {
+						return %s.Eqv(r, other)
+					}
+				`, valuereceiver, valuereceiver,
+					eqDerive.Get().GeneratedInstanceName(),
+				)
+			}
+			genMethod = genMethod.Incl("Eqv")
+
+		}
+
+		hashDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+			return v.TypeClass.Name == "Hashable" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		})
+		if hashDerive.IsDefined() && ts.Info.Method.Get("Hash").IsEmpty() {
+
+			if hashDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+					func(r %s) Hash() uint32 {
+						return %s().Hash(r)
+					}
+				`, valuereceiver,
+					hashDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+					func(r %s) Hash() uint32 {
+						return %s.Hash(r)
+					}
+				`, valuereceiver,
+					hashDerive.Get().GeneratedInstanceName(),
+				)
+			}
+			genMethod = genMethod.Incl("Hash")
+
+		}
+
+		ordDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+			return v.TypeClass.Name == "Ord" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		})
+		if ordDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && !genMethod.Contains("Eqv") {
+
+			if ordDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+					func(r %s) Eqv(other %s) bool {
+						return %s().Eqv(r, other)
+					}
+				`, valuereceiver, valuereceiver,
+					ordDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+					func(r %s) Eqv(other %s) bool {
+						return %s.Eqv(r, other)
+					}
+				`, valuereceiver, valuereceiver,
+					ordDerive.Get().GeneratedInstanceName(),
+				)
+			}
+			genMethod = genMethod.Incl("Eqv")
+
+		}
+
+		if ordDerive.IsDefined() && ts.Info.Method.Get("Less").IsEmpty() {
+
+			if ordDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+					func(r %s) Less(other %s) bool {
+						return %s().Less(r,other)
+					}
+				`, valuereceiver, valuereceiver,
+					ordDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+					func(r %s) Less(other %s) bool {
+						return %s.Less(r, other)
+					}
+				`, valuereceiver, valuereceiver,
+					ordDerive.Get().GeneratedInstanceName(),
+				)
+			}
+			genMethod = genMethod.Incl("Less")
 
 		}
 
@@ -850,7 +987,7 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 func genValueAndGetter() {
 	pack := os.Getenv("GOPACKAGE")
 
-	genfp.Generate(pack, pack+"_value_generated.go", func(w genfp.Writer) {
+	genfp.Generate(pack, value_generated_file_name(pack), func(w genfp.Writer) {
 
 		cwd, _ := os.Getwd()
 
@@ -864,8 +1001,6 @@ func genValueAndGetter() {
 			return
 		}
 
-		derives := metafp.FindTypeClassDerive(pkgs)
-
 		workingPackage := pkgs[0].Types
 
 		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField")
@@ -874,9 +1009,24 @@ func genValueAndGetter() {
 			return
 		}
 
+		derives := metafp.FindTypeClassDerive(pkgs)
+
 		genTaggedStruct(w, workingPackage, st, derives)
 
 	})
+}
+
+func value_generated_file_name(pack string) string {
+	return pack + "_value_generated.go"
+}
+
+func derive_generated_file_name(pack string) string {
+	return pack + "_derive_generated.go"
+}
+
+func delete_gen_files(pack string) {
+	os.Remove(value_generated_file_name(pack))
+	os.Remove(derive_generated_file_name(pack))
 }
 
 func main() {
@@ -885,6 +1035,8 @@ func main() {
 		fmt.Println("invalid package. please run gombok using go generate command")
 		return
 	}
+
+	delete_gen_files(pack)
 
 	//fmt.Printf("GOPACKAGE = %s\n", pack)
 	genValueAndGetter()

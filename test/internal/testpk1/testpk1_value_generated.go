@@ -56,8 +56,16 @@ func (r WorldBuilder) Timestamp(v time.Time) WorldBuilder {
 	return r
 }
 
+func (r World) ShowIndent(opt fp.ShowOption) string {
+	return ShowWorld.ShowIndent(r, opt)
+}
+
 func (r World) String() string {
 	return ShowWorld.Show(r)
+}
+
+func (r World) Eqv(other World) bool {
+	return EqWorld.Eqv(r, other)
 }
 
 func (r World) AsTuple() fp.Tuple3[string, time.Time, string] {
@@ -470,6 +478,10 @@ func (r AliasedStruct) String() string {
 	return fmt.Sprintf("AliasedStruct(message=%v, timestamp=%v, Pub=%v)", r.message, r.timestamp, r.Pub)
 }
 
+func (r AliasedStruct) Eqv(other AliasedStruct) bool {
+	return EqAliasedStruct.Eqv(r, other)
+}
+
 func (r AliasedStruct) AsTuple() fp.Tuple3[string, time.Time, string] {
 	return as.Tuple3(r.message, r.timestamp, r.Pub)
 }
@@ -589,6 +601,10 @@ func (r HListInsideHList) WithHello(v World) HListInsideHList {
 func (r HListInsideHListBuilder) Hello(v World) HListInsideHListBuilder {
 	r.hello = v
 	return r
+}
+
+func (r HListInsideHList) ShowIndent(opt fp.ShowOption) string {
+	return ShowHListInsideHList.ShowIndent(r, opt)
 }
 
 func (r HListInsideHList) String() string {
@@ -782,6 +798,10 @@ func (r TestOrderedEq) String() string {
 	return fmt.Sprintf("TestOrderedEq(list=%v, tlist=%v)", r.list, r.tlist)
 }
 
+func (r TestOrderedEq) Eqv(other TestOrderedEq) bool {
+	return EqTestOrderedEq.Eqv(r, other)
+}
+
 func (r TestOrderedEq) AsTuple() fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]] {
 	return as.Tuple2(r.list, r.tlist)
 }
@@ -881,6 +901,10 @@ func (r MapEqBuilder) M2(v fp.Map[string, World]) MapEqBuilder {
 
 func (r MapEq) String() string {
 	return fmt.Sprintf("MapEq(m=%v, m2=%v)", r.m, r.m2)
+}
+
+func (r MapEq) Eqv(other MapEq) bool {
+	return EqMapEq.Eqv(r, other)
 }
 
 func (r MapEq) AsTuple() fp.Tuple2[map[string]World, fp.Map[string, World]] {
@@ -1195,6 +1219,10 @@ func (r NotUsedProblem) String() string {
 	return fmt.Sprintf("NotUsedProblem(m=%v)", r.m)
 }
 
+func (r NotUsedProblem) Eqv(other NotUsedProblem) bool {
+	return EqNotUsedProblem.Eqv(r, other)
+}
+
 func (r NotUsedProblem) AsTuple() fp.Tuple1[MapEqParam[string, int]] {
 	return as.Tuple1(r.m)
 }
@@ -1302,6 +1330,10 @@ func (r Node) String() string {
 	return fmt.Sprintf("Node(value=%v, left=%v, right=%v)", r.value, r.left, r.right)
 }
 
+func (r Node) Eqv(other Node) bool {
+	return EqNode().Eqv(r, other)
+}
+
 func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
 	return as.Tuple3(r.value, r.left, r.right)
 }
@@ -1381,6 +1413,10 @@ func (r NoPrivate) Builder() NoPrivateBuilder {
 
 func (r NoPrivate) String() string {
 	return fmt.Sprintf("NoPrivate(Value=%v)", r.Value)
+}
+
+func (r NoPrivate) Eqv(other NoPrivate) bool {
+	return EqNoPrivate.Eqv(r, other)
 }
 
 func (r NoPrivate) AsTuple() fp.Tuple1[int] {
@@ -1893,6 +1929,10 @@ func (r Over21Builder) I30(v int) Over21Builder {
 
 func (r Over21) String() string {
 	return fmt.Sprintf("Over21(i1=%v, i2=%v, i3=%v, i4=%v, i5=%v, i6=%v, i7=%v, i8=%v, i9=%v, i10=%v, i11=%v, i12=%v, i13=%v, i14=%v, i15=%v, i16=%v, i17=%v, i18=%v, i19=%v, i20=%v, i21=%v, i22=%v, i23=%v, i24=%v, i25=%v, i26=%v, i27=%v, i28=%v, i29=%v, i30=%v)", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
+}
+
+func (r Over21) Eqv(other Over21) bool {
+	return EqOver21.Eqv(r, other)
 }
 
 func (r Over21) Unapply() (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int) {

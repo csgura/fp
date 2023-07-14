@@ -1591,7 +1591,7 @@ func genDerive() {
 
 	pack := os.Getenv("GOPACKAGE")
 
-	genfp.Generate(pack, pack+"_derive_generated.go", func(w genfp.Writer) {
+	genfp.Generate(pack, derive_generated_file_name(pack), func(w genfp.Writer) {
 
 		cwd, _ := os.Getwd()
 

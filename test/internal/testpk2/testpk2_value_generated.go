@@ -905,6 +905,10 @@ func (r Person) String() string {
 	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v, blob=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
+func (r Person) Eqv(other Person) bool {
+	return EqPerson.Eqv(r, other)
+}
+
 func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
 	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
@@ -1062,6 +1066,10 @@ func (r WalletBuilder) Amount(v int64) WalletBuilder {
 
 func (r Wallet) String() string {
 	return fmt.Sprintf("Wallet(owner=%v, amount=%v)", r.owner, r.amount)
+}
+
+func (r Wallet) Eqv(other Wallet) bool {
+	return EqWallet.Eqv(r, other)
 }
 
 func (r Wallet) AsTuple() fp.Tuple2[Person, int64] {
@@ -1540,6 +1548,10 @@ func (r Greeting) String() string {
 	return fmt.Sprintf("Greeting(hello=%v, language=%v)", r.hello, r.language)
 }
 
+func (r Greeting) Eqv(other Greeting) bool {
+	return EqGreeting.Eqv(r, other)
+}
+
 func (r Greeting) AsTuple() fp.Tuple2[testpk1.World, string] {
 	return as.Tuple2(r.hello, r.language)
 }
@@ -1679,6 +1691,10 @@ func (r ThreeBuilder) Three(v float64) ThreeBuilder {
 	return r
 }
 
+func (r Three) ShowIndent(opt fp.ShowOption) string {
+	return ShowThree.ShowIndent(r, opt)
+}
+
 func (r Three) String() string {
 	return ShowThree.Show(r)
 }
@@ -1787,6 +1803,10 @@ func (r TreeBuilder) Root(v testpk1.Node) TreeBuilder {
 
 func (r Tree) String() string {
 	return fmt.Sprintf("Tree(root=%v)", r.root)
+}
+
+func (r Tree) Eqv(other Tree) bool {
+	return EqTree.Eqv(r, other)
 }
 
 func (r Tree) AsTuple() fp.Tuple1[testpk1.Node] {
