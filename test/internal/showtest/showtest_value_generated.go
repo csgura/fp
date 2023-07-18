@@ -13,6 +13,7 @@ type EmbeddedStructMutable struct {
 	Hello string
 	World struct {
 		Level int
+		Stage string
 	}
 }
 
@@ -40,12 +41,14 @@ func (r EmbeddedStructBuilder) Hello(v string) EmbeddedStructBuilder {
 
 func (r EmbeddedStruct) World() struct {
 	Level int
+	Stage string
 } {
 	return r.world
 }
 
 func (r EmbeddedStruct) WithWorld(v struct {
 	Level int
+	Stage string
 }) EmbeddedStruct {
 	r.world = v
 	return r
@@ -53,23 +56,30 @@ func (r EmbeddedStruct) WithWorld(v struct {
 
 func (r EmbeddedStructBuilder) World(v struct {
 	Level int
+	Stage string
 }) EmbeddedStructBuilder {
 	r.world = v
 	return r
 }
 
+func (r EmbeddedStruct) ShowIndent(opt fp.ShowOption) string {
+	return ShowEmbeddedStruct.ShowIndent(r, opt)
+}
+
 func (r EmbeddedStruct) String() string {
-	return fmt.Sprintf("EmbeddedStruct(hello=%v, world=%v)", r.hello, r.world)
+	return ShowEmbeddedStruct.Show(r)
 }
 
 func (r EmbeddedStruct) AsTuple() fp.Tuple2[string, struct {
 	Level int
+	Stage string
 }] {
 	return as.Tuple2(r.hello, r.world)
 }
 
 func (r EmbeddedStruct) Unapply() (string, struct {
 	Level int
+	Stage string
 }) {
 	return r.hello, r.world
 }
@@ -90,6 +100,7 @@ func (r EmbeddedStructMutable) AsImmutable() EmbeddedStruct {
 
 func (r EmbeddedStructBuilder) FromTuple(t fp.Tuple2[string, struct {
 	Level int
+	Stage string
 }]) EmbeddedStructBuilder {
 	r.hello = t.I1
 	r.world = t.I2
@@ -98,6 +109,7 @@ func (r EmbeddedStructBuilder) FromTuple(t fp.Tuple2[string, struct {
 
 func (r EmbeddedStructBuilder) Apply(hello string, world struct {
 	Level int
+	Stage string
 }) EmbeddedStructBuilder {
 	r.hello = hello
 	r.world = world
@@ -119,6 +131,7 @@ func (r EmbeddedStructBuilder) FromMap(m map[string]any) EmbeddedStructBuilder {
 
 	if v, ok := m["world"].(struct {
 		Level int
+		Stage string
 	}); ok {
 		r.world = v
 	}
@@ -132,6 +145,7 @@ type EmbeddedTypeParamStructMutable[T any] struct {
 	Hello string
 	World struct {
 		Level T
+		Stage string
 	}
 }
 
@@ -159,12 +173,14 @@ func (r EmbeddedTypeParamStructBuilder[T]) Hello(v string) EmbeddedTypeParamStru
 
 func (r EmbeddedTypeParamStruct[T]) World() struct {
 	Level T
+	Stage string
 } {
 	return r.world
 }
 
 func (r EmbeddedTypeParamStruct[T]) WithWorld(v struct {
 	Level T
+	Stage string
 }) EmbeddedTypeParamStruct[T] {
 	r.world = v
 	return r
@@ -172,6 +188,7 @@ func (r EmbeddedTypeParamStruct[T]) WithWorld(v struct {
 
 func (r EmbeddedTypeParamStructBuilder[T]) World(v struct {
 	Level T
+	Stage string
 }) EmbeddedTypeParamStructBuilder[T] {
 	r.world = v
 	return r
@@ -183,12 +200,14 @@ func (r EmbeddedTypeParamStruct[T]) String() string {
 
 func (r EmbeddedTypeParamStruct[T]) AsTuple() fp.Tuple2[string, struct {
 	Level T
+	Stage string
 }] {
 	return as.Tuple2(r.hello, r.world)
 }
 
 func (r EmbeddedTypeParamStruct[T]) Unapply() (string, struct {
 	Level T
+	Stage string
 }) {
 	return r.hello, r.world
 }
@@ -209,6 +228,7 @@ func (r EmbeddedTypeParamStructMutable[T]) AsImmutable() EmbeddedTypeParamStruct
 
 func (r EmbeddedTypeParamStructBuilder[T]) FromTuple(t fp.Tuple2[string, struct {
 	Level T
+	Stage string
 }]) EmbeddedTypeParamStructBuilder[T] {
 	r.hello = t.I1
 	r.world = t.I2
@@ -217,6 +237,7 @@ func (r EmbeddedTypeParamStructBuilder[T]) FromTuple(t fp.Tuple2[string, struct 
 
 func (r EmbeddedTypeParamStructBuilder[T]) Apply(hello string, world struct {
 	Level T
+	Stage string
 }) EmbeddedTypeParamStructBuilder[T] {
 	r.hello = hello
 	r.world = world
@@ -238,6 +259,7 @@ func (r EmbeddedTypeParamStructBuilder[T]) FromMap(m map[string]any) EmbeddedTyp
 
 	if v, ok := m["world"].(struct {
 		Level T
+		Stage string
 	}); ok {
 		r.world = v
 	}

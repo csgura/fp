@@ -67,10 +67,11 @@ type EmbeddedStruct struct {
 	hello string
 	world struct {
 		Level int
+		Stage string
 	}
 }
 
-// @notfp.Derive
+// @fp.Derive
 var _ show.Derives[fp.Show[EmbeddedStruct]]
 
 // @fp.Value
@@ -78,5 +79,9 @@ type EmbeddedTypeParamStruct[T any] struct {
 	hello string
 	world struct {
 		Level T
+		Stage string
 	}
 }
+
+// @fp.Derive
+var _ show.Derives[fp.Show[EmbeddedTypeParamStruct[any]]]

@@ -41,4 +41,14 @@ func TestShow(t *testing.T) {
 	}
 
 	fmt.Println("d = ", showtest.ShowHasTuple.Show(d))
+
+	e := showtest.EmbeddedStructMutable{
+		Hello: "world",
+		World: struct {
+			Level int
+			Stage string
+		}{Level: 10, Stage: "first"},
+	}.AsImmutable()
+
+	fmt.Println("e = ", showtest.ShowEmbeddedStruct.Show(e))
 }

@@ -168,6 +168,170 @@ var ShowHasTuple = show.Generic(
 	),
 )
 
+var ShowEmbeddedStruct = show.Generic(
+	as.Generic(
+		"showtest.EmbeddedStruct",
+		"Struct",
+		fp.Compose(
+			func(v EmbeddedStruct) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+				Level int
+				Stage string
+			}]] {
+				i0, i1 := v.Unapply()
+				return as.Labelled2(fp.RuntimeNamed[string]{I1: "hello", I2: i0}, fp.RuntimeNamed[struct {
+					Level int
+					Stage string
+				}]{I1: "world", I2: i1})
+			},
+			as.HList2Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+				Level int
+				Stage string
+			}]],
+		),
+
+		fp.Compose(
+			product.LabelledFromHList2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+				Level int
+				Stage string
+			}]],
+			func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+				Level int
+				Stage string
+			}]]) EmbeddedStruct {
+				return EmbeddedStructBuilder{}.Apply(t.I1.Value(), t.I2.Value()).Build()
+			},
+		),
+	),
+	show.HConsLabelled(
+		show.Named[fp.RuntimeNamed[string]](show.String),
+		show.HConsLabelled(
+			show.Named[fp.RuntimeNamed[struct {
+				Level int
+				Stage string
+			}]](show.Generic(
+				as.Generic(
+					"struct",
+					"Struct",
+					fp.Compose(
+						func(v struct {
+							Level int
+							Stage string
+						}) fp.Labelled2[fp.RuntimeNamed[int], fp.RuntimeNamed[string]] {
+							i0, i1 := v.Level, v.Stage
+							return as.Labelled2(fp.RuntimeNamed[int]{I1: "Level", I2: i0}, fp.RuntimeNamed[string]{I1: "Stage", I2: i1})
+						},
+						as.HList2Labelled[fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
+					),
+
+					fp.Compose(
+						product.LabelledFromHList2[fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
+						func(t fp.Labelled2[fp.RuntimeNamed[int], fp.RuntimeNamed[string]]) struct {
+							Level int
+							Stage string
+						} {
+							return struct {
+								Level int
+								Stage string
+							}{Level: t.I1.Value(), Stage: t.I2.Value()}
+						},
+					),
+				),
+				show.HConsLabelled(
+					show.Named[fp.RuntimeNamed[int]](show.Int[int]()),
+					show.HConsLabelled(
+						show.Named[fp.RuntimeNamed[string]](show.String),
+						show.HNil,
+					),
+				),
+			)),
+			show.HNil,
+		),
+	),
+)
+
+func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypeParamStruct[T]] {
+	return show.Generic(
+		as.Generic(
+			"showtest.EmbeddedTypeParamStruct",
+			"Struct",
+			fp.Compose(
+				func(v EmbeddedTypeParamStruct[T]) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+					Level T
+					Stage string
+				}]] {
+					i0, i1 := v.Unapply()
+					return as.Labelled2(fp.RuntimeNamed[string]{I1: "hello", I2: i0}, fp.RuntimeNamed[struct {
+						Level T
+						Stage string
+					}]{I1: "world", I2: i1})
+				},
+				as.HList2Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+					Level T
+					Stage string
+				}]],
+			),
+
+			fp.Compose(
+				product.LabelledFromHList2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+					Level T
+					Stage string
+				}]],
+				func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+					Level T
+					Stage string
+				}]]) EmbeddedTypeParamStruct[T] {
+					return EmbeddedTypeParamStructBuilder[T]{}.Apply(t.I1.Value(), t.I2.Value()).Build()
+				},
+			),
+		),
+		show.HConsLabelled(
+			show.Named[fp.RuntimeNamed[string]](show.String),
+			show.HConsLabelled(
+				show.Named[fp.RuntimeNamed[struct {
+					Level T
+					Stage string
+				}]](show.Generic(
+					as.Generic(
+						"struct",
+						"Struct",
+						fp.Compose(
+							func(v struct {
+								Level T
+								Stage string
+							}) fp.Labelled2[fp.RuntimeNamed[T], fp.RuntimeNamed[string]] {
+								i0, i1 := v.Level, v.Stage
+								return as.Labelled2(fp.RuntimeNamed[T]{I1: "Level", I2: i0}, fp.RuntimeNamed[string]{I1: "Stage", I2: i1})
+							},
+							as.HList2Labelled[fp.RuntimeNamed[T], fp.RuntimeNamed[string]],
+						),
+
+						fp.Compose(
+							product.LabelledFromHList2[fp.RuntimeNamed[T], fp.RuntimeNamed[string]],
+							func(t fp.Labelled2[fp.RuntimeNamed[T], fp.RuntimeNamed[string]]) struct {
+								Level T
+								Stage string
+							} {
+								return struct {
+									Level T
+									Stage string
+								}{Level: t.I1.Value(), Stage: t.I2.Value()}
+							},
+						),
+					),
+					show.HConsLabelled(
+						show.Named[fp.RuntimeNamed[T]](showT),
+						show.HConsLabelled(
+							show.Named[fp.RuntimeNamed[string]](show.String),
+							show.HNil,
+						),
+					),
+				)),
+				show.HNil,
+			),
+		),
+	)
+}
+
 var ShowRecursiveStringAlias = show.Generic(
 	as.Generic(
 		"recursive.StringAlias",

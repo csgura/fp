@@ -75,8 +75,8 @@ func isMethodDefined(pk *types.Package, tpeName string, method string) bool {
 
 }
 
-func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) fp.Seq[string] {
-	ret := []string{}
+func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) fp.Seq[R] {
+	ret := []R{}
 	for i := 0; i < len; i++ {
 		ret = append(ret, fn(i, getter(i)))
 	}
