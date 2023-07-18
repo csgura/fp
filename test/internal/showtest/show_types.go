@@ -61,3 +61,22 @@ type HasTuple struct {
 
 // @fp.Derive
 var _ show.Derives[fp.Show[HasTuple]]
+
+// @fp.Value
+type EmbeddedStruct struct {
+	hello string
+	world struct {
+		Level int
+	}
+}
+
+// @notfp.Derive
+var _ show.Derives[fp.Show[EmbeddedStruct]]
+
+// @fp.Value
+type EmbeddedTypeParamStruct[T any] struct {
+	hello string
+	world struct {
+		Level T
+	}
+}

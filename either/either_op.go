@@ -52,6 +52,13 @@ func Flatten[L, R any](opt fp.Either[L, fp.Either[L, R]]) fp.Either[L, R] {
 	})
 }
 
+func Fold[L, R, V any](e fp.Either[L, R], fl func(L) V, fr func(R) V) V {
+	if e.IsLeft() {
+		return fl(e.Left().Get())
+	}
+	return fr(e.Right().Get())
+}
+
 type left[L, R any] struct {
 	v L
 }
