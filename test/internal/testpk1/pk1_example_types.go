@@ -295,3 +295,6 @@ type LegacyPhoneBook struct {
 	Person LegacyPerson
 	Phone  string
 }
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[LegacyStruct]]

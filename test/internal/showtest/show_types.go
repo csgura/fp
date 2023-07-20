@@ -1,6 +1,8 @@
 package showtest
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/show"
@@ -85,3 +87,11 @@ type EmbeddedTypeParamStruct[T any] struct {
 
 // @fp.Derive
 var _ show.Derives[fp.Show[EmbeddedTypeParamStruct[any]]]
+
+func UntypedStructFunc(s struct {
+	Level   int
+	Stage   string
+	privacy string
+}) {
+	fmt.Println("Ok")
+}

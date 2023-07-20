@@ -1131,3 +1131,10 @@ var DecoderOver21 = js.DecoderMap(
 		return Over21Builder{}.Apply(i0.Value(), i1.Value(), i2.Value(), i3.Value(), i4.Value(), i5.Value(), i6.Value(), i7.Value(), i8.Value(), i9.Value(), i10.Value(), i11.Value(), i12.Value(), i13.Value(), i14.Value(), i15.Value(), i16.Value(), i17.Value(), i18.Value(), i19.Value(), i20.Value(), i21.Value(), i22.Value(), i23.Value(), i24.Value(), i25.Value(), i26.Value(), i27.Value(), i28.Value(), i29.Value()).Build()
 	},
 )
+
+var EqLegacyStruct = eq.ContraMap(
+	eq.Tuple2(eq.String, eq.Given[int]()),
+	func(v LegacyStruct) fp.Tuple2[string, int] {
+		return as.Tuple2(v.Name, v.Age)
+	},
+)

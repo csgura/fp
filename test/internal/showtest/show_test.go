@@ -42,12 +42,19 @@ func TestShow(t *testing.T) {
 
 	fmt.Println("d = ", showtest.ShowHasTuple.Show(d))
 
+	// untyped struct 에 private field 있는 경우, 다른 패키지에서 호출 불가능
+	// showtest.UntypedStructFunc(struct {
+	// 	Level   int
+	// 	Stage   string
+	// 	privacy string
+	// }{Level: 1, Stage: "hello", privacy: "p"})
+
 	e := showtest.EmbeddedStructMutable{
 		Hello: "world",
 		World: struct {
 			Level int
 			Stage string
-		}{Level: 10, Stage: "first"},
+		}{Level: 1, Stage: "hello"},
 	}.AsImmutable()
 
 	fmt.Println("e = ", showtest.ShowEmbeddedStruct.Show(e))
