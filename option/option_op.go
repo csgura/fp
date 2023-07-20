@@ -304,6 +304,10 @@ func Iterator[T any](r fp.Option[T]) fp.Iterator[T] {
 	return fp.IteratorOfSeq(ToSeq(r))
 }
 
+func Deref[R any, T fp.Deref[R]](opt fp.Option[T]) fp.Option[R] {
+	return Map(opt, T.Deref)
+}
+
 type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Option[H]
 	fn fp.Option[fp.Func1[A, R]]

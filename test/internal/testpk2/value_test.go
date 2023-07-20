@@ -147,3 +147,16 @@ func TestNewTyped(t *testing.T) {
 	fmt.Printf("res = %v\n", res.Size())
 
 }
+
+func TestDeref(t *testing.T) {
+	opt := option.Some(testpk2.AliasedStruct{
+		PubField: "hello",
+	})
+
+	// go 1.20
+	option.Deref[testpk1.DefinedOtherPackage](opt)
+
+	// go.1.21
+	// deref := option.Deref(opt)
+	// fmt.Println(deref)
+}

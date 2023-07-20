@@ -408,3 +408,7 @@ func TestWith[A, B any](getter func(A) B) func(pf Predicate[B]) Predicate[A] {
 		}
 	}
 }
+
+type Deref[T any] interface {
+	Deref() T
+}
