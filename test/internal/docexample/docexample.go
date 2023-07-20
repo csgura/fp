@@ -1,6 +1,8 @@
 package docexample
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
@@ -93,3 +95,12 @@ var _ show.Derives[fp.Show[Address]]
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Car]]
+
+// @fp.Deref
+type MapEntry[K, V any] fp.Tuple2[K, V]
+
+// @fp.Deref
+type OptionalInt fp.Option[int]
+
+// @fp.Deref
+type OptionalStringer[T fmt.Stringer] fp.Option[T]

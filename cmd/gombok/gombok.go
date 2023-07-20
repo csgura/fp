@@ -86,13 +86,20 @@ func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) fp.Se
 func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
 	if _, ok := ts.Tags.Get("@fp.Deref").Unapply(); ok {
+		//fmt.Printf("rhs type = %s\n", ts.RhsType)
 
 		if rhs, ok := ts.RhsType.Unapply(); ok {
+
 			valuetp := ""
+			typetp := ""
+
 			if len(ts.Info.TypeParam) > 0 {
 				//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
 				valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
+				typetp = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
+
 			}
+
 			valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
 			rhsTypeName := w.TypeName(workingPackage, rhs.Type)
@@ -108,14 +115,14 @@ func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 				genMethod = genMethod.Incl(unwrapFunc)
 			}
 
-			castFunc := fmt.Sprintf("Into%s", ts.Name)
+			castFunc := fmt.Sprintf("Into%s%s", ts.Name, typetp)
 			if workingPackage.Scope().Lookup(castFunc) == nil {
 				fmt.Fprintf(w, `
 					func %s(v %s) %s {
-						return %s(v)
+						return %s%s(v)
 					}
 				`, castFunc, rhsTypeName, valuereceiver,
-					ts.Name,
+					ts.Name, valuetp,
 				)
 			}
 

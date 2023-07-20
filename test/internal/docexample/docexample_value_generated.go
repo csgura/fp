@@ -764,6 +764,238 @@ func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
 	return r
 }
 
+func (r MapEntry[K, V]) Deref() fp.Tuple2[K, V] {
+	return fp.Tuple2[K, V](r)
+}
+
+func IntoMapEntry[K any, V any](v fp.Tuple2[K, V]) MapEntry[K, V] {
+	return MapEntry[K, V](v)
+}
+
+func (r MapEntry[K, V]) Head() K {
+	return fp.Tuple2[K, V](r).Head()
+}
+
+func (r MapEntry[K, V]) Init() K {
+	return fp.Tuple2[K, V](r).Init()
+}
+
+func (r MapEntry[K, V]) Last() V {
+	return fp.Tuple2[K, V](r).Last()
+}
+
+func (r MapEntry[K, V]) String() string {
+	return fp.Tuple2[K, V](r).String()
+}
+
+func (r MapEntry[K, V]) Tail() V {
+	return fp.Tuple2[K, V](r).Tail()
+}
+
+func (r MapEntry[K, V]) Unapply() (K, V) {
+	return fp.Tuple2[K, V](r).Unapply()
+}
+
+func (r OptionalInt) Deref() fp.Option[int] {
+	return fp.Option[int](r)
+}
+
+func IntoOptionalInt(v fp.Option[int]) OptionalInt {
+	return OptionalInt(v)
+}
+
+func (r OptionalInt) Exists(p func(v int) bool) bool {
+	return fp.Option[int](r).Exists(p)
+}
+
+func (r OptionalInt) Filter(p func(v int) bool) fp.Option[int] {
+	return fp.Option[int](r).Filter(p)
+}
+
+func (r OptionalInt) FilterNot(p func(v int) bool) fp.Option[int] {
+	return fp.Option[int](r).FilterNot(p)
+}
+
+func (r OptionalInt) FlatMap(mf func(int) fp.Option[int]) fp.Option[int] {
+	return fp.Option[int](r).FlatMap(mf)
+}
+
+func (r OptionalInt) ForAll(p func(v int) bool) bool {
+	return fp.Option[int](r).ForAll(p)
+}
+
+func (r OptionalInt) Foreach(f func(v int)) {
+	fp.Option[int](r).Foreach(f)
+}
+
+func (r OptionalInt) Get() int {
+	return fp.Option[int](r).Get()
+}
+
+func (r OptionalInt) IsDefined() bool {
+	return fp.Option[int](r).IsDefined()
+}
+
+func (r OptionalInt) IsEmpty() bool {
+	return fp.Option[int](r).IsEmpty()
+}
+
+func (r OptionalInt) Map(mf func(int) int) fp.Option[int] {
+	return fp.Option[int](r).Map(mf)
+}
+
+func (r OptionalInt) MarshalJSON() ([]byte, error) {
+	return fp.Option[int](r).MarshalJSON()
+}
+
+func (r OptionalInt) Or(f func() fp.Option[int]) fp.Option[int] {
+	return fp.Option[int](r).Or(f)
+}
+
+func (r OptionalInt) OrElse(t int) int {
+	return fp.Option[int](r).OrElse(t)
+}
+
+func (r OptionalInt) OrElseGet(f func() int) int {
+	return fp.Option[int](r).OrElseGet(f)
+}
+
+func (r OptionalInt) OrOption(v fp.Option[int]) fp.Option[int] {
+	return fp.Option[int](r).OrOption(v)
+}
+
+func (r OptionalInt) OrPtr(v *int) fp.Option[int] {
+	return fp.Option[int](r).OrPtr(v)
+}
+
+func (r OptionalInt) OrZero() int {
+	return fp.Option[int](r).OrZero()
+}
+
+func (r OptionalInt) Ptr() *int {
+	return fp.Option[int](r).Ptr()
+}
+
+func (r OptionalInt) Recover(f func() int) fp.Option[int] {
+	return fp.Option[int](r).Recover(f)
+}
+
+func (r OptionalInt) String() string {
+	return fp.Option[int](r).String()
+}
+
+func (r OptionalInt) ToSeq() []int {
+	return fp.Option[int](r).ToSeq()
+}
+
+func (r OptionalInt) Unapply() (int, bool) {
+	return fp.Option[int](r).Unapply()
+}
+
+func (r *OptionalInt) UnmarshalJSON(b []byte) error {
+	return (*fp.Option[int])(r).UnmarshalJSON(b)
+}
+
+func (r OptionalStringer[T]) Deref() fp.Option[T] {
+	return fp.Option[T](r)
+}
+
+func IntoOptionalStringer[T fmt.Stringer](v fp.Option[T]) OptionalStringer[T] {
+	return OptionalStringer[T](v)
+}
+
+func (r OptionalStringer[T]) Exists(p func(v T) bool) bool {
+	return fp.Option[T](r).Exists(p)
+}
+
+func (r OptionalStringer[T]) Filter(p func(v T) bool) fp.Option[T] {
+	return fp.Option[T](r).Filter(p)
+}
+
+func (r OptionalStringer[T]) FilterNot(p func(v T) bool) fp.Option[T] {
+	return fp.Option[T](r).FilterNot(p)
+}
+
+func (r OptionalStringer[T]) FlatMap(mf func(T) fp.Option[T]) fp.Option[T] {
+	return fp.Option[T](r).FlatMap(mf)
+}
+
+func (r OptionalStringer[T]) ForAll(p func(v T) bool) bool {
+	return fp.Option[T](r).ForAll(p)
+}
+
+func (r OptionalStringer[T]) Foreach(f func(v T)) {
+	fp.Option[T](r).Foreach(f)
+}
+
+func (r OptionalStringer[T]) Get() T {
+	return fp.Option[T](r).Get()
+}
+
+func (r OptionalStringer[T]) IsDefined() bool {
+	return fp.Option[T](r).IsDefined()
+}
+
+func (r OptionalStringer[T]) IsEmpty() bool {
+	return fp.Option[T](r).IsEmpty()
+}
+
+func (r OptionalStringer[T]) Map(mf func(T) T) fp.Option[T] {
+	return fp.Option[T](r).Map(mf)
+}
+
+func (r OptionalStringer[T]) MarshalJSON() ([]byte, error) {
+	return fp.Option[T](r).MarshalJSON()
+}
+
+func (r OptionalStringer[T]) Or(f func() fp.Option[T]) fp.Option[T] {
+	return fp.Option[T](r).Or(f)
+}
+
+func (r OptionalStringer[T]) OrElse(t T) T {
+	return fp.Option[T](r).OrElse(t)
+}
+
+func (r OptionalStringer[T]) OrElseGet(f func() T) T {
+	return fp.Option[T](r).OrElseGet(f)
+}
+
+func (r OptionalStringer[T]) OrOption(v fp.Option[T]) fp.Option[T] {
+	return fp.Option[T](r).OrOption(v)
+}
+
+func (r OptionalStringer[T]) OrPtr(v *T) fp.Option[T] {
+	return fp.Option[T](r).OrPtr(v)
+}
+
+func (r OptionalStringer[T]) OrZero() T {
+	return fp.Option[T](r).OrZero()
+}
+
+func (r OptionalStringer[T]) Ptr() *T {
+	return fp.Option[T](r).Ptr()
+}
+
+func (r OptionalStringer[T]) Recover(f func() T) fp.Option[T] {
+	return fp.Option[T](r).Recover(f)
+}
+
+func (r OptionalStringer[T]) String() string {
+	return fp.Option[T](r).String()
+}
+
+func (r OptionalStringer[T]) ToSeq() []T {
+	return fp.Option[T](r).ToSeq()
+}
+
+func (r OptionalStringer[T]) Unapply() (T, bool) {
+	return fp.Option[T](r).Unapply()
+}
+
+func (r *OptionalStringer[T]) UnmarshalJSON(b []byte) error {
+	return (*fp.Option[T])(r).UnmarshalJSON(b)
+}
+
 type NamedCompany[T any] fp.Tuple1[T]
 
 func (r NamedCompany[T]) Name() string {

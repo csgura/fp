@@ -201,7 +201,32 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 								if _, ok := ti.Type.(*types.Named); ok {
 									ret.RhsType = option.Some(typeInfo(ti.Type))
 
+								} else {
+									fmt.Printf("rhsType = %s\n", ti.Type.String())
 								}
+							} else if _, ok := ts.Type.(*ast.IndexExpr); ok {
+								info := &types.Info{
+									Types: make(map[ast.Expr]types.TypeAndValue),
+								}
+								types.CheckExpr(pk.Fset, pk.Types, v.Pos(), ts.Type, info)
+								ti := info.Types[ts.Type]
+								if _, ok := ti.Type.(*types.Named); ok {
+									ret.RhsType = option.Some(typeInfo(ti.Type))
+
+								}
+							} else if _, ok := ts.Type.(*ast.IndexListExpr); ok {
+								info := &types.Info{
+									Types: make(map[ast.Expr]types.TypeAndValue),
+								}
+								types.CheckExpr(pk.Fset, pk.Types, v.Pos(), ts.Type, info)
+								ti := info.Types[ts.Type]
+								if _, ok := ti.Type.(*types.Named); ok {
+									ret.RhsType = option.Some(typeInfo(ti.Type))
+
+								}
+
+							} else {
+								//fmt.Printf("name %s , epxr = %T\n", ret.Name, ts.Type)
 							}
 
 							return ret
