@@ -368,6 +368,10 @@ type TypeInfo struct {
 	Method    fp.Map[string, *types.Func]
 }
 
+func (r TypeInfo) IsSamePkg(other *types.Package) bool {
+	return isSamePkg(r.Pkg, other)
+}
+
 func (r TypeInfo) Fields() fp.Seq[StructField] {
 	switch at := r.Type.(type) {
 	case *types.Named:

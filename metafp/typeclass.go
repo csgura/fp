@@ -183,6 +183,7 @@ type RequiredInstance struct {
 	TypeClass TypeClass
 	Type      TypeInfo
 	Lazy      bool
+	FieldOf   fp.Option[TypeInfo]
 }
 type TypeClassInstance struct {
 	Package *types.Package

@@ -278,6 +278,10 @@ type LegacyStruct struct {
 	Name    string
 	Age     int
 	privacy string
+	NoName  struct {
+		Hello string
+		World int
+	}
 }
 
 type LegacyStructCompose struct {
@@ -298,3 +302,19 @@ type LegacyPhoneBook struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[LegacyStruct]]
+
+// @fp.Derive
+var _ js.Derives[js.Decoder[LegacyStruct]]
+
+type LocalEmbedPrivate struct {
+	Name    string
+	Age     int
+	privacy string
+	NoName  struct {
+		Hello string
+		world int
+	}
+}
+
+// @fp.Derive
+var _ eq.Derives[fp.Eq[LocalEmbedPrivate]]

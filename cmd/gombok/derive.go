@@ -718,12 +718,13 @@ func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lo
 
 }
 
-func (r *TypeClassSummonContext) exprTypeClassMember(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typeArgs fp.Seq[metafp.TypeInfo]) SummonExpr {
+func (r *TypeClassSummonContext) exprTypeClassMember(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo]) SummonExpr {
 	if len(typeArgs) > 0 {
 		list := r.summonArgs(ctx, seq.Map(typeArgs, func(t metafp.TypeInfo) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
 				TypeClass: tc,
 				Type:      t,
+				FieldOf:   fieldOf,
 			}
 		}))
 
@@ -801,22 +802,20 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx CurrentContext, req
 	case *types.Basic:
 		return r.namedLookup(ctx, req, at.Name())
 	case *types.Struct:
-		fields := iterate(at.NumFields(), at.Field, func(i int, v *types.Var) metafp.StructField {
-			tn := metafp.GetTypeInfo(v.Type())
+		fields := f.Fields()
 
-			return metafp.StructField{
-				Name:     v.Name(),
-				Type:     tn,
-				Tag:      at.Tag(i),
-				Embedded: v.Embedded(),
+		if fields.ForAll(metafp.StructField.Public) || req.FieldOf.Exists(fp.Test(metafp.TypeInfo.IsSamePkg, ctx.working)) {
+			ret := func(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+				return r.summonUntypedStruct(ctx, req.TypeClass, f, fields)
 			}
-		})
-		ret := func(w genfp.Writer, workingPkg *types.Package) SummonExpr {
-			return r.summonUntypedStruct(ctx, req.TypeClass, fields)
+			return lookupTarget{
+				target: either.Right[NotDefinedInstance](either.Left[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance]](SummonExprInstance{ret})),
+			}
+		} else {
+			fmt.Printf("fieldOf = %v\n", req.FieldOf)
+			panic(fmt.Sprintf("can't summon unnamed struct type %v containing private field, while deriving %s[%s]", f.Type, ctx.tc.TypeClass.Name, ctx.tc.DeriveFor.Name))
 		}
-		return lookupTarget{
-			target: either.Right[NotDefinedInstance](either.Left[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance]](SummonExprInstance{ret})),
-		}
+
 	case *types.Interface:
 		if f.IsAny() {
 			return r.namedLookup(ctx, req, "Given")
@@ -1365,7 +1364,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 	builderTypeStr := func(pk *types.Package) string {
 		return fmt.Sprintf("%sBuilder%s", named.PackagedName(r.w, ctx.working), valuetp)
 	}
-	if !hasUnapply {
+
+	if !hasUnapply && !isSamePkg(ctx.working, named.Package) {
 		fields = fields.Filter(func(v metafp.StructField) bool { return v.Public() })
 	}
 
@@ -1412,6 +1412,14 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		)
 	}
 
+	unapplyFunc := func(structIns string) string {
+		return fmt.Sprintf("%s.Unapply()", structIns)
+	}
+
+	applyFunc := func(fieldValues []string) string {
+		return fmt.Sprintf(`%s{}.Apply(%s).Build()`,
+			builderTypeStr(ctx.working), as.Seq(fieldValues).MakeString(","))
+	}
 	if !hasUnapply {
 
 		tupleFuncExpr = func() string {
@@ -1451,6 +1459,20 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 			)
 		}
 
+		unapplyFunc = func(structIns string) string {
+			return fmt.Sprintf(`%s`, seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", structIns, v) }).MakeString(","))
+
+		}
+
+		applyFunc = func(fieldValues []string) string {
+			argslist := seq.Map(seq.Zip(names, fieldValues), func(v fp.Tuple2[string, string]) string {
+				return fmt.Sprintf("%s: %s", v.I1, v.I2)
+			}).MakeString(",")
+
+			return fmt.Sprintf(`%s{%s}`, typeStr(ctx.working), argslist)
+
+		}
+
 	}
 
 	hasAsLabelled := named.Info.Method.Contains("AsLabelled")
@@ -1476,12 +1498,11 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 
 			}).MakeString(",")
 
-			unapplyexpr := r.structUnapplyExpr(ctx, option.Some(named), fields, "v")
 			return fmt.Sprintf(`func(v %s) %s.Labelled%d[%s] {
 							%s := %s
 							return %s.Labelled%d(%s)
 						}`, typeStr(ctx.working), fppk, fields.Size(), labelledtp,
-				varlist, unapplyexpr,
+				varlist, unapplyFunc("v"),
 				aspk, fields.Size(), hlistExpr)
 		}
 
@@ -1507,6 +1528,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 
 	sf := structFunctions{
 		pack:           named.Package,
+		tpe:            named.Info,
 		fields:         fields,
 		namedGenerated: hasAsLabelled,
 		asTuple:        tupleFuncExpr,
@@ -1514,17 +1536,13 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		asLabelled:     asLabelledFuncExpr,
 		fromLabelled:   fromLabelledFuncExpr,
 		typeStr:        typeStr,
-		unapply: func(structIns string) string {
-			return r.structUnapplyExpr(ctx, option.Some(named), fields, structIns)
-		},
-		apply: func(fieldValues []string) string {
-			return r.structApplyExpr(ctx, option.Some(named), fields, fieldValues...)
-		},
+		unapply:        unapplyFunc,
+		apply:          applyFunc,
 	}
 	return sf
 }
 
-func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, fields fp.Seq[metafp.StructField]) structFunctions {
+func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe metafp.TypeInfo, fields fp.Seq[metafp.StructField]) structFunctions {
 
 	typeStr := func(pk *types.Package) string {
 		valuereceiver := "struct { " + seq.Map(fields, func(v metafp.StructField) string {
@@ -1637,6 +1655,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, fields f
 
 	sf := structFunctions{
 		pack:         ctx.working,
+		tpe:          tpe,
 		fields:       fields,
 		asTuple:      tupleFuncExpr,
 		fromTuple:    applyFuncExpr,
@@ -1657,13 +1676,9 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, fields f
 	return sf
 }
 
-func (r *TypeClassSummonContext) summonUntypedGenericRepr(ctx CurrentContext, tc metafp.TypeClass, fields fp.Seq[metafp.StructField]) GenericRepr {
-	sf := r.untypedStructFuncs(ctx, fields)
-	return r.summonStructGenericRepr(ctx, tc, sf)
-}
-
 type structFunctions struct {
 	pack           *types.Package
+	tpe            metafp.TypeInfo
 	fields         fp.Seq[metafp.StructField]
 	namedGenerated bool
 
@@ -1717,12 +1732,12 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 			ToReprExpr:   sf.asTuple,
 			FromReprExpr: sf.fromTuple,
 			ReprExpr: func() SummonExpr {
-				return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs)
+				return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, option.Some(sf.tpe))
 			},
 		}
 	}
 
-	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs)
+	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe))
 
 	return GenericRepr{
 		Kind: fp.GenericKindStruct,
@@ -1823,6 +1838,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 					instance := r.summon(ctx, metafp.RequiredInstance{
 						TypeClass: ctx.tc.TypeClass,
 						Type:      ti,
+						FieldOf:   option.Some(sf.tpe),
 					})
 					return newSummonExpr(fmt.Sprintf(`%s(
 					%s,
@@ -1842,7 +1858,7 @@ func (r *TypeClassSummonContext) summonNamedGenericRepr(ctx CurrentContext, tc m
 	return r.summonStructGenericRepr(ctx, tc, sf)
 }
 
-func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo]) GenericRepr {
+func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo]) GenericRepr {
 	return GenericRepr{
 		Kind: fp.GenericKindTuple,
 		// ReprType: func() string {
@@ -1899,6 +1915,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 				instance := r.summon(ctx, metafp.RequiredInstance{
 					TypeClass: ctx.tc.TypeClass,
 					Type:      ti,
+					FieldOf:   fieldOf,
 				})
 				return newSummonExpr(fmt.Sprintf(`%s(
 					%s,
@@ -1915,10 +1932,10 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", typeArgs.Size()))
 
 	if result.IsDefined() {
-		return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs)
+		return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, fp.Option[metafp.TypeInfo]{})
 	}
 
-	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs)
+	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, fp.Option[metafp.TypeInfo]{})
 	return r.summonVariant(ctx, tc, fmt.Sprintf("fp.Tuple%d", typeArgs.Size()), tupleGeneric)
 
 }
@@ -1996,9 +2013,9 @@ func (r *TypeClassSummonContext) summonStruct(ctx CurrentContext, tc metafp.Type
 	return r.summonVariant(ctx, tc, named.GenericName(), summonExpr)
 }
 
-func (r *TypeClassSummonContext) summonUntypedStruct(ctx CurrentContext, tc metafp.TypeClass, fields fp.Seq[metafp.StructField]) SummonExpr {
+func (r *TypeClassSummonContext) summonUntypedStruct(ctx CurrentContext, tc metafp.TypeClass, tpe metafp.TypeInfo, fields fp.Seq[metafp.StructField]) SummonExpr {
 
-	sf := r.untypedStructFuncs(ctx, fields)
+	sf := r.untypedStructFuncs(ctx, tpe, fields)
 
 	labelledExpr := r.summonLabelledGenericRepr(ctx, tc, sf)
 	summonExpr := labelledExpr.OrElseGet(func() GenericRepr {

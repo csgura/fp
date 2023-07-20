@@ -993,22 +993,60 @@ func DecoderOver21[T any](decoderT js.Decoder[T]) js.Decoder[Over21[T]] {
 }
 
 var EqTestpk1LegacyStruct = eq.ContraMap(
-	eq.Tuple2(eq.String, eq.Given[int]()),
-	func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
-		return as.Tuple2(v.Name, v.Age)
+	eq.Tuple3(eq.String, eq.Given[int](), eq.ContraMap(
+		eq.Tuple2(eq.String, eq.Given[int]()),
+		func(v struct {
+			Hello string
+			World int
+		}) fp.Tuple2[string, int] {
+			return as.Tuple2(v.Hello, v.World)
+		},
+	)),
+	func(v testpk1.LegacyStruct) fp.Tuple3[string, int, struct {
+		Hello string
+		World int
+	}] {
+		return as.Tuple3(v.Name, v.Age, v.NoName)
 	},
 )
 
 var MonoidTestpk1LegacyStruct = monoid.IMap(
-	monoid.Tuple2(monoid.String, monoid.Product[int]()),
-	func(t fp.Tuple2[string, int]) testpk1.LegacyStruct {
+	monoid.Tuple3(monoid.String, monoid.Product[int](), monoid.IMap(
+		monoid.Tuple2(monoid.String, monoid.Product[int]()),
+		func(t fp.Tuple2[string, int]) struct {
+			Hello string
+			World int
+		} {
+			return struct {
+				Hello string
+				World int
+			}{
+				Hello: t.I1,
+				World: t.I2,
+			}
+		},
+		func(v struct {
+			Hello string
+			World int
+		}) fp.Tuple2[string, int] {
+			return as.Tuple2(v.Hello, v.World)
+		},
+	)),
+	func(t fp.Tuple3[string, int, struct {
+		Hello string
+		World int
+	}]) testpk1.LegacyStruct {
 		return testpk1.LegacyStruct{
-			Name: t.I1,
-			Age:  t.I2,
+			Name:   t.I1,
+			Age:    t.I2,
+			NoName: t.I3,
 		}
 	},
-	func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
-		return as.Tuple2(v.Name, v.Age)
+	func(v testpk1.LegacyStruct) fp.Tuple3[string, int, struct {
+		Hello string
+		World int
+	}] {
+		return as.Tuple3(v.Name, v.Age, v.NoName)
 	},
 )
 
@@ -1017,18 +1055,31 @@ var ShowTestpk1LegacyStruct = show.Generic(
 		"testpk1.LegacyStruct",
 		"Struct",
 		fp.Compose(
-			func(v testpk1.LegacyStruct) fp.Tuple2[string, int] {
-				return as.Tuple2(v.Name, v.Age)
+			func(v testpk1.LegacyStruct) fp.Tuple3[string, int, struct {
+				Hello string
+				World int
+			}] {
+				return as.Tuple3(v.Name, v.Age, v.NoName)
 			},
-			as.HList2[string, int],
+			as.HList3[string, int, struct {
+				Hello string
+				World int
+			}],
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[string, int],
-			func(t fp.Tuple2[string, int]) testpk1.LegacyStruct {
+			product.TupleFromHList3[string, int, struct {
+				Hello string
+				World int
+			}],
+			func(t fp.Tuple3[string, int, struct {
+				Hello string
+				World int
+			}]) testpk1.LegacyStruct {
 				return testpk1.LegacyStruct{
-					Name: t.I1,
-					Age:  t.I2,
+					Name:   t.I1,
+					Age:    t.I2,
+					NoName: t.I3,
 				}
 			},
 		),
@@ -1037,24 +1088,130 @@ var ShowTestpk1LegacyStruct = show.Generic(
 		show.String,
 		show.StructHCons(
 			show.Int[int](),
-			show.HNil,
+			show.StructHCons(
+				show.Generic(
+					as.Generic(
+						"struct",
+						"Struct",
+						fp.Compose(
+							func(v struct {
+								Hello string
+								World int
+							}) fp.Tuple2[string, int] {
+								return as.Tuple2(v.Hello, v.World)
+							},
+							as.HList2[string, int],
+						),
+
+						fp.Compose(
+							product.TupleFromHList2[string, int],
+							func(t fp.Tuple2[string, int]) struct {
+								Hello string
+								World int
+							} {
+								return struct {
+									Hello string
+									World int
+								}{
+									Hello: t.I1,
+									World: t.I2,
+								}
+							},
+						),
+					),
+					show.StructHCons(
+						show.String,
+						show.StructHCons(
+							show.Int[int](),
+							show.HNil,
+						),
+					),
+				),
+				show.HNil,
+			),
 		),
 	),
 )
 
 var EncoderTestpk1LegacyStruct = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString), js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]())),
-	func(v testpk1.LegacyStruct) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
-		i0, i1 := v.Name, v.Age
-		return as.Labelled2(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1})
-	},
+	js.EncoderHConsLabelled(
+		js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString),
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[fp.RuntimeNamed[struct {
+					Hello string
+					World int
+				}]](js.EncoderContraMap(
+					js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString), js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]())),
+					func(v struct {
+						Hello string
+						World int
+					}) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
+						i0, i1 := v.Hello, v.World
+						return as.Labelled2(fp.RuntimeNamed[string]{I1: "Hello", I2: i0}, fp.RuntimeNamed[int]{I1: "World", I2: i1})
+					},
+				)),
+				js.EncoderHNil,
+			),
+		),
+	),
+	fp.Compose(
+		func(v testpk1.LegacyStruct) fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}]] {
+			i0, i1, i2 := v.Name, v.Age, v.NoName
+			return as.Labelled3(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1}, fp.RuntimeNamed[struct {
+				Hello string
+				World int
+			}]{I1: "NoName", I2: i2})
+		},
+		as.HList3Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}]],
+	),
 )
 
 var DecoderTestpk1LegacyStruct = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
-	func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) testpk1.LegacyStruct {
-		return testpk1.LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value()}
-	},
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[fp.RuntimeNamed[struct {
+					Hello string
+					World int
+				}]](js.DecoderMap(
+					js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
+					func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) struct {
+						Hello string
+						World int
+					} {
+						return struct {
+							Hello string
+							World int
+						}{Hello: t.I1.Value(), World: t.I2.Value()}
+					},
+				)),
+				js.DecoderHNil,
+			),
+		),
+	),
+
+	fp.Compose(
+		product.LabelledFromHList3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}]],
+		func(t fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}]]) testpk1.LegacyStruct {
+			return testpk1.LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value(), NoName: t.I3.Value()}
+		},
+	),
 )
 
 var MonoidTestpk1LegacyStructCompose = monoid.IMap(
@@ -1244,23 +1401,14 @@ var MonoidTestpk1LegacyPerson = monoid.IMap(
 )
 
 var MonoidLocalPerson = monoid.IMap(
-	monoid.HCons(
-		monoid.String,
-		monoid.HNil,
-	),
-
-	fp.Compose(
-		product.TupleFromHList1[string],
-		func(t fp.Tuple1[string]) LocalPerson {
-			return LocalPerson{
-				Name: t.I1,
-			}
-		},
-	),
-	fp.Compose(
-		func(v LocalPerson) fp.Tuple1[string] {
-			return as.Tuple1(v.Name)
-		},
-		as.HList1[string],
-	),
+	monoid.Tuple2(monoid.String, monoid.Product[int]()),
+	func(t fp.Tuple2[string, int]) LocalPerson {
+		return LocalPerson{
+			Name: t.I1,
+			age:  t.I2,
+		}
+	},
+	func(v LocalPerson) fp.Tuple2[string, int] {
+		return as.Tuple2(v.Name, v.age)
+	},
 )

@@ -1133,8 +1133,80 @@ var DecoderOver21 = js.DecoderMap(
 )
 
 var EqLegacyStruct = eq.ContraMap(
-	eq.Tuple2(eq.String, eq.Given[int]()),
-	func(v LegacyStruct) fp.Tuple2[string, int] {
-		return as.Tuple2(v.Name, v.Age)
+	eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
+		eq.Tuple2(eq.String, eq.Given[int]()),
+		func(v struct {
+			Hello string
+			World int
+		}) fp.Tuple2[string, int] {
+			return as.Tuple2(v.Hello, v.World)
+		},
+	)),
+	func(v LegacyStruct) fp.Tuple4[string, int, string, struct {
+		Hello string
+		World int
+	}] {
+		return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
+	},
+)
+
+var DecoderLegacyStruct = js.DecoderMap(
+	js.DecoderHConsLabelled(
+		js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+				js.DecoderHConsLabelled(
+					js.DecoderNamed[fp.RuntimeNamed[struct {
+						Hello string
+						World int
+					}]](js.DecoderMap(
+						js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
+						func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) struct {
+							Hello string
+							World int
+						} {
+							return struct {
+								Hello string
+								World int
+							}{Hello: t.I1.Value(), World: t.I2.Value()}
+						},
+					)),
+					js.DecoderHNil,
+				),
+			),
+		),
+	),
+
+	fp.Compose(
+		product.LabelledFromHList4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}]],
+		func(t fp.Labelled4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}]]) LegacyStruct {
+			return LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value(), privacy: t.I3.Value(), NoName: t.I4.Value()}
+		},
+	),
+)
+
+var EqLocalEmbedPrivate = eq.ContraMap(
+	eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
+		eq.Tuple2(eq.String, eq.Given[int]()),
+		func(v struct {
+			Hello string
+			world int
+		}) fp.Tuple2[string, int] {
+			return as.Tuple2(v.Hello, v.world)
+		},
+	)),
+	func(v LocalEmbedPrivate) fp.Tuple4[string, int, string, struct {
+		Hello string
+		world int
+	}] {
+		return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
 	},
 )
