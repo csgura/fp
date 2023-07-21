@@ -33,7 +33,7 @@ func TestShow(t *testing.T) {
 	}
 	fmt.Println(showtest.ShowCollection.ShowIndent(c, fp.ShowOption{
 		Indent:    "  ",
-		OmitEmpty: false,
+		OmitEmpty: true,
 	}))
 
 	d := showtest.HasTuple{

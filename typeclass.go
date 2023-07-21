@@ -1,6 +1,9 @@
 package fp
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type ShowOption struct {
 	Indent        string
@@ -20,6 +23,7 @@ func (r ShowOption) IncreaseIndent() ShowOption {
 type Show[T any] interface {
 	Show(t T) string
 	ShowIndent(t T, option ShowOption) string
+	Append(buf []string, t T, option ShowOption) []string
 }
 
 type ShowIndentFunc[T any] func(t T, option ShowOption) string
@@ -30,6 +34,10 @@ func (r ShowIndentFunc[T]) Show(t T) string {
 
 func (r ShowIndentFunc[T]) ShowIndent(t T, opt ShowOption) string {
 	return r(t, opt)
+}
+
+func (r ShowIndentFunc[T]) Append(buf []string, t T, option ShowOption) []string {
+	return append(buf, r(t, option))
 }
 
 type ShowFunc[T any] func(T) string
@@ -46,6 +54,25 @@ func (r ShowFunc[T]) Show(t T) string {
 
 func (r ShowFunc[T]) ShowIndent(t T, opt ShowOption) string {
 	return r(t)
+}
+
+func (r ShowFunc[T]) Append(buf []string, t T, option ShowOption) []string {
+	return append(buf, r(t))
+}
+
+type ShowAppendFunc[T any] func(buf []string, t T, option ShowOption) []string
+
+func (r ShowAppendFunc[T]) Show(t T) string {
+	return r.ShowIndent(t, ShowOption{})
+}
+
+func (r ShowAppendFunc[T]) ShowIndent(t T, opt ShowOption) string {
+	ret := r(nil, t, opt)
+	return strings.Join(ret, "")
+}
+
+func (r ShowAppendFunc[T]) Append(buf []string, t T, option ShowOption) []string {
+	return r(buf, t, option)
 }
 
 type Eq[T any] interface {
