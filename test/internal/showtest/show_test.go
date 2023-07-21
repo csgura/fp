@@ -29,6 +29,14 @@ func TestShow(t *testing.T) {
 			Name: "opt",
 			Age:  12,
 		}),
+		NoMap: map[string]showtest.NoDerive{
+			"hello": {
+				Hello: "world",
+			},
+			"hi": {
+				Hello: "there",
+			},
+		},
 		StringSeq: fp.Seq[string]{"1"},
 	}
 	fmt.Println(showtest.ShowCollection.ShowIndent(c, fp.ShowOption{

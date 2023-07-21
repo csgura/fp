@@ -121,7 +121,7 @@ func appendSeq2(buf []string, typeName string, itr fp.Iterator[[]string], opt fp
 	}) {
 		return append(
 			append(
-				append(buf, typeName, "", "{\n", childOpt.CurrentIndent()),
+				append(buf, typeName, " {\n", childOpt.CurrentIndent()),
 				makeString(showseq, ",\n"+childOpt.CurrentIndent())...,
 			),
 			"\n", opt.CurrentIndent(), "}",
