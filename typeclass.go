@@ -24,6 +24,7 @@ type Show[T any] interface {
 	Show(t T) string
 	ShowIndent(t T, option ShowOption) string
 	Append(buf []string, t T, option ShowOption) []string
+	Stringer(t T, option ShowOption) fmt.Stringer
 }
 
 type ShowIndentFunc[T any] func(t T, option ShowOption) string
@@ -38,6 +39,18 @@ func (r ShowIndentFunc[T]) ShowIndent(t T, opt ShowOption) string {
 
 func (r ShowIndentFunc[T]) Append(buf []string, t T, option ShowOption) []string {
 	return append(buf, r(t, option))
+}
+
+type stringerFunc func() string
+
+func (r stringerFunc) String() string {
+	return r()
+}
+
+func (r ShowIndentFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
+	return stringerFunc(func() string {
+		return r.ShowIndent(t, option)
+	})
 }
 
 type ShowFunc[T any] func(T) string
@@ -60,6 +73,12 @@ func (r ShowFunc[T]) Append(buf []string, t T, option ShowOption) []string {
 	return append(buf, r(t))
 }
 
+func (r ShowFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
+	return stringerFunc(func() string {
+		return r.Show(t)
+	})
+}
+
 type ShowAppendFunc[T any] func(buf []string, t T, option ShowOption) []string
 
 func (r ShowAppendFunc[T]) Show(t T) string {
@@ -73,6 +92,12 @@ func (r ShowAppendFunc[T]) ShowIndent(t T, opt ShowOption) string {
 
 func (r ShowAppendFunc[T]) Append(buf []string, t T, option ShowOption) []string {
 	return r(buf, t, option)
+}
+
+func (r ShowAppendFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
+	return stringerFunc(func() string {
+		return r.ShowIndent(t, option)
+	})
 }
 
 type Eq[T any] interface {
