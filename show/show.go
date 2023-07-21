@@ -76,28 +76,6 @@ var HNil = New(func(hlist.Nil) string {
 	return "Nil"
 })
 
-func appendSeq(buf []string, typeName string, itr fp.Iterator[string], opt fp.ShowOption) []string {
-	childOpt := opt.IncreaseIndent()
-
-	showseq := as.Seq(itr.ToSeq())
-	if opt.OmitEmpty && showseq.IsEmpty() {
-		return nil
-	}
-	if opt.Indent != "" && showseq.Exists(fp.Test(as.Func2(strings.Contains), "\n")) {
-		return append(buf, typeName, "", "{\n", childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), "\n", opt.CurrentIndent(), "}")
-		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
-	} else {
-		if showseq.IsEmpty() {
-			return append(buf, typeName, " {}")
-		}
-		if opt.Indent != "" {
-			return append(buf, typeName, " { ", showseq.MakeString(", "), " }")
-
-		}
-		return append(buf, typeName, "{", showseq.MakeString(","), "}")
-	}
-}
-
 func makeString(s fp.Seq[[]string], sep string) []string {
 	ret := make([]string, 0, len(s)*2)
 
@@ -109,7 +87,7 @@ func makeString(s fp.Seq[[]string], sep string) []string {
 	}
 	return ret
 }
-func appendSeq2(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.ShowOption) []string {
+func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.ShowOption) []string {
 	childOpt := opt.IncreaseIndent()
 
 	showseq := as.Seq(itr.ToSeq())
@@ -128,10 +106,12 @@ func appendSeq2(buf []string, typeName string, itr fp.Iterator[[]string], opt fp
 		)
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
-		if showseq.IsEmpty() {
-			return append(buf, typeName, " {}")
-		}
+
 		if opt.Indent != "" {
+			if showseq.IsEmpty() {
+				return append(buf, typeName, " {}")
+			}
+
 			return append(
 				append(
 					append(buf, typeName, " { "),
@@ -140,6 +120,9 @@ func appendSeq2(buf []string, typeName string, itr fp.Iterator[[]string], opt fp
 				" }",
 			)
 
+		}
+		if showseq.IsEmpty() {
+			return append(buf, typeName, "{}")
 		}
 		return append(
 			append(
@@ -155,7 +138,7 @@ func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
 	return NewAppend(func(buf []string, s fp.Seq[T], opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
 		childStr := iterator.Map(iterator.FromSeq(s), fp.Flip(as.Curried3(tshow.Append)(nil))(childOpt))
-		return appendSeq2(buf, "Seq", childStr, opt)
+		return appendSeq(buf, "Seq", childStr, opt)
 	})
 }
 
@@ -167,7 +150,7 @@ func Set[V any](showv fp.Show[V]) fp.Show[fp.Set[V]] {
 			return showv.Append(nil, v, opt)
 		})
 
-		return appendSeq2(buf, "Set", showset, opt)
+		return appendSeq(buf, "Set", showset, opt)
 
 	})
 }
@@ -189,7 +172,7 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 			return append([]string{showk.Show(t.I1), ": "}, valuestr...)
 		}).FilterNot(isZero)
 
-		return appendSeq2(buf, "Map", showmap, opt)
+		return appendSeq(buf, "Map", showmap, opt)
 
 	})
 }
@@ -205,7 +188,7 @@ func GoMap[K comparable, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[map[
 			}
 			return append([]string{showk.Show(t.I1), ": "}, valuestr...)
 		}).FilterNot(isZero)
-		return appendSeq2(buf, "Map", showmap, opt)
+		return appendSeq(buf, "Map", showmap, opt)
 	})
 }
 
@@ -213,7 +196,7 @@ func Slice[T any](tshow fp.Show[T]) fp.Show[[]T] {
 	return NewAppend(func(buf []string, s []T, opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
 		childStr := iterator.Map(iterator.FromSeq(s), fp.Flip(as.Curried3(tshow.Append)(nil))(childOpt))
-		return appendSeq2(buf, "Seq", childStr, opt)
+		return appendSeq(buf, "Seq", childStr, opt)
 	})
 }
 
