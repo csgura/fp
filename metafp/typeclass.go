@@ -170,6 +170,8 @@ func FindTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 				Tags:                 v.Tags,
 			})
 
+		} else if v.TypeArgs.Size() == 1 {
+			fmt.Printf("can't derive not named type %s\n", v.TypeArgs[0])
 		}
 		return seq.Empty[TypeClassDerive]()
 	})

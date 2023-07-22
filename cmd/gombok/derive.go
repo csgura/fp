@@ -2239,7 +2239,7 @@ func genDerive() {
 		tccache := metafp.TypeClassInstanceCache{}
 
 		metafp.FindTypeClassImport(pkgs).Foreach(func(v metafp.TypeClassDirective) {
-			fmt.Printf("Import %s from %s\n", v.TypeClass.Name, v.Package.Path())
+			fmt.Printf("Import %s from %s into %s\n", v.TypeClass.Name, v.PrimitiveInstancePkg.Path(), v.Package.Path())
 			tccache.Load(v.PrimitiveInstancePkg, v.TypeClass)
 		})
 
