@@ -29,6 +29,39 @@ func (r ord[T]) ToOrd(less fp.LessFunc[T]) fp.Ord[T] {
 	}
 }
 
+func (r ord[T]) Reversed() fp.Ord[T] {
+	return ord[T]{
+		eqv: fp.EqFunc[T](func(a, b T) bool {
+			return r.Eqv(a, b)
+		}),
+		less: fp.LessFunc[T](func(a, b T) bool {
+			if r.Eqv(a, b) {
+				return false
+			}
+			return !r.Less(a, b)
+		}),
+	}
+}
+
+func (r ord[T]) ThenComparing(other fp.Ord[T]) fp.Ord[T] {
+	return ord[T]{
+		eqv: fp.EqFunc[T](func(a, b T) bool {
+			return r.Eqv(a, b) && other.Eqv(a, b)
+		}),
+		less: fp.LessFunc[T](func(a, b T) bool {
+
+			if r.Less(a, b) {
+				return true
+			}
+
+			if r.Eqv(a, b) {
+				return other.Less(a, b)
+			}
+			return false
+		}),
+	}
+}
+
 func New[T any](eqv fp.Eq[T], less fp.LessFunc[T]) fp.Ord[T] {
 	return ord[T]{
 		eqv, less,

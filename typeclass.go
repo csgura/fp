@@ -179,6 +179,8 @@ type Hashable[T any] interface {
 type Ord[T any] interface {
 	Eq[T]
 	Less(a T, b T) bool
+	ThenComparing(other Ord[T]) Ord[T]
+	Reversed() Ord[T]
 }
 
 type LessFunc[T any] func(a, b T) bool
@@ -189,6 +191,37 @@ func (r LessFunc[T]) Eqv(a, b T) bool {
 
 func (r LessFunc[T]) Less(a, b T) bool {
 	return r(a, b)
+}
+
+func (r LessFunc[T]) ThenComparing(other Ord[T]) Ord[T] {
+	return ord[T]{
+		eqv: EqFunc[T](func(a, b T) bool {
+			return r.Eqv(a, b) && other.Eqv(a, b)
+		}),
+		less: LessFunc[T](func(a, b T) bool {
+			if r.Less(a, b) {
+				return true
+			}
+			if r.Eqv(a, b) {
+				return other.Less(a, b)
+			}
+			return false
+		}),
+	}
+}
+
+func (r LessFunc[T]) Reversed() Ord[T] {
+	return ord[T]{
+		eqv: EqFunc[T](func(a, b T) bool {
+			return r.Eqv(a, b)
+		}),
+		less: LessFunc[T](func(a, b T) bool {
+			if r.Eqv(a, b) {
+				return false
+			}
+			return !r.Less(a, b)
+		}),
+	}
 }
 
 func LessGiven[T ImplicitOrd]() Ord[T] {
@@ -208,6 +241,38 @@ func (r ord[T]) Eqv(a, b T) bool {
 
 func (r ord[T]) Less(a, b T) bool {
 	return r.less(a, b)
+}
+
+func (r ord[T]) ThenComparing(other Ord[T]) Ord[T] {
+	return ord[T]{
+		eqv: EqFunc[T](func(a, b T) bool {
+			return r.Eqv(a, b) && other.Eqv(a, b)
+		}),
+		less: LessFunc[T](func(a, b T) bool {
+			if r.Less(a, b) {
+				return true
+			}
+
+			if r.Eqv(a, b) {
+				return other.Less(a, b)
+			}
+			return false
+		}),
+	}
+}
+
+func (r ord[T]) Reversed() Ord[T] {
+	return ord[T]{
+		eqv: EqFunc[T](func(a, b T) bool {
+			return r.Eqv(a, b)
+		}),
+		less: LessFunc[T](func(a, b T) bool {
+			if r.Eqv(a, b) {
+				return false
+			}
+			return !r.Less(a, b)
+		}),
+	}
 }
 
 type Clone[T any] interface {

@@ -1,6 +1,7 @@
 package ord_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/csgura/fp/eq"
@@ -64,5 +65,42 @@ func TestOrd(t *testing.T) {
 
 		return a.B < b.B
 	})
+
+}
+
+type data struct {
+	a int
+	b int
+	c int
+}
+
+func (r data) A() int {
+	return r.a
+}
+
+func (r data) B() int {
+	return r.b
+}
+
+func (r data) C() int {
+	return r.c
+}
+
+func TestCombinator(t *testing.T) {
+	s := []data{
+		{1, 2, 3},
+		{1, 1, 2},
+		{2, 3, 4},
+		{2, 4, 1},
+		{2, 2, 5},
+		{0, 3, 1},
+	}
+
+	res := seq.Sort(s, ord.GivenField(data.A).ThenComparing(ord.GivenField(data.B)))
+	//fmt.Println(res)
+	assert.Equal(fmt.Sprint(res), "[{0 3 1} {1 1 2} {1 2 3} {2 2 5} {2 3 4} {2 4 1}]")
+
+	res = seq.Sort(s, ord.GivenField(data.A).ThenComparing(ord.GivenField(data.B).Reversed()))
+	assert.Equal(fmt.Sprint(res), "[{0 3 1} {1 2 3} {1 1 2} {2 4 1} {2 3 4} {2 2 5}]")
 
 }
