@@ -11,6 +11,9 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/ord"
+	"github.com/csgura/fp/product"
+	"github.com/csgura/fp/seq"
 )
 
 // indent two space and omit empty
@@ -219,12 +222,14 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 
 		childOpt := opt.IncreaseIndent()
 
-		showmap := iterator.Map(v.Iterator(), func(t fp.Tuple2[K, V]) []string {
+		keyshow := seq.Sort(iterator.Map(v.Iterator(), as.Func2(product.MapKey[K, V, string]).ApplyLast(showk.Show)).ToSeq(), ord.GivenField(fp.Tuple2[string, V].Head))
+
+		showmap := iterator.Map(iterator.FromSeq(keyshow), func(t fp.Tuple2[string, V]) []string {
 			valuestr := showv.Append(nil, t.I2, childOpt)
 			if isEmptyString(valuestr) {
 				return nil
 			}
-			return append([]string{showk.Show(t.I1), spaceAfterColon(opt)}, valuestr...)
+			return append([]string{t.I1, spaceAfterColon(opt)}, valuestr...)
 		}).FilterNot(isZero)
 
 		return appendSeq(buf, "Map", showmap, opt)
