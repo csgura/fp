@@ -6,9 +6,21 @@ import (
 )
 
 type ShowOption struct {
-	Indent        string
-	OmitEmpty     bool
-	currentIndent string
+	Indent    string
+	OmitEmpty bool
+	// true 인 경우  1, 2, 3
+	// false 인 경우 1,2,3
+	SpaceAfterComma bool
+	// true 인 경우  a: 10,b: 20
+	// false인 경우 a:10,b:20
+	SpaceAfterColon bool
+	// true 인 경우  Hello {}
+	// false 인 경우 Hello{}
+	SpaceBeforeBrace bool
+	// true 인 경우 { 1,2,3 }
+	// false인 경우 {1,2,3}
+	SpaceWithinBrace bool
+	currentIndent    string
 }
 
 func (r ShowOption) CurrentIndent() string {
@@ -17,6 +29,44 @@ func (r ShowOption) CurrentIndent() string {
 
 func (r ShowOption) IncreaseIndent() ShowOption {
 	r.currentIndent = r.currentIndent + r.Indent
+	return r
+}
+
+func (r ShowOption) WithIndent(indent string) ShowOption {
+	r.Indent = indent
+	return r
+}
+
+func (r ShowOption) WithOmitEmpty(b bool) ShowOption {
+	r.OmitEmpty = b
+	return r
+}
+
+func (r ShowOption) WithSpaceAfterComma(b bool) ShowOption {
+	r.SpaceAfterComma = b
+	return r
+}
+
+func (r ShowOption) WithSpaceAfterColon(b bool) ShowOption {
+	r.SpaceAfterColon = b
+	return r
+}
+
+func (r ShowOption) WithSpaceBeforeBrace(b bool) ShowOption {
+	r.SpaceBeforeBrace = b
+	return r
+}
+
+func (r ShowOption) WithSpaceWithinBrace(b bool) ShowOption {
+	r.SpaceWithinBrace = b
+	return r
+}
+
+func (r ShowOption) WithSpace() ShowOption {
+	r.SpaceAfterColon = true
+	r.SpaceAfterComma = true
+	r.SpaceBeforeBrace = true
+	r.SpaceWithinBrace = true
 	return r
 }
 
@@ -41,14 +91,14 @@ func (r ShowIndentFunc[T]) Append(buf []string, t T, option ShowOption) []string
 	return append(buf, r(t, option))
 }
 
-type stringerFunc func() string
+type StringerFunc func() string
 
-func (r stringerFunc) String() string {
+func (r StringerFunc) String() string {
 	return r()
 }
 
 func (r ShowIndentFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
-	return stringerFunc(func() string {
+	return StringerFunc(func() string {
 		return r.ShowIndent(t, option)
 	})
 }
@@ -74,7 +124,7 @@ func (r ShowFunc[T]) Append(buf []string, t T, option ShowOption) []string {
 }
 
 func (r ShowFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
-	return stringerFunc(func() string {
+	return StringerFunc(func() string {
 		return r.Show(t)
 	})
 }
@@ -95,7 +145,7 @@ func (r ShowAppendFunc[T]) Append(buf []string, t T, option ShowOption) []string
 }
 
 func (r ShowAppendFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
-	return stringerFunc(func() string {
+	return StringerFunc(func() string {
 		return r.ShowIndent(t, option)
 	})
 }

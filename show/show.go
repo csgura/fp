@@ -13,6 +13,24 @@ import (
 	"github.com/csgura/fp/mutable"
 )
 
+// indent two space and omit empty
+var Pretty = fp.ShowOption{
+	Indent:           "  ",
+	OmitEmpty:        true,
+	SpaceAfterComma:  true,
+	SpaceAfterColon:  true,
+	SpaceBeforeBrace: true,
+	SpaceWithinBrace: true,
+}
+
+var Space = fp.ShowOption{
+	OmitEmpty:        true,
+	SpaceAfterComma:  true,
+	SpaceAfterColon:  true,
+	SpaceBeforeBrace: false,
+	SpaceWithinBrace: true,
+}
+
 type Derives[T any] interface {
 }
 
@@ -87,6 +105,49 @@ func makeString(s fp.Seq[[]string], sep string) []string {
 	}
 	return ret
 }
+
+func spaceBeforeBrace(opt fp.ShowOption) string {
+	if opt.SpaceBeforeBrace {
+		return " "
+	}
+	return ""
+}
+
+func spaceAfterComma(opt fp.ShowOption) string {
+	if opt.SpaceAfterComma {
+		return ", "
+	}
+	return ","
+}
+
+func spaceAfterColon(opt fp.ShowOption) string {
+	if opt.SpaceAfterColon {
+		return ": "
+	}
+	return ":"
+}
+
+func spaceWithinBrace(opt fp.ShowOption) string {
+	if opt.SpaceWithinBrace {
+		return " "
+	}
+	return ""
+}
+
+func spaceBeforeHCons(opt fp.ShowOption) string {
+	if opt.SpaceAfterComma {
+		return " "
+	}
+	return ""
+}
+
+func spaceAfterHCons(opt fp.ShowOption) string {
+	if opt.SpaceAfterComma {
+		return " "
+	}
+	return ""
+}
+
 func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.ShowOption) []string {
 	childOpt := opt.IncreaseIndent()
 
@@ -99,7 +160,7 @@ func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 	}) {
 		return append(
 			append(
-				append(buf, typeName, " {\n", childOpt.CurrentIndent()),
+				append(buf, typeName, spaceBeforeBrace(opt), "{\n", childOpt.CurrentIndent()),
 				makeString(showseq, ",\n"+childOpt.CurrentIndent())...,
 			),
 			"\n", opt.CurrentIndent(), "}",
@@ -107,30 +168,18 @@ func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
 
-		if opt.Indent != "" {
-			if showseq.IsEmpty() {
-				return append(buf, typeName, " {}")
-			}
-
-			return append(
-				append(
-					append(buf, typeName, " { "),
-					makeString(showseq, ", ")...,
-				),
-				" }",
-			)
-
-		}
 		if showseq.IsEmpty() {
-			return append(buf, typeName, "{}")
+			return append(buf, typeName, spaceBeforeBrace(opt), " {}")
 		}
+
 		return append(
 			append(
-				append(buf, typeName, "{"),
-				makeString(showseq, ",")...,
+				append(buf, typeName, spaceBeforeBrace(opt), "{", spaceWithinBrace(opt)),
+				makeString(showseq, spaceAfterComma(opt))...,
 			),
-			"}",
+			spaceWithinBrace(opt), "}",
 		)
+
 	}
 }
 
@@ -169,7 +218,7 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 			if isEmptyString(valuestr) {
 				return nil
 			}
-			return append([]string{showk.Show(t.I1), ": "}, valuestr...)
+			return append([]string{showk.Show(t.I1), spaceAfterColon(opt)}, valuestr...)
 		}).FilterNot(isZero)
 
 		return appendSeq(buf, "Map", showmap, opt)
@@ -186,7 +235,7 @@ func GoMap[K comparable, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[map[
 			if isEmptyString(valuestr) {
 				return nil
 			}
-			return append([]string{showk.Show(t.I1), ": "}, valuestr...)
+			return append([]string{showk.Show(t.I1), spaceAfterColon(opt)}, valuestr...)
 		}).FilterNot(isZero)
 		return appendSeq(buf, "Map", showmap, opt)
 	})
@@ -229,10 +278,7 @@ func Named[T fp.NamedField[A], A any](ashow fp.Show[A]) fp.Show[T] {
 		if isEmptyString(valuestr) {
 			return nil
 		}
-		if opt.Indent != "" {
-			return append(append(buf, s.Name(), ": "), valuestr...)
-		}
-		return append(append(buf, s.Name(), ":"), valuestr...)
+		return append(append(buf, s.Name(), spaceAfterColon(opt)), valuestr...)
 
 	})
 }
@@ -254,7 +300,7 @@ func HConsLabelled[H fp.Named, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]
 				return append(append(append(buf, hstr...), ",\n", opt.CurrentIndent()), tstr...)
 				//return fmt.Sprintf("%s,\n%s%s", hstr, opt.CurrentIndent(), tstr)
 			}
-			return append(append(append(buf, hstr...), ","), tstr...)
+			return append(append(append(buf, hstr...), spaceAfterComma(opt)), tstr...)
 		}
 		return append(buf, hstr...)
 	})
@@ -267,11 +313,7 @@ func TupleHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Sho
 		tstr := tshow.Append(nil, list.Tail(), opt)
 
 		if !list.Tail().IsNil() {
-			if opt.Indent != "" {
-				return append(append(hstr, ", "), tstr...)
-
-			}
-			return append(append(hstr, ","), tstr...)
+			return append(append(hstr, spaceAfterComma(opt)), tstr...)
 		}
 		return hstr
 	})
@@ -283,11 +325,7 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 		hstr := hshow.Append(buf, list.Head(), opt)
 		tstr := tshow.Append(nil, list.Tail(), opt)
 
-		if opt.Indent != "" {
-			return append(append(hstr, " :: "), tstr...)
-
-		}
-		return append(append(hstr, "::"), tstr...)
+		return append(append(hstr, spaceBeforeHCons(opt), "::", spaceAfterHCons(opt)), tstr...)
 
 	})
 }
@@ -301,19 +339,19 @@ func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Sh
 		}
 
 		if gen.Kind == fp.GenericKindNewType {
-			return append(append(append(buf, gen.Type, "("), valueStr...), ")")
+			return append(append(append(buf, gen.Type, spaceBeforeBrace(opt), "(", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), ")")
 			//return append(buf, fmt.Sprintf("%s(%s)", gen.Type, valueStr))
 		} else if gen.Kind == fp.GenericKindTuple {
-			return append(append(append(buf, gen.Type, "("), valueStr...), ")")
+			return append(append(append(buf, gen.Type, spaceBeforeBrace(opt), "(", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), ")")
 			//			return append(buf, fmt.Sprintf("%s(%s)", gen.Type, valueStr))
 		}
 
 		if opt.Indent != "" {
-			return append(append(append(buf, gen.Type, " {\n", childOpt.CurrentIndent()), valueStr...), "\n", opt.CurrentIndent(), "}")
+			return append(append(append(buf, gen.Type, spaceBeforeBrace(opt), "{\n", childOpt.CurrentIndent()), valueStr...), "\n", opt.CurrentIndent(), "}")
 
 			//return append(buf, fmt.Sprintf("%s {\n%s%s\n%s}", gen.Type, childOpt.CurrentIndent(), valueStr, opt.CurrentIndent()))
 		} else {
-			return append(append(append(buf, gen.Type, "{"), valueStr...), "}")
+			return append(append(append(buf, gen.Type, spaceBeforeBrace(opt), "{", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), "}")
 			//return append(buf, fmt.Sprintf("%s{%s}", gen.Type, valueStr))
 
 		}

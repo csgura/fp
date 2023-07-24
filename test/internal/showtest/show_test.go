@@ -6,9 +6,11 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/show"
 	"github.com/csgura/fp/test/internal/showtest"
 )
 
@@ -39,16 +41,14 @@ func TestShow(t *testing.T) {
 		},
 		StringSeq: fp.Seq[string]{"1"},
 	}
-	fmt.Println(showtest.ShowCollection.ShowIndent(c, fp.ShowOption{
-		Indent:    "  ",
-		OmitEmpty: true,
-	}))
+	fmt.Println(showtest.ShowCollection.ShowIndent(c, show.Pretty))
 
 	d := showtest.HasTuple{
 		Entry: as.Tuple2("hello", 10),
+		HList: hlist.Concat("hello", hlist.Concat(1, hlist.Nil{})),
 	}
 
-	fmt.Println("d = ", showtest.ShowHasTuple.Show(d))
+	fmt.Println("d = ", showtest.ShowHasTuple.ShowIndent(d, show.Space))
 
 	// untyped struct 에 private field 있는 경우, 다른 패키지에서 호출 불가능
 	// showtest.UntypedStructFunc(struct {
@@ -65,5 +65,5 @@ func TestShow(t *testing.T) {
 		}{Level: 1, Stage: "hello"},
 	}.AsImmutable()
 
-	fmt.Println("e = ", showtest.ShowEmbeddedStruct.Show(e))
+	fmt.Println("e = ", showtest.ShowEmbeddedStruct.ShowIndent(e, show.Space))
 }
