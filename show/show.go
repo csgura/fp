@@ -34,6 +34,12 @@ var Space = fp.ShowOption{
 type Derives[T any] interface {
 }
 
+func ContraMap[T, U any](instance fp.Show[T], fn func(U) T) fp.Show[U] {
+	return NewAppend(func(buf []string, u U, opt fp.ShowOption) []string {
+		return instance.Append(buf, fn(u), opt)
+	})
+}
+
 func New[T any](f func(T) string) fp.Show[T] {
 	return fp.ShowFunc[T](f)
 }
@@ -227,25 +233,14 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 }
 
 func GoMap[K comparable, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[map[K]V] {
-	return NewAppend(func(buf []string, v map[K]V, opt fp.ShowOption) []string {
-		childOpt := opt.IncreaseIndent()
-
-		showmap := iterator.Map(mutable.MapOf(v).Iterator(), func(t fp.Tuple2[K, V]) []string {
-			valuestr := showv.Append(nil, t.I2, childOpt)
-			if isEmptyString(valuestr) {
-				return nil
-			}
-			return append([]string{showk.Show(t.I1), spaceAfterColon(opt)}, valuestr...)
-		}).FilterNot(isZero)
-		return appendSeq(buf, "Map", showmap, opt)
+	return ContraMap(Map(showk, showv), func(u map[K]V) fp.Map[K, V] {
+		return mutable.MapOf(u)
 	})
 }
 
 func Slice[T any](tshow fp.Show[T]) fp.Show[[]T] {
-	return NewAppend(func(buf []string, s []T, opt fp.ShowOption) []string {
-		childOpt := opt.IncreaseIndent()
-		childStr := iterator.Map(iterator.FromSeq(s), fp.Flip(as.Curried3(tshow.Append)(nil))(childOpt))
-		return appendSeq(buf, "Seq", childStr, opt)
+	return ContraMap(Seq(tshow), func(u []T) fp.Seq[T] {
+		return u
 	})
 }
 
