@@ -8,19 +8,24 @@ import (
 type ShowOption struct {
 	Indent    string
 	OmitEmpty bool
+
 	// true 인 경우  1, 2, 3
 	// false 인 경우 1,2,3
 	SpaceAfterComma bool
+
 	// true 인 경우  a: 10,b: 20
 	// false인 경우 a:10,b:20
 	SpaceAfterColon bool
+
 	// true 인 경우  Hello {}
 	// false 인 경우 Hello{}
 	SpaceBeforeBrace bool
+
 	// true 인 경우 { 1,2,3 }
 	// false인 경우 {1,2,3}
 	SpaceWithinBrace bool
-	currentIndent    string
+
+	currentIndent string
 }
 
 func (r ShowOption) CurrentIndent() string {
