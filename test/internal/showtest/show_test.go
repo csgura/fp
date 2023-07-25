@@ -49,7 +49,7 @@ func TestShow(t *testing.T) {
 		HList: hlist.Concat("hello", hlist.Concat(1, hlist.Nil{})),
 	}
 
-	fmt.Printf("d = %s\n", showtest.ShowHasTuple.ShowIndent(d, show.Json))
+	fmt.Printf("d = %s\n", showtest.ShowHasTuple.ShowIndent(d, show.JsonSpace))
 
 	// untyped struct 에 private field 있는 경우, 다른 패키지에서 호출 불가능
 	// showtest.UntypedStructFunc(struct {
@@ -66,5 +66,5 @@ func TestShow(t *testing.T) {
 		}{Level: 1, Stage: "hello"},
 	}.AsImmutable()
 
-	fmt.Println("e = ", showtest.ShowEmbeddedStruct.ShowIndent(e, show.Json))
+	fmt.Println("e = ", showtest.ShowEmbeddedStruct.ShowIndent(e, show.JsonSpace))
 }

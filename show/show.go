@@ -39,6 +39,19 @@ var Json = fp.ShowOption{
 	OmitTypeName:          true,
 	SquareBracketForArray: true,
 	NullForNil:            true,
+	QouteNames:            true,
+}
+
+var JsonSpace = fp.ShowOption{
+	OmitEmpty:             true,
+	OmitTypeName:          true,
+	SquareBracketForArray: true,
+	NullForNil:            true,
+	SpaceAfterComma:       true,
+	SpaceAfterColon:       true,
+	SpaceBeforeBrace:      false,
+	SpaceWithinBrace:      true,
+	QouteNames:            true,
 }
 
 var PrettyJson = fp.ShowOption{
@@ -51,6 +64,7 @@ var PrettyJson = fp.ShowOption{
 	SpaceAfterColon:       true,
 	SpaceBeforeBrace:      true,
 	SpaceWithinBrace:      true,
+	QouteNames:            true,
 }
 
 type Derives[T any] interface {
@@ -193,6 +207,13 @@ func spaceAfterHCons(opt fp.ShowOption) string {
 func omitTypeName(name string, opt fp.ShowOption) string {
 	if opt.OmitTypeName {
 		return ""
+	}
+	return name
+}
+
+func quoteNames(name string, opt fp.ShowOption) string {
+	if opt.QouteNames {
+		return `"` + name + `"`
 	}
 	return name
 }
@@ -371,7 +392,7 @@ func Named[T fp.NamedField[A], A any](ashow fp.Show[A]) fp.Show[T] {
 		if isEmptyString(valuestr) {
 			return nil
 		}
-		return append(append(buf, s.Name(), spaceAfterColon(opt)), valuestr...)
+		return append(append(buf, quoteNames(s.Name(), opt), spaceAfterColon(opt)), valuestr...)
 
 	})
 }
@@ -416,7 +437,7 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 
 		if opt.SquareBracketForArray {
 			if buf == nil {
-				buf = append(buf, "[")
+				buf = append(buf, "[", spaceWithinBrace(opt))
 			}
 
 			if !list.Tail().IsNil() {
@@ -426,7 +447,7 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 			}
 
 			hstr := hshow.Append(buf, list.Head(), opt)
-			return append(hstr, "]")
+			return append(hstr, spaceWithinBrace(opt), "]")
 		} else {
 			hstr := hshow.Append(buf, list.Head(), opt)
 			tstr := tshow.Append(nil, list.Tail(), opt)

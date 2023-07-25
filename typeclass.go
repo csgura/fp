@@ -21,12 +21,14 @@ type ShowOption struct {
 	// false인 경우 a:10,b:20
 	SpaceAfterColon bool
 
+	// type name + {} 형태에 적용되는 옵션
 	// true 인 경우  Hello {}
 	// false 인 경우 Hello{}
+	// a: {} 의 경우 SpaceAfterColon 옵션을 사용.
 	SpaceBeforeBrace bool
 
-	// true 인 경우 { 1,2,3 }
-	// false인 경우 {1,2,3}
+	// true 인 경우 { 1,2,3 } 혹은 [ 1,2,3 ]
+	// false인 경우 {1,2,3} 혹은 [1,2,3]
 	SpaceWithinBrace bool
 
 	// true 이면 array 의 경우 [] 사용
@@ -36,6 +38,10 @@ type ShowOption struct {
 	// true 이면 nil 을 null 로 출력
 	// false 이면 nil 사용
 	NullForNil bool
+
+	// true 면  "name": value 로 출력
+	// false 면  name: value 로 출력
+	QouteNames bool
 
 	currentIndent string
 }
@@ -91,6 +97,11 @@ func (r ShowOption) WithSquareBracketForArray(b bool) ShowOption {
 
 func (r ShowOption) WithNullForNil(b bool) ShowOption {
 	r.NullForNil = b
+	return r
+}
+
+func (r ShowOption) WithQouteNames(b bool) ShowOption {
+	r.QouteNames = b
 	return r
 }
 
