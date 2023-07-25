@@ -281,9 +281,8 @@ func appendMap(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 	if opt.OmitEmpty && showseq.IsEmpty() {
 		return nil
 	}
-	if opt.Indent != "" && showseq.Exists(func(v []string) bool {
-		return as.Seq(v).Exists(fp.Test(as.Func2(strings.Contains), "\n"))
-	}) {
+
+	if opt.Indent != "" {
 		return append(
 			append(
 				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), "{\n", childOpt.CurrentIndent()),
@@ -465,12 +464,17 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 	})
 }
 
+func FormatStruct(typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, string]) string {
+	return strings.Join(AppendStruct(nil, typeName, opt, fields...), "")
+}
+
 func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, string]) []string {
 
 	itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Tuple2[string, string]) []string {
 		return []string{t.I1, spaceAfterColon(opt), t.I2}
 	})
 	return appendMap(buf, typeName, itr, opt)
+
 }
 
 func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Show[A] {
