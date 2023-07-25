@@ -87,8 +87,13 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 	childOpt := opt.IncreaseIndent()
 
 	itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Tuple2[string, Appender]) []string {
-		return t.I2([]string{t.I1, spaceAfterColon(opt)}, childOpt)
-	})
+		valuestr := t.I2(nil, childOpt)
+		if isEmptyString(valuestr) {
+			return nil
+		}
+		return append([]string{t.I1, spaceAfterColon(opt)}, valuestr...)
+	}).FilterNot(isZero)
+
 	return appendMap(buf, typeName, itr, opt)
 
 }
