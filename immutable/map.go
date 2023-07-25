@@ -8,6 +8,8 @@ import (
 	"github.com/csgura/fp/as"
 )
 
+// https://github.com/benbjohnson/immutable/blob/master/immutable.go
+
 // hashUint64 returns a 32-bit hash for a 64-bit value.
 func hashUint64(value uint64) uint32 {
 	hash := value

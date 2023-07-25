@@ -108,6 +108,16 @@ func Ptr[T any](hashT lazy.Eval[fp.Hashable[T]]) fp.Hashable[*T] {
 	})
 }
 
+func Option[T any](hashT fp.Hashable[T]) fp.Hashable[fp.Option[T]] {
+	return New(eq.Option[T](hashT), func(a fp.Option[T]) uint32 {
+		if a.IsEmpty() {
+			return 0
+		}
+
+		return hashT.Hash(a.Get())
+	})
+}
+
 func ContraMap[T, U any](teq fp.Hashable[T], fn func(U) T) fp.Hashable[U] {
 	return New(eq.ContraMap[T](teq, fn), func(a U) uint32 {
 		return teq.Hash(fn(a))
