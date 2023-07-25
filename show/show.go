@@ -414,11 +414,25 @@ func TupleHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Sho
 func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {
 	return NewAppend(func(buf []string, list hlist.Cons[H, T], opt fp.ShowOption) []string {
 
-		hstr := hshow.Append(buf, list.Head(), opt)
-		tstr := tshow.Append(nil, list.Tail(), opt)
+		if opt.SquareBracketForArray {
+			if buf == nil {
+				buf = append(buf, "[")
+			}
 
-		return append(append(hstr, spaceBeforeHCons(opt), "::", spaceAfterHCons(opt)), tstr...)
+			if !list.Tail().IsNil() {
+				hstr := hshow.Append(buf, list.Head(), opt)
+				hstr = append(hstr, spaceAfterComma(opt))
+				return tshow.Append(hstr, list.Tail(), opt)
+			}
 
+			hstr := hshow.Append(buf, list.Head(), opt)
+			return append(hstr, "]")
+		} else {
+			hstr := hshow.Append(buf, list.Head(), opt)
+			tstr := tshow.Append(nil, list.Tail(), opt)
+
+			return append(append(hstr, spaceBeforeHCons(opt), "::", spaceAfterHCons(opt)), tstr...)
+		}
 	})
 }
 
