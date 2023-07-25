@@ -15,6 +15,7 @@ import (
 )
 
 func TestShow(t *testing.T) {
+
 	v := showtest.Person{Name: "gura", Age: 29}
 
 	assert.Equal(showtest.ShowPerson.Show(v), `showtest.Person{Name:"gura",Age:29}`)
@@ -41,14 +42,14 @@ func TestShow(t *testing.T) {
 		},
 		StringSeq: fp.Seq[string]{"1"},
 	}
-	fmt.Println(showtest.ShowCollection.ShowIndent(c, show.Pretty))
+	fmt.Println(showtest.ShowCollection.ShowIndent(c, show.PrettyJson))
 
 	d := showtest.HasTuple{
 		Entry: as.Tuple2("hello", 10),
 		HList: hlist.Concat("hello", hlist.Concat(1, hlist.Nil{})),
 	}
 
-	fmt.Println("d = ", showtest.ShowHasTuple.ShowIndent(d, show.Space))
+	fmt.Printf("d = %s\n", showtest.ShowHasTuple.ShowIndent(d, show.Json))
 
 	// untyped struct 에 private field 있는 경우, 다른 패키지에서 호출 불가능
 	// showtest.UntypedStructFunc(struct {
@@ -65,5 +66,5 @@ func TestShow(t *testing.T) {
 		}{Level: 1, Stage: "hello"},
 	}.AsImmutable()
 
-	fmt.Println("e = ", showtest.ShowEmbeddedStruct.ShowIndent(e, show.Space))
+	fmt.Println("e = ", showtest.ShowEmbeddedStruct.ShowIndent(e, show.Json))
 }

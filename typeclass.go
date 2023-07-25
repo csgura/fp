@@ -6,8 +6,12 @@ import (
 )
 
 type ShowOption struct {
-	Indent    string
+	Indent string
+
 	OmitEmpty bool
+
+	// true 인 경우, type name 생략
+	OmitTypeName bool
 
 	// true 인 경우  1, 2, 3
 	// false 인 경우 1,2,3
@@ -24,6 +28,14 @@ type ShowOption struct {
 	// true 인 경우 { 1,2,3 }
 	// false인 경우 {1,2,3}
 	SpaceWithinBrace bool
+
+	// true 이면 array 의 경우 [] 사용
+	// false 이면 {} 사용
+	SquareBracketForArray bool
+
+	// true 이면 nil 을 null 로 출력
+	// false 이면 nil 사용
+	NullForNil bool
 
 	currentIndent string
 }
@@ -47,6 +59,11 @@ func (r ShowOption) WithOmitEmpty(b bool) ShowOption {
 	return r
 }
 
+func (r ShowOption) WithOmitTypeName(b bool) ShowOption {
+	r.OmitTypeName = b
+	return r
+}
+
 func (r ShowOption) WithSpaceAfterComma(b bool) ShowOption {
 	r.SpaceAfterComma = b
 	return r
@@ -64,6 +81,16 @@ func (r ShowOption) WithSpaceBeforeBrace(b bool) ShowOption {
 
 func (r ShowOption) WithSpaceWithinBrace(b bool) ShowOption {
 	r.SpaceWithinBrace = b
+	return r
+}
+
+func (r ShowOption) WithSquareBracketForArray(b bool) ShowOption {
+	r.SquareBracketForArray = b
+	return r
+}
+
+func (r ShowOption) WithNullForNil(b bool) ShowOption {
+	r.NullForNil = b
 	return r
 }
 
