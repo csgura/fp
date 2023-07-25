@@ -298,6 +298,24 @@ func Sort[T any](r fp.Seq[T], ord fp.Ord[T]) fp.Seq[T] {
 	return ns
 }
 
+func Min[T any](r fp.Seq[T], ord fp.Ord[T]) fp.Option[T] {
+	return Fold(r, fp.Option[T]{}, func(min fp.Option[T], v T) fp.Option[T] {
+		if min.IsDefined() && ord.Less(min.Get(), v) {
+			return min
+		}
+		return fp.Some[T](v)
+	})
+}
+
+func Max[T any](r fp.Seq[T], ord fp.Ord[T]) fp.Option[T] {
+	return Fold(r, fp.Option[T]{}, func(max fp.Option[T], v T) fp.Option[T] {
+		if max.IsDefined() && ord.Less(v, max.Get()) {
+			return max
+		}
+		return fp.Some[T](v)
+	})
+}
+
 func Span[T any](r fp.Seq[T], p func(T) bool) (fp.Seq[T], fp.Seq[T]) {
 	left := fp.Seq[T]{}
 	right := fp.Seq[T]{}
