@@ -9,6 +9,8 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 )
 
@@ -80,3 +82,24 @@ func TestToList(t *testing.T) {
 	list.Foreach(fp.Println[int])
 
 }
+
+func TestMax(t *testing.T) {
+	i := iterator.Range(0, 10)
+	max := iterator.Max(i, ord.Given[int]())
+	assert.Equal(max, option.Some(9))
+
+	i = iterator.Range(0, 10)
+	min := iterator.Min(i, ord.Given[int]())
+	assert.Equal(min, option.Some(0))
+
+}
+
+// range over func
+// func TestForLoop(t *testing.T) {
+// 	for v := range iterator.Range(0, 100).All() {
+// 		fmt.Printf("v = %d\n", v)
+// 		if v > 50 {
+// 			break
+// 		}
+// 	}
+// }

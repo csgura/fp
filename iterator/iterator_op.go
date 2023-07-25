@@ -2,6 +2,7 @@
 package iterator
 
 import (
+	"sort"
 	"sync"
 
 	"github.com/csgura/fp"
@@ -432,4 +433,37 @@ func Partition[T any](r fp.Iterator[T], p func(T) bool) (fp.Iterator[T], fp.Iter
 
 	return left.Filter(p), right.FilterNot(p)
 
+}
+
+type seqSorter[T any] struct {
+	seq fp.Seq[T]
+	ord fp.Ord[T]
+}
+
+func (p *seqSorter[T]) Len() int           { return len(p.seq) }
+func (p *seqSorter[T]) Less(i, j int) bool { return p.ord.Less(p.seq[i], p.seq[j]) }
+func (p *seqSorter[T]) Swap(i, j int)      { p.seq[i], p.seq[j] = p.seq[j], p.seq[i] }
+
+func Sort[T any](r fp.Iterator[T], ord fp.Ord[T]) fp.Seq[T] {
+	s := r.ToSeq()
+	sort.Sort(&seqSorter[T]{s, ord})
+	return s
+}
+
+func Min[T any](r fp.Iterator[T], ord fp.Ord[T]) fp.Option[T] {
+	return Fold(r, fp.Option[T]{}, func(min fp.Option[T], v T) fp.Option[T] {
+		if min.IsDefined() && ord.Less(min.Get(), v) {
+			return min
+		}
+		return fp.Some[T](v)
+	})
+}
+
+func Max[T any](r fp.Iterator[T], ord fp.Ord[T]) fp.Option[T] {
+	return Fold(r, fp.Option[T]{}, func(max fp.Option[T], v T) fp.Option[T] {
+		if max.IsDefined() && ord.Less(v, max.Get()) {
+			return max
+		}
+		return fp.Some[T](v)
+	})
 }
