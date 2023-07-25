@@ -963,8 +963,8 @@ func (r *TypeClassSummonContext) summonUntypedLabelledGenericRepr(ctx CurrentCon
 
 		hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
 			idx, t2 := t3.Unapply()
-			name, tp := t2.Unapply()
-			return fmt.Sprintf(`%s.RuntimeNamed[%s]{ I1 : "%s", I2 : i%d }`, fppk, r.w.TypeName(ctx.working, tp.Type), name, idx)
+			name, _ := t2.Unapply()
+			return fmt.Sprintf(`%s.Named("%s",i%d)`, aspk, name, idx)
 
 		}).MakeString(",")
 
@@ -1499,8 +1499,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 
 			hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
 				idx, t2 := t3.Unapply()
-				name, tp := t2.Unapply()
-				return fmt.Sprintf(`%s.RuntimeNamed[%s]{ I1 : "%s", I2 : i%d }`, fppk, r.w.TypeName(ctx.working, tp.Type), name, idx)
+				name, _ := t2.Unapply()
+				return fmt.Sprintf(`%s.Named("%s", i%d )`, aspk, name, idx)
 
 			}).MakeString(",")
 
@@ -1626,8 +1626,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 
 		hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
 			idx, t2 := t3.Unapply()
-			name, tp := t2.Unapply()
-			return fmt.Sprintf(`%s.RuntimeNamed[%s]{ I1 : "%s", I2 : i%d }`, fppk, r.w.TypeName(ctx.working, tp.Type), name, idx)
+			name, _ := t2.Unapply()
+			return fmt.Sprintf(`%s.Named("%s",  i%d)`, aspk, name, idx)
 
 		}).MakeString(",")
 
