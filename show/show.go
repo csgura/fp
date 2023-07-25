@@ -465,7 +465,7 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 	})
 }
 
-func AppendStruct(buf []string, typeName string, fields fp.Seq[fp.Tuple2[string, string]], opt fp.ShowOption) []string {
+func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, string]) []string {
 
 	itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Tuple2[string, string]) []string {
 		return []string{t.I1, spaceAfterColon(opt), t.I2}
