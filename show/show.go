@@ -24,6 +24,7 @@ var Pretty = fp.ShowOption{
 	SpaceAfterColon:  true,
 	SpaceBeforeBrace: true,
 	SpaceWithinBrace: true,
+	TrailingComma:    false,
 }
 
 var Space = fp.ShowOption{
@@ -232,6 +233,13 @@ func arrayClose(opt fp.ShowOption) string {
 	return "}"
 }
 
+func trailingComma(opt fp.ShowOption) string {
+	if opt.TrailingComma {
+		return ","
+	}
+	return ""
+}
+
 func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.ShowOption) []string {
 	childOpt := opt.IncreaseIndent()
 
@@ -247,7 +255,7 @@ func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), arrayOpen(opt), "\n", childOpt.CurrentIndent()),
 				makeString(showseq, ",\n"+childOpt.CurrentIndent())...,
 			),
-			"\n", opt.CurrentIndent(), arrayClose(opt),
+			trailingComma(opt), "\n", opt.CurrentIndent(), arrayClose(opt),
 		)
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
@@ -281,7 +289,7 @@ func appendMap(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), "{\n", childOpt.CurrentIndent()),
 				makeString(showseq, ",\n"+childOpt.CurrentIndent())...,
 			),
-			"\n", opt.CurrentIndent(), "}",
+			trailingComma(opt), "\n", opt.CurrentIndent(), "}",
 		)
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
@@ -481,7 +489,7 @@ func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Sh
 		}
 
 		if opt.Indent != "" {
-			return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt), "{\n", childOpt.CurrentIndent()), valueStr...), "\n", opt.CurrentIndent(), "}")
+			return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt), "{\n", childOpt.CurrentIndent()), valueStr...), trailingComma(opt), "\n", opt.CurrentIndent(), "}")
 
 		} else {
 			return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt), "{", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), "}")

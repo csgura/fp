@@ -42,7 +42,7 @@ func TestShow(t *testing.T) {
 		},
 		StringSeq: fp.Seq[string]{"1"},
 	}
-	fmt.Println(showtest.ShowCollection.ShowIndent(c, show.PrettyJson))
+	fmt.Println(showtest.ShowCollection.ShowIndent(c, show.Pretty))
 
 	d := showtest.HasTuple{
 		Entry: as.Tuple2("hello", 10),

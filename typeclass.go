@@ -17,6 +17,9 @@ type ShowOption struct {
 	// false 인 경우 1,2,3
 	SpaceAfterComma bool
 
+	// {} 나 [] 가 여러줄로 출력될 경우, 마지막 , 를 붙일지 여부
+	TrailingComma bool
+
 	// true 인 경우  a: 10,b: 20
 	// false인 경우 a:10,b:20
 	SpaceAfterColon bool
@@ -102,6 +105,11 @@ func (r ShowOption) WithNullForNil(b bool) ShowOption {
 
 func (r ShowOption) WithQouteNames(b bool) ShowOption {
 	r.QouteNames = b
+	return r
+}
+
+func (r ShowOption) WithTrailingComma(b bool) ShowOption {
+	r.TrailingComma = b
 	return r
 }
 
