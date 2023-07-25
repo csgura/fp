@@ -449,6 +449,7 @@ func (r *TypeClassSummonContext) checkRequired(ctx CurrentContext, required fp.S
 			}
 
 		} else {
+			// TODO: summonArgs에서 다시  lookup 하는 코드 있음.
 			res := r.lookupTypeClassInstance(ctx, v)
 			if res.target.IsLeft() {
 				if ctx.recursiveGen && v.TypeClass.Id() == ctx.tc.TypeClass.Id() {
@@ -662,6 +663,7 @@ func MergeSeqDistinct[T any](eqt fp.Eq[T]) fp.Monoid[fp.Seq[T]] {
 
 func (r *TypeClassSummonContext) summonArgs(ctx CurrentContext, args fp.Seq[metafp.RequiredInstance]) SummonExpr {
 	list := seq.Map(args, func(t metafp.RequiredInstance) SummonExpr {
+		// TODO: checkRequired 에서  lookup 하는 코드 있음. checkRequired 에서 한번 했으면 안하게 할 필요 있음.
 		ret := r.summon(ctx, t)
 		if t.Lazy {
 			lazypk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/lazy", "lazy"))
@@ -685,6 +687,8 @@ func newSummonExpr(expr string, params ...fp.Seq[ParamInstance]) SummonExpr {
 }
 
 func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lookupTarget) SummonExpr {
+	//fmt.Printf("lt : %s, %v\n", lt.instance(), lt.required())
+
 	if len(lt.required()) > 0 {
 		list := r.summonArgs(ctx, lt.required())
 
@@ -765,6 +769,8 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx CurrentContext, req
 		}
 	case *types.Named:
 		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
+			//fmt.Printf("lookup named hlist %s\n", req.Type)
+
 			if at.Obj().Name() == "Nil" {
 				return r.lookupTypeClassInstanceLocalDeclared(ctx, req, "HNil", "HListNil").
 					Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, "HNil", "HListNil")).OrElse(r.typeclassInstanceMust(ctx, req, "HNil"))

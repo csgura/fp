@@ -187,6 +187,11 @@ type RequiredInstance struct {
 	Lazy      bool
 	FieldOf   fp.Option[TypeInfo]
 }
+
+func (r RequiredInstance) String() string {
+	return fmt.Sprintf("%s[%s]", r.TypeClass.Id(), r.Type.String())
+}
+
 type TypeClassInstance struct {
 	Package *types.Package
 	Name    string
@@ -226,6 +231,13 @@ type TypeClassInstance struct {
 
 	// 생성될 instance 여서  RequiredInstance 가 정확하지 않을 수 있음.
 	WillGeneratedBy fp.Option[TypeClassDerive]
+}
+
+func (r TypeClassInstance) String() string {
+	if r.Package != nil {
+		return fmt.Sprintf("%s.%s : (%s) -> %s", r.Package.Path(), r.Name, r.RequiredInstance.MakeString(","), r.Result)
+	}
+	return r.Name
 }
 
 func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *types.Package) string {

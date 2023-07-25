@@ -246,6 +246,10 @@ type TypeParam struct {
 	TypeName   *types.TypeName
 }
 
+func (r TypeParam) String() string {
+	return fmt.Sprintf("%s %v", r.Name, r.Constraint)
+}
+
 func (r TypeParam) IsAny() bool {
 	return typeInfo(r.Constraint).IsAny()
 }
@@ -523,12 +527,12 @@ func (r TypeInfo) String() string {
 	name := r.Name().OrZero()
 	if r.Pkg != nil {
 		if r.TypeParam.Size() > 0 {
-			return fmt.Sprintf("%s.%s%s%v", r.PkgName(), name, r.TypeParam, r.TypeArgs)
+			return fmt.Sprintf("%s.%s[%s]", r.PkgName(), name, r.TypeArgs.MakeString(","))
 		}
 		return fmt.Sprintf("%s.%s", r.PkgName(), name)
 	}
 	if r.TypeParam.Size() > 0 {
-		return fmt.Sprintf("%s%s%v", name, r.TypeParam, r.TypeArgs)
+		return fmt.Sprintf("%s[%s]", name, r.TypeArgs.MakeString(","))
 	}
 	if name == "" {
 		return r.Type.String()
