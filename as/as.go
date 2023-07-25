@@ -44,6 +44,10 @@ func Tuple[K, V any](k K, v V) fp.Tuple2[K, V] {
 	return fp.Tuple2[K, V]{k, v}
 }
 
+func Named[V any](name string, v V) fp.RuntimeNamed[V] {
+	return fp.RuntimeNamed[V]{I1: name, I2: v}
+}
+
 func Dual[T any](t T) fp.Dual[T] {
 	return fp.Dual[T]{GetDual: t}
 }

@@ -82,7 +82,7 @@ var EncoderNormalStruct = js.EncoderContraMap(
 	fp.Compose(
 		func(v NormalStruct) fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]] {
 			i0, i1, i2 := v.Name, v.Age, v.Address
-			return as.Labelled3(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1}, fp.RuntimeNamed[string]{I1: "Address", I2: i2})
+			return as.Labelled3(as.Named("Name", i0), as.Named("Age", i1), as.Named("Address", i2))
 		},
 		as.HList3Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
 	),
@@ -142,7 +142,7 @@ var EncoderTuple2Struct = js.EncoderContraMap(
 	js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString), js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]())),
 	func(v Tuple2Struct) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
 		i0, i1 := v.Name, v.Age
-		return as.Labelled2(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1})
+		return as.Labelled2(as.Named("Name", i0), as.Named("Age", i1))
 	},
 )
 
@@ -1149,7 +1149,7 @@ var EncoderTestpk1LegacyStruct = js.EncoderContraMap(
 						World int
 					}) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
 						i0, i1 := v.Hello, v.World
-						return as.Labelled2(fp.RuntimeNamed[string]{I1: "Hello", I2: i0}, fp.RuntimeNamed[int]{I1: "World", I2: i1})
+						return as.Labelled2(as.Named("Hello", i0), as.Named("World", i1))
 					},
 				)),
 				js.EncoderHNil,
@@ -1162,10 +1162,7 @@ var EncoderTestpk1LegacyStruct = js.EncoderContraMap(
 			World int
 		}]] {
 			i0, i1, i2 := v.Name, v.Age, v.NoName
-			return as.Labelled3(fp.RuntimeNamed[string]{I1: "Name", I2: i0}, fp.RuntimeNamed[int]{I1: "Age", I2: i1}, fp.RuntimeNamed[struct {
-				Hello string
-				World int
-			}]{I1: "NoName", I2: i2})
+			return as.Labelled3(as.Named("Name", i0), as.Named("Age", i1), as.Named("NoName", i2))
 		},
 		as.HList3Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
 			Hello string
@@ -1281,7 +1278,7 @@ var EncoderTestpk1LegacyPhoneBook = js.EncoderContraMap(
 	js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[testpk1.LegacyPerson]](js.EncoderGiven[testpk1.LegacyPerson]()), js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString)),
 	func(v testpk1.LegacyPhoneBook) fp.Labelled2[fp.RuntimeNamed[testpk1.LegacyPerson], fp.RuntimeNamed[string]] {
 		i0, i1 := v.Person, v.Phone
-		return as.Labelled2(fp.RuntimeNamed[testpk1.LegacyPerson]{I1: "Person", I2: i0}, fp.RuntimeNamed[string]{I1: "Phone", I2: i1})
+		return as.Labelled2(as.Named("Person", i0), as.Named("Phone", i1))
 	},
 )
 
@@ -1361,7 +1358,7 @@ var EncoderLocalPhoneBook = js.EncoderContraMap(
 	fp.Compose(
 		func(v LocalPhoneBook) fp.Labelled3[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]] {
 			i0, i1, i2 := v.Person, v.Phone, v.Alias
-			return as.Labelled3(fp.RuntimeNamed[LocalPerson]{I1: "Person", I2: i0}, fp.RuntimeNamed[string]{I1: "Phone", I2: i1}, fp.RuntimeNamed[StringAlias]{I1: "Alias", I2: i2})
+			return as.Labelled3(as.Named("Person", i0), as.Named("Phone", i1), as.Named("Alias", i2))
 		},
 		as.HList3Labelled[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]],
 	),
