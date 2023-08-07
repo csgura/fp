@@ -44,6 +44,21 @@ func FromSeq[T any](seq []T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(seq)
 }
 
+func ReverseSeq[T any](seq []T) fp.Iterator[T] {
+	idx := len(seq)
+
+	return fp.MakeIterator(
+		func() bool {
+			return idx > 0
+		},
+		func() T {
+			ret := seq[idx-1]
+			idx--
+			return ret
+		},
+	)
+}
+
 func FromPtr[T any](ptr *T) fp.Iterator[T] {
 	if ptr == nil {
 		return Empty[T]()

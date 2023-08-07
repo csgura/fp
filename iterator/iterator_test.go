@@ -94,6 +94,14 @@ func TestMax(t *testing.T) {
 
 }
 
+func TestReverse(t *testing.T) {
+	i := iterator.Range(0, 10).ToSeq()
+
+	i = iterator.ReverseSeq(i).ToSeq()
+	assert.Equal(i[0], 9)
+	assert.Equal(len(i), 10)
+}
+
 // range over func
 // func TestForLoop(t *testing.T) {
 // 	for v := range iterator.Range(0, 100).All() {
