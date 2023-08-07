@@ -1,6 +1,7 @@
 package fp
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -146,6 +147,11 @@ type StringerFunc func() string
 
 func (r StringerFunc) String() string {
 	return r()
+}
+
+func (r StringerFunc) MarshalJSON() ([]byte, error) {
+	s := r()
+	return json.Marshal(s)
 }
 
 func (r ShowIndentFunc[T]) Stringer(t T, option ShowOption) fmt.Stringer {
