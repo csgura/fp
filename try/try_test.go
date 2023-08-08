@@ -132,3 +132,23 @@ func TestSequence(t *testing.T) {
 	assert.True(tryItr.IsFailure())
 
 }
+
+func TestTraverse(t *testing.T) {
+
+	res := try.Traverse(iterator.Range(0, 10), func(v int) fp.Try[int] {
+		return try.Success(v)
+	})
+	assert.True(res.IsSuccess())
+
+	assert.Equal(len(res.Get().ToSeq()), 10)
+
+	cnt := 0
+	res = try.Traverse(iterator.Range(0, 10), func(v int) fp.Try[int] {
+		cnt++
+		return try.Failure[int](errors.New("error"))
+	})
+
+	assert.True(res.IsFailure())
+	assert.Equal(cnt, 1)
+
+}
