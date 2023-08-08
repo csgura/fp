@@ -196,6 +196,16 @@ func FoldTry[A, B any](s fp.Seq[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B] {
 	return fp.Success(sum)
 }
 
+func FoldFuture[A, B any](itr fp.Seq[A], zero B, fn func(B, A) fp.Future[B], ctx ...fp.Executor) fp.Future[B] {
+	p := fp.NewPromise[B]()
+	p.Success(zero)
+	return Fold(itr, p.Future(), func(acc fp.Future[B], v A) fp.Future[B] {
+		return acc.FlatMap(func(acc B) fp.Future[B] {
+			return fn(acc, v)
+		}, ctx...)
+	})
+}
+
 // FoldOption 는 foldM 의 Option 버젼
 // foldM : (b -> a -> m b ) -> b -> t a -> m b
 func FoldOption[A, B any](s fp.Seq[A], zero B, f func(B, A) fp.Option[B]) fp.Option[B] {

@@ -314,12 +314,8 @@ func SequenceIterator[T any](futureList fp.Iterator[fp.Future[T]], ctx ...fp.Exe
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Iterator[U]] {
-	return iterator.Fold(itr, Successful(iterator.Empty[U]()), func(tryItr fp.Future[fp.Iterator[U]], v T) fp.Future[fp.Iterator[U]] {
-		return FlatMap(tryItr, func(acc fp.Iterator[U]) fp.Future[fp.Iterator[U]] {
-			return Map(fn(v), func(v U) fp.Iterator[U] {
-				return acc.Concat(iterator.Of(v))
-			}, ctx...)
-		}, ctx...)
+	return iterator.FoldFuture(itr, iterator.Empty[U](), func(acc fp.Iterator[U], v T) fp.Future[fp.Iterator[U]] {
+		return Map(fn(v), acc.Appended, ctx...)
 	})
 }
 

@@ -1,6 +1,7 @@
 package future_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -8,6 +9,8 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/future"
+	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/promise"
 	"github.com/csgura/fp/seq"
@@ -125,4 +128,25 @@ func TestApFail(t *testing.T) {
 	res := future.Ap(futureFunc1, host)
 
 	fmt.Println(future.Await(res, time.Second))
+}
+
+func TestTraverse(t *testing.T) {
+	ft := future.Traverse(iterator.Range(0, 10), func(v int) fp.Future[int] {
+		return future.Successful(v)
+	})
+
+	res := future.Await(ft, time.Second)
+	assert.True(res.IsSuccess())
+	assert.Equal(len(res.Get().ToSeq()), 10)
+
+	cnt := 0
+	ft = future.Traverse(iterator.Range(0, 10), func(v int) fp.Future[int] {
+		cnt++
+		return future.Failed[int](errors.New("error"))
+	})
+	res = future.Await(ft, time.Second)
+
+	assert.True(res.IsFailure())
+	assert.Equal(cnt, 1)
+
 }
