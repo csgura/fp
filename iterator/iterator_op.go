@@ -278,8 +278,9 @@ func FoldTry[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Try[B]) fp.Try[
 		t := f(sum, s.Next())
 		if t.IsSuccess() {
 			sum = t.Get()
+		} else {
+			return t
 		}
-		return t
 	}
 	return fp.Success(sum)
 }
@@ -305,8 +306,9 @@ func FoldOption[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Option[B]) f
 		t := f(sum, s.Next())
 		if t.IsDefined() {
 			sum = t.Get()
+		} else {
+			return t
 		}
-		return t
 	}
 	return fp.Some(sum)
 }
