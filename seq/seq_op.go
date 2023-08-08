@@ -209,6 +209,19 @@ func FoldOption[A, B any](s fp.Seq[A], zero B, f func(B, A) fp.Option[B]) fp.Opt
 	return fp.Some(sum)
 }
 
+// FoldError 는  FoldTry[A,fp.Unit]와 같은 함수인데
+// 하스켈에서 동일한 기능을 하는 함수를 찾아 보면 traverse_ 혹은 mapM_ 과 같은 함수
+// 하스켈에서 _ 가 붙어 있는 함수들은 결과를 discard 해서  m() 를 리턴함.
+func FoldError[A any](s fp.Seq[A], f func(A) error) error {
+	for _, v := range s {
+		err := f(v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func FoldMap[A, M any](s fp.Seq[A], m fp.Monoid[M], f func(A) M) M {
 	return Fold(s, m.Empty(), func(b M, a A) M {
 		return m.Combine(b, f(a))

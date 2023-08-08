@@ -248,12 +248,8 @@ func SequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Iter
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[fp.Iterator[U]] {
-	return iterator.Fold(itr, Some(iterator.Empty[U]()), func(tryItr fp.Option[fp.Iterator[U]], v T) fp.Option[fp.Iterator[U]] {
-		return FlatMap(tryItr, func(acc fp.Iterator[U]) fp.Option[fp.Iterator[U]] {
-			return Map(fn(v), func(v U) fp.Iterator[U] {
-				return acc.Concat(iterator.Of(v))
-			})
-		})
+	return iterator.FoldOption(itr, iterator.Empty[U](), func(acc fp.Iterator[U], v T) fp.Option[fp.Iterator[U]] {
+		return Map(fn(v), acc.Appended)
 	})
 }
 

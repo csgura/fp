@@ -284,6 +284,19 @@ func FoldTry[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Try[B]) fp.Try[
 	return fp.Success(sum)
 }
 
+// FoldError 는  FoldTry[A,fp.Unit]와 같은 함수인데
+// 하스켈에서 동일한 기능을 하는 함수를 찾아 보면 traverse_ 혹은 mapM_ 과 같은 함수
+// 하스켈에서 _ 가 붙어 있는 함수들은 결과를 discard 해서  m() 를 리턴함.
+func FoldError[A any](s fp.Iterator[A], f func(A) error) error {
+	for s.HasNext() {
+		err := f(s.Next())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // FoldOption 는 foldM 의 Option 버젼
 // foldM : (b -> a -> m b ) -> b -> t a -> m b
 func FoldOption[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Option[B]) fp.Option[B] {
