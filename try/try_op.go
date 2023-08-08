@@ -259,6 +259,16 @@ func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Itera
 	})
 }
 
+// Traverse_ 가  Traverse 와 다른점은,  result 를 무시 한다는 것
+// 다음은 하스켈의 traverse_ 함수
+// traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
+func Traverse_[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) error {
+	return iterator.FoldError(ia, func(a A) error {
+		_, err := fn(a).Unapply()
+		return err
+	})
+}
+
 func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.Try[fp.Option[R]] {
 	return Map(Traverse(fp.IteratorOfOption(opta), fa), fp.Iterator[R].NextOption)
 }
