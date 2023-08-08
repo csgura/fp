@@ -270,6 +270,34 @@ func Fold[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) B {
 	return sum
 }
 
+// FoldTry 는 foldM 의 Try 버젼
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldTry[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B] {
+	sum := zero
+	for s.HasNext() {
+		t := f(sum, s.Next())
+		if t.IsSuccess() {
+			sum = t.Get()
+		}
+		return t
+	}
+	return fp.Success(sum)
+}
+
+// FoldOption 는 foldM 의 Option 버젼
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldOption[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Option[B]) fp.Option[B] {
+	sum := zero
+	for s.HasNext() {
+		t := f(sum, s.Next())
+		if t.IsDefined() {
+			sum = t.Get()
+		}
+		return t
+	}
+	return fp.Some(sum)
+}
+
 func FoldRight[A, B any](s fp.Iterator[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval[B]) lazy.Eval[B] {
 	if s.IsEmpty() {
 		return lazy.Done(zero)

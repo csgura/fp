@@ -181,6 +181,34 @@ func Fold[A, B any](s fp.Seq[A], zero B, f func(B, A) B) B {
 	return sum
 }
 
+// FoldTry 는 foldM 의 Try 버젼
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldTry[A, B any](s fp.Seq[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B] {
+	sum := zero
+	for _, v := range s {
+		t := f(sum, v)
+		if t.IsSuccess() {
+			sum = t.Get()
+		}
+		return t
+	}
+	return fp.Success(sum)
+}
+
+// FoldOption 는 foldM 의 Option 버젼
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldOption[A, B any](s fp.Seq[A], zero B, f func(B, A) fp.Option[B]) fp.Option[B] {
+	sum := zero
+	for _, v := range s {
+		t := f(sum, v)
+		if t.IsDefined() {
+			sum = t.Get()
+		}
+		return t
+	}
+	return fp.Some(sum)
+}
+
 func FoldMap[A, M any](s fp.Seq[A], m fp.Monoid[M], f func(A) M) M {
 	return Fold(s, m.Empty(), func(b M, a A) M {
 		return m.Combine(b, f(a))
