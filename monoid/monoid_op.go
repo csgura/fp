@@ -126,7 +126,7 @@ func (r monoid[T]) Curried() func(T) func(T) T {
 func Endo[T any]() fp.Monoid[fp.Endo[T]] {
 	return New(
 		func() fp.Endo[T] {
-			return fp.Id[T]
+			return fp.Id
 		},
 		semigroup.Endo[T]().Combine,
 	)

@@ -375,6 +375,14 @@ func Scan[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) fp.Iterator[B] {
 	)
 }
 
+func Generate[T any](generator func() T) fp.Iterator[T] {
+	return fp.MakeIterator(func() bool {
+		return true
+	}, func() T {
+		return generator()
+	})
+}
+
 func Range(from, exclusive int) fp.Iterator[int] {
 	i := from
 	return fp.MakeIterator(

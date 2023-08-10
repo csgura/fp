@@ -102,6 +102,15 @@ func TestReverse(t *testing.T) {
 	assert.Equal(len(i), 10)
 }
 
+func TestZipLeft(t *testing.T) {
+	l := iterator.Range(0, 10)
+	r := iterator.Range(0, 5)
+
+	optr := iterator.Map(r, option.Some).Concat(iterator.Generate(option.None[int]))
+	zl := iterator.Zip(l, optr).ToSeq()
+	assert.Equal(len(zl), 10)
+}
+
 // range over func
 // func TestForLoop(t *testing.T) {
 // 	for v := range iterator.Range(0, 100).All() {

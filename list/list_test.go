@@ -145,7 +145,7 @@ func NotTestSum(t *testing.T) {
 
 func TestScan(t *testing.T) {
 
-	l := list.GenerateFrom(1, option.Some[int])
+	l := list.GenerateFrom(1, option.Some)
 	list.Scan(l, 0, monoid.Sum[int]().Combine).
 		Iterator().Take(10).Foreach(fp.Println[int])
 
@@ -218,7 +218,7 @@ func TestFoldMap(t *testing.T) {
 	}, func(a, b int) int {
 		fmt.Printf("%d + %d\n", a, b)
 		return a + b
-	}), fp.Id[int])
+	}), fp.Id)
 
 	fmt.Printf("sum = %d\n", sum)
 	assert.Equal(sum, 15)
@@ -230,7 +230,7 @@ func NotTestFoldMapInfinity(t *testing.T) {
 		return option.Some(false)
 	})
 
-	sum := list.FoldMap(l, monoid.All, fp.Id[bool])
+	sum := list.FoldMap(l, monoid.All, fp.Id)
 
 	println(sum)
 

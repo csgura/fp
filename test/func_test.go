@@ -102,7 +102,7 @@ func TestFunc(t *testing.T) {
 	format16 := curried.Flip(as.Curried2(strconv.FormatInt))(16)
 	format16(123456)
 
-	f := fp.Compose(strconv.Itoa, option.Some[string])
+	f := fp.Compose(strconv.Itoa, option.Some)
 	fmt.Println(f(20))
 
 	tf := try.Func1(strconv.Atoi)
