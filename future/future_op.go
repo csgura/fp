@@ -176,7 +176,7 @@ func ComposeTry[A, B, C any](f1 func(A) fp.Try[B], f2 func(B) fp.Future[C], ctx 
 }
 
 func ComposePure[A, B any](fab func(A) B, ctx ...fp.Executor) func(A) fp.Future[B] {
-	return fp.Compose(fab, Successful[B])
+	return fp.Compose(fab, Successful)
 }
 
 func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.Executor) fp.Future[U] {
@@ -263,7 +263,7 @@ func FlapMap[A, B, R any](tfab func(A, B) R, ta fp.Future[A], ctx ...fp.Executor
 // https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 // om , ==<<  이름으로 정의된 것이 있음
 func FlatFlapMap[A, B, R any](fab func(A, B) fp.Future[R], ta fp.Future[A], ctx ...fp.Executor) func(B) fp.Future[R] {
-	return fp.Compose(FlapMap(fab, ta, ctx...), Flatten[R])
+	return fp.Compose(FlapMap(fab, ta, ctx...), Flatten)
 }
 
 // FlatMap 과는 아규먼트 순서가 다른 함수로

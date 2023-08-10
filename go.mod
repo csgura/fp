@@ -1,6 +1,6 @@
 module github.com/csgura/fp
 
-go 1.18
+go 1.21
 
 require golang.org/x/tools v0.1.12
 

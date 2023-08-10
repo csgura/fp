@@ -96,11 +96,11 @@ func Map2[A, B, U any](a fp.Seq[A], b fp.Seq[B], f func(A, B) U) fp.Seq[U] {
 }
 
 func FilterMap[T, U any](opt fp.Seq[T], fn func(v T) fp.Option[U]) fp.Seq[U] {
-	return FlatMap(opt, fp.Compose(fn, option.ToSeq[U]))
+	return FlatMap(opt, fp.Compose(fn, option.ToSeq))
 }
 
 func FilterNil[T any](opt fp.Seq[*T]) fp.Seq[T] {
-	return FilterMap(opt, option.Ptr[T])
+	return FilterMap(opt, option.Ptr)
 }
 
 func Lift[T, U any](f func(v T) U) func(fp.Seq[T]) fp.Seq[U] {

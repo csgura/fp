@@ -90,7 +90,7 @@ func ComposeOption[A, B, C any](f1 func(A) fp.Option[B], f2 func(B) fp.Try[C]) f
 }
 
 func ComposePure[A, B any](fab func(A) B) func(A) fp.Try[B] {
-	return fp.Compose(fab, Success[B])
+	return fp.Compose(fab, Success)
 }
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
@@ -204,7 +204,7 @@ func FlapMap[A, B, R any](tfab func(A, B) R, a fp.Try[A]) func(B) fp.Try[R] {
 // https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 // om , ==<<  이름으로 정의된 것이 있음
 func FlatFlapMap[A, B, R any](fab func(A, B) fp.Try[R], ta fp.Try[A]) func(B) fp.Try[R] {
-	return fp.Compose(FlapMap(fab, ta), Flatten[R])
+	return fp.Compose(FlapMap(fab, ta), Flatten)
 }
 
 // FlatMap 과는 아규먼트 순서가 다른 함수로
@@ -231,7 +231,7 @@ func Method2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) R) func(B, C
 
 func FlatMethod2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) fp.Try[R]) func(B, C) fp.Try[R] {
 
-	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(fabc))), Flatten[R]))
+	return curried.Revert2(curried.Compose2(Flap2(Map(ta, as.Curried3(fabc))), Flatten))
 
 	// return func(b B, c C) fp.Try[R] {
 	// 	return FlatMap(ta, func(a A) fp.Try[R] {
@@ -241,7 +241,7 @@ func FlatMethod2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) fp.Try[R
 }
 
 func Zip[A, B any](ta fp.Try[A], tb fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
-	return Map2(ta, tb, product.Tuple2[A, B])
+	return Map2(ta, tb, product.Tuple2)
 }
 
 func Zip3[A, B, C any](ta fp.Try[A], tb fp.Try[B], tc fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
