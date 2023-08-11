@@ -1064,6 +1064,7 @@ func delete_gen_files(pack string) {
 }
 
 func main() {
+
 	pack := os.Getenv("GOPACKAGE")
 	if pack == "" {
 		fmt.Println("invalid package. please run gombok using go generate command")

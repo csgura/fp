@@ -42,11 +42,11 @@ var ShowNormalStruct = show.Generic(
 			func(v NormalStruct) fp.Tuple3[string, int, string] {
 				return as.Tuple3(v.Name, v.Age, v.Address)
 			},
-			as.HList3[string, int, string],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[string, int, string],
+			product.TupleFromHList3,
 			func(t fp.Tuple3[string, int, string]) NormalStruct {
 				return NormalStruct{
 					Name:    t.I1,
@@ -84,7 +84,7 @@ var EncoderNormalStruct = js.EncoderContraMap(
 			i0, i1, i2 := v.Name, v.Age, v.Address
 			return as.Labelled3(as.Named("Name", i0), as.Named("Age", i1), as.Named("Address", i2))
 		},
-		as.HList3Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
+		as.HList3Labelled,
 	),
 )
 
@@ -101,7 +101,7 @@ var DecoderNormalStruct = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]],
+		product.LabelledFromHList3,
 		func(t fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]]) NormalStruct {
 			return NormalStruct{Name: t.I1.Value(), Age: t.I2.Value(), Address: t.I3.Value()}
 		},
@@ -116,11 +116,11 @@ var ShowTuple2Struct = show.Generic(
 			func(v Tuple2Struct) fp.Tuple2[string, int] {
 				return as.Tuple2(v.Name, v.Age)
 			},
-			as.HList2[string, int],
+			as.HList2,
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[string, int],
+			product.TupleFromHList2,
 			func(t fp.Tuple2[string, int]) Tuple2Struct {
 				return Tuple2Struct{
 					Name: t.I1,
@@ -1061,17 +1061,11 @@ var ShowTestpk1LegacyStruct = show.Generic(
 			}] {
 				return as.Tuple3(v.Name, v.Age, v.NoName)
 			},
-			as.HList3[string, int, struct {
-				Hello string
-				World int
-			}],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[string, int, struct {
-				Hello string
-				World int
-			}],
+			product.TupleFromHList3,
 			func(t fp.Tuple3[string, int, struct {
 				Hello string
 				World int
@@ -1100,11 +1094,11 @@ var ShowTestpk1LegacyStruct = show.Generic(
 							}) fp.Tuple2[string, int] {
 								return as.Tuple2(v.Hello, v.World)
 							},
-							as.HList2[string, int],
+							as.HList2,
 						),
 
 						fp.Compose(
-							product.TupleFromHList2[string, int],
+							product.TupleFromHList2,
 							func(t fp.Tuple2[string, int]) struct {
 								Hello string
 								World int
@@ -1164,10 +1158,7 @@ var EncoderTestpk1LegacyStruct = js.EncoderContraMap(
 			i0, i1, i2 := v.Name, v.Age, v.NoName
 			return as.Labelled3(as.Named("Name", i0), as.Named("Age", i1), as.Named("NoName", i2))
 		},
-		as.HList3Labelled[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
-			Hello string
-			World int
-		}]],
+		as.HList3Labelled,
 	),
 )
 
@@ -1198,10 +1189,7 @@ var DecoderTestpk1LegacyStruct = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
-			Hello string
-			World int
-		}]],
+		product.LabelledFromHList3,
 		func(t fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
 			Hello string
 			World int
@@ -1252,11 +1240,11 @@ var ShowTestpk1LegacyPhoneBook = show.Generic(
 			func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
 				return as.Tuple2(v.Person, v.Phone)
 			},
-			as.HList2[testpk1.LegacyPerson, string],
+			as.HList2,
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[testpk1.LegacyPerson, string],
+			product.TupleFromHList2,
 			func(t fp.Tuple2[testpk1.LegacyPerson, string]) testpk1.LegacyPhoneBook {
 				return testpk1.LegacyPhoneBook{
 					Person: t.I1,
@@ -1318,11 +1306,11 @@ var ShowLocalPhoneBook = show.Generic(
 			func(v LocalPhoneBook) fp.Tuple3[LocalPerson, string, StringAlias] {
 				return as.Tuple3(v.Person, v.Phone, v.Alias)
 			},
-			as.HList3[LocalPerson, string, StringAlias],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[LocalPerson, string, StringAlias],
+			product.TupleFromHList3,
 			func(t fp.Tuple3[LocalPerson, string, StringAlias]) LocalPhoneBook {
 				return LocalPhoneBook{
 					Person: t.I1,
@@ -1360,7 +1348,7 @@ var EncoderLocalPhoneBook = js.EncoderContraMap(
 			i0, i1, i2 := v.Person, v.Phone, v.Alias
 			return as.Labelled3(as.Named("Person", i0), as.Named("Phone", i1), as.Named("Alias", i2))
 		},
-		as.HList3Labelled[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]],
+		as.HList3Labelled,
 	),
 )
 
@@ -1377,7 +1365,7 @@ var DecoderLocalPhoneBook = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]],
+		product.LabelledFromHList3,
 		func(t fp.Labelled3[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]]) LocalPhoneBook {
 			return LocalPhoneBook{Person: t.I1.Value(), Phone: t.I2.Value(), Alias: t.I3.Value()}
 		},

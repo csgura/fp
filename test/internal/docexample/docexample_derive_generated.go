@@ -43,11 +43,11 @@ var ShowAddress = show.Generic(
 		"Struct",
 		fp.Compose(
 			Address.AsTuple,
-			as.HList3[string, string, string],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[string, string, string],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
 				AddressBuilder.Build,
@@ -79,6 +79,6 @@ var EncoderCar = js.EncoderContraMap(
 	),
 	fp.Compose(
 		Car.AsLabelled,
-		as.HList3Labelled[NamedCompany[string], NamedModel[string], NamedYear[int]],
+		as.HList3Labelled,
 	),
 )

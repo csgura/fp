@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/csgura/fp"
@@ -925,6 +926,9 @@ func namedOrRuntime(w genfp.Writer, working *types.Package, typePkg *types.Packa
 	}
 
 }
+
+var implicitTypeInference = option.Of(runtime.Version()).Filter(func(v string) bool { return v >= "1.21.0" }).IsDefined()
+
 func (r *TypeClassSummonContext) summonUntypedLabelledGenericRepr(ctx CurrentContext, tc metafp.TypeClass, fields fp.Seq[metafp.StructField]) fp.Option[GenericRepr] {
 
 	valuereceiver := "struct { " + seq.Map(fields, func(v metafp.StructField) string {
@@ -1039,13 +1043,23 @@ func (r *TypeClassSummonContext) summonUntypedLabelledGenericRepr(ctx CurrentCon
 							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, ctx.working, f.I1, false), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
-						return fmt.Sprintf(`%s.Compose(
-						%s,
-						%s.HList%dLabelled[%s],
-					)`, fppk,
-							asLabelledFuncExpr(),
-							aspk, arity, tp,
-						)
+						if implicitTypeInference {
+							return fmt.Sprintf(`%s.Compose(
+								%s,
+								%s.HList%dLabelled,
+							)`, fppk,
+								asLabelledFuncExpr(),
+								aspk, arity,
+							)
+						} else {
+							return fmt.Sprintf(`%s.Compose(
+								%s,
+								%s.HList%dLabelled[%s],
+							)`, fppk,
+								asLabelledFuncExpr(),
+								aspk, arity, tp,
+							)
+						}
 					} else {
 						hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
@@ -1109,10 +1123,19 @@ func (r *TypeClassSummonContext) summonUntypedLabelledGenericRepr(ctx CurrentCon
 							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, ctx.working, f.I1, false), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
-						hlistToTuple := fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
-							productpk,
-							arity, tp,
-						)
+						hlistToTuple := func() string {
+							if implicitTypeInference {
+								return fmt.Sprintf(`%s.LabelledFromHList%d`,
+									productpk,
+									arity,
+								)
+							} else {
+								return fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
+									productpk,
+									arity, tp,
+								)
+							}
+						}()
 
 						tupleToStruct := fromLabelledFuncExpr()
 						return fmt.Sprintf(`
@@ -1223,13 +1246,24 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
-						return fmt.Sprintf(`%s.Compose(
-						%s,
-						%s.HList%dLabelled[%s],
-					)`, fppk,
-							sf.asLabelled(),
-							aspk, arity, tp,
-						)
+						if implicitTypeInference {
+							return fmt.Sprintf(`%s.Compose(
+								%s,
+								%s.HList%dLabelled,
+							)`, fppk,
+								sf.asLabelled(),
+								aspk, arity,
+							)
+						} else {
+							return fmt.Sprintf(`%s.Compose(
+								%s,
+								%s.HList%dLabelled[%s],
+							)`, fppk,
+								sf.asLabelled(),
+								aspk, arity, tp,
+							)
+						}
+
 					} else {
 						hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
 
@@ -1293,10 +1327,19 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
-						hlistToTuple := fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
-							productpk,
-							arity, tp,
-						)
+						hlistToTuple := func() string {
+							if implicitTypeInference {
+								return fmt.Sprintf(`%s.LabelledFromHList%d`,
+									productpk,
+									arity,
+								)
+							} else {
+								return fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
+									productpk,
+									arity, tp,
+								)
+							}
+						}()
 
 						tupleToStruct := sf.fromLabelled()
 						return fmt.Sprintf(`
@@ -1743,7 +1786,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 		}
 	}
 
-	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe))
+	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe), false)
 
 	return GenericRepr{
 		Kind: fp.GenericKindStruct,
@@ -1864,7 +1907,7 @@ func (r *TypeClassSummonContext) summonNamedGenericRepr(ctx CurrentContext, tc m
 	return r.summonStructGenericRepr(ctx, tc, sf)
 }
 
-func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo]) GenericRepr {
+func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo], explicit bool) GenericRepr {
 	return GenericRepr{
 		Kind: fp.GenericKindTuple,
 		// ReprType: func() string {
@@ -1880,6 +1923,11 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 				return r.w.TypeName(ctx.working, f.Type)
 			}).Take(arity).MakeString(",")
 
+			if implicitTypeInference {
+				return fmt.Sprintf(`%s.HList%d`,
+					aspk, arity,
+				)
+			}
 			return fmt.Sprintf(`%s.HList%d[%s]`,
 				aspk, arity, tp,
 			)
@@ -1895,9 +1943,17 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 				return r.w.TypeName(ctx.working, f.Type)
 			}).Take(arity).MakeString(",")
 
-			hlistToTuple := fmt.Sprintf(`%s.TupleFromHList%d[%s]`,
-				productpk, arity, tp,
-			)
+			hlistToTuple := func() string {
+				if implicitTypeInference && explicit == false {
+					return fmt.Sprintf(`%s.TupleFromHList%d`,
+						productpk, arity,
+					)
+				} else {
+					return fmt.Sprintf(`%s.TupleFromHList%d[%s]`,
+						productpk, arity, tp,
+					)
+				}
+			}()
 
 			// hlistToTuple := fmt.Sprintf(`%s.Func2(
 			// 		%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]],
@@ -1941,7 +1997,7 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 		return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, fp.Option[metafp.TypeInfo]{})
 	}
 
-	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, fp.Option[metafp.TypeInfo]{})
+	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, fp.Option[metafp.TypeInfo]{}, true)
 	return r.summonVariant(ctx, tc, fmt.Sprintf("fp.Tuple%d", typeArgs.Size()), tupleGeneric)
 
 }

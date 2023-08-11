@@ -93,7 +93,7 @@ var EncoderThree = js.EncoderContraMap(
 	),
 	fp.Compose(
 		Three.AsLabelled,
-		as.HList3Labelled[NamedOne[int], NamedTwo[string], NamedThree[float64]],
+		as.HList3Labelled,
 	),
 )
 
@@ -110,7 +110,7 @@ var DecoderThree = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[NamedOne[int], NamedTwo[string], NamedThree[float64]],
+		product.LabelledFromHList3,
 		fp.Compose(
 			as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
 			ThreeBuilder.Build,
@@ -124,11 +124,11 @@ var ShowThree = show.Generic(
 		"Struct",
 		fp.Compose(
 			Three.AsTuple,
-			as.HList3[int, string, float64],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[int, string, float64],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
 				ThreeBuilder.Build,
@@ -153,11 +153,11 @@ var ReadThree = read.Generic(
 		"Struct",
 		fp.Compose(
 			Three.AsTuple,
-			as.HList3[int, string, float64],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[int, string, float64],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
 				ThreeBuilder.Build,
@@ -206,6 +206,6 @@ var EncoderTestpk1World = js.EncoderContraMap(
 	),
 	fp.Compose(
 		testpk1.World.AsLabelled,
-		as.HList3Labelled[testpk1.NamedMessage[string], testpk1.NamedTimestamp[time.Time], testpk1.PubNamedPub[string]],
+		as.HList3Labelled,
 	),
 )

@@ -34,7 +34,7 @@ var EncoderWorld = js.EncoderContraMap(
 	),
 	fp.Compose(
 		World.AsLabelled,
-		as.HList3Labelled[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]],
+		as.HList3Labelled,
 	),
 )
 
@@ -51,7 +51,7 @@ var DecoderWorld = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]],
+		product.LabelledFromHList3,
 		fp.Compose(
 			as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
 			WorldBuilder.Build,
@@ -65,11 +65,11 @@ var ShowWorld = show.Generic(
 		"Struct",
 		fp.Compose(
 			World.AsTuple,
-			as.HList3[string, time.Time, string],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[string, time.Time, string],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 				WorldBuilder.Build,
@@ -104,7 +104,7 @@ var EncoderHasOption = js.EncoderContraMap(
 	),
 	fp.Compose(
 		HasOption.AsLabelled,
-		as.HList4Labelled[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]],
+		as.HList4Labelled,
 	),
 )
 
@@ -119,11 +119,11 @@ var ShowHListInsideHList = show.Generic(
 		"Struct",
 		fp.Compose(
 			HListInsideHList.AsTuple,
-			as.HList3[fp.Tuple2[string, int], string, World],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[fp.Tuple2[string, int], string, World],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
 				HListInsideHListBuilder.Build,
@@ -135,7 +135,7 @@ var ShowHListInsideHList = show.Generic(
 			as.Generic(
 				"fp.Tuple2",
 				"Tuple",
-				as.HList2[string, int],
+				as.HList2,
 				product.TupleFromHList2[string, int],
 			),
 			show.TupleHCons(
@@ -162,11 +162,11 @@ var ReadHListInsideHList = read.Generic(
 		"Struct",
 		fp.Compose(
 			HListInsideHList.AsTuple,
-			as.HList3[fp.Tuple2[string, int], string, World],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[fp.Tuple2[string, int], string, World],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
 				HListInsideHListBuilder.Build,
@@ -178,7 +178,7 @@ var ReadHListInsideHList = read.Generic(
 			as.Generic(
 				"fp.Tuple2",
 				"Tuple",
-				as.HList2[string, int],
+				as.HList2,
 				product.TupleFromHList2[string, int],
 			),
 			read.TupleHCons(
@@ -205,11 +205,11 @@ var ReadWorld = read.Generic(
 		"Struct",
 		fp.Compose(
 			World.AsTuple,
-			as.HList3[string, time.Time, string],
+			as.HList3,
 		),
 
 		fp.Compose(
-			product.TupleFromHList3[string, time.Time, string],
+			product.TupleFromHList3,
 			fp.Compose(
 				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 				WorldBuilder.Build,
@@ -1180,10 +1180,7 @@ var DecoderLegacyStruct = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
-			Hello string
-			World int
-		}]],
+		product.LabelledFromHList4,
 		func(t fp.Labelled4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
 			Hello string
 			World int

@@ -16,11 +16,11 @@ var CloneCloneStruct = clone.Generic(
 		"Struct",
 		fp.Compose(
 			CloneStruct.AsTuple,
-			as.HList2[string, int],
+			as.HList2,
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[string, int],
+			product.TupleFromHList2,
 			fp.Compose(
 				as.Curried2(CloneStructBuilder.FromTuple)(CloneStructBuilder{}),
 				CloneStructBuilder.Build,
@@ -44,11 +44,11 @@ var CloneHasReference = clone.Generic(
 			func(v HasReference) fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct] {
 				return as.Tuple8(v.A, v.S, v.M, v.RD, v.T, v.MS, v.VS, v.CS)
 			},
-			as.HList8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct],
+			as.HList8,
 		),
 
 		fp.Compose(
-			product.TupleFromHList8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct],
+			product.TupleFromHList8,
 			func(t fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]) HasReference {
 				return HasReference{
 					A:  t.I1,
@@ -98,11 +98,11 @@ var CloneValueStruct = clone.Generic(
 		"Struct",
 		fp.Compose(
 			ValueStruct.AsTuple,
-			as.HList2[string, int],
+			as.HList2,
 		),
 
 		fp.Compose(
-			product.TupleFromHList2[string, int],
+			product.TupleFromHList2,
 			fp.Compose(
 				as.Curried2(ValueStructBuilder.FromTuple)(ValueStructBuilder{}),
 				ValueStructBuilder.Build,
@@ -140,11 +140,11 @@ var CloneRecursiveDerive = clone.Generic(
 			func(v RecursiveDerive) fp.Tuple1[[]string] {
 				return as.Tuple1(v.S)
 			},
-			as.HList1[[]string],
+			as.HList1,
 		),
 
 		fp.Compose(
-			product.TupleFromHList1[[]string],
+			product.TupleFromHList1,
 			func(t fp.Tuple1[[]string]) RecursiveDerive {
 				return RecursiveDerive{
 					S: t.I1,

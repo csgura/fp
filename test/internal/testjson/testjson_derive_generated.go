@@ -39,7 +39,7 @@ var EncoderRoot = js.EncoderContraMap(
 	),
 	fp.Compose(
 		Root.AsLabelled,
-		as.HList8Labelled[NamedA[int], NamedB[string], NamedC[float64], NamedD[bool], NamedE[*int], NamedF[[]int], NamedG[map[string]int], NamedH[Child]],
+		as.HList8Labelled,
 	),
 )
 
@@ -73,7 +73,7 @@ var DecoderRoot = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList8[NamedA[int], NamedB[string], NamedC[float64], NamedD[bool], NamedE[*int], NamedF[[]int], NamedG[map[string]int], NamedH[Child]],
+		product.LabelledFromHList8,
 		fp.Compose(
 			as.Curried2(RootBuilder.FromLabelled)(RootBuilder{}),
 			RootBuilder.Build,
@@ -112,7 +112,7 @@ func EncoderNode() js.Encoder[Node] {
 		),
 		fp.Compose(
 			Node.AsLabelled,
-			as.HList3Labelled[NamedName[string], NamedLeft[*Node], NamedRight[*Node]],
+			as.HList3Labelled,
 		),
 	)
 }
@@ -151,7 +151,7 @@ var EncoderMovie = js.EncoderContraMap(
 	),
 	fp.Compose(
 		Movie.AsLabelled,
-		as.HList3Labelled[NamedName[string], NamedCasting[Entry[string]], NamedNotUsed[NotUsedParam[int, string]]],
+		as.HList3Labelled,
 	),
 )
 
@@ -167,7 +167,7 @@ var DecoderNoPrivate = js.DecoderMap(
 	),
 
 	fp.Compose(
-		product.LabelledFromHList1[PubNamedRoot[string]],
+		product.LabelledFromHList1,
 		fp.Compose(
 			as.Curried2(NoPrivateBuilder.FromLabelled)(NoPrivateBuilder{}),
 			NoPrivateBuilder.Build,
