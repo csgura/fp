@@ -300,6 +300,47 @@ func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 	)
 }
 
+func (r Iterator[T]) Map(mf func(T) T) Iterator[T] {
+	return MakeIterator(
+		func() bool {
+			return r.HasNext()
+		},
+		func() T {
+			return mf(r.Next())
+		},
+	)
+}
+
+func (r Iterator[T]) FlatMap(mf func(T) Iterator[T]) Iterator[T] {
+	current := None[Iterator[T]]()
+
+	hasNext := func() bool {
+		if current.IsDefined() && current.Get().HasNext() {
+			return true
+		}
+
+		for r.HasNext() {
+			nextItr := mf(r.Next())
+			current = Some(nextItr)
+			if nextItr.HasNext() {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	return MakeIterator(
+		hasNext,
+		func() T {
+			if hasNext() {
+				return current.Get().Next()
+			}
+			panic("next on empty iterator")
+		},
+	)
+}
+
 // func (r Iterator[T]) Reduce(m Monoid[T]) T {
 // 	ret := m.Empty()
 // 	for r.HasNext() {

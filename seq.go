@@ -121,6 +121,22 @@ func (r Seq[T]) ForAll(p func(v T) bool) bool {
 	return true
 }
 
+func (r Seq[T]) Map(mf func(T) T) Seq[T] {
+	var ret = make([]T, 0, len(r))
+	for _, v := range r {
+		ret = append(ret, mf(v))
+	}
+	return ret
+}
+
+func (r Seq[T]) FlatMap(mf func(T) Seq[T]) Seq[T] {
+	var ret = make([]T, 0, len(r))
+	for _, v := range r {
+		ret = append(ret, mf(v)...)
+	}
+	return ret
+}
+
 func (r Seq[T]) Find(p func(v T) bool) Option[T] {
 	for _, v := range r {
 		if p(v) {
