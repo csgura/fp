@@ -13,7 +13,19 @@ import (
 	"github.com/csgura/fp/mutable"
 )
 
+func Empty[T any]() fp.Iterator[T] {
+	return fp.MakeIterator(func() bool {
+		return false
+	}, func() T {
+		panic("next on empty iterator")
+	})
+}
+
 func List[T any](list fp.List[T]) fp.Iterator[T] {
+	return FromList(list)
+}
+
+func FromList[T any](list fp.List[T]) fp.Iterator[T] {
 	current := list
 
 	return fp.MakeIterator(
@@ -26,14 +38,6 @@ func List[T any](list fp.List[T]) fp.Iterator[T] {
 			return ret
 		},
 	)
-}
-
-func Empty[T any]() fp.Iterator[T] {
-	return fp.MakeIterator(func() bool {
-		return false
-	}, func() T {
-		panic("next on empty iterator")
-	})
 }
 
 func Of[T any](list ...T) fp.Iterator[T] {
@@ -249,6 +253,27 @@ func Zip[T, U any](a fp.Iterator[T], b fp.Iterator[U]) fp.Iterator[fp.Tuple2[T, 
 		},
 		func() fp.Tuple2[T, U] {
 			return as.Tuple(a.Next(), b.Next())
+		},
+	)
+}
+
+func ZipWithIndex[A any](s1 fp.Iterator[A]) fp.Iterator[fp.Tuple2[int, A]] {
+	idx := 0
+	idxList := Generate(func() int {
+		ret := idx
+		idx++
+		return ret
+	})
+	return Zip(idxList, s1)
+}
+
+func Zip3[A, B, C any](a fp.Iterator[A], b fp.Iterator[B], c fp.Iterator[C]) fp.Iterator[fp.Tuple3[A, B, C]] {
+	return fp.MakeIterator(
+		func() bool {
+			return a.HasNext() && b.HasNext() && c.HasNext()
+		},
+		func() fp.Tuple3[A, B, C] {
+			return as.Tuple3(a.Next(), b.Next(), c.Next())
 		},
 	)
 }

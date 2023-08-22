@@ -1,6 +1,8 @@
 package list
 
 import (
+	"sort"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
@@ -185,6 +187,10 @@ func Map2[A, B, U any](a fp.List[A], b fp.List[B], f func(A, B) U) fp.List[U] {
 	})
 }
 
+func FilterMap[T, U any](opt fp.List[T], fn func(v T) fp.Option[U]) fp.List[U] {
+	return FlatMap(opt, fp.Compose(fn, FromOption))
+}
+
 func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 
 	if opt.IsEmpty() {
@@ -226,6 +232,47 @@ func Apply[T any](head T, tail fp.List[T]) fp.List[T] {
 
 func Of[T any](e ...T) fp.List[T] {
 	return Seq[T](e)
+}
+
+func FromSeq[T any](seq []T) fp.List[T] {
+	return Seq[T](seq)
+}
+
+func ReverseSeq[T any](seq []T) fp.List[T] {
+	return fp.MakeList(
+		func() fp.Option[T] {
+			return fp.Seq[T](seq).Last()
+		},
+		func() fp.List[T] {
+			return ReverseSeq(fp.Seq[T](seq).Init())
+		},
+	)
+}
+
+func FromPtr[T any](ptr *T) fp.List[T] {
+	if ptr == nil {
+		return Empty[T]()
+	}
+	return Of(*ptr)
+}
+
+func FromOption[T any](opt fp.Option[T]) fp.List[T] {
+	if opt.IsDefined() {
+		return Of(opt.Get())
+	}
+	return Empty[T]()
+}
+
+func FromMap[K comparable, V any](m map[K]V) fp.List[fp.Tuple2[K, V]] {
+	return Collect(fp.IteratorOfGoMap(m))
+}
+
+func FromMapKey[K comparable, V any](m map[K]V) fp.List[K] {
+	return Collect(mutable.MapOf(m).Keys())
+}
+
+func FromMapValue[K comparable, V any](m map[K]V) fp.List[V] {
+	return Collect(mutable.MapOf(m).Values())
 }
 
 func Collect[T any](itr fp.Iterator[T]) fp.List[T] {
@@ -293,6 +340,30 @@ func Flatten[T any](opt fp.List[fp.List[T]]) fp.List[T] {
 	})
 }
 
+func Flap[A, R any](tfa fp.List[fp.Func1[A, R]]) func(A) fp.List[R] {
+	return func(a A) fp.List[R] {
+		return Ap(tfa, Of(a))
+	}
+}
+
+func Flap2[A, B, R any](tfab fp.List[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.List[R]]] {
+	return func(a A) fp.Func1[B, fp.List[R]] {
+		return Flap(Ap(tfab, Of(a)))
+	}
+}
+
+func FlapMap[A, B, R any](tfab func(A, B) R, a fp.List[A]) func(B) fp.List[R] {
+	return Flap(Map(a, as.Curried2(tfab)))
+}
+
+func Method1[A, B, R any](ta fp.List[A], fab func(a A, b B) R) func(B) fp.List[R] {
+	return FlapMap(fab, ta)
+}
+
+func Method2[A, B, C, R any](ta fp.List[A], fabc func(a A, b B, c C) R) func(B, C) fp.List[R] {
+	return curried.Revert2(Flap2(Map(ta, as.Curried3(fabc))))
+}
+
 func ToMap[K, V any](list fp.List[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
 	ret := immutable.MapBuilder[K, V](hasher)
 
@@ -352,6 +423,13 @@ func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 	)
 }
 
+func ZipWithIndex[A any](s1 fp.List[A]) fp.List[fp.Tuple2[int, A]] {
+	idxList := Generate(func(index int) fp.Option[int] {
+		return fp.Some(index)
+	})
+	return Zip(idxList, s1)
+}
+
 func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tuple3[A, B, C]] {
 	return fp.MakeList(
 		func() fp.Option[fp.Tuple3[A, B, C]] {
@@ -391,6 +469,66 @@ func FoldLeft[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 		return lazy.Done(fp.Endo[B](fp.Compose(cf(a), ef)))
 	})
 	return ret.Get()(zero)
+}
+
+// FoldTry 는 foldM 의 Try 버젼
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldTry[A, B any](s fp.List[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B] {
+	sum := zero
+	cursor := s
+	for cursor.NonEmpty() {
+		t := f(sum, cursor.Head())
+		if t.IsSuccess() {
+			sum = t.Get()
+		} else {
+			return t
+		}
+		cursor = cursor.Tail()
+	}
+	return fp.Success(sum)
+}
+
+func FoldFuture[A, B any](s fp.List[A], zero B, fn func(B, A) fp.Future[B], ctx ...fp.Executor) fp.Future[B] {
+	p := fp.NewPromise[B]()
+	p.Success(zero)
+	return Fold(s, p.Future(), func(acc fp.Future[B], v A) fp.Future[B] {
+		return acc.FlatMap(func(acc B) fp.Future[B] {
+			return fn(acc, v)
+		}, ctx...)
+	})
+}
+
+// FoldError 는  FoldTry[A,fp.Unit]와 같은 함수인데
+// 하스켈에서 동일한 기능을 하는 함수를 찾아 보면 traverse_ 혹은 mapM_ 과 같은 함수
+// 하스켈에서 _ 가 붙어 있는 함수들은 결과를 discard 해서  m() 를 리턴함.
+func FoldError[A any](s fp.List[A], f func(A) error) error {
+	cursor := s
+
+	for cursor.NonEmpty() {
+		err := f(cursor.Head())
+		if err != nil {
+			return err
+		}
+		cursor = cursor.Tail()
+	}
+	return nil
+}
+
+// FoldOption 는 foldM 의 Option 버젼
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldOption[A, B any](s fp.List[A], zero B, f func(B, A) fp.Option[B]) fp.Option[B] {
+	sum := zero
+	cursor := s
+
+	for cursor.NonEmpty() {
+		t := f(sum, cursor.Head())
+		if t.IsDefined() {
+			sum = t.Get()
+		} else {
+			return t
+		}
+	}
+	return fp.Some(sum)
 }
 
 func FoldMap[A, B any](s fp.List[A], m fp.Monoid[B], f func(A) B) B {
@@ -458,6 +596,17 @@ func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 	)
 }
 
+func GroupBy[A any, K comparable](s fp.List[A], keyFunc func(A) K) map[K]fp.Seq[A] {
+
+	ret := map[K]fp.Seq[A]{}
+
+	return Fold(s, ret, func(b map[K]fp.Seq[A], a A) map[K]fp.Seq[A] {
+		k := keyFunc(a)
+		b[k] = b[k].Append(a)
+		return b
+	})
+}
+
 func Range(from, exclusive int) fp.List[int] {
 	return GenerateFrom(from, func(index int) fp.Option[int] {
 		if index < exclusive {
@@ -473,5 +622,38 @@ func RangeClosed(from, inclusive int) fp.List[int] {
 			return option.Some(index)
 		}
 		return option.None[int]()
+	})
+}
+
+type seqSorter[T any] struct {
+	seq fp.Seq[T]
+	ord fp.Ord[T]
+}
+
+func (p *seqSorter[T]) Len() int           { return len(p.seq) }
+func (p *seqSorter[T]) Less(i, j int) bool { return p.ord.Less(p.seq[i], p.seq[j]) }
+func (p *seqSorter[T]) Swap(i, j int)      { p.seq[i], p.seq[j] = p.seq[j], p.seq[i] }
+
+func Sort[T any](r fp.List[T], ord fp.Ord[T]) fp.Seq[T] {
+	s := r.ToSeq()
+	sort.Sort(&seqSorter[T]{s, ord})
+	return s
+}
+
+func Min[T any](r fp.List[T], ord fp.Ord[T]) fp.Option[T] {
+	return Fold(r, fp.Option[T]{}, func(min fp.Option[T], v T) fp.Option[T] {
+		if min.IsDefined() && ord.Less(min.Get(), v) {
+			return min
+		}
+		return fp.Some[T](v)
+	})
+}
+
+func Max[T any](r fp.List[T], ord fp.Ord[T]) fp.Option[T] {
+	return Fold(r, fp.Option[T]{}, func(max fp.Option[T], v T) fp.Option[T] {
+		if max.IsDefined() && ord.Less(v, max.Get()) {
+			return max
+		}
+		return fp.Some[T](v)
 	})
 }

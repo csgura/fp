@@ -115,9 +115,9 @@ func Compose[A, B, C any](f1 func(A) fp.Seq[B], f2 func(B) fp.Seq[C]) func(A) fp
 	}
 }
 
-func ComposePure[A, B, C any](f1 func(A) fp.Seq[B], f2 func(B) C) func(A) fp.Seq[C] {
-	return func(a A) fp.Seq[C] {
-		return Map(f1(a), f2)
+func ComposePure[A, B any](fab func(A) B) func(A) fp.Seq[B] {
+	return func(a A) fp.Seq[B] {
+		return Of(fab(a))
 	}
 }
 
