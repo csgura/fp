@@ -10,7 +10,7 @@ import (
 
 func TestEither(t *testing.T) {
 	l := either.Left[int, float64](10)
-	either.Fold(l, option.Some, option.ToNone).Foreach(fp.Println[int])
+	either.Fold(l, option.Some, option.ConstNone).Foreach(fp.Println[int])
 
 	s := either.Swap(l)
 	s.Foreach(fp.Println[int])

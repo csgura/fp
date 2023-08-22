@@ -186,9 +186,9 @@ type lookupTarget struct {
 }
 
 func (r lookupTarget) instance() fp.Option[metafp.TypeClassInstance] {
-	if r1, ok := either.Fold(r.target, option.ToNone, option.Some).Unapply(); ok {
-		if r2, ok := either.Fold(r1, option.ToNone, option.Some).Unapply(); ok {
-			return option.Map(either.Fold(r2, option.ToNone, option.Some), DefinedInstance.Instance)
+	if r1, ok := either.Fold(r.target, option.ConstNone, option.Some).Unapply(); ok {
+		if r2, ok := either.Fold(r1, option.ConstNone, option.Some).Unapply(); ok {
+			return option.Map(either.Fold(r2, option.ConstNone, option.Some), DefinedInstance.Instance)
 		}
 	}
 	return option.None[metafp.TypeClassInstance]()

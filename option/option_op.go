@@ -23,7 +23,8 @@ func None[T any]() fp.Option[T] {
 	return fp.None[T]()
 }
 
-func ToNone[A, B any](a A) fp.Option[B] {
+// 아규먼트를 무시하고 항상 None 을 리턴
+func ConstNone[A, B any](a A) fp.Option[B] {
 	return fp.None[B]()
 }
 
