@@ -186,9 +186,9 @@ type lookupTarget struct {
 }
 
 func (r lookupTarget) instance() fp.Option[metafp.TypeClassInstance] {
-	if r1, ok := r.target.Right().Unapply(); ok {
-		if r2, ok := r1.Right().Unapply(); ok {
-			return option.Map(r2.Right(), DefinedInstance.Instance)
+	if r1, ok := either.Fold(r.target, option.ToNone, option.Some).Unapply(); ok {
+		if r2, ok := either.Fold(r1, option.ToNone, option.Some).Unapply(); ok {
+			return option.Map(either.Fold(r2, option.ToNone, option.Some), DefinedInstance.Instance)
 		}
 	}
 	return option.None[metafp.TypeClassInstance]()
@@ -454,7 +454,7 @@ func (r *TypeClassSummonContext) checkRequired(ctx CurrentContext, required fp.S
 			res := r.lookupTypeClassInstance(ctx, v)
 			if res.target.IsLeft() {
 				if ctx.recursiveGen && v.TypeClass.Id() == ctx.tc.TypeClass.Id() {
-					named := res.target.Left().Get().instanceOf.AsNamed()
+					named := res.target.Left().instanceOf.AsNamed()
 					if named.IsDefined() {
 
 						deriveFor := named.Get().Info
@@ -1776,7 +1776,7 @@ func (r *TypeClassSummonContext) summon(ctx CurrentContext, req metafp.RequiredI
 	}
 
 	if ctx.recursiveGen && req.TypeClass.Id() == ctx.tc.TypeClass.Id() {
-		must := result.target.Left().Get()
+		must := result.target.Left()
 		named := must.instanceOf.AsNamed()
 		if named.IsDefined() {
 			deriveFor := named.Get().Info

@@ -23,6 +23,10 @@ func None[T any]() fp.Option[T] {
 	return fp.None[T]()
 }
 
+func ToNone[A, B any](a A) fp.Option[B] {
+	return fp.None[B]()
+}
+
 func isNil(v reflect.Value) bool {
 	k := v.Kind()
 	switch k {

@@ -2,7 +2,6 @@ package either
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/option"
 )
 
 func Left[L, R any](l L) fp.Either[L, R] {
@@ -11,6 +10,13 @@ func Left[L, R any](l L) fp.Either[L, R] {
 
 func Right[L, R any](r R) fp.Either[L, R] {
 	return right[L, R]{r}
+}
+
+func Swap[L, R any](e fp.Either[L, R]) fp.Either[R, L] {
+	if e.IsRight() {
+		return Left[R, L](e.Get())
+	}
+	return Right[R](e.Left())
 }
 
 func Ap[L, R, R1 any](t fp.Either[L, fp.Func1[R, R1]], a fp.Either[L, R]) fp.Either[L, R1] {
@@ -43,7 +49,7 @@ func FlatMap[L, R, R1 any](opt fp.Either[L, R], fn func(v R) fp.Either[L, R1]) f
 	if opt.IsRight() {
 		return fn(opt.Get())
 	}
-	return Left[L, R1](opt.Left().Get())
+	return Left[L, R1](opt.Left())
 }
 
 func Flatten[L, R any](opt fp.Either[L, fp.Either[L, R]]) fp.Either[L, R] {
@@ -54,9 +60,9 @@ func Flatten[L, R any](opt fp.Either[L, fp.Either[L, R]]) fp.Either[L, R] {
 
 func Fold[L, R, V any](e fp.Either[L, R], fl func(L) V, fr func(R) V) V {
 	if e.IsLeft() {
-		return fl(e.Left().Get())
+		return fl(e.Left())
 	}
-	return fr(e.Right().Get())
+	return fr(e.Get())
 }
 
 type left[L, R any] struct {
@@ -69,15 +75,10 @@ func (r left[L, R]) IsLeft() bool {
 func (r left[L, R]) IsRight() bool {
 	return false
 }
-func (r left[L, R]) Left() fp.Option[L] {
-	return option.Some(r.v)
+func (r left[L, R]) Left() L {
+	return r.v
 }
-func (r left[L, R]) Right() fp.Option[R] {
-	return option.None[R]()
-}
-func (r left[L, R]) Swap() fp.Either[R, L] {
-	return Right[R](r.v)
-}
+
 func (r left[L, R]) Get() R {
 	panic("Either.left")
 }
@@ -107,15 +108,10 @@ func (r right[L, R]) IsLeft() bool {
 func (r right[L, R]) IsRight() bool {
 	return true
 }
-func (r right[L, R]) Left() fp.Option[L] {
-	return option.None[L]()
+func (r right[L, R]) Left() L {
+	panic("Either.right")
 }
-func (r right[L, R]) Right() fp.Option[R] {
-	return option.Some(r.v)
-}
-func (r right[L, R]) Swap() fp.Either[R, L] {
-	return Left[R, L](r.v)
-}
+
 func (r right[L, R]) Get() R {
 	return r.v
 }

@@ -3,9 +3,7 @@ package fp
 type Either[L, R any] interface {
 	IsLeft() bool
 	IsRight() bool
-	Left() Option[L]
-	Right() Option[R]
-	Swap() Either[R, L]
+	Left() L
 	Get() R
 	Foreach(f func(v R))
 	OrElse(t R) R

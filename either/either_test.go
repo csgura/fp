@@ -5,13 +5,14 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/either"
+	"github.com/csgura/fp/option"
 )
 
 func TestEither(t *testing.T) {
 	l := either.Left[int, float64](10)
-	l.Left().Foreach(fp.Println[int])
+	either.Fold(l, option.Some, option.ToNone).Foreach(fp.Println[int])
 
-	s := l.Swap()
+	s := either.Swap(l)
 	s.Foreach(fp.Println[int])
 
 }
