@@ -18,10 +18,10 @@ func List[T any](list fp.List[T]) fp.Iterator[T] {
 
 	return fp.MakeIterator(
 		func() bool {
-			return current.Head().IsDefined()
+			return current.NonEmpty()
 		},
 		func() T {
-			ret := current.Head().Get()
+			ret := current.Head()
 			current = current.Tail()
 			return ret
 		},

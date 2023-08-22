@@ -3,10 +3,9 @@ package fp
 type List[T any] interface {
 	IsEmpty() bool
 	NonEmpty() bool
-	Head() Option[T]
+	Head() T
 	Tail() List[T]
-	Unapply() (Option[T], List[T])
-	Iterator() Iterator[T]
+	Unapply() (T, List[T])
 	Foreach(f func(v T))
 }
 
@@ -16,16 +15,23 @@ type ListAdaptor[T any] struct {
 }
 
 func (r ListAdaptor[T]) IsEmpty() bool {
-	return r.Head().IsEmpty()
+	if r.getHead == nil {
+		return true
+	}
+	return r.getHead.Apply().IsEmpty()
 }
 func (r ListAdaptor[T]) NonEmpty() bool {
-	return r.Head().IsDefined()
+	return !r.IsEmpty()
 }
-func (r ListAdaptor[T]) Head() Option[T] {
+func (r ListAdaptor[T]) Head() T {
 	if r.getHead == nil {
-		return None[T]()
+		panic("List.empty")
 	}
-	return r.getHead.Apply()
+	opt := r.getHead.Apply()
+	if opt.IsEmpty() {
+		panic("List.empty")
+	}
+	return opt.Get()
 }
 
 func (r ListAdaptor[T]) Tail() List[T] {
@@ -39,14 +45,14 @@ func (r ListAdaptor[T]) Tail() List[T] {
 	return r.getTail.Apply()
 }
 
-func (r ListAdaptor[T]) Unapply() (Option[T], List[T]) {
+func (r ListAdaptor[T]) Unapply() (T, List[T]) {
 	return r.Head(), r.Tail()
 }
 
 func (r ListAdaptor[T]) Foreach(f func(v T)) {
 	var cursor List[T] = r
 	for cursor.NonEmpty() {
-		f(cursor.Head().Get())
+		f(cursor.Head())
 		cursor = cursor.Tail()
 	}
 }
@@ -56,10 +62,10 @@ func (r ListAdaptor[T]) Iterator() Iterator[T] {
 
 	return MakeIterator(
 		func() bool {
-			return current.Head().IsDefined()
+			return current.NonEmpty()
 		},
 		func() T {
-			ret := current.Head().Get()
+			ret := current.Head()
 			current = current.Tail()
 			return ret
 		},

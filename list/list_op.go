@@ -23,27 +23,19 @@ func (r Nil[T]) NonEmpty() bool {
 	return false
 }
 
-func (r Nil[T]) Head() fp.Option[T] {
-	return option.None[T]()
+func (r Nil[T]) Head() T {
+	panic("List.empty")
 }
 
 func (r Nil[T]) Tail() fp.List[T] {
 	return r
 }
 
-func (r Nil[T]) Unapply() (fp.Option[T], fp.List[T]) {
+func (r Nil[T]) Unapply() (T, fp.List[T]) {
 	return r.Head(), r
 }
 
 func (r Nil[T]) Foreach(f func(v T)) {
-}
-
-func (r Nil[T]) Iterator() fp.Iterator[T] {
-	return fp.MakeIterator(func() bool {
-		return false
-	}, func() T {
-		panic("next on empty iterator")
-	})
 }
 
 type Cons[T any] struct {
@@ -59,33 +51,16 @@ func (r Cons[T]) NonEmpty() bool {
 	return true
 }
 
-func (r Cons[T]) Head() fp.Option[T] {
-	return option.Some(r.head)
+func (r Cons[T]) Head() T {
+	return r.head
 }
 
 func (r Cons[T]) Tail() fp.List[T] {
 	return r.tail
 }
 
-func (r Cons[T]) Unapply() (fp.Option[T], fp.List[T]) {
+func (r Cons[T]) Unapply() (T, fp.List[T]) {
 	return r.Head(), r.Tail()
-}
-
-func (r Cons[T]) Iterator() fp.Iterator[T] {
-	var cursor fp.List[T] = r
-
-	hasNext := func() bool {
-		return cursor.NonEmpty()
-	}
-
-	return fp.MakeIterator(hasNext, func() T {
-		if hasNext() {
-			ret := cursor.Head().Get()
-			cursor = r.Tail()
-			return ret
-		}
-		panic("next on empty iterator")
-	})
 }
 
 func (r Cons[T]) Foreach(f func(v T)) {
@@ -134,10 +109,17 @@ func Recurrence2[T any](a1 T, a2 T, relation func(n1, n2 T) T) fp.List[T] {
 	)
 }
 
+func Head[T any](l fp.List[T]) fp.Option[T] {
+	if l.IsEmpty() {
+		return fp.Option[T]{}
+	}
+	return fp.Some(l.Head())
+}
+
 func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
 	return fp.MakeList(
 		func() fp.Option[U] {
-			return option.Map(opt.Head(), fn)
+			return option.Map(Head(opt), fn)
 		},
 		func() fp.List[U] {
 			return Map(opt.Tail(), fn)
@@ -160,7 +142,7 @@ func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 	}
 
 	mappedHeadLazy := lazy.Call(func() fp.List[U] {
-		return fn(opt.Head().Get())
+		return fn(opt.Head())
 	})
 
 	tail := opt.Tail()
@@ -170,10 +152,10 @@ func FlatMap[T, U any](opt fp.List[T], fn func(v T) fp.List[U]) fp.List[U] {
 			headList := mappedHeadLazy.Get()
 
 			if headList.IsEmpty() {
-				return FlatMap(tail, fn).Head()
+				return Head(FlatMap(tail, fn))
 			}
 
-			return headList.Head()
+			return fp.Some(headList.Head())
 		},
 		func() fp.List[U] {
 			headList := mappedHeadLazy.Get()
@@ -219,7 +201,7 @@ func Combine[T any](l1 fp.List[T], l2 fp.List[T]) fp.List[T] {
 
 	return fp.MakeList(
 		func() fp.Option[T] {
-			return l1.Head()
+			return fp.Some(l1.Head())
 		},
 		func() fp.List[T] {
 			l1Tail := l1.Tail()
@@ -266,7 +248,7 @@ func ToMap[K, V any](list fp.List[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Ma
 
 	cursor := list
 	for !cursor.IsEmpty() {
-		k, v := cursor.Head().Get().Unapply()
+		k, v := cursor.Head().Unapply()
 		ret = ret.Add(k, v)
 		cursor = cursor.Tail()
 	}
@@ -278,7 +260,7 @@ func ToGoMap[K comparable, V any](list fp.List[fp.Tuple2[K, V]]) map[K]V {
 	ret := map[K]V{}
 	cursor := list
 	for !cursor.IsEmpty() {
-		k, v := cursor.Head().Get().Unapply()
+		k, v := cursor.Head().Unapply()
 		ret[k] = v
 		cursor = cursor.Tail()
 	}
@@ -290,7 +272,7 @@ func ToSet[V any](list fp.List[V], hasher fp.Hashable[V]) fp.Set[V] {
 
 	cursor := list
 	for !cursor.IsEmpty() {
-		v := cursor.Head().Get()
+		v := cursor.Head()
 		ret = ret.Add(v)
 		cursor = cursor.Tail()
 	}
@@ -302,7 +284,7 @@ func ToGoSet[V comparable](list fp.List[V]) mutable.Set[V] {
 	ret := map[V]bool{}
 	cursor := list
 	for !cursor.IsEmpty() {
-		k := cursor.Head().Get()
+		k := cursor.Head()
 		ret[k] = true
 		cursor = cursor.Tail()
 	}
@@ -312,7 +294,7 @@ func ToGoSet[V comparable](list fp.List[V]) mutable.Set[V] {
 func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 	return fp.MakeList(
 		func() fp.Option[fp.Tuple2[T, U]] {
-			return option.LiftA2(as.Tuple[T, U])(a.Head(), b.Head())
+			return option.LiftA2(as.Tuple[T, U])(Head(a), Head(b))
 		},
 		func() fp.List[fp.Tuple2[T, U]] {
 			return Zip(a.Tail(), b.Tail())
@@ -323,7 +305,7 @@ func Zip[T, U any](a fp.List[T], b fp.List[U]) fp.List[fp.Tuple2[T, U]] {
 func Zip3[A, B, C any](a fp.List[A], b fp.List[B], c fp.List[C]) fp.List[fp.Tuple3[A, B, C]] {
 	return fp.MakeList(
 		func() fp.Option[fp.Tuple3[A, B, C]] {
-			return option.LiftA3(as.Tuple3[A, B, C])(a.Head(), b.Head(), c.Head())
+			return option.LiftA3(as.Tuple3[A, B, C])(Head(a), Head(b), Head(c))
 
 		},
 		func() fp.List[fp.Tuple3[A, B, C]] {
@@ -346,7 +328,7 @@ func Fold[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 	cursor := s
 
 	for !cursor.IsEmpty() {
-		sum = f(sum, cursor.Head().Get())
+		sum = f(sum, cursor.Head())
 		cursor = cursor.Tail()
 	}
 	return sum
@@ -382,7 +364,7 @@ func FoldRight[A, B any](s fp.List[A], zero B, f func(A, lazy.Eval[B]) lazy.Eval
 	v := lazy.TailCall(func() lazy.Eval[B] {
 		return FoldRight(s.Tail(), zero, f)
 	})
-	return f(s.Head().Get(), v)
+	return f(s.Head(), v)
 }
 
 func FoldLeftUsingMap[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
@@ -417,7 +399,7 @@ func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 			return option.Some(zero)
 		},
 		func() fp.List[B] {
-			z := option.Map(s.Head(), cf(zero))
+			z := option.Map(Head(s), cf(zero))
 			if z.IsDefined() {
 				return Scan(s.Tail(), z.Get(), f)
 			}

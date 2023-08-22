@@ -75,8 +75,8 @@ func TestToList(t *testing.T) {
 
 	list := iterator.ToList(iterator.Range(0, 10))
 
-	assert.Equal(list.Tail().Head().Get(), 1)
-	assert.Equal(list.Tail().Head().Get(), 1)
+	assert.Equal(list.Tail().Head(), 1)
+	assert.Equal(list.Tail().Head(), 1)
 
 	list.Foreach(fp.Println[int])
 	list.Foreach(fp.Println[int])

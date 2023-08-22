@@ -60,7 +60,7 @@ func TestFibonacci(t *testing.T) {
 	printFirst10(l3)
 
 	fmt.Println("Test Drop While")
-	l4 := list.Collect(l.Iterator().DropWhile(func(v int) bool {
+	l4 := list.Collect(iterator.List(l).DropWhile(func(v int) bool {
 		return v < 100
 	}).Take(50))
 
@@ -76,7 +76,7 @@ func TestFibonacci(t *testing.T) {
 	f := s2.Find(as.Curried2(ord.Given[int]().Less)(20))
 	fmt.Println(f)
 
-	fmt.Println(seq.Collect(l.Iterator().Take(20)))
+	fmt.Println(seq.Collect(iterator.List(l).Take(20)))
 
 	count := list.FoldRight(l, 0, func(v int, sum lazy.Eval[int]) lazy.Eval[int] {
 		if v < 100 {
@@ -111,10 +111,10 @@ func NotTestSum(t *testing.T) {
 	fmt.Println("print list scan")
 	l2 := list.Scan(l, 0.0, monoid.Sum[float64]().Combine)
 
-	zip := list.Zip(list.Collect(l2.Iterator().Drop(100)), l2)
+	zip := list.Zip(list.Collect(iterator.List(l2).Drop(100)), l2)
 	printFirst10(zip)
 
-	sumOpt := zip.Iterator().Find(as.Tupled2(func(a float64, b float64) bool {
+	sumOpt := iterator.List(zip).Find(as.Tupled2(func(a float64, b float64) bool {
 		return a-b < 0.0000000001
 	}))
 
@@ -133,21 +133,21 @@ func NotTestSum(t *testing.T) {
 	printFirst10(zip)
 	fmt.Println("print list at 100000")
 
-	sumOpt = zip.Iterator().Take(100000).Find(as.Tupled2(func(a float64, b float64) bool {
+	sumOpt = iterator.List(zip).Take(100000).Find(as.Tupled2(func(a float64, b float64) bool {
 		return a-b < 0.0000000001
 	}))
 
 	fmt.Println("sum 1/n = ", sumOpt)
 
-	iterator.Scan(l.Iterator(), 0.0, monoid.Sum[float64]().Combine).Take(10).Foreach(fp.Println[float64])
+	iterator.Scan(iterator.List(l), 0.0, monoid.Sum[float64]().Combine).Take(10).Foreach(fp.Println[float64])
 
 }
 
 func TestScan(t *testing.T) {
 
 	l := list.GenerateFrom(1, option.Some)
-	list.Scan(l, 0, monoid.Sum[int]().Combine).
-		Iterator().Take(10).Foreach(fp.Println[int])
+	iterator.List(list.Scan(l, 0, monoid.Sum[int]().Combine)).
+		Take(10).Foreach(fp.Println[int])
 
 	l = list.Of(1, 2, 3, 4, 5)
 	l2 := list.Scan(l, 0, monoid.Sum[int]().Combine)
@@ -156,7 +156,7 @@ func TestScan(t *testing.T) {
 	s := seq.Of(1, 2, 3, 4, 5)
 	fmt.Println(seq.Scan(s, 0, monoid.Sum[int]().Combine))
 
-	iterator.Scan(l.Iterator(), 0, monoid.Sum[int]().Combine).Foreach(fp.Println[int])
+	iterator.Scan(iterator.List(l), 0, monoid.Sum[int]().Combine).Foreach(fp.Println[int])
 }
 
 func NotTestInfinity(t *testing.T) {
@@ -288,15 +288,15 @@ func TestEndoOrder(t *testing.T) {
 
 func TestRange(t *testing.T) {
 
-	s := as.Seq(list.Range(5, 10).Iterator().ToSeq())
+	s := as.Seq(iterator.List(list.Range(5, 10)).ToSeq())
 
 	assert.Equal(s.Reverse().Head().Get(), 9)
 
-	s = list.RangeClosed(5, 10).Iterator().ToSeq()
+	s = iterator.List(list.RangeClosed(5, 10)).ToSeq()
 
 	assert.Equal(s.Reverse().Head().Get(), 10)
 
-	s = list.RangeClosed(5, 2).Iterator().ToSeq()
+	s = iterator.List(list.RangeClosed(5, 2)).ToSeq()
 
 	assert.True(s.IsEmpty())
 }
