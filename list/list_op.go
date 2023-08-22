@@ -9,7 +9,6 @@ import (
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/seq"
 )
 
 type Nil[T any] struct {
@@ -36,6 +35,10 @@ func (r Nil[T]) Unapply() (T, fp.List[T]) {
 }
 
 func (r Nil[T]) Foreach(f func(v T)) {
+}
+
+func (r Nil[T]) ToSeq() []T {
+	return nil
 }
 
 type Cons[T any] struct {
@@ -66,6 +69,14 @@ func (r Cons[T]) Unapply() (T, fp.List[T]) {
 func (r Cons[T]) Foreach(f func(v T)) {
 	f(r.head)
 	r.tail.Foreach(f)
+}
+
+func (r Cons[T]) ToSeq() []T {
+	ret := []T{}
+	r.Foreach(func(v T) {
+		ret = append(ret, v)
+	})
+	return ret
 }
 
 func Empty[T any]() fp.List[T] {
@@ -114,6 +125,45 @@ func Head[T any](l fp.List[T]) fp.Option[T] {
 		return fp.Option[T]{}
 	}
 	return fp.Some(l.Head())
+}
+
+type Seq[T any] []T
+
+var _ fp.List[int] = Seq[int]{}
+
+func (r Seq[T]) IsEmpty() bool {
+	return len(r) == 0
+}
+
+func (r Seq[T]) NonEmpty() bool {
+	return len(r) > 0
+}
+func (r Seq[T]) Head() T {
+	if r.IsEmpty() {
+		panic("List.Empty")
+	}
+	return r[0]
+}
+
+func (r Seq[T]) Tail() fp.List[T] {
+	if r.IsEmpty() {
+		return Empty[T]()
+	}
+	return Seq[T](r[1:])
+}
+
+func (r Seq[T]) Unapply() (T, fp.List[T]) {
+	return r.Head(), r.Tail()
+}
+
+func (r Seq[T]) Foreach(f func(v T)) {
+	for _, v := range r {
+		f(v)
+	}
+}
+
+func (r Seq[T]) ToSeq() []T {
+	return r
 }
 
 func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
@@ -175,7 +225,7 @@ func Apply[T any](head T, tail fp.List[T]) fp.List[T] {
 }
 
 func Of[T any](e ...T) fp.List[T] {
-	return Collect(seq.Iterator(e))
+	return Seq[T](e)
 }
 
 func Collect[T any](itr fp.Iterator[T]) fp.List[T] {

@@ -7,6 +7,7 @@ type List[T any] interface {
 	Tail() List[T]
 	Unapply() (T, List[T])
 	Foreach(f func(v T))
+	ToSeq() []T
 }
 
 type ListAdaptor[T any] struct {
@@ -57,20 +58,28 @@ func (r ListAdaptor[T]) Foreach(f func(v T)) {
 	}
 }
 
-func (r ListAdaptor[T]) Iterator() Iterator[T] {
-	var current List[T] = r
-
-	return MakeIterator(
-		func() bool {
-			return current.NonEmpty()
-		},
-		func() T {
-			ret := current.Head()
-			current = current.Tail()
-			return ret
-		},
-	)
+func (r ListAdaptor[T]) ToSeq() []T {
+	ret := []T{}
+	r.Foreach(func(v T) {
+		ret = append(ret, v)
+	})
+	return ret
 }
+
+// func (r ListAdaptor[T]) Iterator() Iterator[T] {
+// 	var current List[T] = r
+
+// 	return MakeIterator(
+// 		func() bool {
+// 			return current.NonEmpty()
+// 		},
+// 		func() T {
+// 			ret := current.Head()
+// 			current = current.Tail()
+// 			return ret
+// 		},
+// 	)
+// }
 
 func MakeList[T any](head func() Option[T], tail func() List[T]) List[T] {
 	return ListAdaptor[T]{Memoize(head), Memoize(tail)}
