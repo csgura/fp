@@ -300,3 +300,15 @@ func TestRange(t *testing.T) {
 
 	assert.True(s.IsEmpty())
 }
+
+func TestZipIndex(t *testing.T) {
+	l := list.Of("A", "B", "C")
+	z := list.ZipWithIndex(l)
+	assert.Equal(as.Tuple(0, "A"), z.Head())
+	assert.Equal(as.Tuple(1, "B"), z.Tail().Head())
+	assert.Equal(as.Tuple(2, "C"), z.Tail().Tail().Head())
+
+	assert.Equal(list.Max(l, ord.Given[string]()), option.Some("C"))
+	assert.Equal(list.Min(l, ord.Given[string]()), option.Some("A"))
+
+}

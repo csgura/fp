@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/internal/assert"
@@ -120,3 +121,14 @@ func TestZipLeft(t *testing.T) {
 // 		}
 // 	}
 // }
+
+func TestZipIndex(t *testing.T) {
+	l := iterator.Of("A", "B", "C")
+	z := iterator.ZipWithIndex(l)
+	assert.Equal(as.Tuple(0, "A"), z.Next())
+	assert.Equal(as.Tuple(1, "B"), z.Next())
+	assert.Equal(as.Tuple(2, "C"), z.Next())
+
+	assert.False(z.HasNext())
+
+}
