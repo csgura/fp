@@ -165,7 +165,14 @@ func (r Seq[T]) Foreach(f func(v T)) {
 }
 
 func (r Seq[T]) ToSeq() []T {
-	return r
+	if len(r) > 0 {
+		ret := make([]T, len(r))
+		for i, v := range r {
+			ret[i] = v
+		}
+		return ret
+	}
+	return nil
 }
 
 func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
