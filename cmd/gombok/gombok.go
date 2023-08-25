@@ -520,210 +520,210 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 
 		})
 
-		showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-			return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		})
+		// showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		// 	return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		// })
 
-		if showDerive.IsDefined() && ts.Info.Method.Get("ShowIndent").IsEmpty() && valuetp == "" {
-			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		// if showDerive.IsDefined() && ts.Info.Method.Get("ShowIndent").IsEmpty() && valuetp == "" {
+		// 	fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
-			if showDerive.Get().IsRecursive() {
-				fmt.Fprintf(w, `
-					func(r %s) ShowIndent(opt %s.ShowOption) string {
-						return %s().ShowIndent(r, opt)
-					}
-				`, valuereceiver, fppkg,
-					showDerive.Get().GeneratedInstanceName(),
-				)
-			} else {
-				fmt.Fprintf(w, `
-					func(r %s) ShowIndent(opt %s.ShowOption) string {
-						return %s.ShowIndent(r, opt)
-					}
-				`, valuereceiver, fppkg,
-					showDerive.Get().GeneratedInstanceName(),
-				)
-			}
+		// 	if showDerive.Get().IsRecursive() {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) ShowIndent(opt %s.ShowOption) string {
+		// 				return %s().ShowIndent(r, opt)
+		// 			}
+		// 		`, valuereceiver, fppkg,
+		// 			showDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	} else {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) ShowIndent(opt %s.ShowOption) string {
+		// 				return %s.ShowIndent(r, opt)
+		// 			}
+		// 		`, valuereceiver, fppkg,
+		// 			showDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	}
 
-			genMethod = genMethod.Incl("ShowIndent")
+		// 	genMethod = genMethod.Incl("ShowIndent")
 
-		}
+		// }
 
 		if ts.Info.Method.Get("String").IsEmpty() {
 
-			if showDerive.IsDefined() && valuetp == "" {
-				if showDerive.Get().IsRecursive() {
-					fmt.Fprintf(w, `
-						func(r %s) String() string {
-							return %s().Show(r)
-						}
-					`, valuereceiver,
-						showDerive.Get().GeneratedInstanceName(),
-					)
-				} else {
-					fmt.Fprintf(w, `
-						func(r %s) String() string {
-							return %s.Show(r)
-						}
-					`, valuereceiver,
-						showDerive.Get().GeneratedInstanceName(),
-					)
-				}
-			} else {
+			// if showDerive.IsDefined() && valuetp == "" {
+			// 	if showDerive.Get().IsRecursive() {
+			// 		fmt.Fprintf(w, `
+			// 			func(r %s) String() string {
+			// 				return %s().Show(r)
+			// 			}
+			// 		`, valuereceiver,
+			// 			showDerive.Get().GeneratedInstanceName(),
+			// 		)
+			// 	} else {
+			// 		fmt.Fprintf(w, `
+			// 			func(r %s) String() string {
+			// 				return %s.Show(r)
+			// 			}
+			// 		`, valuereceiver,
+			// 			showDerive.Get().GeneratedInstanceName(),
+			// 		)
+			// 	}
+			// } else {
 
-				fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+			fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 
-				printable := allFields.Filter(func(v metafp.StructField) bool {
-					return v.Type.IsPrintable()
-				})
-				fm := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
-					return fmt.Sprintf("%s=%%v", f.Name)
-				})).MakeString(", ")
+			printable := allFields.Filter(func(v metafp.StructField) bool {
+				return v.Type.IsPrintable()
+			})
+			fm := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
+				return fmt.Sprintf("%s=%%v", f.Name)
+			})).MakeString(", ")
 
-				fields := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
-					return fmt.Sprintf("r.%s", f.Name)
-				})).MakeString(",")
+			fields := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
+				return fmt.Sprintf("r.%s", f.Name)
+			})).MakeString(",")
 
-				fmt.Fprintf(w, `
+			fmt.Fprintf(w, `
 					func(r %s) String() string {
 						return %s.Sprintf("%s(%s)", %s)
 					}
 				`, valuereceiver,
-					fmtalias, ts.Name, fm, fields,
-				)
-			}
+				fmtalias, ts.Name, fm, fields,
+			)
+			// }
 			genMethod = genMethod.Incl("String")
 
 		}
 
-		eqDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-			return v.TypeClass.Name == "Eq" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		})
+		// eqDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		// 	return v.TypeClass.Name == "Eq" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		// })
 
-		if eqDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && valuetp == "" {
+		// if eqDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && valuetp == "" {
 
-			if eqDerive.Get().IsRecursive() {
-				fmt.Fprintf(w, `
-					func(r %s) Eqv(other %s) bool {
-						return %s().Eqv(r, other)
-					}
-				`, valuereceiver, valuereceiver,
-					eqDerive.Get().GeneratedInstanceName(),
-				)
-			} else {
-				fmt.Fprintf(w, `
-					func(r %s) Eqv(other %s) bool {
-						return %s.Eqv(r, other)
-					}
-				`, valuereceiver, valuereceiver,
-					eqDerive.Get().GeneratedInstanceName(),
-				)
-			}
-			genMethod = genMethod.Incl("Eqv")
+		// 	if eqDerive.Get().IsRecursive() {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Eqv(other %s) bool {
+		// 				return %s().Eqv(r, other)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			eqDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	} else {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Eqv(other %s) bool {
+		// 				return %s.Eqv(r, other)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			eqDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	}
+		// 	genMethod = genMethod.Incl("Eqv")
 
-		}
+		// }
 
-		hashDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-			return v.TypeClass.Name == "Hashable" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		})
-		if hashDerive.IsDefined() && ts.Info.Method.Get("Hash").IsEmpty() {
+		// hashDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		// 	return v.TypeClass.Name == "Hashable" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		// })
+		// if hashDerive.IsDefined() && ts.Info.Method.Get("Hash").IsEmpty() {
 
-			if hashDerive.Get().IsRecursive() {
-				fmt.Fprintf(w, `
-					func(r %s) Hash() uint32 {
-						return %s().Hash(r)
-					}
-				`, valuereceiver,
-					hashDerive.Get().GeneratedInstanceName(),
-				)
-			} else {
-				fmt.Fprintf(w, `
-					func(r %s) Hash() uint32 {
-						return %s.Hash(r)
-					}
-				`, valuereceiver,
-					hashDerive.Get().GeneratedInstanceName(),
-				)
-			}
-			genMethod = genMethod.Incl("Hash")
+		// 	if hashDerive.Get().IsRecursive() {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Hash() uint32 {
+		// 				return %s().Hash(r)
+		// 			}
+		// 		`, valuereceiver,
+		// 			hashDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	} else {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Hash() uint32 {
+		// 				return %s.Hash(r)
+		// 			}
+		// 		`, valuereceiver,
+		// 			hashDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	}
+		// 	genMethod = genMethod.Incl("Hash")
 
-		}
+		// }
 
-		ordDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-			return v.TypeClass.Name == "Ord" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		})
-		if ordDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && !genMethod.Contains("Eqv") {
+		// ordDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		// 	return v.TypeClass.Name == "Ord" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		// })
+		// if ordDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && !genMethod.Contains("Eqv") {
 
-			if ordDerive.Get().IsRecursive() {
-				fmt.Fprintf(w, `
-					func(r %s) Eqv(other %s) bool {
-						return %s().Eqv(r, other)
-					}
-				`, valuereceiver, valuereceiver,
-					ordDerive.Get().GeneratedInstanceName(),
-				)
-			} else {
-				fmt.Fprintf(w, `
-					func(r %s) Eqv(other %s) bool {
-						return %s.Eqv(r, other)
-					}
-				`, valuereceiver, valuereceiver,
-					ordDerive.Get().GeneratedInstanceName(),
-				)
-			}
-			genMethod = genMethod.Incl("Eqv")
+		// 	if ordDerive.Get().IsRecursive() {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Eqv(other %s) bool {
+		// 				return %s().Eqv(r, other)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			ordDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	} else {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Eqv(other %s) bool {
+		// 				return %s.Eqv(r, other)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			ordDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	}
+		// 	genMethod = genMethod.Incl("Eqv")
 
-		}
+		// }
 
-		if ordDerive.IsDefined() && ts.Info.Method.Get("Less").IsEmpty() {
+		// if ordDerive.IsDefined() && ts.Info.Method.Get("Less").IsEmpty() {
 
-			if ordDerive.Get().IsRecursive() {
-				fmt.Fprintf(w, `
-					func(r %s) Less(other %s) bool {
-						return %s().Less(r,other)
-					}
-				`, valuereceiver, valuereceiver,
-					ordDerive.Get().GeneratedInstanceName(),
-				)
-			} else {
-				fmt.Fprintf(w, `
-					func(r %s) Less(other %s) bool {
-						return %s.Less(r, other)
-					}
-				`, valuereceiver, valuereceiver,
-					ordDerive.Get().GeneratedInstanceName(),
-				)
-			}
-			genMethod = genMethod.Incl("Less")
+		// 	if ordDerive.Get().IsRecursive() {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Less(other %s) bool {
+		// 				return %s().Less(r,other)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			ordDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	} else {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Less(other %s) bool {
+		// 				return %s.Less(r, other)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			ordDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	}
+		// 	genMethod = genMethod.Incl("Less")
 
-		}
+		// }
 
-		cloneDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-			return v.TypeClass.Name == "Cloner" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		})
+		// cloneDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		// 	return v.TypeClass.Name == "Cloner" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+		// })
 
-		if cloneDerive.IsDefined() && ts.Info.Method.Get("Clone").IsEmpty() && valuetp == "" {
+		// if cloneDerive.IsDefined() && ts.Info.Method.Get("Clone").IsEmpty() && valuetp == "" {
 
-			if cloneDerive.Get().IsRecursive() {
-				fmt.Fprintf(w, `
-					func(r %s) Clone() %s {
-						return %s().Clone(r)
-					}
-				`, valuereceiver, valuereceiver,
-					cloneDerive.Get().GeneratedInstanceName(),
-				)
-			} else {
-				fmt.Fprintf(w, `
-					func(r %s) Clone() %s {
-						return %s.Clone(r)
-					}
-				`, valuereceiver, valuereceiver,
-					cloneDerive.Get().GeneratedInstanceName(),
-				)
-			}
-			genMethod = genMethod.Incl("Eqv")
+		// 	if cloneDerive.Get().IsRecursive() {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Clone() %s {
+		// 				return %s().Clone(r)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			cloneDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	} else {
+		// 		fmt.Fprintf(w, `
+		// 			func(r %s) Clone() %s {
+		// 				return %s.Clone(r)
+		// 			}
+		// 		`, valuereceiver, valuereceiver,
+		// 			cloneDerive.Get().GeneratedInstanceName(),
+		// 		)
+		// 	}
+		// 	genMethod = genMethod.Incl("Eqv")
 
-		}
+		// }
 
 		if allFields.Size() < max.Product {
 			if ts.Info.Method.Get("AsTuple").IsEmpty() {

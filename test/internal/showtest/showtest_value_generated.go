@@ -62,12 +62,8 @@ func (r EmbeddedStructBuilder) World(v struct {
 	return r
 }
 
-func (r EmbeddedStruct) ShowIndent(opt fp.ShowOption) string {
-	return ShowEmbeddedStruct.ShowIndent(r, opt)
-}
-
 func (r EmbeddedStruct) String() string {
-	return ShowEmbeddedStruct.Show(r)
+	return fmt.Sprintf("EmbeddedStruct(hello=%v, world=%v)", r.hello, r.world)
 }
 
 func (r EmbeddedStruct) AsTuple() fp.Tuple2[string, struct {

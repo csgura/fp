@@ -43,8 +43,8 @@ func TestEq(t *testing.T) {
 		Age:  10,
 	}.AsImmutable()
 
-	assert.True(testpk2.EqPerson.Eqv(a, b))
-	assert.False(testpk2.EqPerson.Eqv(a, b.WithAge(20)))
+	assert.True(testpk2.EqPerson().Eqv(a, b))
+	assert.False(testpk2.EqPerson().Eqv(a, b.WithAge(20)))
 
 }
 
@@ -58,7 +58,7 @@ func TestMonoid(t *testing.T) {
 	p1 := fp.New(testpk2.Point.Builder).X(10).Y(12).Z(as.Tuple(1, 2)).Build()
 	p2 := fp.New(testpk2.Point.Builder).X(5).Y(4).Z(as.Tuple(2, 3)).Build()
 
-	p3 := testpk2.MonoidPoint.Combine(p1, p2)
+	p3 := testpk2.MonoidPoint().Combine(p1, p2)
 	assert.Equal(p3.X(), 15)
 	assert.Equal(p3.Y(), 16)
 	assert.Equal(p3.Z().I1, 3)
@@ -75,10 +75,10 @@ func TestJson(t *testing.T) {
 		Language: "En",
 	}.AsImmutable()
 
-	res := testpk2.EncoderGreeting.Encode(g).Get()
+	res := testpk2.EncoderGreeting().Encode(g).Get()
 	fmt.Printf("res = %s\n", res)
 
-	parsedG := testpk2.DecoderGreeting.Decode(js.DecoderContext{}, res)
+	parsedG := testpk2.DecoderGreeting().Decode(js.DecoderContext{}, res)
 	parsedG.Failed().Foreach(func(v error) {
 		fmt.Printf("parse error : %s\n", v)
 	})
@@ -102,10 +102,10 @@ func TestJson(t *testing.T) {
 		Three: 3,
 	}.AsImmutable()
 
-	res = testpk2.EncoderThree.Encode(t3).Get()
+	res = testpk2.EncoderThree().Encode(t3).Get()
 	fmt.Println(res)
 
-	parsedT3 := testpk2.DecoderThree.Decode(js.DecoderContext{}, res)
+	parsedT3 := testpk2.DecoderThree().Decode(js.DecoderContext{}, res)
 	assert.True(parsedT3.IsSuccess())
 	assert.Equal(parsedT3.Get().One(), 1)
 	assert.Equal(parsedT3.Get().Two(), "2")
@@ -119,10 +119,10 @@ func TestRead(t *testing.T) {
 		Three: 13.5,
 	}.AsImmutable()
 
-	str := testpk2.ShowThree.Show(t3)
+	str := testpk2.ShowThree().Show(t3)
 	fmt.Println(str)
 
-	res := testpk2.ReadThree.Read(str)
+	res := testpk2.ReadThree().Read(str)
 	res.Failed().Foreach(fp.Println[error])
 	assert.True(res.IsSuccess())
 	assert.Equal(res.Get().Three(), 13.5)

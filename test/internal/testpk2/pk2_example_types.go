@@ -125,7 +125,7 @@ type Key struct {
 }
 
 func (r Key) Hash() uint32 {
-	return HashableKey.Hash(r)
+	return HashableKey().Hash(r)
 }
 
 // @fp.Derive

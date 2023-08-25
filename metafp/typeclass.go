@@ -529,16 +529,16 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 	ins := TypeClassInstance{
 		Package:         tc.Package,
 		Name:            tc.GeneratedInstanceName(),
-		Static:          true,
+		Static:          false,
 		Implicit:        false,
 		Type:            t,
 		Result:          t,
 		WillGeneratedBy: option.Some(tc),
 	}
 
-	if tc.IsRecursive() {
-		ins.Static = false
-	}
+	// if tc.IsRecursive() {
+	// 	ins.Static = false
+	// }
 
 	if tc.DeriveFor.Info.TypeParam.Size() > 0 {
 		ins.Static = false

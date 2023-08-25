@@ -31,10 +31,10 @@ func TestEncode(t *testing.T) {
 		}.AsImmutable(),
 	}.AsImmutable()
 
-	str := testjson.EncoderRoot.Encode(root)
+	str := testjson.EncoderRoot().Encode(root)
 	fmt.Println(str.Get())
 
-	rev := testjson.DecoderRoot.Decode(js.DecoderContext{}, str.Get())
+	rev := testjson.DecoderRoot().Decode(js.DecoderContext{}, str.Get())
 	rev.Failed().Foreach(fp.Println[error])
 	assert.True(rev.IsSuccess())
 	fmt.Println(rev.Get())

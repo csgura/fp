@@ -36,7 +36,7 @@ func TestShow(t *testing.T) {
 		Street:  "Teheran",
 	}.AsImmutable()
 
-	fmt.Println(docexample.ShowAddress.Show(addr))
+	fmt.Println(docexample.ShowAddress().Show(addr))
 }
 
 func TestEncoder(t *testing.T) {
@@ -46,6 +46,6 @@ func TestEncoder(t *testing.T) {
 		Year:    2023,
 	}.AsImmutable()
 
-	fmt.Println(docexample.EncoderCar.Encode(car))
+	fmt.Println(docexample.EncoderCar().Encode(car))
 
 }

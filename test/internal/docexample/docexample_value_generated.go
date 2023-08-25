@@ -57,14 +57,6 @@ func (r Person) String() string {
 	return fmt.Sprintf("Person(name=%v, age=%v)", r.name, r.age)
 }
 
-func (r Person) Eqv(other Person) bool {
-	return EqPerson.Eqv(r, other)
-}
-
-func (r Person) Hash() uint32 {
-	return HashablePerson.Hash(r)
-}
-
 func (r Person) AsTuple() fp.Tuple2[string, int] {
 	return as.Tuple2(r.name, r.age)
 }
@@ -177,12 +169,8 @@ func (r AddressBuilder) Street(v string) AddressBuilder {
 	return r
 }
 
-func (r Address) ShowIndent(opt fp.ShowOption) string {
-	return ShowAddress.ShowIndent(r, opt)
-}
-
 func (r Address) String() string {
-	return ShowAddress.Show(r)
+	return fmt.Sprintf("Address(country=%v, city=%v, street=%v)", r.country, r.city, r.street)
 }
 
 func (r Address) AsTuple() fp.Tuple3[string, string, string] {
@@ -325,14 +313,6 @@ func (r CarBuilder) Year(v int) CarBuilder {
 
 func (r Car) String() string {
 	return fmt.Sprintf("Car(company=%v, model=%v, year=%v)", r.company, r.model, r.year)
-}
-
-func (r Car) Eqv(other Car) bool {
-	return EqCar.Eqv(r, other)
-}
-
-func (r Car) Less(other Car) bool {
-	return OrdCar.Less(r, other)
 }
 
 func (r Car) AsTuple() fp.Tuple3[string, string, int] {
@@ -555,10 +535,6 @@ func (r CarsOwnedBuilder) Cars(v fp.Seq[Car]) CarsOwnedBuilder {
 
 func (r CarsOwned) String() string {
 	return fmt.Sprintf("CarsOwned(owner=%v, cars=%v)", r.owner, r.cars)
-}
-
-func (r CarsOwned) Eqv(other CarsOwned) bool {
-	return EqCarsOwned.Eqv(r, other)
 }
 
 func (r CarsOwned) AsTuple() fp.Tuple2[Person, fp.Seq[Car]] {

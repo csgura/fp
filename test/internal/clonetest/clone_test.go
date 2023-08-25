@@ -14,7 +14,7 @@ func TestClone(t *testing.T) {
 		S: []int{1, 2, 3},
 	}
 
-	r2 := clonetest.CloneHasReference.Clone(r)
+	r2 := clonetest.CloneHasReference().Clone(r)
 	r3 := r
 	r.S[0] = 2
 

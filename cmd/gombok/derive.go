@@ -209,6 +209,11 @@ func (r lookupTarget) required() fp.Seq[metafp.RequiredInstance] {
 }
 
 func (r lookupTarget) isFunc() bool {
+
+	if r.target.IsLeft() {
+		return true
+	}
+
 	instance := r.instance()
 	if instance.IsDefined() {
 		return !instance.Get().Static
@@ -1972,7 +1977,7 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 					`, tc.GeneratedInstanceName(), valuetpdec, fargs, tcname, tc.DeriveFor.PackagedName(r.w, workingPackage), valuetp,
 			mapExpr), mapExpr.paramInstance)
 
-	} else if tc.IsRecursive() {
+	} else {
 		tcname := tc.TypeClass.PackagedName(r.w, workingPackage)
 
 		return newSummonExpr(fmt.Sprintf(`
@@ -1981,10 +1986,6 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 						}
 					`, tc.GeneratedInstanceName(), tcname, tc.DeriveFor.PackagedName(r.w, workingPackage),
 			mapExpr), mapExpr.paramInstance)
-	} else {
-		return newSummonExpr(fmt.Sprintf(`
-						var %s = %s
-					`, tc.GeneratedInstanceName(), mapExpr), mapExpr.paramInstance)
 	}
 }
 

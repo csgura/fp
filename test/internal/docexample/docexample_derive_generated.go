@@ -12,73 +12,87 @@ import (
 	"github.com/csgura/fp/test/internal/show"
 )
 
-var EqPerson = eq.ContraMap(
-	eq.Tuple2(eq.String, eq.Given[int]()),
-	Person.AsTuple,
-)
+func EqPerson() fp.Eq[Person] {
+	return eq.ContraMap(
+		eq.Tuple2(eq.String, eq.Given[int]()),
+		Person.AsTuple,
+	)
+}
 
-var HashablePerson = hash.ContraMap(
-	hash.Tuple2(hash.String, hash.Number[int]()),
-	Person.AsTuple,
-)
+func HashablePerson() fp.Hashable[Person] {
+	return hash.ContraMap(
+		hash.Tuple2(hash.String, hash.Number[int]()),
+		Person.AsTuple,
+	)
+}
 
-var EqCar = eq.ContraMap(
-	eq.Tuple3(eq.String, eq.String, eq.Given[int]()),
-	Car.AsTuple,
-)
+func EqCar() fp.Eq[Car] {
+	return eq.ContraMap(
+		eq.Tuple3(eq.String, eq.String, eq.Given[int]()),
+		Car.AsTuple,
+	)
+}
 
-var OrdCar = ord.ContraMap(
-	ord.Tuple3(ord.Given[string](), ord.Given[string](), ord.Given[int]()),
-	Car.AsTuple,
-)
+func OrdCar() fp.Ord[Car] {
+	return ord.ContraMap(
+		ord.Tuple3(ord.Given[string](), ord.Given[string](), ord.Given[int]()),
+		Car.AsTuple,
+	)
+}
 
-var EqCarsOwned = eq.ContraMap(
-	eq.Tuple2(EqPerson, EqSortSeq(EqCar, OrdCar)),
-	CarsOwned.AsTuple,
-)
+func EqCarsOwned() fp.Eq[CarsOwned] {
+	return eq.ContraMap(
+		eq.Tuple2(EqPerson(), EqSortSeq(EqCar(), OrdCar())),
+		CarsOwned.AsTuple,
+	)
+}
 
-var ShowAddress = show.Generic(
-	as.Generic(
-		"docexample.Address",
-		"Struct",
-		fp.Compose(
-			Address.AsTuple,
-			as.HList3,
-		),
-
-		fp.Compose(
-			product.TupleFromHList3,
+func ShowAddress() fp.Show[Address] {
+	return show.Generic(
+		as.Generic(
+			"docexample.Address",
+			"Struct",
 			fp.Compose(
-				as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
-				AddressBuilder.Build,
+				Address.AsTuple,
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
+					AddressBuilder.Build,
+				),
 			),
 		),
-	),
-	show.StructHCons(
-		show.String,
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
 				show.String,
-				show.HNil,
+				show.StructHCons(
+					show.String,
+					show.HNil,
+				),
 			),
 		),
-	),
-)
+	)
+}
 
-var EncoderCar = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[NamedCompany[string]](js.EncoderString),
+func EncoderCar() js.Encoder[Car] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedModel[string]](js.EncoderString),
+			js.EncoderNamed[NamedCompany[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedYear[int]](js.EncoderNumber[int]()),
-				js.EncoderHNil,
+				js.EncoderNamed[NamedModel[string]](js.EncoderString),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NamedYear[int]](js.EncoderNumber[int]()),
+					js.EncoderHNil,
+				),
 			),
 		),
-	),
-	fp.Compose(
-		Car.AsLabelled,
-		as.HList3Labelled,
-	),
-)
+		fp.Compose(
+			Car.AsLabelled,
+			as.HList3Labelled,
+		),
+	)
+}

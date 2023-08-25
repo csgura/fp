@@ -16,243 +16,269 @@ import (
 	"time"
 )
 
-var EqWorld = eq.ContraMap(
-	eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
-	World.AsTuple,
-)
+func EqWorld() fp.Eq[World] {
+	return eq.ContraMap(
+		eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
+		World.AsTuple,
+	)
+}
 
-var EncoderWorld = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[NamedMessage[string]](js.EncoderString),
+func EncoderWorld() js.Encoder[World] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime),
+			js.EncoderNamed[NamedMessage[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[PubNamedPub[string]](js.EncoderString),
-				js.EncoderHNil,
-			),
-		),
-	),
-	fp.Compose(
-		World.AsLabelled,
-		as.HList3Labelled,
-	),
-)
-
-var DecoderWorld = js.DecoderMap(
-	js.DecoderHConsLabelled(
-		js.DecoderNamed[NamedMessage[string]](js.DecoderString),
-		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime),
-			js.DecoderHConsLabelled(
-				js.DecoderNamed[PubNamedPub[string]](js.DecoderString),
-				js.DecoderHNil,
-			),
-		),
-	),
-
-	fp.Compose(
-		product.LabelledFromHList3,
-		fp.Compose(
-			as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
-			WorldBuilder.Build,
-		),
-	),
-)
-
-var ShowWorld = show.Generic(
-	as.Generic(
-		"testpk1.World",
-		"Struct",
-		fp.Compose(
-			World.AsTuple,
-			as.HList3,
-		),
-
-		fp.Compose(
-			product.TupleFromHList3,
-			fp.Compose(
-				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
-				WorldBuilder.Build,
-			),
-		),
-	),
-	show.StructHCons(
-		show.String,
-		show.StructHCons(
-			show.Time,
-			show.StructHCons(
-				show.String,
-				show.HNil,
-			),
-		),
-	),
-)
-
-var EncoderHasOption = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[NamedMessage[string]](js.EncoderString),
-		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
-			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedPhone[[]string]](js.EncoderSlice(js.EncoderString)),
+				js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+					js.EncoderNamed[PubNamedPub[string]](js.EncoderString),
 					js.EncoderHNil,
 				),
 			),
 		),
-	),
-	fp.Compose(
-		HasOption.AsLabelled,
-		as.HList4Labelled,
-	),
-)
-
-var EqAliasedStruct = eq.ContraMap(
-	eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
-	AliasedStruct.AsTuple,
-)
-
-var ShowHListInsideHList = show.Generic(
-	as.Generic(
-		"testpk1.HListInsideHList",
-		"Struct",
 		fp.Compose(
-			HListInsideHList.AsTuple,
-			as.HList3,
+			World.AsLabelled,
+			as.HList3Labelled,
+		),
+	)
+}
+
+func DecoderWorld() js.Decoder[World] {
+	return js.DecoderMap(
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[NamedMessage[string]](js.DecoderString),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime),
+				js.DecoderHConsLabelled(
+					js.DecoderNamed[PubNamedPub[string]](js.DecoderString),
+					js.DecoderHNil,
+				),
+			),
 		),
 
 		fp.Compose(
-			product.TupleFromHList3,
+			product.LabelledFromHList3,
 			fp.Compose(
-				as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
-				HListInsideHListBuilder.Build,
+				as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
+				WorldBuilder.Build,
 			),
 		),
-	),
-	show.StructHCons(
-		show.Generic(
-			as.Generic(
-				"fp.Tuple2",
-				"Tuple",
-				as.HList2,
-				product.TupleFromHList2[string, int],
+	)
+}
+
+func ShowWorld() fp.Show[World] {
+	return show.Generic(
+		as.Generic(
+			"testpk1.World",
+			"Struct",
+			fp.Compose(
+				World.AsTuple,
+				as.HList3,
 			),
-			show.TupleHCons(
-				show.String,
-				show.TupleHCons(
-					show.Int[int](),
-					show.HNil,
+
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
+					WorldBuilder.Build,
 				),
 			),
 		),
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
-				ShowWorld,
-				show.HNil,
+				show.Time,
+				show.StructHCons(
+					show.String,
+					show.HNil,
+				),
 			),
 		),
-	),
-)
+	)
+}
 
-var ReadHListInsideHList = read.Generic(
-	as.Generic(
-		"testpk1.HListInsideHList",
-		"Struct",
-		fp.Compose(
-			HListInsideHList.AsTuple,
-			as.HList3,
+func EncoderHasOption() js.Encoder[HasOption] {
+	return js.EncoderContraMap(
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NamedMessage[string]](js.EncoderString),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NamedAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NamedPhone[[]string]](js.EncoderSlice(js.EncoderString)),
+					js.EncoderHConsLabelled(
+						js.EncoderNamed[NamedEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+						js.EncoderHNil,
+					),
+				),
+			),
 		),
-
 		fp.Compose(
-			product.TupleFromHList3,
+			HasOption.AsLabelled,
+			as.HList4Labelled,
+		),
+	)
+}
+
+func EqAliasedStruct() fp.Eq[AliasedStruct] {
+	return eq.ContraMap(
+		eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
+		AliasedStruct.AsTuple,
+	)
+}
+
+func ShowHListInsideHList() fp.Show[HListInsideHList] {
+	return show.Generic(
+		as.Generic(
+			"testpk1.HListInsideHList",
+			"Struct",
 			fp.Compose(
-				as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
-				HListInsideHListBuilder.Build,
+				HListInsideHList.AsTuple,
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
+					HListInsideHListBuilder.Build,
+				),
 			),
 		),
-	),
-	read.TupleHCons(
-		read.Generic(
-			as.Generic(
-				"fp.Tuple2",
-				"Tuple",
-				as.HList2,
-				product.TupleFromHList2[string, int],
+		show.StructHCons(
+			show.Generic(
+				as.Generic(
+					"fp.Tuple2",
+					"Tuple",
+					as.HList2,
+					product.TupleFromHList2[string, int],
+				),
+				show.TupleHCons(
+					show.String,
+					show.TupleHCons(
+						show.Int[int](),
+						show.HNil,
+					),
+				),
+			),
+			show.StructHCons(
+				show.String,
+				show.StructHCons(
+					ShowWorld(),
+					show.HNil,
+				),
+			),
+		),
+	)
+}
+
+func ReadHListInsideHList() read.Read[HListInsideHList] {
+	return read.Generic(
+		as.Generic(
+			"testpk1.HListInsideHList",
+			"Struct",
+			fp.Compose(
+				HListInsideHList.AsTuple,
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
+					HListInsideHListBuilder.Build,
+				),
+			),
+		),
+		read.TupleHCons(
+			read.Generic(
+				as.Generic(
+					"fp.Tuple2",
+					"Tuple",
+					as.HList2,
+					product.TupleFromHList2[string, int],
+				),
+				read.TupleHCons(
+					read.String,
+					read.TupleHCons(
+						read.Int[int](),
+						read.TupleHNill,
+					),
+				),
 			),
 			read.TupleHCons(
 				read.String,
 				read.TupleHCons(
-					read.Int[int](),
+					ReadWorld(),
 					read.TupleHNill,
+				),
+			),
+		),
+	)
+}
+
+func ReadWorld() read.Read[World] {
+	return read.Generic(
+		as.Generic(
+			"testpk1.World",
+			"Struct",
+			fp.Compose(
+				World.AsTuple,
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
+					WorldBuilder.Build,
 				),
 			),
 		),
 		read.TupleHCons(
 			read.String,
 			read.TupleHCons(
-				ReadWorld,
-				read.TupleHNill,
+				read.Time,
+				read.TupleHCons(
+					read.String,
+					read.TupleHNill,
+				),
 			),
 		),
-	),
-)
+	)
+}
 
-var ReadWorld = read.Generic(
-	as.Generic(
-		"testpk1.World",
-		"Struct",
+func EqTestOrderedEq() fp.Eq[TestOrderedEq] {
+	return eq.ContraMap(
+		eq.Tuple2(EqSeq(eq.Given[int](), ord.Given[int]()), EqSeq(eq.Tuple2(eq.Given[int](), eq.Given[int]()), ord.Tuple2(ord.Given[int](), ord.Given[int]()))),
+		TestOrderedEq.AsTuple,
+	)
+}
+
+func EqMapEq() fp.Eq[MapEq] {
+	return eq.ContraMap(
+		eq.Tuple2(eq.GoMap[string, World](EqWorld()), eq.FpMap[string, World](EqWorld())),
+		MapEq.AsTuple,
+	)
+}
+
+func MonoidSeqMonoid() fp.Monoid[SeqMonoid] {
+	return monoid.IMap(
+		monoid.Tuple4(monoid.String, monoid.MergeSeq[string](), monoid.MergeGoMap[string, int](), monoid.MergeMap[string, World]()),
 		fp.Compose(
-			World.AsTuple,
-			as.HList3,
+			as.Curried2(SeqMonoidBuilder.FromTuple)(SeqMonoidBuilder{}),
+			SeqMonoidBuilder.Build,
 		),
+		SeqMonoid.AsTuple,
+	)
+}
 
-		fp.Compose(
-			product.TupleFromHList3,
-			fp.Compose(
-				as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
-				WorldBuilder.Build,
-			),
-		),
-	),
-	read.TupleHCons(
-		read.String,
-		read.TupleHCons(
-			read.Time,
-			read.TupleHCons(
-				read.String,
-				read.TupleHNill,
-			),
-		),
-	),
-)
-
-var EqTestOrderedEq = eq.ContraMap(
-	eq.Tuple2(EqSeq(eq.Given[int](), ord.Given[int]()), EqSeq(eq.Tuple2(eq.Given[int](), eq.Given[int]()), ord.Tuple2(ord.Given[int](), ord.Given[int]()))),
-	TestOrderedEq.AsTuple,
-)
-
-var EqMapEq = eq.ContraMap(
-	eq.Tuple2(eq.GoMap[string, World](EqWorld), eq.FpMap[string, World](EqWorld)),
-	MapEq.AsTuple,
-)
-
-var MonoidSeqMonoid = monoid.IMap(
-	monoid.Tuple4(monoid.String, monoid.MergeSeq[string](), monoid.MergeGoMap[string, int](), monoid.MergeMap[string, World]()),
-	fp.Compose(
-		as.Curried2(SeqMonoidBuilder.FromTuple)(SeqMonoidBuilder{}),
-		SeqMonoidBuilder.Build,
-	),
-	SeqMonoid.AsTuple,
-)
-
-var EqMyInt = eq.ContraMap(
-	eq.Given[int](),
-	func(v MyInt) int {
-		return int(v)
-	},
-)
+func EqMyInt() fp.Eq[MyInt] {
+	return eq.ContraMap(
+		eq.Given[int](),
+		func(v MyInt) int {
+			return int(v)
+		},
+	)
+}
 
 func EqMySeq[T any](eqT fp.Eq[T]) fp.Eq[MySeq[T]] {
 	return eq.ContraMap(
@@ -282,10 +308,12 @@ func EqMapEqParam[K any, V any](eqV fp.Eq[V]) fp.Eq[MapEqParam[K, V]] {
 	)
 }
 
-var EqNotUsedProblem = eq.ContraMap(
-	eq.Tuple1(EqMapEqParam[string, int](eq.Given[int]())),
-	NotUsedProblem.AsTuple,
-)
+func EqNotUsedProblem() fp.Eq[NotUsedProblem] {
+	return eq.ContraMap(
+		eq.Tuple1(EqMapEqParam[string, int](eq.Given[int]())),
+		NotUsedProblem.AsTuple,
+	)
+}
 
 func EqNode() fp.Eq[Node] {
 	return eq.ContraMap(
@@ -298,14 +326,15 @@ func EqNode() fp.Eq[Node] {
 	)
 }
 
-var EqNoPrivate = eq.ContraMap(
-	eq.Tuple1(eq.Given[int]()),
-	NoPrivate.AsTuple,
-)
+func EqNoPrivate() fp.Eq[NoPrivate] {
+	return eq.ContraMap(
+		eq.Tuple1(eq.Given[int]()),
+		NoPrivate.AsTuple,
+	)
+}
 
-var EqOver21 = eq.ContraMap(
-	eq.HCons(
-		eq.Given[int](),
+func EqOver21() fp.Eq[Over21] {
+	return eq.ContraMap(
 		eq.HCons(
 			eq.Given[int](),
 			eq.HCons(
@@ -364,70 +393,9 @@ var EqOver21 = eq.ContraMap(
 																														eq.Given[int](),
 																														eq.HCons(
 																															eq.Given[int](),
-																															eq.HNil,
-																														),
-																													),
-																												),
-																											),
-																										),
-																									),
-																								),
-																							),
-																						),
-																					),
-																				),
-																			),
-																		),
-																	),
-																),
-															),
-														),
-													),
-												),
-											),
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-			),
-		),
-	),
-	func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
-		i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
-		return hlist.Concat(i0,
-			hlist.Concat(i1,
-				hlist.Concat(i2,
-					hlist.Concat(i3,
-						hlist.Concat(i4,
-							hlist.Concat(i5,
-								hlist.Concat(i6,
-									hlist.Concat(i7,
-										hlist.Concat(i8,
-											hlist.Concat(i9,
-												hlist.Concat(i10,
-													hlist.Concat(i11,
-														hlist.Concat(i12,
-															hlist.Concat(i13,
-																hlist.Concat(i14,
-																	hlist.Concat(i15,
-																		hlist.Concat(i16,
-																			hlist.Concat(i17,
-																				hlist.Concat(i18,
-																					hlist.Concat(i19,
-																						hlist.Concat(i20,
-																							hlist.Concat(i21,
-																								hlist.Concat(i22,
-																									hlist.Concat(i23,
-																										hlist.Concat(i24,
-																											hlist.Concat(i25,
-																												hlist.Concat(i26,
-																													hlist.Concat(i27,
-																														hlist.Concat(i28,
-																															hlist.Concat(i29,
-																																hlist.Empty(),
+																															eq.HCons(
+																																eq.Given[int](),
+																																eq.HNil,
 																															),
 																														),
 																													),
@@ -457,205 +425,7 @@ var EqOver21 = eq.ContraMap(
 					),
 				),
 			),
-		)
-	},
-)
-
-var MonoidOver21 = monoid.IMap(
-	monoid.HCons(
-		monoid.Product[int](),
-		monoid.HCons(
-			monoid.Product[int](),
-			monoid.HCons(
-				monoid.Product[int](),
-				monoid.HCons(
-					monoid.Product[int](),
-					monoid.HCons(
-						monoid.Product[int](),
-						monoid.HCons(
-							monoid.Product[int](),
-							monoid.HCons(
-								monoid.Product[int](),
-								monoid.HCons(
-									monoid.Product[int](),
-									monoid.HCons(
-										monoid.Product[int](),
-										monoid.HCons(
-											monoid.Product[int](),
-											monoid.HCons(
-												monoid.Product[int](),
-												monoid.HCons(
-													monoid.Product[int](),
-													monoid.HCons(
-														monoid.Product[int](),
-														monoid.HCons(
-															monoid.Product[int](),
-															monoid.HCons(
-																monoid.Product[int](),
-																monoid.HCons(
-																	monoid.Product[int](),
-																	monoid.HCons(
-																		monoid.Product[int](),
-																		monoid.HCons(
-																			monoid.Product[int](),
-																			monoid.HCons(
-																				monoid.Product[int](),
-																				monoid.HCons(
-																					monoid.Product[int](),
-																					monoid.HCons(
-																						monoid.Product[int](),
-																						monoid.HCons(
-																							monoid.Product[int](),
-																							monoid.HCons(
-																								monoid.Product[int](),
-																								monoid.HCons(
-																									monoid.Product[int](),
-																									monoid.HCons(
-																										monoid.Product[int](),
-																										monoid.HCons(
-																											monoid.Product[int](),
-																											monoid.HCons(
-																												monoid.Product[int](),
-																												monoid.HCons(
-																													monoid.Product[int](),
-																													monoid.HCons(
-																														monoid.Product[int](),
-																														monoid.HCons(
-																															monoid.Product[int](),
-																															monoid.HNil,
-																														),
-																													),
-																												),
-																											),
-																										),
-																									),
-																								),
-																							),
-																						),
-																					),
-																				),
-																			),
-																		),
-																	),
-																),
-															),
-														),
-													),
-												),
-											),
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-			),
 		),
-	),
-	func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
-		i0, hl1 := hlist.Unapply(hl0)
-		i1, hl2 := hlist.Unapply(hl1)
-		i2, hl3 := hlist.Unapply(hl2)
-		i3, hl4 := hlist.Unapply(hl3)
-		i4, hl5 := hlist.Unapply(hl4)
-		i5, hl6 := hlist.Unapply(hl5)
-		i6, hl7 := hlist.Unapply(hl6)
-		i7, hl8 := hlist.Unapply(hl7)
-		i8, hl9 := hlist.Unapply(hl8)
-		i9, hl10 := hlist.Unapply(hl9)
-		i10, hl11 := hlist.Unapply(hl10)
-		i11, hl12 := hlist.Unapply(hl11)
-		i12, hl13 := hlist.Unapply(hl12)
-		i13, hl14 := hlist.Unapply(hl13)
-		i14, hl15 := hlist.Unapply(hl14)
-		i15, hl16 := hlist.Unapply(hl15)
-		i16, hl17 := hlist.Unapply(hl16)
-		i17, hl18 := hlist.Unapply(hl17)
-		i18, hl19 := hlist.Unapply(hl18)
-		i19, hl20 := hlist.Unapply(hl19)
-		i20, hl21 := hlist.Unapply(hl20)
-		i21, hl22 := hlist.Unapply(hl21)
-		i22, hl23 := hlist.Unapply(hl22)
-		i23, hl24 := hlist.Unapply(hl23)
-		i24, hl25 := hlist.Unapply(hl24)
-		i25, hl26 := hlist.Unapply(hl25)
-		i26, hl27 := hlist.Unapply(hl26)
-		i27, hl28 := hlist.Unapply(hl27)
-		i28, hl29 := hlist.Unapply(hl28)
-		i29 := hl29.Head()
-		return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
-	},
-	func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
-		i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
-		return hlist.Concat(i0,
-			hlist.Concat(i1,
-				hlist.Concat(i2,
-					hlist.Concat(i3,
-						hlist.Concat(i4,
-							hlist.Concat(i5,
-								hlist.Concat(i6,
-									hlist.Concat(i7,
-										hlist.Concat(i8,
-											hlist.Concat(i9,
-												hlist.Concat(i10,
-													hlist.Concat(i11,
-														hlist.Concat(i12,
-															hlist.Concat(i13,
-																hlist.Concat(i14,
-																	hlist.Concat(i15,
-																		hlist.Concat(i16,
-																			hlist.Concat(i17,
-																				hlist.Concat(i18,
-																					hlist.Concat(i19,
-																						hlist.Concat(i20,
-																							hlist.Concat(i21,
-																								hlist.Concat(i22,
-																									hlist.Concat(i23,
-																										hlist.Concat(i24,
-																											hlist.Concat(i25,
-																												hlist.Concat(i26,
-																													hlist.Concat(i27,
-																														hlist.Concat(i28,
-																															hlist.Concat(i29,
-																																hlist.Empty(),
-																															),
-																														),
-																													),
-																												),
-																											),
-																										),
-																									),
-																								),
-																							),
-																						),
-																					),
-																				),
-																			),
-																		),
-																	),
-																),
-															),
-														),
-													),
-												),
-											),
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-			),
-		)
-	},
-)
-
-var ReadOver21 = read.Generic(
-	as.Generic(
-		"testpk1.Over21",
-		"Struct",
 		func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
 			i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
 			return hlist.Concat(i0,
@@ -720,6 +490,102 @@ var ReadOver21 = read.Generic(
 				),
 			)
 		},
+	)
+}
+
+func MonoidOver21() fp.Monoid[Over21] {
+	return monoid.IMap(
+		monoid.HCons(
+			monoid.Product[int](),
+			monoid.HCons(
+				monoid.Product[int](),
+				monoid.HCons(
+					monoid.Product[int](),
+					monoid.HCons(
+						monoid.Product[int](),
+						monoid.HCons(
+							monoid.Product[int](),
+							monoid.HCons(
+								monoid.Product[int](),
+								monoid.HCons(
+									monoid.Product[int](),
+									monoid.HCons(
+										monoid.Product[int](),
+										monoid.HCons(
+											monoid.Product[int](),
+											monoid.HCons(
+												monoid.Product[int](),
+												monoid.HCons(
+													monoid.Product[int](),
+													monoid.HCons(
+														monoid.Product[int](),
+														monoid.HCons(
+															monoid.Product[int](),
+															monoid.HCons(
+																monoid.Product[int](),
+																monoid.HCons(
+																	monoid.Product[int](),
+																	monoid.HCons(
+																		monoid.Product[int](),
+																		monoid.HCons(
+																			monoid.Product[int](),
+																			monoid.HCons(
+																				monoid.Product[int](),
+																				monoid.HCons(
+																					monoid.Product[int](),
+																					monoid.HCons(
+																						monoid.Product[int](),
+																						monoid.HCons(
+																							monoid.Product[int](),
+																							monoid.HCons(
+																								monoid.Product[int](),
+																								monoid.HCons(
+																									monoid.Product[int](),
+																									monoid.HCons(
+																										monoid.Product[int](),
+																										monoid.HCons(
+																											monoid.Product[int](),
+																											monoid.HCons(
+																												monoid.Product[int](),
+																												monoid.HCons(
+																													monoid.Product[int](),
+																													monoid.HCons(
+																														monoid.Product[int](),
+																														monoid.HCons(
+																															monoid.Product[int](),
+																															monoid.HCons(
+																																monoid.Product[int](),
+																																monoid.HNil,
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		),
 		func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
 			i0, hl1 := hlist.Unapply(hl0)
 			i1, hl2 := hlist.Unapply(hl1)
@@ -753,9 +619,176 @@ var ReadOver21 = read.Generic(
 			i29 := hl29.Head()
 			return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
 		},
-	),
-	read.TupleHCons(
-		read.Int[int](),
+		func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+			i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+			return hlist.Concat(i0,
+				hlist.Concat(i1,
+					hlist.Concat(i2,
+						hlist.Concat(i3,
+							hlist.Concat(i4,
+								hlist.Concat(i5,
+									hlist.Concat(i6,
+										hlist.Concat(i7,
+											hlist.Concat(i8,
+												hlist.Concat(i9,
+													hlist.Concat(i10,
+														hlist.Concat(i11,
+															hlist.Concat(i12,
+																hlist.Concat(i13,
+																	hlist.Concat(i14,
+																		hlist.Concat(i15,
+																			hlist.Concat(i16,
+																				hlist.Concat(i17,
+																					hlist.Concat(i18,
+																						hlist.Concat(i19,
+																							hlist.Concat(i20,
+																								hlist.Concat(i21,
+																									hlist.Concat(i22,
+																										hlist.Concat(i23,
+																											hlist.Concat(i24,
+																												hlist.Concat(i25,
+																													hlist.Concat(i26,
+																														hlist.Concat(i27,
+																															hlist.Concat(i28,
+																																hlist.Concat(i29,
+																																	hlist.Empty(),
+																																),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		},
+	)
+}
+
+func ReadOver21() read.Read[Over21] {
+	return read.Generic(
+		as.Generic(
+			"testpk1.Over21",
+			"Struct",
+			func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+				return hlist.Concat(i0,
+					hlist.Concat(i1,
+						hlist.Concat(i2,
+							hlist.Concat(i3,
+								hlist.Concat(i4,
+									hlist.Concat(i5,
+										hlist.Concat(i6,
+											hlist.Concat(i7,
+												hlist.Concat(i8,
+													hlist.Concat(i9,
+														hlist.Concat(i10,
+															hlist.Concat(i11,
+																hlist.Concat(i12,
+																	hlist.Concat(i13,
+																		hlist.Concat(i14,
+																			hlist.Concat(i15,
+																				hlist.Concat(i16,
+																					hlist.Concat(i17,
+																						hlist.Concat(i18,
+																							hlist.Concat(i19,
+																								hlist.Concat(i20,
+																									hlist.Concat(i21,
+																										hlist.Concat(i22,
+																											hlist.Concat(i23,
+																												hlist.Concat(i24,
+																													hlist.Concat(i25,
+																														hlist.Concat(i26,
+																															hlist.Concat(i27,
+																																hlist.Concat(i28,
+																																	hlist.Concat(i29,
+																																		hlist.Empty(),
+																																	),
+																																),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				)
+			},
+			func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2, hl3 := hlist.Unapply(hl2)
+				i3, hl4 := hlist.Unapply(hl3)
+				i4, hl5 := hlist.Unapply(hl4)
+				i5, hl6 := hlist.Unapply(hl5)
+				i6, hl7 := hlist.Unapply(hl6)
+				i7, hl8 := hlist.Unapply(hl7)
+				i8, hl9 := hlist.Unapply(hl8)
+				i9, hl10 := hlist.Unapply(hl9)
+				i10, hl11 := hlist.Unapply(hl10)
+				i11, hl12 := hlist.Unapply(hl11)
+				i12, hl13 := hlist.Unapply(hl12)
+				i13, hl14 := hlist.Unapply(hl13)
+				i14, hl15 := hlist.Unapply(hl14)
+				i15, hl16 := hlist.Unapply(hl15)
+				i16, hl17 := hlist.Unapply(hl16)
+				i17, hl18 := hlist.Unapply(hl17)
+				i18, hl19 := hlist.Unapply(hl18)
+				i19, hl20 := hlist.Unapply(hl19)
+				i20, hl21 := hlist.Unapply(hl20)
+				i21, hl22 := hlist.Unapply(hl21)
+				i22, hl23 := hlist.Unapply(hl22)
+				i23, hl24 := hlist.Unapply(hl23)
+				i24, hl25 := hlist.Unapply(hl24)
+				i25, hl26 := hlist.Unapply(hl25)
+				i26, hl27 := hlist.Unapply(hl26)
+				i27, hl28 := hlist.Unapply(hl27)
+				i28, hl29 := hlist.Unapply(hl28)
+				i29 := hl29.Head()
+				return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
+			},
+		),
 		read.TupleHCons(
 			read.Int[int](),
 			read.TupleHCons(
@@ -814,7 +847,10 @@ var ReadOver21 = read.Generic(
 																														read.Int[int](),
 																														read.TupleHCons(
 																															read.Int[int](),
-																															read.TupleHNill,
+																															read.TupleHCons(
+																																read.Int[int](),
+																																read.TupleHNill,
+																															),
 																														),
 																													),
 																												),
@@ -844,12 +880,11 @@ var ReadOver21 = read.Generic(
 				),
 			),
 		),
-	),
-)
+	)
+}
 
-var EncoderOver21 = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+func EncoderOver21() js.Encoder[Over21] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
 			js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
@@ -908,70 +943,9 @@ var EncoderOver21 = js.EncoderContraMap(
 																														js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
 																														js.EncoderHConsLabelled(
 																															js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
-																															js.EncoderHNil,
-																														),
-																													),
-																												),
-																											),
-																										),
-																									),
-																								),
-																							),
-																						),
-																					),
-																				),
-																			),
-																		),
-																	),
-																),
-															),
-														),
-													),
-												),
-											),
-										),
-									),
-								),
-							),
-						),
-					),
-				),
-			),
-		),
-	),
-	func(v Over21) hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
-		i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
-		return hlist.Concat(as.Named("i1", i0),
-			hlist.Concat(as.Named("i2", i1),
-				hlist.Concat(as.Named("i3", i2),
-					hlist.Concat(as.Named("i4", i3),
-						hlist.Concat(as.Named("i5", i4),
-							hlist.Concat(as.Named("i6", i5),
-								hlist.Concat(as.Named("i7", i6),
-									hlist.Concat(as.Named("i8", i7),
-										hlist.Concat(as.Named("i9", i8),
-											hlist.Concat(as.Named("i10", i9),
-												hlist.Concat(as.Named("i11", i10),
-													hlist.Concat(as.Named("i12", i11),
-														hlist.Concat(as.Named("i13", i12),
-															hlist.Concat(as.Named("i14", i13),
-																hlist.Concat(as.Named("i15", i14),
-																	hlist.Concat(as.Named("i16", i15),
-																		hlist.Concat(as.Named("i17", i16),
-																			hlist.Concat(as.Named("i18", i17),
-																				hlist.Concat(as.Named("i19", i18),
-																					hlist.Concat(as.Named("i20", i19),
-																						hlist.Concat(as.Named("i21", i20),
-																							hlist.Concat(as.Named("i22", i21),
-																								hlist.Concat(as.Named("i23", i22),
-																									hlist.Concat(as.Named("i24", i23),
-																										hlist.Concat(as.Named("i25", i24),
-																											hlist.Concat(as.Named("i26", i25),
-																												hlist.Concat(as.Named("i27", i26),
-																													hlist.Concat(as.Named("i28", i27),
-																														hlist.Concat(as.Named("i29", i28),
-																															hlist.Concat(as.Named("i30", i29),
-																																hlist.Empty(),
+																															js.EncoderHConsLabelled(
+																																js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																																js.EncoderHNil,
 																															),
 																														),
 																													),
@@ -1001,13 +975,76 @@ var EncoderOver21 = js.EncoderContraMap(
 					),
 				),
 			),
-		)
-	},
-)
+		),
+		func(v Over21) hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+			i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
+			return hlist.Concat(as.Named("i1", i0),
+				hlist.Concat(as.Named("i2", i1),
+					hlist.Concat(as.Named("i3", i2),
+						hlist.Concat(as.Named("i4", i3),
+							hlist.Concat(as.Named("i5", i4),
+								hlist.Concat(as.Named("i6", i5),
+									hlist.Concat(as.Named("i7", i6),
+										hlist.Concat(as.Named("i8", i7),
+											hlist.Concat(as.Named("i9", i8),
+												hlist.Concat(as.Named("i10", i9),
+													hlist.Concat(as.Named("i11", i10),
+														hlist.Concat(as.Named("i12", i11),
+															hlist.Concat(as.Named("i13", i12),
+																hlist.Concat(as.Named("i14", i13),
+																	hlist.Concat(as.Named("i15", i14),
+																		hlist.Concat(as.Named("i16", i15),
+																			hlist.Concat(as.Named("i17", i16),
+																				hlist.Concat(as.Named("i18", i17),
+																					hlist.Concat(as.Named("i19", i18),
+																						hlist.Concat(as.Named("i20", i19),
+																							hlist.Concat(as.Named("i21", i20),
+																								hlist.Concat(as.Named("i22", i21),
+																									hlist.Concat(as.Named("i23", i22),
+																										hlist.Concat(as.Named("i24", i23),
+																											hlist.Concat(as.Named("i25", i24),
+																												hlist.Concat(as.Named("i26", i25),
+																													hlist.Concat(as.Named("i27", i26),
+																														hlist.Concat(as.Named("i28", i27),
+																															hlist.Concat(as.Named("i29", i28),
+																																hlist.Concat(as.Named("i30", i29),
+																																	hlist.Empty(),
+																																),
+																															),
+																														),
+																													),
+																												),
+																											),
+																										),
+																									),
+																								),
+																							),
+																						),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		},
+	)
+}
 
-var DecoderOver21 = js.DecoderMap(
-	js.DecoderHConsLabelled(
-		js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+func DecoderOver21() js.Decoder[Over21] {
+	return js.DecoderMap(
 		js.DecoderHConsLabelled(
 			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
 			js.DecoderHConsLabelled(
@@ -1066,7 +1103,10 @@ var DecoderOver21 = js.DecoderMap(
 																														js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
 																														js.DecoderHConsLabelled(
 																															js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
-																															js.DecoderHNil,
+																															js.DecoderHConsLabelled(
+																																js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																																js.DecoderHNil,
+																															),
 																														),
 																													),
 																												),
@@ -1096,114 +1136,120 @@ var DecoderOver21 = js.DecoderMap(
 				),
 			),
 		),
-	),
-	func(hl0 hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
-		i0, hl1 := hlist.Unapply(hl0)
-		i1, hl2 := hlist.Unapply(hl1)
-		i2, hl3 := hlist.Unapply(hl2)
-		i3, hl4 := hlist.Unapply(hl3)
-		i4, hl5 := hlist.Unapply(hl4)
-		i5, hl6 := hlist.Unapply(hl5)
-		i6, hl7 := hlist.Unapply(hl6)
-		i7, hl8 := hlist.Unapply(hl7)
-		i8, hl9 := hlist.Unapply(hl8)
-		i9, hl10 := hlist.Unapply(hl9)
-		i10, hl11 := hlist.Unapply(hl10)
-		i11, hl12 := hlist.Unapply(hl11)
-		i12, hl13 := hlist.Unapply(hl12)
-		i13, hl14 := hlist.Unapply(hl13)
-		i14, hl15 := hlist.Unapply(hl14)
-		i15, hl16 := hlist.Unapply(hl15)
-		i16, hl17 := hlist.Unapply(hl16)
-		i17, hl18 := hlist.Unapply(hl17)
-		i18, hl19 := hlist.Unapply(hl18)
-		i19, hl20 := hlist.Unapply(hl19)
-		i20, hl21 := hlist.Unapply(hl20)
-		i21, hl22 := hlist.Unapply(hl21)
-		i22, hl23 := hlist.Unapply(hl22)
-		i23, hl24 := hlist.Unapply(hl23)
-		i24, hl25 := hlist.Unapply(hl24)
-		i25, hl26 := hlist.Unapply(hl25)
-		i26, hl27 := hlist.Unapply(hl26)
-		i27, hl28 := hlist.Unapply(hl27)
-		i28, hl29 := hlist.Unapply(hl28)
-		i29 := hl29.Head()
-		return Over21Builder{}.Apply(i0.Value(), i1.Value(), i2.Value(), i3.Value(), i4.Value(), i5.Value(), i6.Value(), i7.Value(), i8.Value(), i9.Value(), i10.Value(), i11.Value(), i12.Value(), i13.Value(), i14.Value(), i15.Value(), i16.Value(), i17.Value(), i18.Value(), i19.Value(), i20.Value(), i21.Value(), i22.Value(), i23.Value(), i24.Value(), i25.Value(), i26.Value(), i27.Value(), i28.Value(), i29.Value()).Build()
-	},
-)
+		func(hl0 hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2, hl3 := hlist.Unapply(hl2)
+			i3, hl4 := hlist.Unapply(hl3)
+			i4, hl5 := hlist.Unapply(hl4)
+			i5, hl6 := hlist.Unapply(hl5)
+			i6, hl7 := hlist.Unapply(hl6)
+			i7, hl8 := hlist.Unapply(hl7)
+			i8, hl9 := hlist.Unapply(hl8)
+			i9, hl10 := hlist.Unapply(hl9)
+			i10, hl11 := hlist.Unapply(hl10)
+			i11, hl12 := hlist.Unapply(hl11)
+			i12, hl13 := hlist.Unapply(hl12)
+			i13, hl14 := hlist.Unapply(hl13)
+			i14, hl15 := hlist.Unapply(hl14)
+			i15, hl16 := hlist.Unapply(hl15)
+			i16, hl17 := hlist.Unapply(hl16)
+			i17, hl18 := hlist.Unapply(hl17)
+			i18, hl19 := hlist.Unapply(hl18)
+			i19, hl20 := hlist.Unapply(hl19)
+			i20, hl21 := hlist.Unapply(hl20)
+			i21, hl22 := hlist.Unapply(hl21)
+			i22, hl23 := hlist.Unapply(hl22)
+			i23, hl24 := hlist.Unapply(hl23)
+			i24, hl25 := hlist.Unapply(hl24)
+			i25, hl26 := hlist.Unapply(hl25)
+			i26, hl27 := hlist.Unapply(hl26)
+			i27, hl28 := hlist.Unapply(hl27)
+			i28, hl29 := hlist.Unapply(hl28)
+			i29 := hl29.Head()
+			return Over21Builder{}.Apply(i0.Value(), i1.Value(), i2.Value(), i3.Value(), i4.Value(), i5.Value(), i6.Value(), i7.Value(), i8.Value(), i9.Value(), i10.Value(), i11.Value(), i12.Value(), i13.Value(), i14.Value(), i15.Value(), i16.Value(), i17.Value(), i18.Value(), i19.Value(), i20.Value(), i21.Value(), i22.Value(), i23.Value(), i24.Value(), i25.Value(), i26.Value(), i27.Value(), i28.Value(), i29.Value()).Build()
+		},
+	)
+}
 
-var EqLegacyStruct = eq.ContraMap(
-	eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
-		eq.Tuple2(eq.String, eq.Given[int]()),
-		func(v struct {
+func EqLegacyStruct() fp.Eq[LegacyStruct] {
+	return eq.ContraMap(
+		eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
+			eq.Tuple2(eq.String, eq.Given[int]()),
+			func(v struct {
+				Hello string
+				World int
+			}) fp.Tuple2[string, int] {
+				return as.Tuple2(v.Hello, v.World)
+			},
+		)),
+		func(v LegacyStruct) fp.Tuple4[string, int, string, struct {
 			Hello string
 			World int
-		}) fp.Tuple2[string, int] {
-			return as.Tuple2(v.Hello, v.World)
+		}] {
+			return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
 		},
-	)),
-	func(v LegacyStruct) fp.Tuple4[string, int, string, struct {
-		Hello string
-		World int
-	}] {
-		return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
-	},
-)
+	)
+}
 
-var DecoderLegacyStruct = js.DecoderMap(
-	js.DecoderHConsLabelled(
-		js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+func DecoderLegacyStruct() js.Decoder[LegacyStruct] {
+	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+			js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+				js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[fp.RuntimeNamed[struct {
-						Hello string
-						World int
-					}]](js.DecoderMap(
-						js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
-						func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) struct {
+					js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+					js.DecoderHConsLabelled(
+						js.DecoderNamed[fp.RuntimeNamed[struct {
 							Hello string
 							World int
-						} {
-							return struct {
+						}]](js.DecoderMap(
+							js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
+							func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) struct {
 								Hello string
 								World int
-							}{Hello: t.I1.Value(), World: t.I2.Value()}
-						},
-					)),
-					js.DecoderHNil,
+							} {
+								return struct {
+									Hello string
+									World int
+								}{Hello: t.I1.Value(), World: t.I2.Value()}
+							},
+						)),
+						js.DecoderHNil,
+					),
 				),
 			),
 		),
-	),
 
-	fp.Compose(
-		product.LabelledFromHList4,
-		func(t fp.Labelled4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
-			Hello string
-			World int
-		}]]) LegacyStruct {
-			return LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value(), privacy: t.I3.Value(), NoName: t.I4.Value()}
-		},
-	),
-)
+		fp.Compose(
+			product.LabelledFromHList4,
+			func(t fp.Labelled4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
+				Hello string
+				World int
+			}]]) LegacyStruct {
+				return LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value(), privacy: t.I3.Value(), NoName: t.I4.Value()}
+			},
+		),
+	)
+}
 
-var EqLocalEmbedPrivate = eq.ContraMap(
-	eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
-		eq.Tuple2(eq.String, eq.Given[int]()),
-		func(v struct {
+func EqLocalEmbedPrivate() fp.Eq[LocalEmbedPrivate] {
+	return eq.ContraMap(
+		eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
+			eq.Tuple2(eq.String, eq.Given[int]()),
+			func(v struct {
+				Hello string
+				world int
+			}) fp.Tuple2[string, int] {
+				return as.Tuple2(v.Hello, v.world)
+			},
+		)),
+		func(v LocalEmbedPrivate) fp.Tuple4[string, int, string, struct {
 			Hello string
 			world int
-		}) fp.Tuple2[string, int] {
-			return as.Tuple2(v.Hello, v.world)
+		}] {
+			return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
 		},
-	)),
-	func(v LocalEmbedPrivate) fp.Tuple4[string, int, string, struct {
-		Hello string
-		world int
-	}] {
-		return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
-	},
-)
+	)
+}

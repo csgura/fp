@@ -9,26 +9,28 @@ import (
 	"github.com/csgura/fp/test/internal/js"
 )
 
-var EncoderRoot = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[NamedA[int]](js.EncoderNumber[int]()),
+func EncoderRoot() js.Encoder[Root] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedB[string]](js.EncoderString),
+			js.EncoderNamed[NamedA[int]](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedC[float64]](js.EncoderNumber[float64]()),
+				js.EncoderNamed[NamedB[string]](js.EncoderString),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedD[bool]](js.EncoderBool),
+					js.EncoderNamed[NamedC[float64]](js.EncoderNumber[float64]()),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NamedE[*int]](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
-							return js.EncoderNumber[int]()
-						}))),
+						js.EncoderNamed[NamedD[bool]](js.EncoderBool),
 						js.EncoderHConsLabelled(
-							js.EncoderNamed[NamedF[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+							js.EncoderNamed[NamedE[*int]](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
+								return js.EncoderNumber[int]()
+							}))),
 							js.EncoderHConsLabelled(
-								js.EncoderNamed[NamedG[map[string]int]](js.EncoderGoMap(js.EncoderNumber[int]())),
+								js.EncoderNamed[NamedF[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
 								js.EncoderHConsLabelled(
-									js.EncoderNamed[NamedH[Child]](EncoderChild),
-									js.EncoderHNil,
+									js.EncoderNamed[NamedG[map[string]int]](js.EncoderGoMap(js.EncoderNumber[int]())),
+									js.EncoderHConsLabelled(
+										js.EncoderNamed[NamedH[Child]](EncoderChild()),
+										js.EncoderHNil,
+									),
 								),
 							),
 						),
@@ -36,63 +38,69 @@ var EncoderRoot = js.EncoderContraMap(
 				),
 			),
 		),
-	),
-	fp.Compose(
-		Root.AsLabelled,
-		as.HList8Labelled,
-	),
-)
-
-var DecoderRoot = js.DecoderMap(
-	js.DecoderHConsLabelled(
-		js.DecoderNamed[NamedA[int]](js.DecoderNumber[int]()),
-		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedB[string]](js.DecoderString),
-			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedC[float64]](js.DecoderNumber[float64]()),
-				js.DecoderHConsLabelled(
-					js.DecoderNamed[NamedD[bool]](js.DecoderBool),
-					js.DecoderHConsLabelled(
-						js.DecoderNamed[NamedE[*int]](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
-							return js.DecoderNumber[int]()
-						}))),
-						js.DecoderHConsLabelled(
-							js.DecoderNamed[NamedF[[]int]](js.DecoderSlice(js.DecoderNumber[int]())),
-							js.DecoderHConsLabelled(
-								js.DecoderNamed[NamedG[map[string]int]](js.DecoderGoMap(js.DecoderNumber[int]())),
-								js.DecoderHConsLabelled(
-									js.DecoderNamed[NamedH[Child]](DecoderChild),
-									js.DecoderHNil,
-								),
-							),
-						),
-					),
-				),
-			),
-		),
-	),
-
-	fp.Compose(
-		product.LabelledFromHList8,
 		fp.Compose(
-			as.Curried2(RootBuilder.FromLabelled)(RootBuilder{}),
-			RootBuilder.Build,
+			Root.AsLabelled,
+			as.HList8Labelled,
 		),
-	),
-)
+	)
+}
 
-var EncoderChild = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NamedA[map[string]any]](js.EncoderGoMapAny), js.EncoderNamed[NamedB[any]](js.EncoderGiven[any]())),
-	Child.AsLabelled,
-)
+func DecoderRoot() js.Decoder[Root] {
+	return js.DecoderMap(
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[NamedA[int]](js.DecoderNumber[int]()),
+			js.DecoderHConsLabelled(
+				js.DecoderNamed[NamedB[string]](js.DecoderString),
+				js.DecoderHConsLabelled(
+					js.DecoderNamed[NamedC[float64]](js.DecoderNumber[float64]()),
+					js.DecoderHConsLabelled(
+						js.DecoderNamed[NamedD[bool]](js.DecoderBool),
+						js.DecoderHConsLabelled(
+							js.DecoderNamed[NamedE[*int]](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
+								return js.DecoderNumber[int]()
+							}))),
+							js.DecoderHConsLabelled(
+								js.DecoderNamed[NamedF[[]int]](js.DecoderSlice(js.DecoderNumber[int]())),
+								js.DecoderHConsLabelled(
+									js.DecoderNamed[NamedG[map[string]int]](js.DecoderGoMap(js.DecoderNumber[int]())),
+									js.DecoderHConsLabelled(
+										js.DecoderNamed[NamedH[Child]](DecoderChild()),
+										js.DecoderHNil,
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		),
 
-var DecoderChild = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[NamedA[map[string]any]](js.DecoderGoMapAny), js.DecoderNamed[NamedB[any]](js.DecoderGiven[any]())),
-	fp.Compose(
-		as.Curried2(ChildBuilder.FromLabelled)(ChildBuilder{}),
-		ChildBuilder.Build,
-	),
-)
+		fp.Compose(
+			product.LabelledFromHList8,
+			fp.Compose(
+				as.Curried2(RootBuilder.FromLabelled)(RootBuilder{}),
+				RootBuilder.Build,
+			),
+		),
+	)
+}
+
+func EncoderChild() js.Encoder[Child] {
+	return js.EncoderContraMap(
+		js.EncoderLabelled2(js.EncoderNamed[NamedA[map[string]any]](js.EncoderGoMapAny), js.EncoderNamed[NamedB[any]](js.EncoderGiven[any]())),
+		Child.AsLabelled,
+	)
+}
+
+func DecoderChild() js.Decoder[Child] {
+	return js.DecoderMap(
+		js.DecoderLabelled2(js.DecoderNamed[NamedA[map[string]any]](js.DecoderGoMapAny), js.DecoderNamed[NamedB[any]](js.DecoderGiven[any]())),
+		fp.Compose(
+			as.Curried2(ChildBuilder.FromLabelled)(ChildBuilder{}),
+			ChildBuilder.Build,
+		),
+	)
+}
 
 func EncoderNode() js.Encoder[Node] {
 	return js.EncoderContraMap(
@@ -117,12 +125,14 @@ func EncoderNode() js.Encoder[Node] {
 	)
 }
 
-var EncoderTree = js.EncoderContraMap(
-	js.EncoderLabelled1(js.EncoderNamed[NamedRoot[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
-		return EncoderNode()
-	})))),
-	Tree.AsLabelled,
-)
+func EncoderTree() js.Encoder[Tree] {
+	return js.EncoderContraMap(
+		js.EncoderLabelled1(js.EncoderNamed[NamedRoot[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+			return EncoderNode()
+		})))),
+		Tree.AsLabelled,
+	)
+}
 
 func EncoderEntry[V any](encoderV js.Encoder[V]) js.Encoder[Entry[V]] {
 	return js.EncoderContraMap(
@@ -138,39 +148,45 @@ func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUse
 	)
 }
 
-var EncoderMovie = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[NamedName[string]](js.EncoderString),
+func EncoderMovie() js.Encoder[Movie] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedCasting[Entry[string]]](EncoderEntry(js.EncoderString)),
+			js.EncoderNamed[NamedName[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedNotUsed[NotUsedParam[int, string]]](EncoderNotUsedParam[int, string](js.EncoderString)),
-				js.EncoderHNil,
+				js.EncoderNamed[NamedCasting[Entry[string]]](EncoderEntry(js.EncoderString)),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NamedNotUsed[NotUsedParam[int, string]]](EncoderNotUsedParam[int, string](js.EncoderString)),
+					js.EncoderHNil,
+				),
 			),
 		),
-	),
-	fp.Compose(
-		Movie.AsLabelled,
-		as.HList3Labelled,
-	),
-)
-
-var EncoderNoPrivate = js.EncoderContraMap(
-	js.EncoderLabelled1(js.EncoderNamed[PubNamedRoot[string]](js.EncoderString)),
-	NoPrivate.AsLabelled,
-)
-
-var DecoderNoPrivate = js.DecoderMap(
-	js.DecoderHConsLabelled(
-		js.DecoderNamed[PubNamedRoot[string]](js.DecoderString),
-		js.DecoderHNil,
-	),
-
-	fp.Compose(
-		product.LabelledFromHList1,
 		fp.Compose(
-			as.Curried2(NoPrivateBuilder.FromLabelled)(NoPrivateBuilder{}),
-			NoPrivateBuilder.Build,
+			Movie.AsLabelled,
+			as.HList3Labelled,
 		),
-	),
-)
+	)
+}
+
+func EncoderNoPrivate() js.Encoder[NoPrivate] {
+	return js.EncoderContraMap(
+		js.EncoderLabelled1(js.EncoderNamed[PubNamedRoot[string]](js.EncoderString)),
+		NoPrivate.AsLabelled,
+	)
+}
+
+func DecoderNoPrivate() js.Decoder[NoPrivate] {
+	return js.DecoderMap(
+		js.DecoderHConsLabelled(
+			js.DecoderNamed[PubNamedRoot[string]](js.DecoderString),
+			js.DecoderHNil,
+		),
+
+		fp.Compose(
+			product.LabelledFromHList1,
+			fp.Compose(
+				as.Curried2(NoPrivateBuilder.FromLabelled)(NoPrivateBuilder{}),
+				NoPrivateBuilder.Build,
+			),
+		),
+	)
+}

@@ -14,7 +14,7 @@ import (
 )
 
 func TestEncoderOption(t *testing.T) {
-	str := testpk1.EncoderHasOption.Encode(testpk1.HasOptionMutable{
+	str := testpk1.EncoderHasOption().Encode(testpk1.HasOptionMutable{
 		Message: "testpk1",
 		Addr:    option.None[string](),
 		Phone:   []string{"1234", "2345"},
@@ -29,7 +29,7 @@ func TestShow(t *testing.T) {
 		Timestamp: time.Now(),
 	}.AsImmutable()
 
-	fmt.Println(testpk1.ShowWorld.Show(v))
+	fmt.Println(testpk1.ShowWorld().Show(v))
 }
 
 func TestHListInsideHList(t *testing.T) {
@@ -42,10 +42,10 @@ func TestHListInsideHList(t *testing.T) {
 		}.AsImmutable(),
 	}.AsImmutable()
 
-	str := testpk1.ShowHListInsideHList.Show(v)
+	str := testpk1.ShowHListInsideHList().Show(v)
 
 	fmt.Println(str)
-	res := testpk1.ReadHListInsideHList.Read(str)
+	res := testpk1.ReadHListInsideHList().Read(str)
 
 	res.Failed().Foreach(fp.Println[error])
 	assert.True(res.IsSuccess())

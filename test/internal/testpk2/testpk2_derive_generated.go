@@ -16,15 +16,19 @@ import (
 	"time"
 )
 
-var EqPerson = eq.ContraMap(
-	eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Given[int](), eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes),
-	Person.AsTuple,
-)
+func EqPerson() fp.Eq[Person] {
+	return eq.ContraMap(
+		eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Given[int](), eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes),
+		Person.AsTuple,
+	)
+}
 
-var EqWallet = eq.ContraMap(
-	eq.Tuple2(EqPerson, eq.Given[int64]()),
-	Wallet.AsTuple,
-)
+func EqWallet() fp.Eq[Wallet] {
+	return eq.ContraMap(
+		eq.Tuple2(EqPerson(), eq.Given[int64]()),
+		Wallet.AsTuple,
+	)
+}
 
 func EqEntry[A comparable, B any, C fmt.Stringer, D interface {
 	Hello() string
@@ -48,138 +52,158 @@ func MonoidEntry[A comparable, B any, C fmt.Stringer, D interface {
 	)
 }
 
-var HashableKey = hash.ContraMap(
-	hash.Tuple3(hash.Number[int](), hash.Number[float32](), hash.Bytes),
-	Key.AsTuple,
-)
+func HashableKey() fp.Hashable[Key] {
+	return hash.ContraMap(
+		hash.Tuple3(hash.Number[int](), hash.Number[float32](), hash.Bytes),
+		Key.AsTuple,
+	)
+}
 
-var MonoidPoint = monoid.IMap(
-	monoid.Tuple3(MonoidInt, MonoidInt, monoid.Tuple2(MonoidInt, MonoidInt)),
-	fp.Compose(
-		as.Curried2(PointBuilder.FromTuple)(PointBuilder{}),
-		PointBuilder.Build,
-	),
-	Point.AsTuple,
-)
+func MonoidPoint() fp.Monoid[Point] {
+	return monoid.IMap(
+		monoid.Tuple3(MonoidInt, MonoidInt, monoid.Tuple2(MonoidInt, MonoidInt)),
+		fp.Compose(
+			as.Curried2(PointBuilder.FromTuple)(PointBuilder{}),
+			PointBuilder.Build,
+		),
+		Point.AsTuple,
+	)
+}
 
-var EqGreeting = eq.ContraMap(
-	eq.Tuple2(EqTestpk1World, eq.String),
-	Greeting.AsTuple,
-)
+func EqGreeting() fp.Eq[Greeting] {
+	return eq.ContraMap(
+		eq.Tuple2(EqTestpk1World(), eq.String),
+		Greeting.AsTuple,
+	)
+}
 
-var EncoderGreeting = js.EncoderContraMap(
-	js.EncoderLabelled2(js.EncoderNamed[NamedHello[testpk1.World]](EncoderTestpk1World), js.EncoderNamed[NamedLanguage[string]](js.EncoderString)),
-	Greeting.AsLabelled,
-)
+func EncoderGreeting() js.Encoder[Greeting] {
+	return js.EncoderContraMap(
+		js.EncoderLabelled2(js.EncoderNamed[NamedHello[testpk1.World]](EncoderTestpk1World()), js.EncoderNamed[NamedLanguage[string]](js.EncoderString)),
+		Greeting.AsLabelled,
+	)
+}
 
-var DecoderGreeting = js.DecoderMap(
-	js.DecoderLabelled2(js.DecoderNamed[NamedHello[testpk1.World]](testpk1.DecoderWorld), js.DecoderNamed[NamedLanguage[string]](js.DecoderString)),
-	fp.Compose(
-		as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}),
-		GreetingBuilder.Build,
-	),
-)
+func DecoderGreeting() js.Decoder[Greeting] {
+	return js.DecoderMap(
+		js.DecoderLabelled2(js.DecoderNamed[NamedHello[testpk1.World]](testpk1.DecoderWorld()), js.DecoderNamed[NamedLanguage[string]](js.DecoderString)),
+		fp.Compose(
+			as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}),
+			GreetingBuilder.Build,
+		),
+	)
+}
 
-var EncoderThree = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[NamedOne[int]](js.EncoderNumber[int]()),
+func EncoderThree() js.Encoder[Three] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedTwo[string]](js.EncoderString),
+			js.EncoderNamed[NamedOne[int]](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedThree[float64]](js.EncoderNumber[float64]()),
-				js.EncoderHNil,
+				js.EncoderNamed[NamedTwo[string]](js.EncoderString),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NamedThree[float64]](js.EncoderNumber[float64]()),
+					js.EncoderHNil,
+				),
 			),
 		),
-	),
-	fp.Compose(
-		Three.AsLabelled,
-		as.HList3Labelled,
-	),
-)
+		fp.Compose(
+			Three.AsLabelled,
+			as.HList3Labelled,
+		),
+	)
+}
 
-var DecoderThree = js.DecoderMap(
-	js.DecoderHConsLabelled(
-		js.DecoderNamed[NamedOne[int]](js.DecoderNumber[int]()),
+func DecoderThree() js.Decoder[Three] {
+	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedTwo[string]](js.DecoderString),
+			js.DecoderNamed[NamedOne[int]](js.DecoderNumber[int]()),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedThree[float64]](js.DecoderNumber[float64]()),
-				js.DecoderHNil,
+				js.DecoderNamed[NamedTwo[string]](js.DecoderString),
+				js.DecoderHConsLabelled(
+					js.DecoderNamed[NamedThree[float64]](js.DecoderNumber[float64]()),
+					js.DecoderHNil,
+				),
 			),
 		),
-	),
-
-	fp.Compose(
-		product.LabelledFromHList3,
-		fp.Compose(
-			as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
-			ThreeBuilder.Build,
-		),
-	),
-)
-
-var ShowThree = show.Generic(
-	as.Generic(
-		"testpk2.Three",
-		"Struct",
-		fp.Compose(
-			Three.AsTuple,
-			as.HList3,
-		),
 
 		fp.Compose(
-			product.TupleFromHList3,
+			product.LabelledFromHList3,
 			fp.Compose(
-				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+				as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
 				ThreeBuilder.Build,
 			),
 		),
-	),
-	show.StructHCons(
-		show.Int[int](),
+	)
+}
+
+func ShowThree() fp.Show[Three] {
+	return show.Generic(
+		as.Generic(
+			"testpk2.Three",
+			"Struct",
+			fp.Compose(
+				Three.AsTuple,
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+					ThreeBuilder.Build,
+				),
+			),
+		),
 		show.StructHCons(
-			show.String,
+			show.Int[int](),
 			show.StructHCons(
-				show.Number[float64](),
-				show.HNil,
+				show.String,
+				show.StructHCons(
+					show.Number[float64](),
+					show.HNil,
+				),
 			),
 		),
-	),
-)
+	)
+}
 
-var ReadThree = read.Generic(
-	as.Generic(
-		"testpk2.Three",
-		"Struct",
-		fp.Compose(
-			Three.AsTuple,
-			as.HList3,
-		),
-
-		fp.Compose(
-			product.TupleFromHList3,
+func ReadThree() read.Read[Three] {
+	return read.Generic(
+		as.Generic(
+			"testpk2.Three",
+			"Struct",
 			fp.Compose(
-				as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
-				ThreeBuilder.Build,
+				Three.AsTuple,
+				as.HList3,
 			),
-		),
-	),
-	read.TupleHCons(
-		read.Int[int](),
-		read.TupleHCons(
-			read.String,
-			read.TupleHCons(
-				read.Float[float64](),
-				read.TupleHNill,
-			),
-		),
-	),
-)
 
-var EqTestpk1World = eq.ContraMap(
-	eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
-	testpk1.World.AsTuple,
-)
+			fp.Compose(
+				product.TupleFromHList3,
+				fp.Compose(
+					as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
+					ThreeBuilder.Build,
+				),
+			),
+		),
+		read.TupleHCons(
+			read.Int[int](),
+			read.TupleHCons(
+				read.String,
+				read.TupleHCons(
+					read.Float[float64](),
+					read.TupleHNill,
+				),
+			),
+		),
+	)
+}
+
+func EqTestpk1World() fp.Eq[testpk1.World] {
+	return eq.ContraMap(
+		eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
+		testpk1.World.AsTuple,
+	)
+}
 
 func EqTestpk1Wrapper[T any](eqT fp.Eq[T]) fp.Eq[testpk1.Wrapper[T]] {
 	return eq.ContraMap(
@@ -188,24 +212,28 @@ func EqTestpk1Wrapper[T any](eqT fp.Eq[T]) fp.Eq[testpk1.Wrapper[T]] {
 	)
 }
 
-var EqTree = eq.ContraMap(
-	eq.Tuple1(testpk1.EqNode()),
-	Tree.AsTuple,
-)
+func EqTree() fp.Eq[Tree] {
+	return eq.ContraMap(
+		eq.Tuple1(testpk1.EqNode()),
+		Tree.AsTuple,
+	)
+}
 
-var EncoderTestpk1World = js.EncoderContraMap(
-	js.EncoderHConsLabelled(
-		js.EncoderNamed[testpk1.NamedMessage[string]](js.EncoderString),
+func EncoderTestpk1World() js.Encoder[testpk1.World] {
+	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[testpk1.NamedTimestamp[time.Time]](js.EncoderTime),
+			js.EncoderNamed[testpk1.NamedMessage[string]](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[testpk1.PubNamedPub[string]](js.EncoderString),
-				js.EncoderHNil,
+				js.EncoderNamed[testpk1.NamedTimestamp[time.Time]](js.EncoderTime),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[testpk1.PubNamedPub[string]](js.EncoderString),
+					js.EncoderHNil,
+				),
 			),
 		),
-	),
-	fp.Compose(
-		testpk1.World.AsLabelled,
-		as.HList3Labelled,
-	),
-)
+		fp.Compose(
+			testpk1.World.AsLabelled,
+			as.HList3Labelled,
+		),
+	)
+}

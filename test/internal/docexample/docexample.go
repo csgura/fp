@@ -28,11 +28,11 @@ var _ eq.Derives[fp.Eq[Person]]
 var _ hash.Derives[fp.Hashable[Person]]
 
 func (r Person) Eq(other Person) bool {
-	return HashablePerson.Eqv(r, other)
+	return HashablePerson().Eqv(r, other)
 }
 
 func (r Person) Hashcode() uint32 {
-	return HashablePerson.Hash(r)
+	return HashablePerson().Hash(r)
 }
 
 // @fp.Value
