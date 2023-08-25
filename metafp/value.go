@@ -163,6 +163,55 @@ func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation
 	return option.Map(comment, extractTag).OrZero()
 }
 
+type PackagedName struct {
+	Package string
+	Name    string
+}
+
+func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags ...string) fp.Seq[*ast.CompositeLit] {
+	tagSeq := as.Seq(tags)
+	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[*ast.CompositeLit] {
+		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
+
+			return v.Decls
+		})
+
+		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+			switch r := v.(type) {
+			case *ast.GenDecl:
+				return seq.Of(r)
+			}
+			return seq.Of[*ast.GenDecl]()
+		})
+
+		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[*ast.CompositeLit] {
+			gdDoc := option.Of(gd.Doc)
+
+			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[*ast.CompositeLit] {
+				if ts, ok := v.(*ast.ValueSpec); ok {
+					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
+					if doc.Exists(func(comment string) bool {
+						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
+					}) {
+						return seq.FilterMap(seq.Zip(ts.Names, ts.Values), func(v fp.Tuple2[*ast.Ident, ast.Expr]) fp.Option[*ast.CompositeLit] {
+							if cl, ok := v.I2.(*ast.CompositeLit); ok {
+
+								obj := pk.Types.Scope().Lookup(v.I1.Name)
+								tpe := typeInfo(obj.Type())
+								if tpe.PackagedName() == typ {
+									return option.Some(cl)
+								}
+							}
+							return option.None[*ast.CompositeLit]()
+						})
+					}
+				}
+				return nil
+			})
+		})
+	})
+}
+
 func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct] {
 
 	tagSeq := as.Seq(tags)
@@ -395,6 +444,18 @@ type TypeInfo struct {
 	TypeArgs  fp.Seq[TypeInfo]
 	TypeParam fp.Seq[TypeParam]
 	Method    fp.Map[string, *types.Func]
+}
+
+func (r TypeInfo) PackagedName() PackagedName {
+	if r.Pkg != nil {
+		return PackagedName{
+			Package: r.Pkg.Path(),
+			Name:    r.TypeName,
+		}
+	}
+	return PackagedName{
+		Name: r.TypeName,
+	}
 }
 
 func (r TypeInfo) IsSamePkg(other *types.Package) bool {

@@ -160,3 +160,21 @@ func TestDeref(t *testing.T) {
 	// deref := option.Deref(opt)
 	// fmt.Println(deref)
 }
+
+func TestVar(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	ret := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateDirective"}, "@fp.Generate")
+	fmt.Printf("ret = %v\n", ret)
+
+}

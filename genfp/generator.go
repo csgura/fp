@@ -540,3 +540,11 @@ func (r Range) Write(txt string, param map[string]any) {
 		panic(err)
 	}
 }
+
+type GenerateDirective struct {
+	File     string
+	Imports  []string
+	From     int
+	Until    int
+	Template string
+}
