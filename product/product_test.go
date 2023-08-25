@@ -50,7 +50,7 @@ func TestGeneric(t *testing.T) {
 
 	tp := product.Tuple3(10, "hello", map[string]any{})
 
-	tp = fp.Tuple3[int, string, map[string]any]{10, "hello", map[string]any{}}
+	tp = as.Tuple3(10, "hello", map[string]any{})
 
 	age, name, attr := tp.Unapply()
 	fmt.Printf("age = %d, name = %s, attr = %v", age, name, attr)
@@ -60,9 +60,9 @@ func TestGeneric(t *testing.T) {
 	fmt.Printf("%v\n", tp2)
 	fmt.Printf("%s\n", hl)
 
-	fmt.Printf("hl hasTail = %t\n", hl.HasTail())
-	fmt.Printf("hl.Tail hasTail = %t\n", hl.Tail().HasTail())
-	fmt.Printf("hl.Tail.Tail hasTail = %t\n", hl.Tail().Tail().HasTail())
+	fmt.Printf("hl hasTail = %t\n", hl.Tail().IsNil())
+	fmt.Printf("hl.Tail hasTail = %t\n", hl.Tail().Tail().IsNil())
+	fmt.Printf("hl.Tail.Tail hasTail = %t\n", hl.Tail().Tail().Tail().IsNil())
 	//fmt.Printf("hl.Tail.Tail.Tail hasTail = %t", hl.Tail().Tail().T.HasTail())
 
 	hl = hlist.Of3(11, "hello", map[string]any{})

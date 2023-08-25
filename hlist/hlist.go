@@ -9,12 +9,7 @@ import (
 // but go does not support existential type
 // since it has non public method sealed(),  nothing can implement this interface except Cons and Nil
 type HList interface {
-	sealed()
 	IsNil() bool
-	HasTail() bool
-	Unapply() (any, HList)
-	Foreach(func(v any))
-	// Cons[_,_] | Nil
 }
 
 // Header is constrains interface type,  enforce Head type of Cons is HT
@@ -42,22 +37,6 @@ func (r Nil) String() string {
 	return "Nil"
 }
 
-func (r Nil) HasTail() bool {
-	return false
-}
-
-func (r Nil) Unapply() (any, HList) {
-	return nil, Nil{}
-}
-
-func (r Nil) Foreach(func(v any)) {
-
-}
-
-func (r Nil) sealed() {
-
-}
-
 type Cons[H any, T HList] struct {
 	head H
 	tail T
@@ -75,25 +54,8 @@ func (r Cons[H, T]) IsNil() bool {
 	return false
 }
 
-func (r Cons[H, T]) HasTail() bool {
-	return Nil{} != any(r.tail)
-}
-
-func (r Cons[H, T]) Unapply() (any, HList) {
-	return r.head, r.tail
-}
-
 func (r Cons[H, T]) String() string {
 	return fmt.Sprintf("%v :: %v", r.head, r.tail)
-}
-
-func (r Cons[H, T]) Foreach(f func(v any)) {
-	f(r.head)
-	r.tail.Foreach(f)
-}
-
-func (r Cons[H, T]) sealed() {
-
 }
 
 func Concat[H any, T HList](h H, t T) Cons[H, T] {
@@ -140,18 +102,4 @@ func Case1[A1 any, T HList, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 
 func Unapply[H any, T HList](list Cons[H, T]) (H, T) {
 	return list.Head(), list.Tail()
-}
-
-func Fold[B any](list HList, zero B, f func(B, any) B) B {
-
-	if list.IsNil() {
-		return zero
-	}
-
-	h, t := list.Unapply()
-	sum := f(zero, h)
-	if list.HasTail() {
-		return Fold(t, sum, f)
-	}
-	return sum
 }

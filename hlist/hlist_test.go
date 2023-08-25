@@ -9,7 +9,6 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/product"
-	"github.com/csgura/fp/seq"
 )
 
 func plus(a string, b string, c int) string {
@@ -51,22 +50,6 @@ func TestHList(t *testing.T) {
 
 	// hlist.Unapply(t3)
 
-	list.Foreach(func(v any) {
-		fmt.Println("v = ", v)
-	})
-
-	slist := hlist.Fold(list, seq.Of[any](), func(s fp.Seq[any], v any) fp.Seq[any] {
-		return s.Append(v)
-	})
-
-	fmt.Println(slist)
-
-	println(String(list))
-
-	println(hlist.Fold(list, "", func(s string, v any) string {
-		return s + " :: " + fmt.Sprint(v)
-	}))
-
 	println(ShowCons(Sprint[string](), ShowCons(Sprint[string](), ShowCons(Sprint[int](), ShowNil))).Show(list))
 }
 
@@ -79,15 +62,6 @@ func TestHList(t *testing.T) {
 // 	}
 // 	panic("not possible")
 // }
-
-func String(list hlist.HList) string {
-	if list.IsNil() {
-		return "Nil"
-	}
-
-	h, t := list.Unapply()
-	return fmt.Sprint(h) + " :: " + String(t)
-}
 
 type Show[T any] interface {
 	Show(t T) string
