@@ -500,6 +500,13 @@ var defaultFunc = map[string]any{
 	"CurriedCallArgs":   CurriedCallArgs,
 	"TypeClassArgs":     TypeClassArgs,
 	"CurriedType":       CurriedType,
+	"Range": func(start, until int) []int {
+		var ret = make([]int, until-start)
+		for i := start; i < until; i++ {
+			ret[i-start] = i
+		}
+		return ret
+	},
 	"Monad": func(s string) Monad {
 		return Monad(s)
 	},

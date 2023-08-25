@@ -16,7 +16,7 @@ func False(b bool) {
 
 func Equal[T comparable](a, b T) {
 	if a != b {
-		panic(fmt.Sprintf("expected %v , actual %v", b, a))
+		panic(fmt.Sprintf("expected [%v], actual [%v]", b, a))
 	}
 }
 

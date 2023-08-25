@@ -1,5 +1,7 @@
 package show
 
+//go:generate go run github.com/csgura/fp/internal/generator/show_gen
+
 import (
 	"fmt"
 	"time"
@@ -333,6 +335,19 @@ func Named[T fp.NamedField[A], A any](ashow fp.Show[A]) fp.Show[T] {
 		}
 		return append(append(buf, quoteNames(s.Name(), opt), spaceAfterColon(opt)), valuestr...)
 
+	})
+}
+
+func structFieldSeparator(opt fp.ShowOption) string {
+	if opt.Indent != "" {
+		return ",\n" + opt.CurrentIndent()
+	}
+	return spaceAfterComma(opt)
+}
+
+func Labelled2[N1, N2 fp.Named](ins1 fp.Show[N1], ins2 fp.Show[N2]) fp.Show[fp.Labelled2[N1, N2]] {
+	return NewAppend(func(buf []string, t fp.Labelled2[N1, N2], opt fp.ShowOption) []string {
+		return append(buf, makeString(iterator.Of(AsAppender(ins1, t.I1)(nil, opt), AsAppender(ins2, t.I2)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
 
