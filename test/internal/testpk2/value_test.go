@@ -3,6 +3,7 @@ package testpk2_test
 import (
 	"encoding/json"
 	"fmt"
+	"go/ast"
 	"os"
 	"testing"
 	"time"
@@ -176,5 +177,16 @@ func TestVar(t *testing.T) {
 
 	ret := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateDirective"}, "@fp.Generate")
 	fmt.Printf("ret = %v\n", ret)
+
+	for _, e := range ret[0].Elts {
+		fmt.Printf("expr = %T\n", e)
+		if kv, ok := e.(*ast.KeyValueExpr); ok {
+			fmt.Printf("k = %T, v = %T\n", kv.Key, kv.Value)
+			switch t := kv.Value.(type) {
+			case *ast.BasicLit:
+				fmt.Printf("k = %s, v = %s\n", kv.Key.(*ast.Ident).Name, t.Value)
+			}
+		}
+	}
 
 }
