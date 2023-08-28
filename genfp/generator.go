@@ -3,15 +3,24 @@ package genfp
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/format"
 	"go/types"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/internal/max"
+	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 )
 
 var OrdinalName = []string{
@@ -368,7 +377,7 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 		return
 	}
 
-	err = ioutil.WriteFile(filename, formatted, 0644)
+	err = os.WriteFile(filename, formatted, 0644)
 	if err != nil {
 		return
 	}
@@ -541,10 +550,154 @@ func (r Range) Write(txt string, param map[string]any) {
 	}
 }
 
+type ImportName struct {
+	Package string
+	Name    string
+}
+
 type GenerateDirective struct {
 	File     string
-	Imports  []string
+	Imports  []ImportName
 	From     int
 	Until    int
 	Template string
+}
+
+func asKeyValue(e ast.Expr) fp.Option[fp.Tuple2[string, ast.Expr]] {
+	if kv, ok := e.(*ast.KeyValueExpr); ok {
+		if id, ok := kv.Key.(*ast.Ident); ok {
+			return option.Some(as.Tuple(id.Name, kv.Value))
+		}
+	}
+	return option.None[fp.Tuple2[string, ast.Expr]]()
+}
+
+func evalStringValue(e ast.Expr) fp.Try[string] {
+	switch t := e.(type) {
+	case *ast.BasicLit:
+		return try.Success(t.Value)
+	}
+	return try.Failure[string](fp.Error(400, "can't eval %T as string", e))
+}
+
+func evalIntValue(e ast.Expr) fp.Try[int] {
+	switch t := e.(type) {
+	case *ast.BasicLit:
+		i, err := strconv.ParseInt(t.Value, 10, 64)
+		if err != nil {
+			return try.Failure[int](fp.Error(400, "can't parseInt %s", t.Value))
+		}
+		return try.Success(int(i))
+	case *ast.SelectorExpr:
+		if matchSelExpr(t, seq.Of("max", "Product")) {
+			return fp.Success(max.Product)
+		}
+	}
+	return try.Failure[int](fp.Error(400, "can't eval %T as int", e))
+}
+
+func evalImport(e ast.Expr) fp.Try[ImportName] {
+	if lt, ok := e.(*ast.CompositeLit); ok {
+		ret := ImportName{}
+		err := iterator.FoldError(iterator.Zip(iterator.Of("Package", "Name"), iterator.FromSeq(lt.Elts)), as.Tupled2(func(name string, e ast.Expr) error {
+			name, value := asKeyValue(e).OrElse(as.Tuple(name, e)).Unapply()
+
+			switch name {
+			case "Package":
+				v, err := evalStringValue(value).Unapply()
+				if err != nil {
+					return err
+				}
+				ret.Package = v
+			case "Name":
+				v, err := evalStringValue(value).Unapply()
+				if err != nil {
+					return err
+				}
+				ret.Name = v
+			}
+			return nil
+		}))
+
+		if err != nil {
+			return try.Failure[ImportName](err)
+		}
+		return try.Success(ret)
+	}
+	return try.Failure[ImportName](fp.Error(400, "expr is not composite expr : %T", e))
+
+}
+
+func matchSelExpr(sel *ast.SelectorExpr, exp fp.Seq[string]) bool {
+	init := exp.Init()
+	last := exp.Last()
+	if option.Some(sel.Sel.Name) == last {
+		switch t := sel.X.(type) {
+		case *ast.SelectorExpr:
+			return matchSelExpr(t, init)
+		case *ast.Ident:
+			if init.Size() == 1 {
+				return option.Some(t.Name) == init.Head()
+			}
+		}
+	}
+	return false
+}
+
+func evalArray[T any](e ast.Expr, f func(ast.Expr) fp.Try[T]) fp.Try[[]T] {
+	if lt, ok := e.(*ast.CompositeLit); ok {
+		return try.TraverseSeq(lt.Elts, f)
+	}
+	return try.Failure[[]T](fp.Error(400, "expr is not array expr : %T", e))
+}
+
+func ParseGenerateDirective(lit *ast.CompositeLit) fp.Try[GenerateDirective] {
+
+	ret := GenerateDirective{}
+
+	err := iterator.FoldError(iterator.Zip(iterator.Of("File", "Imports", "From", "Until", "Template"), iterator.FromSeq(lit.Elts)), as.Tupled2(func(name string, e ast.Expr) error {
+		name, value := asKeyValue(e).OrElse(as.Tuple(name, e)).Unapply()
+
+		switch name {
+		case "File":
+			v, err := evalStringValue(value).Unapply()
+			if err != nil {
+				return err
+			}
+			ret.File = v
+		case "Imports":
+			v, err := evalArray(value, evalImport).Unapply()
+			if err != nil {
+				return err
+			}
+			ret.Imports = v
+		case "From":
+			v, err := evalIntValue(value).Unapply()
+			if err != nil {
+				return err
+			}
+			ret.From = v
+		case "Until":
+			v, err := evalIntValue(value).Unapply()
+			if err != nil {
+				return err
+			}
+			ret.Until = v
+		case "Template":
+			v, err := evalStringValue(value).Unapply()
+			if err != nil {
+				return err
+			}
+			ret.Template = v
+
+		}
+		return nil
+	}))
+
+	if err != nil {
+		return try.Failure[GenerateDirective](err)
+	}
+
+	return try.Success(ret)
+
 }

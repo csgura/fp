@@ -218,9 +218,12 @@ var _ js.Derives[js.Encoder[testpk1.World]]
 
 // @fp.Generate
 var GenShow = genfp.GenerateDirective{
-	File:     "show_gen.go",
-	Imports:  []string{"github.com/csgura/fp"},
+	File: "show_gen.go",
+	Imports: []genfp.ImportName{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{"github.com/csgura/fp/seq", "seq"},
+	},
 	From:     3,
 	Until:    max.Product,
-	Template: "",
+	Template: "hello world",
 }
