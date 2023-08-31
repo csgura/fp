@@ -29,7 +29,7 @@ func genGenerate() {
 	genseq := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateFromUntil"}, "@fp.Generate")
 
 	genseq.Foreach(func(cl *ast.CompositeLit) {
-		gfu, err := genfp.ParseGenerateFromUntil(cl).Unapply()
+		gfu, err := genfp.ParseGenerateFromUntil(cl)
 		if err != nil {
 			fmt.Printf("invalid generate directive : %s", err)
 		} else {

@@ -14,13 +14,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/iterator"
-	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/seq"
-	"github.com/csgura/fp/try"
 )
 
 const MaxProduct = max.Product
@@ -572,160 +566,174 @@ type GenerateFromUntil struct {
 	Template string
 }
 
-func asKeyValue(e ast.Expr) fp.Option[fp.Tuple2[string, ast.Expr]] {
+func asKeyValue(e ast.Expr, defName string) (string, ast.Expr) {
 	if kv, ok := e.(*ast.KeyValueExpr); ok {
 		if id, ok := kv.Key.(*ast.Ident); ok {
-			return option.Some(as.Tuple(id.Name, kv.Value))
+			return id.Name, kv.Value
 		}
 	}
-	return option.None[fp.Tuple2[string, ast.Expr]]()
+	return defName, e
 }
 
-func evalStringValue(e ast.Expr) fp.Try[string] {
+func evalStringValue(e ast.Expr) (string, error) {
 	switch t := e.(type) {
 	case *ast.BasicLit:
 		if strings.HasPrefix(t.Value, `"`) && strings.HasSuffix(t.Value, `"`) {
-			return try.Success(t.Value[1 : len(t.Value)-1])
+			return t.Value[1 : len(t.Value)-1], nil
 		} else if strings.HasPrefix(t.Value, "`") && strings.HasSuffix(t.Value, "`") {
-			return try.Success(t.Value[1 : len(t.Value)-1])
+			return t.Value[1 : len(t.Value)-1], nil
 		}
 	}
-	return try.Failure[string](fp.Error(400, "can't eval %T as string", e))
+	return "", fmt.Errorf("can't eval %T as string", e)
 }
 
-func evalIntValue(e ast.Expr) fp.Try[int] {
+func evalIntValue(e ast.Expr) (int, error) {
 	switch t := e.(type) {
 	case *ast.BasicLit:
 		i, err := strconv.ParseInt(t.Value, 10, 64)
 		if err != nil {
-			return try.Failure[int](fp.Error(400, "can't parseInt %s", t.Value))
+			return 0, fmt.Errorf("can't parseInt %s", t.Value)
 		}
-		return try.Success(int(i))
+		return int(i), nil
 	case *ast.SelectorExpr:
-		if matchSelExpr(t, seq.Of("genfp", "MaxProduct")) {
-			return fp.Success(MaxProduct)
+		if matchSelExpr(t, []string{"genfp", "MaxProduct"}) {
+			return MaxProduct, nil
 		}
-		if matchSelExpr(t, seq.Of("genfp", "MaxFunc")) {
-			return fp.Success(MaxFunc)
-		}
-
-		if matchSelExpr(t, seq.Of("genfp", "MaxCompose")) {
-			return fp.Success(MaxCompose)
+		if matchSelExpr(t, []string{"genfp", "MaxFunc"}) {
+			return MaxFunc, nil
 		}
 
-		if matchSelExpr(t, seq.Of("genfp", "MaxShift")) {
-			return fp.Success(MaxShift)
+		if matchSelExpr(t, []string{"genfp", "MaxCompose"}) {
+			return MaxCompose, nil
 		}
 
-		if matchSelExpr(t, seq.Of("genfp", "MaxFlip")) {
-			return fp.Success(MaxFlip)
+		if matchSelExpr(t, []string{"genfp", "MaxShift"}) {
+			return MaxShift, nil
+		}
+
+		if matchSelExpr(t, []string{"genfp", "MaxFlip"}) {
+			return MaxFlip, nil
 		}
 	}
-	return try.Failure[int](fp.Error(400, "can't eval %T as int", e))
+	return 0, fmt.Errorf("can't eval %T as int", e)
 }
 
-func evalImport(e ast.Expr) fp.Try[ImportPackage] {
+func evalImport(e ast.Expr) (ImportPackage, error) {
 	if lt, ok := e.(*ast.CompositeLit); ok {
 		ret := ImportPackage{}
-		err := iterator.FoldError(iterator.Zip(iterator.Of("Package", "Name"), iterator.FromSeq(lt.Elts)), as.Tupled2(func(name string, e ast.Expr) error {
-			name, value := asKeyValue(e).OrElse(as.Tuple(name, e)).Unapply()
+		names := []string{"Package", "Name"}
+		for idx, e := range lt.Elts {
+			if idx >= len(names) {
+				return ImportPackage{}, fmt.Errorf("invalid number of literals")
+			}
+
+			name := names[idx]
+			name, value := asKeyValue(e, name)
 
 			switch name {
 			case "Package":
-				v, err := evalStringValue(value).Unapply()
+				v, err := evalStringValue(value)
 				if err != nil {
-					return err
+					return ImportPackage{}, err
 				}
 				ret.Package = v
 			case "Name":
-				v, err := evalStringValue(value).Unapply()
+				v, err := evalStringValue(value)
 				if err != nil {
-					return err
+					return ImportPackage{}, err
 				}
 				ret.Name = v
 			}
-			return nil
-		}))
-
-		if err != nil {
-			return try.Failure[ImportPackage](err)
 		}
-		return try.Success(ret)
+		return ret, nil
 	}
-	return try.Failure[ImportPackage](fp.Error(400, "expr is not composite expr : %T", e))
+	return ImportPackage{}, fmt.Errorf("expr is not composite expr : %T", e)
 
 }
 
-func matchSelExpr(sel *ast.SelectorExpr, exp fp.Seq[string]) bool {
-	init := exp.Init()
-	last := exp.Last()
-	if option.Some(sel.Sel.Name) == last {
+func matchSelExpr(sel *ast.SelectorExpr, exp []string) bool {
+	if len(exp) == 0 {
+		return false
+	}
+	init := exp[0 : len(exp)-1]
+	last := exp[len(exp)-1]
+	if sel.Sel.Name == last {
 		switch t := sel.X.(type) {
 		case *ast.SelectorExpr:
 			return matchSelExpr(t, init)
 		case *ast.Ident:
-			if init.Size() == 1 {
-				return option.Some(t.Name) == init.Head()
+			if len(init) == 1 {
+				return t.Name == init[0]
 			}
 		}
 	}
 	return false
 }
 
-func evalArray[T any](e ast.Expr, f func(ast.Expr) fp.Try[T]) fp.Try[[]T] {
+func evalArray[T any](e ast.Expr, f func(ast.Expr) (T, error)) ([]T, error) {
+
 	if lt, ok := e.(*ast.CompositeLit); ok {
-		return try.TraverseSeq(lt.Elts, f)
+		var ret []T
+
+		for _, e := range lt.Elts {
+			v, err := f(e)
+			if err != nil {
+				return nil, err
+			}
+			ret = append(ret, v)
+		}
+		return ret, nil
+
 	}
-	return try.Failure[[]T](fp.Error(400, "expr is not array expr : %T", e))
+	return nil, fmt.Errorf("expr is not array expr : %T", e)
 }
 
-func ParseGenerateFromUntil(lit *ast.CompositeLit) fp.Try[GenerateFromUntil] {
+func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
 
 	ret := GenerateFromUntil{}
 
-	err := iterator.FoldError(iterator.Zip(iterator.Of("File", "Imports", "From", "Until", "Template"), iterator.FromSeq(lit.Elts)), as.Tupled2(func(name string, e ast.Expr) error {
-		name, value := asKeyValue(e).OrElse(as.Tuple(name, e)).Unapply()
+	names := []string{"File", "Imports", "From", "Until", "Template"}
+	for idx, e := range lit.Elts {
+		if idx >= len(names) {
+			return GenerateFromUntil{}, fmt.Errorf("invalid number of literals")
+		}
 
+		name := names[idx]
+		name, value := asKeyValue(e, name)
 		switch name {
 		case "File":
-			v, err := evalStringValue(value).Unapply()
+			v, err := evalStringValue(value)
 			if err != nil {
-				return err
+				return GenerateFromUntil{}, err
 			}
 			ret.File = v
 		case "Imports":
-			v, err := evalArray(value, evalImport).Unapply()
+			v, err := evalArray(value, evalImport)
 			if err != nil {
-				return err
+				return GenerateFromUntil{}, err
 			}
 			ret.Imports = v
 		case "From":
-			v, err := evalIntValue(value).Unapply()
+			v, err := evalIntValue(value)
 			if err != nil {
-				return err
+				return GenerateFromUntil{}, err
 			}
 			ret.From = v
 		case "Until":
-			v, err := evalIntValue(value).Unapply()
+			v, err := evalIntValue(value)
 			if err != nil {
-				return err
+				return GenerateFromUntil{}, err
 			}
 			ret.Until = v
 		case "Template":
-			v, err := evalStringValue(value).Unapply()
+			v, err := evalStringValue(value)
 			if err != nil {
-				return err
+				return GenerateFromUntil{}, err
 			}
 			ret.Template = v
-
 		}
-		return nil
-	}))
-
-	if err != nil {
-		return try.Failure[GenerateFromUntil](err)
 	}
 
-	return try.Success(ret)
+	return ret, nil
 
 }
