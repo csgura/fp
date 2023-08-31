@@ -216,10 +216,10 @@ type GetterOverride testpk1.DefinedOtherPackage
 // @fp.Derive
 var _ js.Derives[js.Encoder[testpk1.World]]
 
-// @fp.Generate
-var GenShow = genfp.GenerateDirective{
+// @fp.GenerateTest
+var GenShow = genfp.GenerateFromUntil{
 	File: "show_gen.go",
-	Imports: []genfp.ImportName{
+	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
 		{"github.com/csgura/fp/seq", "seq"},
 	},

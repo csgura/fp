@@ -550,14 +550,14 @@ func (r Range) Write(txt string, param map[string]any) {
 	}
 }
 
-type ImportName struct {
+type ImportPackage struct {
 	Package string
 	Name    string
 }
 
-type GenerateDirective struct {
+type GenerateFromUntil struct {
 	File     string
-	Imports  []ImportName
+	Imports  []ImportPackage
 	From     int
 	Until    int
 	Template string
@@ -575,7 +575,11 @@ func asKeyValue(e ast.Expr) fp.Option[fp.Tuple2[string, ast.Expr]] {
 func evalStringValue(e ast.Expr) fp.Try[string] {
 	switch t := e.(type) {
 	case *ast.BasicLit:
-		return try.Success(t.Value)
+		if strings.HasPrefix(t.Value, `"`) && strings.HasSuffix(t.Value, `"`) {
+			return try.Success(t.Value[1 : len(t.Value)-1])
+		} else if strings.HasPrefix(t.Value, "`") && strings.HasSuffix(t.Value, "`") {
+			return try.Success(t.Value[1 : len(t.Value)-1])
+		}
 	}
 	return try.Failure[string](fp.Error(400, "can't eval %T as string", e))
 }
@@ -596,9 +600,9 @@ func evalIntValue(e ast.Expr) fp.Try[int] {
 	return try.Failure[int](fp.Error(400, "can't eval %T as int", e))
 }
 
-func evalImport(e ast.Expr) fp.Try[ImportName] {
+func evalImport(e ast.Expr) fp.Try[ImportPackage] {
 	if lt, ok := e.(*ast.CompositeLit); ok {
-		ret := ImportName{}
+		ret := ImportPackage{}
 		err := iterator.FoldError(iterator.Zip(iterator.Of("Package", "Name"), iterator.FromSeq(lt.Elts)), as.Tupled2(func(name string, e ast.Expr) error {
 			name, value := asKeyValue(e).OrElse(as.Tuple(name, e)).Unapply()
 
@@ -620,11 +624,11 @@ func evalImport(e ast.Expr) fp.Try[ImportName] {
 		}))
 
 		if err != nil {
-			return try.Failure[ImportName](err)
+			return try.Failure[ImportPackage](err)
 		}
 		return try.Success(ret)
 	}
-	return try.Failure[ImportName](fp.Error(400, "expr is not composite expr : %T", e))
+	return try.Failure[ImportPackage](fp.Error(400, "expr is not composite expr : %T", e))
 
 }
 
@@ -651,9 +655,9 @@ func evalArray[T any](e ast.Expr, f func(ast.Expr) fp.Try[T]) fp.Try[[]T] {
 	return try.Failure[[]T](fp.Error(400, "expr is not array expr : %T", e))
 }
 
-func ParseGenerateDirective(lit *ast.CompositeLit) fp.Try[GenerateDirective] {
+func ParseGenerateFromUntil(lit *ast.CompositeLit) fp.Try[GenerateFromUntil] {
 
-	ret := GenerateDirective{}
+	ret := GenerateFromUntil{}
 
 	err := iterator.FoldError(iterator.Zip(iterator.Of("File", "Imports", "From", "Until", "Template"), iterator.FromSeq(lit.Elts)), as.Tupled2(func(name string, e ast.Expr) error {
 		name, value := asKeyValue(e).OrElse(as.Tuple(name, e)).Unapply()
@@ -695,7 +699,7 @@ func ParseGenerateDirective(lit *ast.CompositeLit) fp.Try[GenerateDirective] {
 	}))
 
 	if err != nil {
-		return try.Failure[GenerateDirective](err)
+		return try.Failure[GenerateFromUntil](err)
 	}
 
 	return try.Success(ret)

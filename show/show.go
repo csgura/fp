@@ -1,6 +1,6 @@
 package show
 
-//go:generate go run github.com/csgura/fp/internal/generator/show_gen
+//go:generate go run github.com/csgura/fp/cmd/gombok
 
 import (
 	"fmt"
@@ -8,7 +8,9 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
@@ -349,6 +351,28 @@ func Labelled2[N1, N2 fp.Named](ins1 fp.Show[N1], ins2 fp.Show[N2]) fp.Show[fp.L
 	return NewAppend(func(buf []string, t fp.Labelled2[N1, N2], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(AsAppender(ins1, t.I1)(nil, opt), AsAppender(ins2, t.I2)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
+}
+
+// @fp.Generate
+var GenShow = genfp.GenerateFromUntil{
+	File: "show_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/iterator", Name: "iterator"},
+	},
+	From:  3,
+	Until: max.Product,
+	Template: `
+func Labelled{{.N}}[{{TypeArgs 1 .N}} fp.Named]({{DeclTypeClassArgs 1 .N "fp.Show"}}) fp.Show[fp.Labelled{{.N}}[{{TypeArgs 1 .N}}]] {
+	return NewAppend(func(buf []string, t fp.Labelled{{.N}}[{{TypeArgs 1 .N}}], opt fp.ShowOption) []string {
+		return append(buf, makeString(iterator.Of(
+			{{- range $idx := Range 1 .N}}
+			ins{{$idx}}.Append(nil, t.I{{$idx}}, opt),
+			{{- end}}
+		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	})
+}
+	`,
 }
 
 func HConsLabelled[H fp.Named, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hlist.Cons[H, T]] {

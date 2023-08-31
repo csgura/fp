@@ -175,10 +175,10 @@ func TestVar(t *testing.T) {
 		return
 	}
 
-	ret := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateDirective"}, "@fp.Generate")
+	ret := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateFromUntil"}, "@fp.GenerateTest")
 	fmt.Printf("ret = %v\n", ret)
 
-	v := genfp.ParseGenerateDirective(ret[0])
-	fmt.Printf("v = %v\n", v)
+	v := genfp.ParseGenerateFromUntil(ret[0])
+	fmt.Printf("v = .%s.\n", v.Get().Imports[0].Name)
 
 }
