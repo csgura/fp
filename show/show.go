@@ -10,7 +10,6 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
-	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
@@ -361,7 +360,7 @@ var GenShow = genfp.GenerateFromUntil{
 		{Package: "github.com/csgura/fp/iterator", Name: "iterator"},
 	},
 	From:  3,
-	Until: max.Product,
+	Until: genfp.MaxProduct,
 	Template: `
 func Labelled{{.N}}[{{TypeArgs 1 .N}} fp.Named]({{DeclTypeClassArgs 1 .N "fp.Show"}}) fp.Show[fp.Labelled{{.N}}[{{TypeArgs 1 .N}}]] {
 	return NewAppend(func(buf []string, t fp.Labelled{{.N}}[{{TypeArgs 1 .N}}], opt fp.ShowOption) []string {

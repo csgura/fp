@@ -162,7 +162,7 @@ func TestDeref(t *testing.T) {
 	// fmt.Println(deref)
 }
 
-func TestVar(t *testing.T) {
+func TestParseGenerateDirective(t *testing.T) {
 	cwd, _ := os.Getwd()
 
 	cfg := &packages.Config{
@@ -179,6 +179,6 @@ func TestVar(t *testing.T) {
 	fmt.Printf("ret = %v\n", ret)
 
 	v := genfp.ParseGenerateFromUntil(ret[0])
-	fmt.Printf("v = .%s.\n", v.Get().Imports[0].Name)
+	fmt.Printf("v = %v\n", v)
 
 }

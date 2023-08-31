@@ -12,7 +12,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
-	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
@@ -224,6 +223,6 @@ var GenShow = genfp.GenerateFromUntil{
 		{"github.com/csgura/fp/seq", "seq"},
 	},
 	From:     3,
-	Until:    max.Product,
+	Until:    genfp.MaxProduct,
 	Template: "hello world",
 }

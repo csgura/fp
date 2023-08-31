@@ -23,6 +23,15 @@ import (
 	"github.com/csgura/fp/try"
 )
 
+const MaxProduct = max.Product
+
+const MaxFunc = max.Func
+
+const MaxCompose = max.Compose
+
+const MaxShift = max.Shift
+const MaxFlip = max.Flip
+
 var OrdinalName = []string{
 	"Zero",
 	"First",
@@ -593,8 +602,23 @@ func evalIntValue(e ast.Expr) fp.Try[int] {
 		}
 		return try.Success(int(i))
 	case *ast.SelectorExpr:
-		if matchSelExpr(t, seq.Of("max", "Product")) {
-			return fp.Success(max.Product)
+		if matchSelExpr(t, seq.Of("genfp", "MaxProduct")) {
+			return fp.Success(MaxProduct)
+		}
+		if matchSelExpr(t, seq.Of("genfp", "MaxFunc")) {
+			return fp.Success(MaxFunc)
+		}
+
+		if matchSelExpr(t, seq.Of("genfp", "MaxCompose")) {
+			return fp.Success(MaxCompose)
+		}
+
+		if matchSelExpr(t, seq.Of("genfp", "MaxShift")) {
+			return fp.Success(MaxShift)
+		}
+
+		if matchSelExpr(t, seq.Of("genfp", "MaxFlip")) {
+			return fp.Success(MaxFlip)
 		}
 	}
 	return try.Failure[int](fp.Error(400, "can't eval %T as int", e))
