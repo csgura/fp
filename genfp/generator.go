@@ -40,6 +40,40 @@ var OrdinalName = []string{
 	"Tenth",
 }
 
+var defaultFunc = map[string]any{
+	"FormtStr":          FormatStr,
+	"FuncChain":         FuncChain,
+	"ConsType":          ConsType,
+	"ReversConsType":    ReversConsType,
+	"TypeArgs":          FuncTypeArgs,
+	"DeclArgs":          FuncDeclArgs,
+	"CallArgs":          FuncCallArgs,
+	"ReverseCallArgs":   ReverseFuncCallArgs,
+	"DeclTypeClassArgs": FuncDeclTypeClassArgs,
+	"CurriedCallArgs":   CurriedCallArgs,
+	"TypeClassArgs":     TypeClassArgs,
+	"CurriedType":       CurriedType,
+	"Range": func(start, until int) []int {
+		var ret = make([]int, until-start+1)
+		for i := start; i <= until; i++ {
+			ret[i-start] = i
+		}
+		return ret
+	},
+	"Monad": func(s string) Monad {
+		return Monad(s)
+	},
+	"Args": func(s string) Args {
+		return Args(s)
+	},
+	"TupleType": func(n int) string {
+		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
+	},
+	"dec": func(n int) int {
+		return n - 1
+	},
+}
+
 func FuncDecl(prefix string, start, until int, ret string) string {
 	return fmt.Sprintf("func(%s) %s", TypeArgs(prefix, start, until), ret)
 }
@@ -497,40 +531,6 @@ type Range struct {
 	writer *writer
 	start  int
 	end    int
-}
-
-var defaultFunc = map[string]any{
-	"FormtStr":          FormatStr,
-	"FuncChain":         FuncChain,
-	"ConsType":          ConsType,
-	"ReversConsType":    ReversConsType,
-	"TypeArgs":          FuncTypeArgs,
-	"DeclArgs":          FuncDeclArgs,
-	"CallArgs":          FuncCallArgs,
-	"ReverseCallArgs":   ReverseFuncCallArgs,
-	"DeclTypeClassArgs": FuncDeclTypeClassArgs,
-	"CurriedCallArgs":   CurriedCallArgs,
-	"TypeClassArgs":     TypeClassArgs,
-	"CurriedType":       CurriedType,
-	"Range": func(start, until int) []int {
-		var ret = make([]int, until-start)
-		for i := start; i < until; i++ {
-			ret[i-start] = i
-		}
-		return ret
-	},
-	"Monad": func(s string) Monad {
-		return Monad(s)
-	},
-	"Args": func(s string) Args {
-		return Args(s)
-	},
-	"TupleType": func(n int) string {
-		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
-	},
-	"dec": func(n int) int {
-		return n - 1
-	},
 }
 
 func (r Range) Write(txt string, param map[string]any) {

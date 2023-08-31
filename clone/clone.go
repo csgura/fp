@@ -3,11 +3,15 @@ package clone
 import (
 	"github.com/csgura/fp"
 
+	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 )
+
+//go:generate go run github.com/csgura/fp/cmd/gombok
 
 type Derives[T any] interface {
 }
@@ -73,6 +77,37 @@ func HCons[H any, T hlist.HList](hclone fp.Clone[H], tclone fp.Clone[T]) fp.Clon
 		return hlist.Concat(h, t)
 
 	})
+}
+
+func Tuple2[A1, A2 any](ins1 fp.Clone[A1], ins2 fp.Clone[A2]) fp.Clone[fp.Tuple2[A1, A2]] {
+	return New(func(t fp.Tuple2[A1, A2]) fp.Tuple2[A1, A2] {
+		return as.Tuple2(
+			ins1.Clone(t.I1),
+			ins2.Clone(t.I2),
+		)
+	})
+}
+
+// @fp.Generate
+var GenClone = genfp.GenerateFromUntil{
+	File: "clone_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/as", Name: "as"},
+	},
+	From:  3,
+	Until: genfp.MaxProduct,
+	Template: `
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclTypeClassArgs 1 .N "fp.Clone"}}) fp.Clone[fp.{{TupleType .N}}] {
+	return New(func(t fp.{{TupleType .N}}) fp.{{TupleType .N}} {
+		return as.Tuple{{.N}}(
+			{{- range $idx := Range 1 .N}}
+			ins{{$idx}}.Clone(t.I{{$idx}}),
+			{{- end}}
+		)
+	})
+}
+	`,
 }
 
 func Generic[A, Repr any](gen fp.Generic[A, Repr], reprClone fp.Clone[Repr]) fp.Clone[A] {

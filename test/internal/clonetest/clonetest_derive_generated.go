@@ -15,26 +15,13 @@ func CloneCloneStruct() fp.Clone[CloneStruct] {
 		as.Generic(
 			"clonetest.CloneStruct",
 			"Struct",
+			CloneStruct.AsTuple,
 			fp.Compose(
-				CloneStruct.AsTuple,
-				as.HList2,
-			),
-
-			fp.Compose(
-				product.TupleFromHList2,
-				fp.Compose(
-					as.Curried2(CloneStructBuilder.FromTuple)(CloneStructBuilder{}),
-					CloneStructBuilder.Build,
-				),
+				as.Curried2(CloneStructBuilder.FromTuple)(CloneStructBuilder{}),
+				CloneStructBuilder.Build,
 			),
 		),
-		clone.HCons(
-			clone.Given[string](),
-			clone.HCons(
-				clone.Given[int](),
-				clone.HNil,
-			),
-		),
+		clone.Tuple2(clone.Given[string](), clone.Given[int]()),
 	)
 }
 
@@ -43,100 +30,25 @@ func CloneHasReference() fp.Clone[HasReference] {
 		as.Generic(
 			"clonetest.HasReference",
 			"Struct",
-			fp.Compose(
-				func(v HasReference) fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct] {
-					return as.Tuple8(v.A, v.S, v.M, v.RD, v.T, v.MS, v.VS, v.CS)
-				},
-				as.HList8,
-			),
-
-			fp.Compose(
-				product.TupleFromHList8,
-				func(t fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]) HasReference {
-					return HasReference{
-						A:  t.I1,
-						S:  t.I2,
-						M:  t.I3,
-						RD: t.I4,
-						T:  t.I5,
-						MS: t.I6,
-						VS: t.I7,
-						CS: t.I8,
-					}
-				},
-			),
-		),
-		clone.HCons(
-			clone.Ptr(lazy.Call(func() fp.Clone[string] {
-				return clone.Given[string]()
-			})),
-			clone.HCons(
-				clone.Slice(clone.Given[int]()),
-				clone.HCons(
-					clone.GoMap(clone.Given[string](), clone.Given[int]()),
-					clone.HCons(
-						CloneRecursiveDerive(),
-						clone.HCons(
-							clone.Given[time.Time](),
-							clone.HCons(
-								CloneMySeq(),
-								clone.HCons(
-									CloneValueStruct(),
-									clone.HCons(
-										CloneCloneStruct(),
-										clone.HNil,
-									),
-								),
-							),
-						),
-					),
-				),
-			),
-		),
-	)
-}
-
-func CloneValueStruct() fp.Clone[ValueStruct] {
-	return clone.Generic(
-		as.Generic(
-			"clonetest.ValueStruct",
-			"Struct",
-			fp.Compose(
-				ValueStruct.AsTuple,
-				as.HList2,
-			),
-
-			fp.Compose(
-				product.TupleFromHList2,
-				fp.Compose(
-					as.Curried2(ValueStructBuilder.FromTuple)(ValueStructBuilder{}),
-					ValueStructBuilder.Build,
-				),
-			),
-		),
-		clone.HCons(
-			clone.Given[string](),
-			clone.HCons(
-				clone.Given[int](),
-				clone.HNil,
-			),
-		),
-	)
-}
-
-func CloneMySeq() fp.Clone[MySeq] {
-	return clone.Generic(
-		as.Generic(
-			"clonetest.MySeq",
-			"NewType",
-			func(v MySeq) []string {
-				return []string(v)
+			func(v HasReference) fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct] {
+				return as.Tuple8(v.A, v.S, v.M, v.RD, v.T, v.MS, v.VS, v.CS)
 			},
-			func(v []string) MySeq {
-				return MySeq(v)
+			func(t fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]) HasReference {
+				return HasReference{
+					A:  t.I1,
+					S:  t.I2,
+					M:  t.I3,
+					RD: t.I4,
+					T:  t.I5,
+					MS: t.I6,
+					VS: t.I7,
+					CS: t.I8,
+				}
 			},
 		),
-		clone.Slice(clone.Given[string]()),
+		clone.Tuple8(clone.Ptr(lazy.Call(func() fp.Clone[string] {
+			return clone.Given[string]()
+		})), clone.Slice(clone.Given[int]()), clone.GoMap(clone.Given[string](), clone.Given[int]()), CloneRecursiveDerive(), clone.Given[time.Time](), CloneMySeq(), CloneValueStruct(), CloneCloneStruct()),
 	)
 }
 
@@ -165,5 +77,36 @@ func CloneRecursiveDerive() fp.Clone[RecursiveDerive] {
 			clone.Slice(clone.Given[string]()),
 			clone.HNil,
 		),
+	)
+}
+
+func CloneMySeq() fp.Clone[MySeq] {
+	return clone.Generic(
+		as.Generic(
+			"clonetest.MySeq",
+			"NewType",
+			func(v MySeq) []string {
+				return []string(v)
+			},
+			func(v []string) MySeq {
+				return MySeq(v)
+			},
+		),
+		clone.Slice(clone.Given[string]()),
+	)
+}
+
+func CloneValueStruct() fp.Clone[ValueStruct] {
+	return clone.Generic(
+		as.Generic(
+			"clonetest.ValueStruct",
+			"Struct",
+			ValueStruct.AsTuple,
+			fp.Compose(
+				as.Curried2(ValueStructBuilder.FromTuple)(ValueStructBuilder{}),
+				ValueStructBuilder.Build,
+			),
+		),
+		clone.Tuple2(clone.Given[string](), clone.Given[int]()),
 	)
 }

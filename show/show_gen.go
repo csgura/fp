@@ -11,6 +11,7 @@ func Labelled3[A1, A2, A3 fp.Named](ins1 fp.Show[A1], ins2 fp.Show[A2], ins3 fp.
 		return append(buf, makeString(iterator.Of(
 			ins1.Append(nil, t.I1, opt),
 			ins2.Append(nil, t.I2, opt),
+			ins3.Append(nil, t.I3, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -21,6 +22,7 @@ func Labelled4[A1, A2, A3, A4 fp.Named](ins1 fp.Show[A1], ins2 fp.Show[A2], ins3
 			ins1.Append(nil, t.I1, opt),
 			ins2.Append(nil, t.I2, opt),
 			ins3.Append(nil, t.I3, opt),
+			ins4.Append(nil, t.I4, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -32,6 +34,7 @@ func Labelled5[A1, A2, A3, A4, A5 fp.Named](ins1 fp.Show[A1], ins2 fp.Show[A2], 
 			ins2.Append(nil, t.I2, opt),
 			ins3.Append(nil, t.I3, opt),
 			ins4.Append(nil, t.I4, opt),
+			ins5.Append(nil, t.I5, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -44,6 +47,7 @@ func Labelled6[A1, A2, A3, A4, A5, A6 fp.Named](ins1 fp.Show[A1], ins2 fp.Show[A
 			ins3.Append(nil, t.I3, opt),
 			ins4.Append(nil, t.I4, opt),
 			ins5.Append(nil, t.I5, opt),
+			ins6.Append(nil, t.I6, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -57,6 +61,7 @@ func Labelled7[A1, A2, A3, A4, A5, A6, A7 fp.Named](ins1 fp.Show[A1], ins2 fp.Sh
 			ins4.Append(nil, t.I4, opt),
 			ins5.Append(nil, t.I5, opt),
 			ins6.Append(nil, t.I6, opt),
+			ins7.Append(nil, t.I7, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -71,6 +76,7 @@ func Labelled8[A1, A2, A3, A4, A5, A6, A7, A8 fp.Named](ins1 fp.Show[A1], ins2 f
 			ins5.Append(nil, t.I5, opt),
 			ins6.Append(nil, t.I6, opt),
 			ins7.Append(nil, t.I7, opt),
+			ins8.Append(nil, t.I8, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -86,6 +92,7 @@ func Labelled9[A1, A2, A3, A4, A5, A6, A7, A8, A9 fp.Named](ins1 fp.Show[A1], in
 			ins6.Append(nil, t.I6, opt),
 			ins7.Append(nil, t.I7, opt),
 			ins8.Append(nil, t.I8, opt),
+			ins9.Append(nil, t.I9, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -102,6 +109,7 @@ func Labelled10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 fp.Named](ins1 fp.Show[A
 			ins7.Append(nil, t.I7, opt),
 			ins8.Append(nil, t.I8, opt),
 			ins9.Append(nil, t.I9, opt),
+			ins10.Append(nil, t.I10, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -119,6 +127,7 @@ func Labelled11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 fp.Named](ins1 fp.S
 			ins8.Append(nil, t.I8, opt),
 			ins9.Append(nil, t.I9, opt),
 			ins10.Append(nil, t.I10, opt),
+			ins11.Append(nil, t.I11, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -137,6 +146,7 @@ func Labelled12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 fp.Named](ins1
 			ins9.Append(nil, t.I9, opt),
 			ins10.Append(nil, t.I10, opt),
 			ins11.Append(nil, t.I11, opt),
+			ins12.Append(nil, t.I12, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -156,6 +166,7 @@ func Labelled13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 fp.Named]
 			ins10.Append(nil, t.I10, opt),
 			ins11.Append(nil, t.I11, opt),
 			ins12.Append(nil, t.I12, opt),
+			ins13.Append(nil, t.I13, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -176,6 +187,7 @@ func Labelled14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 fp.N
 			ins11.Append(nil, t.I11, opt),
 			ins12.Append(nil, t.I12, opt),
 			ins13.Append(nil, t.I13, opt),
+			ins14.Append(nil, t.I14, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -197,6 +209,7 @@ func Labelled15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins12.Append(nil, t.I12, opt),
 			ins13.Append(nil, t.I13, opt),
 			ins14.Append(nil, t.I14, opt),
+			ins15.Append(nil, t.I15, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -219,6 +232,7 @@ func Labelled16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins13.Append(nil, t.I13, opt),
 			ins14.Append(nil, t.I14, opt),
 			ins15.Append(nil, t.I15, opt),
+			ins16.Append(nil, t.I16, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -242,6 +256,7 @@ func Labelled17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins14.Append(nil, t.I14, opt),
 			ins15.Append(nil, t.I15, opt),
 			ins16.Append(nil, t.I16, opt),
+			ins17.Append(nil, t.I17, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -266,6 +281,7 @@ func Labelled18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins15.Append(nil, t.I15, opt),
 			ins16.Append(nil, t.I16, opt),
 			ins17.Append(nil, t.I17, opt),
+			ins18.Append(nil, t.I18, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -291,6 +307,7 @@ func Labelled19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins16.Append(nil, t.I16, opt),
 			ins17.Append(nil, t.I17, opt),
 			ins18.Append(nil, t.I18, opt),
+			ins19.Append(nil, t.I19, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -317,6 +334,7 @@ func Labelled20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins17.Append(nil, t.I17, opt),
 			ins18.Append(nil, t.I18, opt),
 			ins19.Append(nil, t.I19, opt),
+			ins20.Append(nil, t.I20, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -344,6 +362,7 @@ func Labelled21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15
 			ins18.Append(nil, t.I18, opt),
 			ins19.Append(nil, t.I19, opt),
 			ins20.Append(nil, t.I20, opt),
+			ins21.Append(nil, t.I21, opt),
 		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
