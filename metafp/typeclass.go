@@ -121,28 +121,31 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 
 					if doc.Filter(as.Func2(strings.Contains).ApplyLast(directive)).IsDefined() {
 
-						info := &types.Info{
-							Types: make(map[ast.Expr]types.TypeAndValue),
-						}
-						types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
-						ti := info.Types[vs.Type]
+						tags := option.Map(doc, extractTag).OrZero()
+						if tags.Contains(directive) {
+							info := &types.Info{
+								Types: make(map[ast.Expr]types.TypeAndValue),
+							}
+							types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
+							ti := info.Types[vs.Type]
 
-						if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
-							if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() > 0 {
-								tcType := typeInfo(tt.Obj().Type())
+							if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
+								if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() > 0 {
+									tcType := typeInfo(tt.Obj().Type())
 
-								return seq.Of(TypeClassDirective{
-									Package:              pk.Types,
-									PrimitiveInstancePkg: nt.Obj().Pkg(),
-									TypeClass: TypeClass{
-										Name:      tt.Obj().Name(),
-										Package:   tt.Obj().Pkg(),
-										Type:      tcType,
-										TypeParam: tcType.TypeParam,
-									},
-									TypeArgs: typeArgs(tt.TypeArgs()),
-									Tags:     option.Map(doc, extractTag).OrZero(),
-								})
+									return seq.Of(TypeClassDirective{
+										Package:              pk.Types,
+										PrimitiveInstancePkg: nt.Obj().Pkg(),
+										TypeClass: TypeClass{
+											Name:      tt.Obj().Name(),
+											Package:   tt.Obj().Pkg(),
+											Type:      tcType,
+											TypeParam: tcType.TypeParam,
+										},
+										TypeArgs: typeArgs(tt.TypeArgs()),
+										Tags:     option.Map(doc, extractTag).OrZero(),
+									})
+								}
 							}
 						}
 					}

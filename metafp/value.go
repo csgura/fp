@@ -194,6 +194,12 @@ func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags .
 						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
 					}) {
 						return seq.FilterMap(seq.Zip(ts.Names, ts.Values), func(v fp.Tuple2[*ast.Ident, ast.Expr]) fp.Option[*ast.CompositeLit] {
+
+							tags := option.Map(doc, extractTag).OrZero()
+							if !tagSeq.Exists(tags.Contains) {
+								return option.None[*ast.CompositeLit]()
+							}
+
 							if cl, ok := v.I2.(*ast.CompositeLit); ok {
 
 								obj := pk.Types.Scope().Lookup(v.I1.Name)
@@ -239,8 +245,11 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
 					}) {
 
-						return option.Map(LookupStruct(pk.Types, ts.Name.Name), func(ret TaggedStruct) TaggedStruct {
+						return option.FlatMap(LookupStruct(pk.Types, ts.Name.Name), func(ret TaggedStruct) fp.Option[TaggedStruct] {
 							ret.Tags = option.Map(doc, extractTag).OrZero()
+							if !tagSeq.Exists(ret.Tags.Contains) {
+								return option.None[TaggedStruct]()
+							}
 							if _, ok := ts.Type.(*ast.SelectorExpr); ok {
 								info := &types.Info{
 									Types: make(map[ast.Expr]types.TypeAndValue),
@@ -278,7 +287,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 								//fmt.Printf("name %s , epxr = %T\n", ret.Name, ts.Type)
 							}
 
-							return ret
+							return option.Some(ret)
 						}).ToSeq()
 					}
 				}
