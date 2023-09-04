@@ -65,17 +65,7 @@ func (r Root) WithA(v int) Root {
 	return r
 }
 
-func (r RootBuilder) A(v int) RootBuilder {
-	r.a = v
-	return r
-}
-
 func (r Root) WithB(v string) Root {
-	r.b = v
-	return r
-}
-
-func (r RootBuilder) B(v string) RootBuilder {
 	r.b = v
 	return r
 }
@@ -85,17 +75,7 @@ func (r Root) WithC(v float64) Root {
 	return r
 }
 
-func (r RootBuilder) C(v float64) RootBuilder {
-	r.c = v
-	return r
-}
-
 func (r Root) WithD(v bool) Root {
-	r.d = v
-	return r
-}
-
-func (r RootBuilder) D(v bool) RootBuilder {
 	r.d = v
 	return r
 }
@@ -105,17 +85,7 @@ func (r Root) WithE(v *int) Root {
 	return r
 }
 
-func (r RootBuilder) E(v *int) RootBuilder {
-	r.e = v
-	return r
-}
-
 func (r Root) WithF(v []int) Root {
-	r.f = v
-	return r
-}
-
-func (r RootBuilder) F(v []int) RootBuilder {
 	r.f = v
 	return r
 }
@@ -125,13 +95,43 @@ func (r Root) WithG(v map[string]int) Root {
 	return r
 }
 
-func (r RootBuilder) G(v map[string]int) RootBuilder {
-	r.g = v
+func (r Root) WithH(v Child) Root {
+	r.h = v
 	return r
 }
 
-func (r Root) WithH(v Child) Root {
-	r.h = v
+func (r RootBuilder) A(v int) RootBuilder {
+	r.a = v
+	return r
+}
+
+func (r RootBuilder) B(v string) RootBuilder {
+	r.b = v
+	return r
+}
+
+func (r RootBuilder) C(v float64) RootBuilder {
+	r.c = v
+	return r
+}
+
+func (r RootBuilder) D(v bool) RootBuilder {
+	r.d = v
+	return r
+}
+
+func (r RootBuilder) E(v *int) RootBuilder {
+	r.e = v
+	return r
+}
+
+func (r RootBuilder) F(v []int) RootBuilder {
+	r.f = v
+	return r
+}
+
+func (r RootBuilder) G(v map[string]int) RootBuilder {
+	r.g = v
 	return r
 }
 
@@ -296,13 +296,13 @@ func (r Child) WithA(v map[string]any) Child {
 	return r
 }
 
-func (r ChildBuilder) A(v map[string]any) ChildBuilder {
-	r.a = v
+func (r Child) WithB(v any) Child {
+	r.b = v
 	return r
 }
 
-func (r Child) WithB(v any) Child {
-	r.b = v
+func (r ChildBuilder) A(v map[string]any) ChildBuilder {
+	r.a = v
 	return r
 }
 
@@ -412,23 +412,23 @@ func (r Node) WithName(v string) Node {
 	return r
 }
 
-func (r NodeBuilder) Name(v string) NodeBuilder {
-	r.name = v
-	return r
-}
-
 func (r Node) WithLeft(v *Node) Node {
-	r.left = v
-	return r
-}
-
-func (r NodeBuilder) Left(v *Node) NodeBuilder {
 	r.left = v
 	return r
 }
 
 func (r Node) WithRight(v *Node) Node {
 	r.right = v
+	return r
+}
+
+func (r NodeBuilder) Name(v string) NodeBuilder {
+	r.name = v
+	return r
+}
+
+func (r NodeBuilder) Left(v *Node) NodeBuilder {
+	r.left = v
 	return r
 }
 
@@ -629,13 +629,13 @@ func (r Entry[V]) WithName(v string) Entry[V] {
 	return r
 }
 
-func (r EntryBuilder[V]) Name(v string) EntryBuilder[V] {
-	r.name = v
+func (r Entry[V]) WithValue(v V) Entry[V] {
+	r.value = v
 	return r
 }
 
-func (r Entry[V]) WithValue(v V) Entry[V] {
-	r.value = v
+func (r EntryBuilder[V]) Name(v string) EntryBuilder[V] {
+	r.name = v
 	return r
 }
 
@@ -740,13 +740,13 @@ func (r NotUsedParam[K, V]) WithParam(v string) NotUsedParam[K, V] {
 	return r
 }
 
-func (r NotUsedParamBuilder[K, V]) Param(v string) NotUsedParamBuilder[K, V] {
-	r.param = v
+func (r NotUsedParam[K, V]) WithValue(v V) NotUsedParam[K, V] {
+	r.value = v
 	return r
 }
 
-func (r NotUsedParam[K, V]) WithValue(v V) NotUsedParam[K, V] {
-	r.value = v
+func (r NotUsedParamBuilder[K, V]) Param(v string) NotUsedParamBuilder[K, V] {
+	r.param = v
 	return r
 }
 
@@ -856,23 +856,23 @@ func (r Movie) WithName(v string) Movie {
 	return r
 }
 
-func (r MovieBuilder) Name(v string) MovieBuilder {
-	r.name = v
-	return r
-}
-
 func (r Movie) WithCasting(v Entry[string]) Movie {
-	r.casting = v
-	return r
-}
-
-func (r MovieBuilder) Casting(v Entry[string]) MovieBuilder {
 	r.casting = v
 	return r
 }
 
 func (r Movie) WithNotUsed(v NotUsedParam[int, string]) Movie {
 	r.notUsed = v
+	return r
+}
+
+func (r MovieBuilder) Name(v string) MovieBuilder {
+	r.name = v
+	return r
+}
+
+func (r MovieBuilder) Casting(v Entry[string]) MovieBuilder {
+	r.casting = v
 	return r
 }
 

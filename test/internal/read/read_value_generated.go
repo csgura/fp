@@ -35,13 +35,13 @@ func (r Result[T]) WithValue(v T) Result[T] {
 	return r
 }
 
-func (r ResultBuilder[T]) Value(v T) ResultBuilder[T] {
-	r.value = v
+func (r Result[T]) WithRemains(v string) Result[T] {
+	r.remains = v
 	return r
 }
 
-func (r Result[T]) WithRemains(v string) Result[T] {
-	r.remains = v
+func (r ResultBuilder[T]) Value(v T) ResultBuilder[T] {
+	r.value = v
 	return r
 }
 

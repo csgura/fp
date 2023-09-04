@@ -38,13 +38,13 @@ func (r Person) WithName(v string) Person {
 	return r
 }
 
-func (r PersonBuilder) Name(v string) PersonBuilder {
-	r.name = v
+func (r Person) WithAge(v int) Person {
+	r.age = v
 	return r
 }
 
-func (r Person) WithAge(v int) Person {
-	r.age = v
+func (r PersonBuilder) Name(v string) PersonBuilder {
+	r.name = v
 	return r
 }
 
@@ -144,23 +144,23 @@ func (r Address) WithCountry(v string) Address {
 	return r
 }
 
-func (r AddressBuilder) Country(v string) AddressBuilder {
-	r.country = v
-	return r
-}
-
 func (r Address) WithCity(v string) Address {
-	r.city = v
-	return r
-}
-
-func (r AddressBuilder) City(v string) AddressBuilder {
 	r.city = v
 	return r
 }
 
 func (r Address) WithStreet(v string) Address {
 	r.street = v
+	return r
+}
+
+func (r AddressBuilder) Country(v string) AddressBuilder {
+	r.country = v
+	return r
+}
+
+func (r AddressBuilder) City(v string) AddressBuilder {
+	r.city = v
 	return r
 }
 
@@ -286,23 +286,23 @@ func (r Car) WithCompany(v string) Car {
 	return r
 }
 
-func (r CarBuilder) Company(v string) CarBuilder {
-	r.company = v
-	return r
-}
-
 func (r Car) WithModel(v string) Car {
-	r.model = v
-	return r
-}
-
-func (r CarBuilder) Model(v string) CarBuilder {
 	r.model = v
 	return r
 }
 
 func (r Car) WithYear(v int) Car {
 	r.year = v
+	return r
+}
+
+func (r CarBuilder) Company(v string) CarBuilder {
+	r.company = v
+	return r
+}
+
+func (r CarBuilder) Model(v string) CarBuilder {
+	r.model = v
 	return r
 }
 
@@ -417,13 +417,13 @@ func (r Entry[A, B]) WithKey(v A) Entry[A, B] {
 	return r
 }
 
-func (r EntryBuilder[A, B]) Key(v A) EntryBuilder[A, B] {
-	r.key = v
+func (r Entry[A, B]) WithValue(v B) Entry[A, B] {
+	r.value = v
 	return r
 }
 
-func (r Entry[A, B]) WithValue(v B) Entry[A, B] {
-	r.value = v
+func (r EntryBuilder[A, B]) Key(v A) EntryBuilder[A, B] {
+	r.key = v
 	return r
 }
 
@@ -518,13 +518,13 @@ func (r CarsOwned) WithOwner(v Person) CarsOwned {
 	return r
 }
 
-func (r CarsOwnedBuilder) Owner(v Person) CarsOwnedBuilder {
-	r.owner = v
+func (r CarsOwned) WithCars(v fp.Seq[Car]) CarsOwned {
+	r.cars = v
 	return r
 }
 
-func (r CarsOwned) WithCars(v fp.Seq[Car]) CarsOwned {
-	r.cars = v
+func (r CarsOwnedBuilder) Owner(v Person) CarsOwnedBuilder {
+	r.owner = v
 	return r
 }
 
@@ -624,17 +624,7 @@ func (r User) WithName(v string) User {
 	return r
 }
 
-func (r UserBuilder) Name(v string) UserBuilder {
-	r.name = v
-	return r
-}
-
 func (r User) WithEmail(v fp.Option[string]) User {
-	r.email = v
-	return r
-}
-
-func (r UserBuilder) Email(v fp.Option[string]) UserBuilder {
 	r.email = v
 	return r
 }
@@ -649,6 +639,21 @@ func (r User) WithNoneEmail() User {
 	return r
 }
 
+func (r User) WithActive(v bool) User {
+	r.active = v
+	return r
+}
+
+func (r UserBuilder) Name(v string) UserBuilder {
+	r.name = v
+	return r
+}
+
+func (r UserBuilder) Email(v fp.Option[string]) UserBuilder {
+	r.email = v
+	return r
+}
+
 func (r UserBuilder) SomeEmail(v string) UserBuilder {
 	r.email = option.Some(v)
 	return r
@@ -656,11 +661,6 @@ func (r UserBuilder) SomeEmail(v string) UserBuilder {
 
 func (r UserBuilder) NoneEmail() UserBuilder {
 	r.email = option.None[string]()
-	return r
-}
-
-func (r User) WithActive(v bool) User {
-	r.active = v
 	return r
 }
 

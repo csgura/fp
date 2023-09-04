@@ -35,13 +35,13 @@ func (r ValueStruct) WithHello(v string) ValueStruct {
 	return r
 }
 
-func (r ValueStructBuilder) Hello(v string) ValueStructBuilder {
-	r.hello = v
+func (r ValueStruct) WithWorld(v int) ValueStruct {
+	r.world = v
 	return r
 }
 
-func (r ValueStruct) WithWorld(v int) ValueStruct {
-	r.world = v
+func (r ValueStructBuilder) Hello(v string) ValueStructBuilder {
+	r.hello = v
 	return r
 }
 
@@ -136,13 +136,13 @@ func (r CloneStruct) WithHello(v string) CloneStruct {
 	return r
 }
 
-func (r CloneStructBuilder) Hello(v string) CloneStructBuilder {
-	r.hello = v
+func (r CloneStruct) WithWorld(v int) CloneStruct {
+	r.world = v
 	return r
 }
 
-func (r CloneStruct) WithWorld(v int) CloneStruct {
-	r.world = v
+func (r CloneStructBuilder) Hello(v string) CloneStructBuilder {
+	r.hello = v
 	return r
 }
 

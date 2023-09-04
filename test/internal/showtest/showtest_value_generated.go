@@ -41,16 +41,16 @@ func (r EmbeddedStruct) WithHello(v string) EmbeddedStruct {
 	return r
 }
 
-func (r EmbeddedStructBuilder) Hello(v string) EmbeddedStructBuilder {
-	r.hello = v
-	return r
-}
-
 func (r EmbeddedStruct) WithWorld(v struct {
 	Level int
 	Stage string
 }) EmbeddedStruct {
 	r.world = v
+	return r
+}
+
+func (r EmbeddedStructBuilder) Hello(v string) EmbeddedStructBuilder {
+	r.hello = v
 	return r
 }
 
@@ -169,16 +169,16 @@ func (r EmbeddedTypeParamStruct[T]) WithHello(v string) EmbeddedTypeParamStruct[
 	return r
 }
 
-func (r EmbeddedTypeParamStructBuilder[T]) Hello(v string) EmbeddedTypeParamStructBuilder[T] {
-	r.hello = v
-	return r
-}
-
 func (r EmbeddedTypeParamStruct[T]) WithWorld(v struct {
 	Level T
 	Stage string
 }) EmbeddedTypeParamStruct[T] {
 	r.world = v
+	return r
+}
+
+func (r EmbeddedTypeParamStructBuilder[T]) Hello(v string) EmbeddedTypeParamStructBuilder[T] {
+	r.hello = v
 	return r
 }
 

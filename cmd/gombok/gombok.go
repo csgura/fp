@@ -310,7 +310,71 @@ func genString(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedSt
 	return genMethod
 }
 
+func genPrivateWiths(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+
+	valuereceiver := ts.Info.TypeStr(w, workingPackage)
+
+	privateFields.Foreach(func(f metafp.StructField) {
+
+		uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
+
+		fnName := "With" + uname
+
+		if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+			ftp := w.TypeName(workingPackage, f.Type.Type)
+
+			fmt.Fprintf(w, `
+						func (r %s) %s(v %s) %s {
+							r.%s = v
+							return r
+						}
+					`, valuereceiver, fnName, ftp, valuereceiver, f.Name)
+			genMethod = genMethod.Incl(fnName)
+
+		}
+
+		if f.Type.IsOption() {
+			optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
+			optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
+
+			fnName := "WithSome" + uname
+			if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+
+				fmt.Fprintf(w, `
+							func (r %s) %s(v %s) %s {
+								r.%s = %s.Some(v)
+								return r
+							}
+						`, valuereceiver, fnName, optiont, valuereceiver, f.Name, optionpk)
+				genMethod = genMethod.Incl(fnName)
+
+			}
+
+			fnName = "WithNone" + uname
+			if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+
+				fmt.Fprintf(w, `
+							func (r %s) %s() %s {
+								r.%s = %s.None[%s]()
+								return r
+							}
+						`, valuereceiver, fnName, valuereceiver, f.Name, optionpk, optiont)
+				genMethod = genMethod.Incl(fnName)
+
+			}
+		}
+
+	})
+	return genMethod
+}
+
 func genWith(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+
+	if _, ok := ts.Tags.Get("@fp.With").Unapply(); ok {
+		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
+
+		genMethod = genPrivateWiths(w, workingPackage, ts, privateFields, genMethod)
+	}
 
 	if anno, ok := ts.Tags.Get("@fp.WithPubField").Unapply(); ok {
 
@@ -524,25 +588,11 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 		}
 
 		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
+		genMethod = genPrivateWiths(w, workingPackage, ts, privateFields, genMethod)
 
 		privateFields.Foreach(func(f metafp.StructField) {
 
 			uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
-
-			fnName := "With" + uname
-
-			if ts.Info.Method.Get(fnName).IsEmpty() {
-				ftp := w.TypeName(workingPackage, f.Type.Type)
-
-				fmt.Fprintf(w, `
-						func (r %s) %s(v %s) %s {
-							r.%s = v
-							return r
-						}
-					`, valuereceiver, fnName, ftp, valuereceiver, f.Name)
-				genMethod = genMethod.Incl(fnName)
-
-			}
 
 			if !isMethodDefined(workingPackage, builderTypeName, uname) {
 				ftp := w.TypeName(workingPackage, f.Type.Type)
@@ -558,32 +608,6 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 			if f.Type.IsOption() {
 				optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
 				optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
-
-				fnName := "WithSome" + uname
-				if ts.Info.Method.Get(fnName).IsEmpty() {
-
-					fmt.Fprintf(w, `
-							func (r %s) %s(v %s) %s {
-								r.%s = %s.Some(v)
-								return r
-							}
-						`, valuereceiver, fnName, optiont, valuereceiver, f.Name, optionpk)
-					genMethod = genMethod.Incl(fnName)
-
-				}
-
-				fnName = "WithNone" + uname
-				if ts.Info.Method.Get(fnName).IsEmpty() {
-
-					fmt.Fprintf(w, `
-							func (r %s) %s() %s {
-								r.%s = %s.None[%s]()
-								return r
-							}
-						`, valuereceiver, fnName, valuereceiver, f.Name, optionpk, optiont)
-					genMethod = genMethod.Incl(fnName)
-
-				}
 
 				if !isMethodDefined(workingPackage, builderTypeName, "Some"+uname) {
 
@@ -1081,7 +1105,7 @@ func genValueAndGetter() {
 
 		workingPackage := pkgs[0].Types
 
-		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField", "@fp.Getter", "@fp.String")
+		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField", "@fp.Getter", "@fp.String", "@fp.With")
 
 		if st.Size() == 0 {
 			return

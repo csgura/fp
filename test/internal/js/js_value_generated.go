@@ -32,11 +32,6 @@ func (r DecoderContext) WithWorkingObject(v fp.Option[map[string]json.RawMessage
 	return r
 }
 
-func (r DecoderContextBuilder) WorkingObject(v fp.Option[map[string]json.RawMessage]) DecoderContextBuilder {
-	r.workingObject = v
-	return r
-}
-
 func (r DecoderContext) WithSomeWorkingObject(v map[string]json.RawMessage) DecoderContext {
 	r.workingObject = option.Some(v)
 	return r
@@ -44,6 +39,11 @@ func (r DecoderContext) WithSomeWorkingObject(v map[string]json.RawMessage) Deco
 
 func (r DecoderContext) WithNoneWorkingObject() DecoderContext {
 	r.workingObject = option.None[map[string]json.RawMessage]()
+	return r
+}
+
+func (r DecoderContextBuilder) WorkingObject(v fp.Option[map[string]json.RawMessage]) DecoderContextBuilder {
+	r.workingObject = v
 	return r
 }
 

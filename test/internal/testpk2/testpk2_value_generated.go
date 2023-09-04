@@ -44,13 +44,13 @@ func (r Hello) WithWorld(v string) Hello {
 	return r
 }
 
-func (r HelloBuilder) World(v string) HelloBuilder {
-	r.world = v
+func (r Hello) WithHi(v int) Hello {
+	r.hi = v
 	return r
 }
 
-func (r Hello) WithHi(v int) Hello {
-	r.hi = v
+func (r HelloBuilder) World(v string) HelloBuilder {
+	r.world = v
 	return r
 }
 
@@ -250,11 +250,6 @@ func (r AllKindTypes) WithHi(v fp.Option[int]) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) Hi(v fp.Option[int]) AllKindTypesBuilder {
-	r.hi = v
-	return r
-}
-
 func (r AllKindTypes) WithSomeHi(v int) AllKindTypes {
 	r.hi = option.Some(v)
 	return r
@@ -265,22 +260,7 @@ func (r AllKindTypes) WithNoneHi() AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) SomeHi(v int) AllKindTypesBuilder {
-	r.hi = option.Some(v)
-	return r
-}
-
-func (r AllKindTypesBuilder) NoneHi() AllKindTypesBuilder {
-	r.hi = option.None[int]()
-	return r
-}
-
 func (r AllKindTypes) WithTpe(v reflect.Type) AllKindTypes {
-	r.tpe = v
-	return r
-}
-
-func (r AllKindTypesBuilder) Tpe(v reflect.Type) AllKindTypesBuilder {
 	r.tpe = v
 	return r
 }
@@ -290,17 +270,7 @@ func (r AllKindTypes) WithArr(v []os.File) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) Arr(v []os.File) AllKindTypesBuilder {
-	r.arr = v
-	return r
-}
-
 func (r AllKindTypes) WithM(v map[string]int) AllKindTypes {
-	r.m = v
-	return r
-}
-
-func (r AllKindTypesBuilder) M(v map[string]int) AllKindTypesBuilder {
 	r.m = v
 	return r
 }
@@ -310,17 +280,7 @@ func (r AllKindTypes) WithA(v any) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) A(v any) AllKindTypesBuilder {
-	r.a = v
-	return r
-}
-
 func (r AllKindTypes) WithP(v *int) AllKindTypes {
-	r.p = v
-	return r
-}
-
-func (r AllKindTypesBuilder) P(v *int) AllKindTypesBuilder {
 	r.p = v
 	return r
 }
@@ -330,17 +290,7 @@ func (r AllKindTypes) WithL(v Local) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) L(v Local) AllKindTypesBuilder {
-	r.l = v
-	return r
-}
-
 func (r AllKindTypes) WithT(v fp.Try[fp.Option[Local]]) AllKindTypes {
-	r.t = v
-	return r
-}
-
-func (r AllKindTypesBuilder) T(v fp.Try[fp.Option[Local]]) AllKindTypesBuilder {
 	r.t = v
 	return r
 }
@@ -350,17 +300,7 @@ func (r AllKindTypes) WithM2(v map[string]atomic.Bool) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) M2(v map[string]atomic.Bool) AllKindTypesBuilder {
-	r.m2 = v
-	return r
-}
-
 func (r AllKindTypes) WithMm(v fp.Map[string, int]) AllKindTypes {
-	r.mm = v
-	return r
-}
-
-func (r AllKindTypesBuilder) Mm(v fp.Map[string, int]) AllKindTypesBuilder {
 	r.mm = v
 	return r
 }
@@ -370,17 +310,7 @@ func (r AllKindTypes) WithIntf(v fp.Future[int]) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) Intf(v fp.Future[int]) AllKindTypesBuilder {
-	r.intf = v
-	return r
-}
-
 func (r AllKindTypes) WithCh(v chan fp.Try[fp.Either[int, string]]) AllKindTypes {
-	r.ch = v
-	return r
-}
-
-func (r AllKindTypesBuilder) Ch(v chan fp.Try[fp.Either[int, string]]) AllKindTypesBuilder {
 	r.ch = v
 	return r
 }
@@ -390,17 +320,7 @@ func (r AllKindTypes) WithCh2(v chan<- int) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) Ch2(v chan<- int) AllKindTypesBuilder {
-	r.ch2 = v
-	return r
-}
-
 func (r AllKindTypes) WithCh3(v <-chan int) AllKindTypes {
-	r.ch3 = v
-	return r
-}
-
-func (r AllKindTypesBuilder) Ch3(v <-chan int) AllKindTypesBuilder {
 	r.ch3 = v
 	return r
 }
@@ -410,17 +330,7 @@ func (r AllKindTypes) WithFn3(v fp.Func1[int, fp.Try[string]]) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypesBuilder) Fn3(v fp.Func1[int, fp.Try[string]]) AllKindTypesBuilder {
-	r.fn3 = v
-	return r
-}
-
 func (r AllKindTypes) WithFn(v func(a string) fp.Try[int]) AllKindTypes {
-	r.fn = v
-	return r
-}
-
-func (r AllKindTypesBuilder) Fn(v func(a string) fp.Try[int]) AllKindTypesBuilder {
 	r.fn = v
 	return r
 }
@@ -430,17 +340,7 @@ func (r AllKindTypes) WithFn2(v func(fp.Try[string]) (result int, err error)) Al
 	return r
 }
 
-func (r AllKindTypesBuilder) Fn2(v func(fp.Try[string]) (result int, err error)) AllKindTypesBuilder {
-	r.fn2 = v
-	return r
-}
-
 func (r AllKindTypes) WithArr2(v [2]int) AllKindTypes {
-	r.arr2 = v
-	return r
-}
-
-func (r AllKindTypesBuilder) Arr2(v [2]int) AllKindTypesBuilder {
 	r.arr2 = v
 	return r
 }
@@ -454,20 +354,120 @@ func (r AllKindTypes) WithSt(v struct {
 	return r
 }
 
+func (r AllKindTypes) WithI2(v interface {
+	io.Closer
+	Hello() fp.Try[int]
+}) AllKindTypes {
+	r.i2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Hi(v fp.Option[int]) AllKindTypesBuilder {
+	r.hi = v
+	return r
+}
+
+func (r AllKindTypesBuilder) SomeHi(v int) AllKindTypesBuilder {
+	r.hi = option.Some(v)
+	return r
+}
+
+func (r AllKindTypesBuilder) NoneHi() AllKindTypesBuilder {
+	r.hi = option.None[int]()
+	return r
+}
+
+func (r AllKindTypesBuilder) Tpe(v reflect.Type) AllKindTypesBuilder {
+	r.tpe = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Arr(v []os.File) AllKindTypesBuilder {
+	r.arr = v
+	return r
+}
+
+func (r AllKindTypesBuilder) M(v map[string]int) AllKindTypesBuilder {
+	r.m = v
+	return r
+}
+
+func (r AllKindTypesBuilder) A(v any) AllKindTypesBuilder {
+	r.a = v
+	return r
+}
+
+func (r AllKindTypesBuilder) P(v *int) AllKindTypesBuilder {
+	r.p = v
+	return r
+}
+
+func (r AllKindTypesBuilder) L(v Local) AllKindTypesBuilder {
+	r.l = v
+	return r
+}
+
+func (r AllKindTypesBuilder) T(v fp.Try[fp.Option[Local]]) AllKindTypesBuilder {
+	r.t = v
+	return r
+}
+
+func (r AllKindTypesBuilder) M2(v map[string]atomic.Bool) AllKindTypesBuilder {
+	r.m2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Mm(v fp.Map[string, int]) AllKindTypesBuilder {
+	r.mm = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Intf(v fp.Future[int]) AllKindTypesBuilder {
+	r.intf = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Ch(v chan fp.Try[fp.Either[int, string]]) AllKindTypesBuilder {
+	r.ch = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Ch2(v chan<- int) AllKindTypesBuilder {
+	r.ch2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Ch3(v <-chan int) AllKindTypesBuilder {
+	r.ch3 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Fn3(v fp.Func1[int, fp.Try[string]]) AllKindTypesBuilder {
+	r.fn3 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Fn(v func(a string) fp.Try[int]) AllKindTypesBuilder {
+	r.fn = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Fn2(v func(fp.Try[string]) (result int, err error)) AllKindTypesBuilder {
+	r.fn2 = v
+	return r
+}
+
+func (r AllKindTypesBuilder) Arr2(v [2]int) AllKindTypesBuilder {
+	r.arr2 = v
+	return r
+}
+
 func (r AllKindTypesBuilder) St(v struct {
 	Embed
 	A int
 	B fp.Option[string]
 }) AllKindTypesBuilder {
 	r.st = v
-	return r
-}
-
-func (r AllKindTypes) WithI2(v interface {
-	io.Closer
-	Hello() fp.Try[int]
-}) AllKindTypes {
-	r.i2 = v
 	return r
 }
 
@@ -797,17 +797,7 @@ func (r Person) WithName(v string) Person {
 	return r
 }
 
-func (r PersonBuilder) Name(v string) PersonBuilder {
-	r.name = v
-	return r
-}
-
 func (r Person) WithAge(v int) Person {
-	r.age = v
-	return r
-}
-
-func (r PersonBuilder) Age(v int) PersonBuilder {
 	r.age = v
 	return r
 }
@@ -817,17 +807,7 @@ func (r Person) WithHeight(v float64) Person {
 	return r
 }
 
-func (r PersonBuilder) Height(v float64) PersonBuilder {
-	r.height = v
-	return r
-}
-
 func (r Person) WithPhone(v fp.Option[string]) Person {
-	r.phone = v
-	return r
-}
-
-func (r PersonBuilder) Phone(v fp.Option[string]) PersonBuilder {
 	r.phone = v
 	return r
 }
@@ -842,6 +822,46 @@ func (r Person) WithNonePhone() Person {
 	return r
 }
 
+func (r Person) WithAddr(v []string) Person {
+	r.addr = v
+	return r
+}
+
+func (r Person) WithList(v hlist.Cons[string, hlist.Cons[int, hlist.Nil]]) Person {
+	r.list = v
+	return r
+}
+
+func (r Person) WithSeq(v fp.Seq[float64]) Person {
+	r.seq = v
+	return r
+}
+
+func (r Person) WithBlob(v []byte) Person {
+	r.blob = v
+	return r
+}
+
+func (r PersonBuilder) Name(v string) PersonBuilder {
+	r.name = v
+	return r
+}
+
+func (r PersonBuilder) Age(v int) PersonBuilder {
+	r.age = v
+	return r
+}
+
+func (r PersonBuilder) Height(v float64) PersonBuilder {
+	r.height = v
+	return r
+}
+
+func (r PersonBuilder) Phone(v fp.Option[string]) PersonBuilder {
+	r.phone = v
+	return r
+}
+
 func (r PersonBuilder) SomePhone(v string) PersonBuilder {
 	r.phone = option.Some(v)
 	return r
@@ -852,18 +872,8 @@ func (r PersonBuilder) NonePhone() PersonBuilder {
 	return r
 }
 
-func (r Person) WithAddr(v []string) Person {
-	r.addr = v
-	return r
-}
-
 func (r PersonBuilder) Addr(v []string) PersonBuilder {
 	r.addr = v
-	return r
-}
-
-func (r Person) WithList(v hlist.Cons[string, hlist.Cons[int, hlist.Nil]]) Person {
-	r.list = v
 	return r
 }
 
@@ -872,18 +882,8 @@ func (r PersonBuilder) List(v hlist.Cons[string, hlist.Cons[int, hlist.Nil]]) Pe
 	return r
 }
 
-func (r Person) WithSeq(v fp.Seq[float64]) Person {
-	r.seq = v
-	return r
-}
-
 func (r PersonBuilder) Seq(v fp.Seq[float64]) PersonBuilder {
 	r.seq = v
-	return r
-}
-
-func (r Person) WithBlob(v []byte) Person {
-	r.blob = v
 	return r
 }
 
@@ -1036,13 +1036,13 @@ func (r Wallet) WithOwner(v Person) Wallet {
 	return r
 }
 
-func (r WalletBuilder) Owner(v Person) WalletBuilder {
-	r.owner = v
+func (r Wallet) WithAmount(v int64) Wallet {
+	r.amount = v
 	return r
 }
 
-func (r Wallet) WithAmount(v int64) Wallet {
-	r.amount = v
+func (r WalletBuilder) Owner(v Person) WalletBuilder {
+	r.owner = v
 	return r
 }
 
@@ -1146,23 +1146,23 @@ func (r Entry[A, B, C, D]) WithName(v string) Entry[A, B, C, D] {
 	return r
 }
 
-func (r EntryBuilder[A, B, C, D]) Name(v string) EntryBuilder[A, B, C, D] {
-	r.name = v
-	return r
-}
-
 func (r Entry[A, B, C, D]) WithValue(v A) Entry[A, B, C, D] {
-	r.value = v
-	return r
-}
-
-func (r EntryBuilder[A, B, C, D]) Value(v A) EntryBuilder[A, B, C, D] {
 	r.value = v
 	return r
 }
 
 func (r Entry[A, B, C, D]) WithTuple(v fp.Tuple2[A, B]) Entry[A, B, C, D] {
 	r.tuple = v
+	return r
+}
+
+func (r EntryBuilder[A, B, C, D]) Name(v string) EntryBuilder[A, B, C, D] {
+	r.name = v
+	return r
+}
+
+func (r EntryBuilder[A, B, C, D]) Value(v A) EntryBuilder[A, B, C, D] {
+	r.value = v
 	return r
 }
 
@@ -1271,23 +1271,23 @@ func (r Key) WithA(v int) Key {
 	return r
 }
 
-func (r KeyBuilder) A(v int) KeyBuilder {
-	r.a = v
-	return r
-}
-
 func (r Key) WithB(v float32) Key {
-	r.b = v
-	return r
-}
-
-func (r KeyBuilder) B(v float32) KeyBuilder {
 	r.b = v
 	return r
 }
 
 func (r Key) WithC(v []byte) Key {
 	r.c = v
+	return r
+}
+
+func (r KeyBuilder) A(v int) KeyBuilder {
+	r.a = v
+	return r
+}
+
+func (r KeyBuilder) B(v float32) KeyBuilder {
+	r.b = v
 	return r
 }
 
@@ -1396,23 +1396,23 @@ func (r Point) WithX(v int) Point {
 	return r
 }
 
-func (r PointBuilder) X(v int) PointBuilder {
-	r.x = v
-	return r
-}
-
 func (r Point) WithY(v int) Point {
-	r.y = v
-	return r
-}
-
-func (r PointBuilder) Y(v int) PointBuilder {
 	r.y = v
 	return r
 }
 
 func (r Point) WithZ(v fp.Tuple2[int, int]) Point {
 	r.z = v
+	return r
+}
+
+func (r PointBuilder) X(v int) PointBuilder {
+	r.x = v
+	return r
+}
+
+func (r PointBuilder) Y(v int) PointBuilder {
+	r.y = v
 	return r
 }
 
@@ -1512,13 +1512,13 @@ func (r Greeting) WithHello(v testpk1.World) Greeting {
 	return r
 }
 
-func (r GreetingBuilder) Hello(v testpk1.World) GreetingBuilder {
-	r.hello = v
+func (r Greeting) WithLanguage(v string) Greeting {
+	r.language = v
 	return r
 }
 
-func (r Greeting) WithLanguage(v string) Greeting {
-	r.language = v
+func (r GreetingBuilder) Hello(v testpk1.World) GreetingBuilder {
+	r.hello = v
 	return r
 }
 
@@ -1645,23 +1645,23 @@ func (r Three) WithOne(v int) Three {
 	return r
 }
 
-func (r ThreeBuilder) One(v int) ThreeBuilder {
-	r.one = v
-	return r
-}
-
 func (r Three) WithTwo(v string) Three {
-	r.two = v
-	return r
-}
-
-func (r ThreeBuilder) Two(v string) ThreeBuilder {
 	r.two = v
 	return r
 }
 
 func (r Three) WithThree(v float64) Three {
 	r.three = v
+	return r
+}
+
+func (r ThreeBuilder) One(v int) ThreeBuilder {
+	r.one = v
+	return r
+}
+
+func (r ThreeBuilder) Two(v string) ThreeBuilder {
+	r.two = v
 	return r
 }
 
