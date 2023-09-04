@@ -331,7 +331,8 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 
 		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 		allFields := ts.Fields.FilterNot(func(v metafp.StructField) bool {
-			return strings.HasPrefix(v.Name, "_")
+			// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
+			return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.Type.Underlying().IsStruct() && v.Type.Fields().Size() == 0)
 		})
 
 		if allFields.Size() == 0 {

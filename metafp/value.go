@@ -773,6 +773,14 @@ func (r TypeInfo) IsStruct() bool {
 	return false
 }
 
+func (r TypeInfo) Underlying() TypeInfo {
+	if r.IsNamed() {
+		return r.AsNamed().Get().Underlying
+	}
+
+	return r
+}
+
 func (r TypeInfo) IsMap() bool {
 	switch r.Type.(type) {
 	case *types.Map:
