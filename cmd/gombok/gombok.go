@@ -195,6 +195,12 @@ func genAlias(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 
 func genGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
+	if _, ok := ts.Tags.Get("@fp.Getter").Unapply(); ok {
+		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
+
+		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
+	}
+
 	if anno, ok := ts.Tags.Get("@fp.GetterPubField").Unapply(); ok {
 
 		publicFields := ts.Fields.Filter(metafp.StructField.Public)
@@ -235,6 +241,7 @@ func genGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedSt
 			}
 		})
 	}
+
 	return genMethod
 }
 
@@ -323,6 +330,32 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 			}
 			`, namedName(w, workingPackage, workingPackage, name), namedName(w, workingPackage, workingPackage, name))
 	})
+}
+
+func genPrivateGetters(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+	valuetp := ""
+	if len(ts.Info.TypeParam) > 0 {
+		valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
+	}
+	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+
+	privateFields.Foreach(func(f metafp.StructField) {
+		uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
+
+		fnName := uname
+		if ts.Info.Method.Get(fnName).IsEmpty() {
+			ftp := w.TypeName(workingPackage, f.Type.Type)
+
+			fmt.Fprintf(w, `
+						func (r %s) %s() %s {
+							return r.%s
+						}
+					`, valuereceiver, fnName, ftp, f.Name)
+			genMethod = genMethod.Incl(fnName)
+
+		}
+	})
+	return genMethod
 }
 
 func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
@@ -424,24 +457,13 @@ func genValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStr
 			genMethod = genMethod.Incl("Builder")
 		}
 
+		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
+
 		privateFields.Foreach(func(f metafp.StructField) {
 
 			uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
 
-			fnName := uname
-			if ts.Info.Method.Get(fnName).IsEmpty() {
-				ftp := w.TypeName(workingPackage, f.Type.Type)
-
-				fmt.Fprintf(w, `
-						func (r %s) %s() %s {
-							return r.%s
-						}
-					`, valuereceiver, fnName, ftp, f.Name)
-				genMethod = genMethod.Incl(fnName)
-
-			}
-
-			fnName = "With" + uname
+			fnName := "With" + uname
 
 			if ts.Info.Method.Get(fnName).IsEmpty() {
 				ftp := w.TypeName(workingPackage, f.Type.Type)
@@ -1038,7 +1060,7 @@ func genValueAndGetter() {
 
 		workingPackage := pkgs[0].Types
 
-		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField")
+		st := metafp.FindTaggedStruct(pkgs, "@fp.Value", "@fp.GetterPubField", "@fp.Deref", "@fp.WithPubField", "@fp.Getter")
 
 		if st.Size() == 0 {
 			return

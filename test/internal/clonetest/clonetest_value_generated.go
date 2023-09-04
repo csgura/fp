@@ -26,6 +26,10 @@ func (r ValueStruct) Hello() string {
 	return r.hello
 }
 
+func (r ValueStruct) World() int {
+	return r.world
+}
+
 func (r ValueStruct) WithHello(v string) ValueStruct {
 	r.hello = v
 	return r
@@ -34,10 +38,6 @@ func (r ValueStruct) WithHello(v string) ValueStruct {
 func (r ValueStructBuilder) Hello(v string) ValueStructBuilder {
 	r.hello = v
 	return r
-}
-
-func (r ValueStruct) World() int {
-	return r.world
 }
 
 func (r ValueStruct) WithWorld(v int) ValueStruct {
@@ -127,6 +127,10 @@ func (r CloneStruct) Hello() string {
 	return r.hello
 }
 
+func (r CloneStruct) World() int {
+	return r.world
+}
+
 func (r CloneStruct) WithHello(v string) CloneStruct {
 	r.hello = v
 	return r
@@ -135,10 +139,6 @@ func (r CloneStruct) WithHello(v string) CloneStruct {
 func (r CloneStructBuilder) Hello(v string) CloneStructBuilder {
 	r.hello = v
 	return r
-}
-
-func (r CloneStruct) World() int {
-	return r.world
 }
 
 func (r CloneStruct) WithWorld(v int) CloneStruct {

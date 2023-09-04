@@ -32,6 +32,10 @@ func (r World) Message() string {
 	return r.message
 }
 
+func (r World) Timestamp() time.Time {
+	return r.timestamp
+}
+
 func (r World) WithMessage(v string) World {
 	r.message = v
 	return r
@@ -40,10 +44,6 @@ func (r World) WithMessage(v string) World {
 func (r WorldBuilder) Message(v string) WorldBuilder {
 	r.message = v
 	return r
-}
-
-func (r World) Timestamp() time.Time {
-	return r.timestamp
 }
 
 func (r World) WithTimestamp(v time.Time) World {
@@ -172,6 +172,18 @@ func (r HasOption) Message() string {
 	return r.message
 }
 
+func (r HasOption) Addr() fp.Option[string] {
+	return r.addr
+}
+
+func (r HasOption) Phone() []string {
+	return r.phone
+}
+
+func (r HasOption) EmptySeq() []int {
+	return r.emptySeq
+}
+
 func (r HasOption) WithMessage(v string) HasOption {
 	r.message = v
 	return r
@@ -180,10 +192,6 @@ func (r HasOption) WithMessage(v string) HasOption {
 func (r HasOptionBuilder) Message(v string) HasOptionBuilder {
 	r.message = v
 	return r
-}
-
-func (r HasOption) Addr() fp.Option[string] {
-	return r.addr
 }
 
 func (r HasOption) WithAddr(v fp.Option[string]) HasOption {
@@ -216,10 +224,6 @@ func (r HasOptionBuilder) NoneAddr() HasOptionBuilder {
 	return r
 }
 
-func (r HasOption) Phone() []string {
-	return r.phone
-}
-
 func (r HasOption) WithPhone(v []string) HasOption {
 	r.phone = v
 	return r
@@ -228,10 +232,6 @@ func (r HasOption) WithPhone(v []string) HasOption {
 func (r HasOptionBuilder) Phone(v []string) HasOptionBuilder {
 	r.phone = v
 	return r
-}
-
-func (r HasOption) EmptySeq() []int {
-	return r.emptySeq
 }
 
 func (r HasOption) WithEmptySeq(v []int) HasOption {
@@ -349,6 +349,10 @@ func (r CustomValue) Builder() CustomValueBuilder {
 	return CustomValueBuilder(r)
 }
 
+func (r CustomValue) B() int {
+	return r.b
+}
+
 func (r CustomValue) WithA(v string) CustomValue {
 	r.a = v
 	return r
@@ -357,10 +361,6 @@ func (r CustomValue) WithA(v string) CustomValue {
 func (r CustomValueBuilder) A(v string) CustomValueBuilder {
 	r.a = v
 	return r
-}
-
-func (r CustomValue) B() int {
-	return r.b
 }
 
 func (r CustomValue) String() string {
@@ -442,6 +442,10 @@ func (r AliasedStruct) Message() string {
 	return r.message
 }
 
+func (r AliasedStruct) Timestamp() time.Time {
+	return r.timestamp
+}
+
 func (r AliasedStruct) WithMessage(v string) AliasedStruct {
 	r.message = v
 	return r
@@ -450,10 +454,6 @@ func (r AliasedStruct) WithMessage(v string) AliasedStruct {
 func (r AliasedStructBuilder) Message(v string) AliasedStructBuilder {
 	r.message = v
 	return r
-}
-
-func (r AliasedStruct) Timestamp() time.Time {
-	return r.timestamp
 }
 
 func (r AliasedStruct) WithTimestamp(v time.Time) AliasedStruct {
@@ -553,6 +553,14 @@ func (r HListInsideHList) Tp() fp.Tuple2[string, int] {
 	return r.tp
 }
 
+func (r HListInsideHList) Value() string {
+	return r.value
+}
+
+func (r HListInsideHList) Hello() World {
+	return r.hello
+}
+
 func (r HListInsideHList) WithTp(v fp.Tuple2[string, int]) HListInsideHList {
 	r.tp = v
 	return r
@@ -563,10 +571,6 @@ func (r HListInsideHListBuilder) Tp(v fp.Tuple2[string, int]) HListInsideHListBu
 	return r
 }
 
-func (r HListInsideHList) Value() string {
-	return r.value
-}
-
 func (r HListInsideHList) WithValue(v string) HListInsideHList {
 	r.value = v
 	return r
@@ -575,10 +579,6 @@ func (r HListInsideHList) WithValue(v string) HListInsideHList {
 func (r HListInsideHListBuilder) Value(v string) HListInsideHListBuilder {
 	r.value = v
 	return r
-}
-
-func (r HListInsideHList) Hello() World {
-	return r.hello
 }
 
 func (r HListInsideHList) WithHello(v World) HListInsideHList {
@@ -754,6 +754,10 @@ func (r TestOrderedEq) List() fp.Seq[int] {
 	return r.list
 }
 
+func (r TestOrderedEq) Tlist() fp.Seq[fp.Tuple2[int, int]] {
+	return r.tlist
+}
+
 func (r TestOrderedEq) WithList(v fp.Seq[int]) TestOrderedEq {
 	r.list = v
 	return r
@@ -762,10 +766,6 @@ func (r TestOrderedEq) WithList(v fp.Seq[int]) TestOrderedEq {
 func (r TestOrderedEqBuilder) List(v fp.Seq[int]) TestOrderedEqBuilder {
 	r.list = v
 	return r
-}
-
-func (r TestOrderedEq) Tlist() fp.Seq[fp.Tuple2[int, int]] {
-	return r.tlist
 }
 
 func (r TestOrderedEq) WithTlist(v fp.Seq[fp.Tuple2[int, int]]) TestOrderedEq {
@@ -855,6 +855,10 @@ func (r MapEq) M() map[string]World {
 	return r.m
 }
 
+func (r MapEq) M2() fp.Map[string, World] {
+	return r.m2
+}
+
 func (r MapEq) WithM(v map[string]World) MapEq {
 	r.m = v
 	return r
@@ -863,10 +867,6 @@ func (r MapEq) WithM(v map[string]World) MapEq {
 func (r MapEqBuilder) M(v map[string]World) MapEqBuilder {
 	r.m = v
 	return r
-}
-
-func (r MapEq) M2() fp.Map[string, World] {
-	return r.m2
 }
 
 func (r MapEq) WithM2(v fp.Map[string, World]) MapEq {
@@ -958,6 +958,18 @@ func (r SeqMonoid) V() string {
 	return r.v
 }
 
+func (r SeqMonoid) S() fp.Seq[string] {
+	return r.s
+}
+
+func (r SeqMonoid) M() map[string]int {
+	return r.m
+}
+
+func (r SeqMonoid) M2() fp.Map[string, World] {
+	return r.m2
+}
+
 func (r SeqMonoid) WithV(v string) SeqMonoid {
 	r.v = v
 	return r
@@ -966,10 +978,6 @@ func (r SeqMonoid) WithV(v string) SeqMonoid {
 func (r SeqMonoidBuilder) V(v string) SeqMonoidBuilder {
 	r.v = v
 	return r
-}
-
-func (r SeqMonoid) S() fp.Seq[string] {
-	return r.s
 }
 
 func (r SeqMonoid) WithS(v fp.Seq[string]) SeqMonoid {
@@ -982,10 +990,6 @@ func (r SeqMonoidBuilder) S(v fp.Seq[string]) SeqMonoidBuilder {
 	return r
 }
 
-func (r SeqMonoid) M() map[string]int {
-	return r.m
-}
-
 func (r SeqMonoid) WithM(v map[string]int) SeqMonoid {
 	r.m = v
 	return r
@@ -994,10 +998,6 @@ func (r SeqMonoid) WithM(v map[string]int) SeqMonoid {
 func (r SeqMonoidBuilder) M(v map[string]int) SeqMonoidBuilder {
 	r.m = v
 	return r
-}
-
-func (r SeqMonoid) M2() fp.Map[string, World] {
-	return r.m2
 }
 
 func (r SeqMonoid) WithM2(v fp.Map[string, World]) SeqMonoid {
@@ -1260,6 +1260,14 @@ func (r Node) Value() string {
 	return r.value
 }
 
+func (r Node) Left() *Node {
+	return r.left
+}
+
+func (r Node) Right() *Node {
+	return r.right
+}
+
 func (r Node) WithValue(v string) Node {
 	r.value = v
 	return r
@@ -1270,10 +1278,6 @@ func (r NodeBuilder) Value(v string) NodeBuilder {
 	return r
 }
 
-func (r Node) Left() *Node {
-	return r.left
-}
-
 func (r Node) WithLeft(v *Node) Node {
 	r.left = v
 	return r
@@ -1282,10 +1286,6 @@ func (r Node) WithLeft(v *Node) Node {
 func (r NodeBuilder) Left(v *Node) NodeBuilder {
 	r.left = v
 	return r
-}
-
-func (r Node) Right() *Node {
-	return r.right
 }
 
 func (r Node) WithRight(v *Node) Node {
@@ -1475,6 +1475,122 @@ func (r Over21) I1() int {
 	return r.i1
 }
 
+func (r Over21) I2() int {
+	return r.i2
+}
+
+func (r Over21) I3() int {
+	return r.i3
+}
+
+func (r Over21) I4() int {
+	return r.i4
+}
+
+func (r Over21) I5() int {
+	return r.i5
+}
+
+func (r Over21) I6() int {
+	return r.i6
+}
+
+func (r Over21) I7() int {
+	return r.i7
+}
+
+func (r Over21) I8() int {
+	return r.i8
+}
+
+func (r Over21) I9() int {
+	return r.i9
+}
+
+func (r Over21) I10() int {
+	return r.i10
+}
+
+func (r Over21) I11() int {
+	return r.i11
+}
+
+func (r Over21) I12() int {
+	return r.i12
+}
+
+func (r Over21) I13() int {
+	return r.i13
+}
+
+func (r Over21) I14() int {
+	return r.i14
+}
+
+func (r Over21) I15() int {
+	return r.i15
+}
+
+func (r Over21) I16() int {
+	return r.i16
+}
+
+func (r Over21) I17() int {
+	return r.i17
+}
+
+func (r Over21) I18() int {
+	return r.i18
+}
+
+func (r Over21) I19() int {
+	return r.i19
+}
+
+func (r Over21) I20() int {
+	return r.i20
+}
+
+func (r Over21) I21() int {
+	return r.i21
+}
+
+func (r Over21) I22() int {
+	return r.i22
+}
+
+func (r Over21) I23() int {
+	return r.i23
+}
+
+func (r Over21) I24() int {
+	return r.i24
+}
+
+func (r Over21) I25() int {
+	return r.i25
+}
+
+func (r Over21) I26() int {
+	return r.i26
+}
+
+func (r Over21) I27() int {
+	return r.i27
+}
+
+func (r Over21) I28() int {
+	return r.i28
+}
+
+func (r Over21) I29() int {
+	return r.i29
+}
+
+func (r Over21) I30() int {
+	return r.i30
+}
+
 func (r Over21) WithI1(v int) Over21 {
 	r.i1 = v
 	return r
@@ -1483,10 +1599,6 @@ func (r Over21) WithI1(v int) Over21 {
 func (r Over21Builder) I1(v int) Over21Builder {
 	r.i1 = v
 	return r
-}
-
-func (r Over21) I2() int {
-	return r.i2
 }
 
 func (r Over21) WithI2(v int) Over21 {
@@ -1499,10 +1611,6 @@ func (r Over21Builder) I2(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I3() int {
-	return r.i3
-}
-
 func (r Over21) WithI3(v int) Over21 {
 	r.i3 = v
 	return r
@@ -1511,10 +1619,6 @@ func (r Over21) WithI3(v int) Over21 {
 func (r Over21Builder) I3(v int) Over21Builder {
 	r.i3 = v
 	return r
-}
-
-func (r Over21) I4() int {
-	return r.i4
 }
 
 func (r Over21) WithI4(v int) Over21 {
@@ -1527,10 +1631,6 @@ func (r Over21Builder) I4(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I5() int {
-	return r.i5
-}
-
 func (r Over21) WithI5(v int) Over21 {
 	r.i5 = v
 	return r
@@ -1539,10 +1639,6 @@ func (r Over21) WithI5(v int) Over21 {
 func (r Over21Builder) I5(v int) Over21Builder {
 	r.i5 = v
 	return r
-}
-
-func (r Over21) I6() int {
-	return r.i6
 }
 
 func (r Over21) WithI6(v int) Over21 {
@@ -1555,10 +1651,6 @@ func (r Over21Builder) I6(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I7() int {
-	return r.i7
-}
-
 func (r Over21) WithI7(v int) Over21 {
 	r.i7 = v
 	return r
@@ -1567,10 +1659,6 @@ func (r Over21) WithI7(v int) Over21 {
 func (r Over21Builder) I7(v int) Over21Builder {
 	r.i7 = v
 	return r
-}
-
-func (r Over21) I8() int {
-	return r.i8
 }
 
 func (r Over21) WithI8(v int) Over21 {
@@ -1583,10 +1671,6 @@ func (r Over21Builder) I8(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I9() int {
-	return r.i9
-}
-
 func (r Over21) WithI9(v int) Over21 {
 	r.i9 = v
 	return r
@@ -1595,10 +1679,6 @@ func (r Over21) WithI9(v int) Over21 {
 func (r Over21Builder) I9(v int) Over21Builder {
 	r.i9 = v
 	return r
-}
-
-func (r Over21) I10() int {
-	return r.i10
 }
 
 func (r Over21) WithI10(v int) Over21 {
@@ -1611,10 +1691,6 @@ func (r Over21Builder) I10(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I11() int {
-	return r.i11
-}
-
 func (r Over21) WithI11(v int) Over21 {
 	r.i11 = v
 	return r
@@ -1623,10 +1699,6 @@ func (r Over21) WithI11(v int) Over21 {
 func (r Over21Builder) I11(v int) Over21Builder {
 	r.i11 = v
 	return r
-}
-
-func (r Over21) I12() int {
-	return r.i12
 }
 
 func (r Over21) WithI12(v int) Over21 {
@@ -1639,10 +1711,6 @@ func (r Over21Builder) I12(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I13() int {
-	return r.i13
-}
-
 func (r Over21) WithI13(v int) Over21 {
 	r.i13 = v
 	return r
@@ -1651,10 +1719,6 @@ func (r Over21) WithI13(v int) Over21 {
 func (r Over21Builder) I13(v int) Over21Builder {
 	r.i13 = v
 	return r
-}
-
-func (r Over21) I14() int {
-	return r.i14
 }
 
 func (r Over21) WithI14(v int) Over21 {
@@ -1667,10 +1731,6 @@ func (r Over21Builder) I14(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I15() int {
-	return r.i15
-}
-
 func (r Over21) WithI15(v int) Over21 {
 	r.i15 = v
 	return r
@@ -1679,10 +1739,6 @@ func (r Over21) WithI15(v int) Over21 {
 func (r Over21Builder) I15(v int) Over21Builder {
 	r.i15 = v
 	return r
-}
-
-func (r Over21) I16() int {
-	return r.i16
 }
 
 func (r Over21) WithI16(v int) Over21 {
@@ -1695,10 +1751,6 @@ func (r Over21Builder) I16(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I17() int {
-	return r.i17
-}
-
 func (r Over21) WithI17(v int) Over21 {
 	r.i17 = v
 	return r
@@ -1707,10 +1759,6 @@ func (r Over21) WithI17(v int) Over21 {
 func (r Over21Builder) I17(v int) Over21Builder {
 	r.i17 = v
 	return r
-}
-
-func (r Over21) I18() int {
-	return r.i18
 }
 
 func (r Over21) WithI18(v int) Over21 {
@@ -1723,10 +1771,6 @@ func (r Over21Builder) I18(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I19() int {
-	return r.i19
-}
-
 func (r Over21) WithI19(v int) Over21 {
 	r.i19 = v
 	return r
@@ -1735,10 +1779,6 @@ func (r Over21) WithI19(v int) Over21 {
 func (r Over21Builder) I19(v int) Over21Builder {
 	r.i19 = v
 	return r
-}
-
-func (r Over21) I20() int {
-	return r.i20
 }
 
 func (r Over21) WithI20(v int) Over21 {
@@ -1751,10 +1791,6 @@ func (r Over21Builder) I20(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I21() int {
-	return r.i21
-}
-
 func (r Over21) WithI21(v int) Over21 {
 	r.i21 = v
 	return r
@@ -1763,10 +1799,6 @@ func (r Over21) WithI21(v int) Over21 {
 func (r Over21Builder) I21(v int) Over21Builder {
 	r.i21 = v
 	return r
-}
-
-func (r Over21) I22() int {
-	return r.i22
 }
 
 func (r Over21) WithI22(v int) Over21 {
@@ -1779,10 +1811,6 @@ func (r Over21Builder) I22(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I23() int {
-	return r.i23
-}
-
 func (r Over21) WithI23(v int) Over21 {
 	r.i23 = v
 	return r
@@ -1791,10 +1819,6 @@ func (r Over21) WithI23(v int) Over21 {
 func (r Over21Builder) I23(v int) Over21Builder {
 	r.i23 = v
 	return r
-}
-
-func (r Over21) I24() int {
-	return r.i24
 }
 
 func (r Over21) WithI24(v int) Over21 {
@@ -1807,10 +1831,6 @@ func (r Over21Builder) I24(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I25() int {
-	return r.i25
-}
-
 func (r Over21) WithI25(v int) Over21 {
 	r.i25 = v
 	return r
@@ -1819,10 +1839,6 @@ func (r Over21) WithI25(v int) Over21 {
 func (r Over21Builder) I25(v int) Over21Builder {
 	r.i25 = v
 	return r
-}
-
-func (r Over21) I26() int {
-	return r.i26
 }
 
 func (r Over21) WithI26(v int) Over21 {
@@ -1835,10 +1851,6 @@ func (r Over21Builder) I26(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I27() int {
-	return r.i27
-}
-
 func (r Over21) WithI27(v int) Over21 {
 	r.i27 = v
 	return r
@@ -1847,10 +1859,6 @@ func (r Over21) WithI27(v int) Over21 {
 func (r Over21Builder) I27(v int) Over21Builder {
 	r.i27 = v
 	return r
-}
-
-func (r Over21) I28() int {
-	return r.i28
 }
 
 func (r Over21) WithI28(v int) Over21 {
@@ -1863,10 +1871,6 @@ func (r Over21Builder) I28(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) I29() int {
-	return r.i29
-}
-
 func (r Over21) WithI29(v int) Over21 {
 	r.i29 = v
 	return r
@@ -1875,10 +1879,6 @@ func (r Over21) WithI29(v int) Over21 {
 func (r Over21Builder) I29(v int) Over21Builder {
 	r.i29 = v
 	return r
-}
-
-func (r Over21) I30() int {
-	return r.i30
 }
 
 func (r Over21) WithI30(v int) Over21 {

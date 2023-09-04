@@ -26,6 +26,10 @@ func (r Result[T]) Value() T {
 	return r.value
 }
 
+func (r Result[T]) Remains() string {
+	return r.remains
+}
+
 func (r Result[T]) WithValue(v T) Result[T] {
 	r.value = v
 	return r
@@ -34,10 +38,6 @@ func (r Result[T]) WithValue(v T) Result[T] {
 func (r ResultBuilder[T]) Value(v T) ResultBuilder[T] {
 	r.value = v
 	return r
-}
-
-func (r Result[T]) Remains() string {
-	return r.remains
 }
 
 func (r Result[T]) WithRemains(v string) Result[T] {

@@ -29,6 +29,13 @@ func (r EmbeddedStruct) Hello() string {
 	return r.hello
 }
 
+func (r EmbeddedStruct) World() struct {
+	Level int
+	Stage string
+} {
+	return r.world
+}
+
 func (r EmbeddedStruct) WithHello(v string) EmbeddedStruct {
 	r.hello = v
 	return r
@@ -37,13 +44,6 @@ func (r EmbeddedStruct) WithHello(v string) EmbeddedStruct {
 func (r EmbeddedStructBuilder) Hello(v string) EmbeddedStructBuilder {
 	r.hello = v
 	return r
-}
-
-func (r EmbeddedStruct) World() struct {
-	Level int
-	Stage string
-} {
-	return r.world
 }
 
 func (r EmbeddedStruct) WithWorld(v struct {
@@ -157,6 +157,13 @@ func (r EmbeddedTypeParamStruct[T]) Hello() string {
 	return r.hello
 }
 
+func (r EmbeddedTypeParamStruct[T]) World() struct {
+	Level T
+	Stage string
+} {
+	return r.world
+}
+
 func (r EmbeddedTypeParamStruct[T]) WithHello(v string) EmbeddedTypeParamStruct[T] {
 	r.hello = v
 	return r
@@ -165,13 +172,6 @@ func (r EmbeddedTypeParamStruct[T]) WithHello(v string) EmbeddedTypeParamStruct[
 func (r EmbeddedTypeParamStructBuilder[T]) Hello(v string) EmbeddedTypeParamStructBuilder[T] {
 	r.hello = v
 	return r
-}
-
-func (r EmbeddedTypeParamStruct[T]) World() struct {
-	Level T
-	Stage string
-} {
-	return r.world
 }
 
 func (r EmbeddedTypeParamStruct[T]) WithWorld(v struct {
