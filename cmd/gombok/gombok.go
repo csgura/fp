@@ -246,13 +246,13 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 		printable := allFields.Filter(func(v metafp.StructField) bool {
 			return v.Type.IsPrintable()
 		})
-		fm := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
+		fm := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
 			return fmt.Sprintf("%s=%%v", f.Name)
-		})).MakeString(", ")
+		}).MakeString(", ")
 
-		fields := seq.Iterator(seq.Map(printable, func(f metafp.StructField) string {
+		fields := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
 			return fmt.Sprintf("r.%s", f.Name)
-		})).MakeString(",")
+		}).MakeString(",")
 
 		fmt.Fprintf(w, `
 					func(r %s) String() string {
@@ -281,9 +281,9 @@ func genUnapply(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 				return w.TypeName(workingPackage, v.Type.Type)
 			}).MakeString(",")
 
-			fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 				return fmt.Sprintf("r.%s", f.Name)
-			})).Take(arity).MakeString(",")
+			}).Take(arity).MakeString(",")
 
 			fmt.Fprintf(w, `
 					func(r %s) AsTuple() %s.Tuple%d[%s] {
@@ -300,11 +300,11 @@ func genUnapply(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 
 	if ts.Info.Method.Get("Unapply").IsEmpty() && !genMethod.Contains("Unapply") {
 
-		tp := seq.Map(allFields, func(v metafp.StructField) string {
+		tp := iterator.Map(iterator.FromSeq(allFields), func(v metafp.StructField) string {
 			return w.TypeName(workingPackage, v.Type.Type)
 		}).MakeString(",")
 
-		fields := seq.Map(allFields, func(f metafp.StructField) string {
+		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 			return fmt.Sprintf("r.%s", f.Name)
 		}).MakeString(",")
 
@@ -1011,9 +1011,9 @@ func genMutable(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 
 	if ts.Info.Method.Get("AsMutable").IsEmpty() {
 
-		fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 			return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
-		})).MakeString(",\n")
+		}).MakeString(",\n")
 
 		fmt.Fprintf(w, `
 					func(r %s) AsMutable() %s {
@@ -1031,9 +1031,9 @@ func genMutable(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 
 	if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
 
-		fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 			return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
-		})).MakeString(",\n")
+		}).MakeString(",\n")
 
 		fmt.Fprintf(w, `
 					func(r %s) AsImmutable() %s {
@@ -1076,7 +1076,7 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 
 		if ts.Info.Method.Get("AsMap").IsEmpty() {
 
-			fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 				if f.Type.IsOption() {
 					return fmt.Sprintf(`if r.%s.IsDefined() {
 							m["%s"] = r.%s.Get()
@@ -1084,7 +1084,7 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 				} else {
 					return fmt.Sprintf(`m["%s"] = r.%s`, f.Name, f.Name)
 				}
-			})).MakeString("\n")
+			}).MakeString("\n")
 
 			fmt.Fprintf(w, `
 					func(r %s) AsMap() map[string]any {
@@ -1113,9 +1113,9 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), w.TypeName(workingPackage, v.Type.Type))
 				}).MakeString(",")
 
-				fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+				fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 					return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
-				})).Take(arity).MakeString(",")
+				}).Take(arity).MakeString(",")
 
 				if ts.Info.Method.Get("AsLabelled").IsEmpty() {
 					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
