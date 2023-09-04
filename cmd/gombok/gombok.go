@@ -268,6 +268,59 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 	return genMethod
 }
 
+func genUnapply(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+	valuereceiver := ts.Info.TypeStr(w, workingPackage)
+	if allFields.Size() < max.Product {
+		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
+		if ts.Info.Method.Get("AsTuple").IsEmpty() && !genMethod.Contains("AsTuple") {
+			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+			arity := fp.Min(allFields.Size(), max.Product-1)
+			tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
+				return w.TypeName(workingPackage, v.Type.Type)
+			}).MakeString(",")
+
+			fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+				return fmt.Sprintf("r.%s", f.Name)
+			})).Take(arity).MakeString(",")
+
+			fmt.Fprintf(w, `
+					func(r %s) AsTuple() %s.Tuple%d[%s] {
+						return %s.Tuple%d(%s)
+					}
+
+				`, valuereceiver, fppkg, arity, tp,
+				asalias, arity, fields,
+			)
+			genMethod = genMethod.Incl("AsTuple")
+
+		}
+	}
+
+	if ts.Info.Method.Get("Unapply").IsEmpty() && !genMethod.Contains("Unapply") {
+
+		tp := seq.Map(allFields, func(v metafp.StructField) string {
+			return w.TypeName(workingPackage, v.Type.Type)
+		}).MakeString(",")
+
+		fields := seq.Map(allFields, func(f metafp.StructField) string {
+			return fmt.Sprintf("r.%s", f.Name)
+		}).MakeString(",")
+
+		fmt.Fprintf(w, `
+					func(r %s) Unapply() (%s) {
+						return %s
+					}
+
+				`, valuereceiver, tp,
+			fields,
+		)
+		genMethod = genMethod.Incl("Unapply")
+
+	}
+	return genMethod
+}
 func processString(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
 	if _, ok := ts.Tags.Get("@fp.String").Unapply(); ok {
@@ -1019,53 +1072,7 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
 		genMethod = genPrivateWiths(w, workingPackage, ts, privateFields, genMethod)
 		genMethod = genStringMethod(w, workingPackage, ts, allFields, genMethod)
-
-		if allFields.Size() < max.Product {
-			if ts.Info.Method.Get("AsTuple").IsEmpty() {
-				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-
-				arity := fp.Min(allFields.Size(), max.Product-1)
-				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-					return w.TypeName(workingPackage, v.Type.Type)
-				}).MakeString(",")
-
-				fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
-					return fmt.Sprintf("r.%s", f.Name)
-				})).Take(arity).MakeString(",")
-
-				fmt.Fprintf(w, `
-					func(r %s) AsTuple() %s.Tuple%d[%s] {
-						return %s.Tuple%d(%s)
-					}
-
-				`, valuereceiver, fppkg, arity, tp,
-					asalias, arity, fields,
-				)
-				genMethod = genMethod.Incl("AsTuple")
-
-			}
-		}
-		if ts.Info.Method.Get("Unapply").IsEmpty() {
-
-			tp := seq.Map(allFields, func(v metafp.StructField) string {
-				return w.TypeName(workingPackage, v.Type.Type)
-			}).MakeString(",")
-
-			fields := seq.Map(allFields, func(f metafp.StructField) string {
-				return fmt.Sprintf("r.%s", f.Name)
-			}).MakeString(",")
-
-			fmt.Fprintf(w, `
-					func(r %s) Unapply() (%s) {
-						return %s
-					}
-
-				`, valuereceiver, tp,
-				fields,
-			)
-			genMethod = genMethod.Incl("Unapply")
-
-		}
+		genMethod = genUnapply(w, workingPackage, ts, allFields, genMethod)
 
 		if ts.Info.Method.Get("AsMap").IsEmpty() {
 
