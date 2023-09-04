@@ -850,6 +850,15 @@ func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd *types.Package) string {
 	}).MakeString(",")
 }
 
+func (r TypeInfo) TypeStr(w genfp.ImportSet, cwd *types.Package) string {
+	if r.TypeParam.Size() > 0 {
+
+		valuetp := r.TypeParamIns(w, cwd)
+		return w.TypeName(cwd, r.Type) + "[" + valuetp + "]"
+	}
+	return w.TypeName(cwd, r.Type)
+}
+
 type StructField struct {
 	Name     string
 	Type     TypeInfo
