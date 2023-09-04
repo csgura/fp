@@ -7,11 +7,6 @@ import (
 	"github.com/csgura/fp/as"
 )
 
-type ResultMutable[T any] struct {
-	Value   T
-	Remains string
-}
-
 func (r Result[T]) Value() T {
 	return r.value
 }
@@ -28,6 +23,25 @@ func (r Result[T]) WithValue(v T) Result[T] {
 func (r Result[T]) WithRemains(v string) Result[T] {
 	r.remains = v
 	return r
+}
+
+func (r Result[T]) String() string {
+	return fmt.Sprintf("Result(value=%v, remains=%v)", r.value, r.remains)
+}
+
+func (r Result[T]) AsTuple() fp.Tuple2[T, string] {
+	return as.Tuple2(r.value, r.remains)
+}
+
+func (r Result[T]) Unapply() (T, string) {
+	return r.value, r.remains
+}
+
+func (r Result[T]) AsMap() map[string]any {
+	m := map[string]any{}
+	m["value"] = r.value
+	m["remains"] = r.remains
+	return m
 }
 
 type ResultBuilder[T any] Result[T]
@@ -75,16 +89,9 @@ func (r ResultBuilder[T]) FromMap(m map[string]any) ResultBuilder[T] {
 	return r
 }
 
-func (r Result[T]) String() string {
-	return fmt.Sprintf("Result(value=%v, remains=%v)", r.value, r.remains)
-}
-
-func (r Result[T]) AsTuple() fp.Tuple2[T, string] {
-	return as.Tuple2(r.value, r.remains)
-}
-
-func (r Result[T]) Unapply() (T, string) {
-	return r.value, r.remains
+type ResultMutable[T any] struct {
+	Value   T
+	Remains string
 }
 
 func (r Result[T]) AsMutable() ResultMutable[T] {
@@ -99,11 +106,4 @@ func (r ResultMutable[T]) AsImmutable() Result[T] {
 		value:   r.Value,
 		remains: r.Remains,
 	}
-}
-
-func (r Result[T]) AsMap() map[string]any {
-	m := map[string]any{}
-	m["value"] = r.value
-	m["remains"] = r.remains
-	return m
 }

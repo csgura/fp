@@ -32,7 +32,7 @@ func TestString(t *testing.T) {
 }
 
 func TestBuilder(t *testing.T) {
-	a := fp.New(testpk2.Hello.Builder).World("world").Hi(0).Build()
+	a := fp.Builder[testpk2.Hello]().World("world").Hi(0).Build()
 	fmt.Println(a)
 	fmt.Println(a.WithWorld("No").World())
 }

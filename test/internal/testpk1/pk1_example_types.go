@@ -318,3 +318,23 @@ type LocalEmbedPrivate struct {
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[LocalEmbedPrivate]]
+
+// @fp.Getter
+// @fp.With
+// @fp.String
+// @fp.AllArgsConstructor
+type ExplicitTag struct {
+	hello string
+	world int
+}
+
+// @fp.Getter
+// @fp.With
+// @fp.String
+// @fp.AllArgsConstructor
+// @fp.Builder
+type GenericExplicitTag[T any] struct {
+	hello   string
+	world   int
+	message T
+}

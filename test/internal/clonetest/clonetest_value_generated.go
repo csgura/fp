@@ -7,11 +7,6 @@ import (
 	"github.com/csgura/fp/as"
 )
 
-type ValueStructMutable struct {
-	Hello string
-	World int
-}
-
 func (r ValueStruct) Hello() string {
 	return r.hello
 }
@@ -28,6 +23,25 @@ func (r ValueStruct) WithHello(v string) ValueStruct {
 func (r ValueStruct) WithWorld(v int) ValueStruct {
 	r.world = v
 	return r
+}
+
+func (r ValueStruct) String() string {
+	return fmt.Sprintf("ValueStruct(hello=%v, world=%v)", r.hello, r.world)
+}
+
+func (r ValueStruct) AsTuple() fp.Tuple2[string, int] {
+	return as.Tuple2(r.hello, r.world)
+}
+
+func (r ValueStruct) Unapply() (string, int) {
+	return r.hello, r.world
+}
+
+func (r ValueStruct) AsMap() map[string]any {
+	m := map[string]any{}
+	m["hello"] = r.hello
+	m["world"] = r.world
+	return m
 }
 
 type ValueStructBuilder ValueStruct
@@ -75,16 +89,9 @@ func (r ValueStructBuilder) FromMap(m map[string]any) ValueStructBuilder {
 	return r
 }
 
-func (r ValueStruct) String() string {
-	return fmt.Sprintf("ValueStruct(hello=%v, world=%v)", r.hello, r.world)
-}
-
-func (r ValueStruct) AsTuple() fp.Tuple2[string, int] {
-	return as.Tuple2(r.hello, r.world)
-}
-
-func (r ValueStruct) Unapply() (string, int) {
-	return r.hello, r.world
+type ValueStructMutable struct {
+	Hello string
+	World int
 }
 
 func (r ValueStruct) AsMutable() ValueStructMutable {
@@ -99,18 +106,6 @@ func (r ValueStructMutable) AsImmutable() ValueStruct {
 		hello: r.Hello,
 		world: r.World,
 	}
-}
-
-func (r ValueStruct) AsMap() map[string]any {
-	m := map[string]any{}
-	m["hello"] = r.hello
-	m["world"] = r.world
-	return m
-}
-
-type CloneStructMutable struct {
-	Hello string
-	World int
 }
 
 func (r CloneStruct) Hello() string {
@@ -129,6 +124,25 @@ func (r CloneStruct) WithHello(v string) CloneStruct {
 func (r CloneStruct) WithWorld(v int) CloneStruct {
 	r.world = v
 	return r
+}
+
+func (r CloneStruct) String() string {
+	return fmt.Sprintf("CloneStruct(hello=%v, world=%v)", r.hello, r.world)
+}
+
+func (r CloneStruct) AsTuple() fp.Tuple2[string, int] {
+	return as.Tuple2(r.hello, r.world)
+}
+
+func (r CloneStruct) Unapply() (string, int) {
+	return r.hello, r.world
+}
+
+func (r CloneStruct) AsMap() map[string]any {
+	m := map[string]any{}
+	m["hello"] = r.hello
+	m["world"] = r.world
+	return m
 }
 
 type CloneStructBuilder CloneStruct
@@ -176,16 +190,9 @@ func (r CloneStructBuilder) FromMap(m map[string]any) CloneStructBuilder {
 	return r
 }
 
-func (r CloneStruct) String() string {
-	return fmt.Sprintf("CloneStruct(hello=%v, world=%v)", r.hello, r.world)
-}
-
-func (r CloneStruct) AsTuple() fp.Tuple2[string, int] {
-	return as.Tuple2(r.hello, r.world)
-}
-
-func (r CloneStruct) Unapply() (string, int) {
-	return r.hello, r.world
+type CloneStructMutable struct {
+	Hello string
+	World int
 }
 
 func (r CloneStruct) AsMutable() CloneStructMutable {
@@ -200,11 +207,4 @@ func (r CloneStructMutable) AsImmutable() CloneStruct {
 		hello: r.Hello,
 		world: r.World,
 	}
-}
-
-func (r CloneStruct) AsMap() map[string]any {
-	m := map[string]any{}
-	m["hello"] = r.hello
-	m["world"] = r.world
-	return m
 }

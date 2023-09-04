@@ -7,14 +7,6 @@ import (
 	"github.com/csgura/fp/as"
 )
 
-type EmbeddedStructMutable struct {
-	Hello string
-	World struct {
-		Level int
-		Stage string
-	}
-}
-
 func (r EmbeddedStruct) Hello() string {
 	return r.hello
 }
@@ -37,6 +29,31 @@ func (r EmbeddedStruct) WithWorld(v struct {
 }) EmbeddedStruct {
 	r.world = v
 	return r
+}
+
+func (r EmbeddedStruct) String() string {
+	return fmt.Sprintf("EmbeddedStruct(hello=%v, world=%v)", r.hello, r.world)
+}
+
+func (r EmbeddedStruct) AsTuple() fp.Tuple2[string, struct {
+	Level int
+	Stage string
+}] {
+	return as.Tuple2(r.hello, r.world)
+}
+
+func (r EmbeddedStruct) Unapply() (string, struct {
+	Level int
+	Stage string
+}) {
+	return r.hello, r.world
+}
+
+func (r EmbeddedStruct) AsMap() map[string]any {
+	m := map[string]any{}
+	m["hello"] = r.hello
+	m["world"] = r.world
+	return m
 }
 
 type EmbeddedStructBuilder EmbeddedStruct
@@ -96,22 +113,12 @@ func (r EmbeddedStructBuilder) FromMap(m map[string]any) EmbeddedStructBuilder {
 	return r
 }
 
-func (r EmbeddedStruct) String() string {
-	return fmt.Sprintf("EmbeddedStruct(hello=%v, world=%v)", r.hello, r.world)
-}
-
-func (r EmbeddedStruct) AsTuple() fp.Tuple2[string, struct {
-	Level int
-	Stage string
-}] {
-	return as.Tuple2(r.hello, r.world)
-}
-
-func (r EmbeddedStruct) Unapply() (string, struct {
-	Level int
-	Stage string
-}) {
-	return r.hello, r.world
+type EmbeddedStructMutable struct {
+	Hello string
+	World struct {
+		Level int
+		Stage string
+	}
 }
 
 func (r EmbeddedStruct) AsMutable() EmbeddedStructMutable {
@@ -125,21 +132,6 @@ func (r EmbeddedStructMutable) AsImmutable() EmbeddedStruct {
 	return EmbeddedStruct{
 		hello: r.Hello,
 		world: r.World,
-	}
-}
-
-func (r EmbeddedStruct) AsMap() map[string]any {
-	m := map[string]any{}
-	m["hello"] = r.hello
-	m["world"] = r.world
-	return m
-}
-
-type EmbeddedTypeParamStructMutable[T any] struct {
-	Hello string
-	World struct {
-		Level T
-		Stage string
 	}
 }
 
@@ -165,6 +157,31 @@ func (r EmbeddedTypeParamStruct[T]) WithWorld(v struct {
 }) EmbeddedTypeParamStruct[T] {
 	r.world = v
 	return r
+}
+
+func (r EmbeddedTypeParamStruct[T]) String() string {
+	return fmt.Sprintf("EmbeddedTypeParamStruct(hello=%v, world=%v)", r.hello, r.world)
+}
+
+func (r EmbeddedTypeParamStruct[T]) AsTuple() fp.Tuple2[string, struct {
+	Level T
+	Stage string
+}] {
+	return as.Tuple2(r.hello, r.world)
+}
+
+func (r EmbeddedTypeParamStruct[T]) Unapply() (string, struct {
+	Level T
+	Stage string
+}) {
+	return r.hello, r.world
+}
+
+func (r EmbeddedTypeParamStruct[T]) AsMap() map[string]any {
+	m := map[string]any{}
+	m["hello"] = r.hello
+	m["world"] = r.world
+	return m
 }
 
 type EmbeddedTypeParamStructBuilder[T any] EmbeddedTypeParamStruct[T]
@@ -224,22 +241,12 @@ func (r EmbeddedTypeParamStructBuilder[T]) FromMap(m map[string]any) EmbeddedTyp
 	return r
 }
 
-func (r EmbeddedTypeParamStruct[T]) String() string {
-	return fmt.Sprintf("EmbeddedTypeParamStruct(hello=%v, world=%v)", r.hello, r.world)
-}
-
-func (r EmbeddedTypeParamStruct[T]) AsTuple() fp.Tuple2[string, struct {
-	Level T
-	Stage string
-}] {
-	return as.Tuple2(r.hello, r.world)
-}
-
-func (r EmbeddedTypeParamStruct[T]) Unapply() (string, struct {
-	Level T
-	Stage string
-}) {
-	return r.hello, r.world
+type EmbeddedTypeParamStructMutable[T any] struct {
+	Hello string
+	World struct {
+		Level T
+		Stage string
+	}
 }
 
 func (r EmbeddedTypeParamStruct[T]) AsMutable() EmbeddedTypeParamStructMutable[T] {
@@ -254,11 +261,4 @@ func (r EmbeddedTypeParamStructMutable[T]) AsImmutable() EmbeddedTypeParamStruct
 		hello: r.Hello,
 		world: r.World,
 	}
-}
-
-func (r EmbeddedTypeParamStruct[T]) AsMap() map[string]any {
-	m := map[string]any{}
-	m["hello"] = r.hello
-	m["world"] = r.world
-	return m
 }

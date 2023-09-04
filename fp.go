@@ -342,6 +342,11 @@ func New[F, T any](nf func(F) T) T {
 	return nf(zero)
 }
 
+func Builder[T interface{ Builder() B }, B any]() B {
+	var zero T
+	return zero.Builder()
+}
+
 const GenericKindStruct = "Struct"
 const GenericKindTuple = "Tuple"
 const GenericKindNewType = "NewType"

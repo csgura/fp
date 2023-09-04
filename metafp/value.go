@@ -838,23 +838,35 @@ func (r TypeInfo) IsNilable() bool {
 }
 
 func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd *types.Package) string {
-	return iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
-		tn := w.TypeName(cwd, v.Constraint)
-		return fmt.Sprintf("%s %s", v.Name, tn)
-	}).MakeString(",")
+	if len(r.TypeParam) > 0 {
+		return "[" + iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
+			tn := w.TypeName(cwd, v.Constraint)
+			return fmt.Sprintf("%s %s", v.Name, tn)
+		}).MakeString(",") + "]"
+	}
+	return ""
+
 }
 
 func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd *types.Package) string {
-	return iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
-		return v.Name
-	}).MakeString(",")
+	if len(r.TypeParam) > 0 {
+		return "[" + iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
+			return v.Name
+		}).MakeString(",") + "]"
+	}
+	return ""
+}
+
+func (r TypeInfo) TypeDeclStr(w genfp.ImportSet, cwd *types.Package) string {
+	if r.TypeParam.Size() > 0 {
+		return w.TypeName(cwd, r.Type) + r.TypeParamDecl(w, cwd)
+	}
+	return w.TypeName(cwd, r.Type)
 }
 
 func (r TypeInfo) TypeStr(w genfp.ImportSet, cwd *types.Package) string {
 	if r.TypeParam.Size() > 0 {
-
-		valuetp := r.TypeParamIns(w, cwd)
-		return w.TypeName(cwd, r.Type) + "[" + valuetp + "]"
+		return w.TypeName(cwd, r.Type) + r.TypeParamIns(w, cwd)
 	}
 	return w.TypeName(cwd, r.Type)
 }

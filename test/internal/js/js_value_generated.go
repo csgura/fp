@@ -9,10 +9,6 @@ import (
 	"github.com/csgura/fp/option"
 )
 
-type DecoderContextMutable struct {
-	WorkingObject fp.Option[map[string]json.RawMessage]
-}
-
 func (r DecoderContext) WorkingObject() fp.Option[map[string]json.RawMessage] {
 	return r.workingObject
 }
@@ -30,6 +26,26 @@ func (r DecoderContext) WithSomeWorkingObject(v map[string]json.RawMessage) Deco
 func (r DecoderContext) WithNoneWorkingObject() DecoderContext {
 	r.workingObject = option.None[map[string]json.RawMessage]()
 	return r
+}
+
+func (r DecoderContext) String() string {
+	return fmt.Sprintf("DecoderContext(workingObject=%v)", r.workingObject)
+}
+
+func (r DecoderContext) AsTuple() fp.Tuple1[fp.Option[map[string]json.RawMessage]] {
+	return as.Tuple1(r.workingObject)
+}
+
+func (r DecoderContext) Unapply() fp.Option[map[string]json.RawMessage] {
+	return r.workingObject
+}
+
+func (r DecoderContext) AsMap() map[string]any {
+	m := map[string]any{}
+	if r.workingObject.IsDefined() {
+		m["workingObject"] = r.workingObject.Get()
+	}
+	return m
 }
 
 type DecoderContextBuilder DecoderContext
@@ -78,16 +94,8 @@ func (r DecoderContextBuilder) FromMap(m map[string]any) DecoderContextBuilder {
 	return r
 }
 
-func (r DecoderContext) String() string {
-	return fmt.Sprintf("DecoderContext(workingObject=%v)", r.workingObject)
-}
-
-func (r DecoderContext) AsTuple() fp.Tuple1[fp.Option[map[string]json.RawMessage]] {
-	return as.Tuple1(r.workingObject)
-}
-
-func (r DecoderContext) Unapply() fp.Option[map[string]json.RawMessage] {
-	return r.workingObject
+type DecoderContextMutable struct {
+	WorkingObject fp.Option[map[string]json.RawMessage]
 }
 
 func (r DecoderContext) AsMutable() DecoderContextMutable {
@@ -100,12 +108,4 @@ func (r DecoderContextMutable) AsImmutable() DecoderContext {
 	return DecoderContext{
 		workingObject: r.WorkingObject,
 	}
-}
-
-func (r DecoderContext) AsMap() map[string]any {
-	m := map[string]any{}
-	if r.workingObject.IsDefined() {
-		m["workingObject"] = r.workingObject.Get()
-	}
-	return m
 }

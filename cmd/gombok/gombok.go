@@ -90,15 +90,9 @@ func processDeref(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 
 		if rhs, ok := ts.RhsType.Unapply(); ok {
 
-			valuetp := ""
-			typetp := ""
-
-			if len(ts.Info.TypeParam) > 0 {
-				//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-				valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-				typetp = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-
-			}
+			//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
+			valuetp := ts.Info.TypeParamIns(w, workingPackage)
+			typetp := ts.Info.TypeParamDecl(w, workingPackage)
 
 			valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
@@ -210,11 +204,9 @@ func processGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagg
 		}
 
 		//valuetpdec := ""
-		valuetp := ""
-		if len(ts.Info.TypeParam) > 0 {
-			//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-			valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-		}
+
+		//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
+		valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
 		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
@@ -248,26 +240,6 @@ func processGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagg
 func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
 	if ts.Info.Method.Get("String").IsEmpty() && !genMethod.Contains("String") {
 
-		// if showDerive.IsDefined() && valuetp == "" {
-		// 	if showDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) String() string {
-		// 				return %s().Show(r)
-		// 			}
-		// 		`, valuereceiver,
-		// 			showDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) String() string {
-		// 				return %s.Show(r)
-		// 			}
-		// 		`, valuereceiver,
-		// 			showDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-		// } else {
-
 		valuereceiver := ts.Info.TypeStr(w, workingPackage)
 		fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 
@@ -299,10 +271,7 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 func processString(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
 	if _, ok := ts.Tags.Get("@fp.String").Unapply(); ok {
-		allFields := ts.Fields.FilterNot(func(v metafp.StructField) bool {
-			// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
-			return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.Type.Underlying().IsStruct() && v.Type.Fields().Size() == 0)
-		})
+		allFields := applyFields(ts)
 
 		genMethod = genStringMethod(w, workingPackage, ts, allFields, genMethod)
 	}
@@ -310,16 +279,17 @@ func processString(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagg
 	return genMethod
 }
 
+func applyFields(ts metafp.TaggedStruct) fp.Seq[metafp.StructField] {
+	return ts.Fields.FilterNot(func(v metafp.StructField) bool {
+		// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
+		return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.Type.Underlying().IsStruct() && v.Type.Fields().Size() == 0)
+	})
+}
+
 func genBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
-	valuetpdec := ""
-	valuetp := ""
 
-	if len(ts.Info.TypeParam) > 0 {
-
-		valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-		valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-
-	}
+	valuetpdec := ts.Info.TypeParamDecl(w, workingPackage)
+	valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
 	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
@@ -329,10 +299,7 @@ func genBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 
 	privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 
-	allFields := ts.Fields.FilterNot(func(v metafp.StructField) bool {
-		// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
-		return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.Type.Underlying().IsStruct() && v.Type.Fields().Size() == 0)
-	})
+	allFields := applyFields(ts)
 
 	if !isTypeDefined(workingPackage, builderTypeName) {
 		fmt.Fprintf(w, `
@@ -603,11 +570,9 @@ func processWith(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagged
 		}
 
 		//valuetpdec := ""
-		valuetp := ""
-		if len(ts.Info.TypeParam) > 0 {
-			//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-			valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-		}
+
+		//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
+		valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
 		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
@@ -640,6 +605,45 @@ func processWith(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagged
 	return genMethod
 }
 
+func genAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+
+	fnName := fmt.Sprintf("New%s", ts.Name)
+
+	if !genMethod.Contains(fnName) {
+
+		allFields := applyFields(ts)
+
+		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
+			return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPackage, v.Type.Type))
+		}).MakeString(",")
+
+		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+			return fmt.Sprintf("%s : %s", f.I2.Name, f.I2.Name)
+		}).MakeString(",\n")
+
+		valueType := ts.Info.TypeStr(w, workingPackage)
+		fmt.Fprintf(w, `
+			func %s%s(%s) %s {
+				return %s {
+					%s,
+				}
+			}
+		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+			valueType,
+			fields,
+		)
+	}
+
+	return genMethod
+}
+
+func processAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+	if _, ok := ts.Tags.Get("@fp.AllArgsConstructor").Unapply(); ok {
+
+		genMethod = genAllArgsCons(w, workingPackage, ts, genMethod)
+	}
+	return genMethod
+}
 func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], derives fp.Seq[metafp.TypeClassDerive]) {
 	keyTags := mutable.EmptySet[string]()
 
@@ -648,6 +652,8 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 		stDerives := derives.Filter(func(v metafp.TypeClassDerive) bool {
 			return v.DeriveFor.Name == ts.Name
 		})
+		genMethod = processAllArgsCons(w, workingPackage, ts, genMethod)
+
 		genMethod, keyTags = processValue(w, workingPackage, ts, stDerives, genMethod, keyTags)
 
 		genMethod = processGetter(w, workingPackage, ts, genMethod)
@@ -683,10 +689,9 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 }
 
 func genPrivateGetters(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
-	valuetp := ""
-	if len(ts.Info.TypeParam) > 0 {
-		valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-	}
+
+	valuetp := ts.Info.TypeParamIns(w, workingPackage)
+
 	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
 	privateFields.Foreach(func(f metafp.StructField) {
@@ -708,238 +713,312 @@ func genPrivateGetters(w genfp.Writer, workingPackage *types.Package, ts metafp.
 	return genMethod
 }
 
+func genTypeClassMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string]) fp.Set[string] {
+
+	valuetp := ts.Info.TypeParamIns(w, workingPackage)
+
+	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+
+	showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+	})
+
+	if ts.Info.Method.Get("String").IsEmpty() && !genMethod.Contains("String") {
+		if showDerive.IsDefined() && valuetp == "" {
+			if showDerive.Get().IsRecursive() {
+				fmt.Fprintf(w, `
+				func(r %s) String() string {
+					return %s().Show(r)
+				}
+			`, valuereceiver,
+					showDerive.Get().GeneratedInstanceName(),
+				)
+			} else {
+				fmt.Fprintf(w, `
+				func(r %s) String() string {
+					return %s.Show(r)
+				}
+			`, valuereceiver,
+					showDerive.Get().GeneratedInstanceName(),
+				)
+			}
+			genMethod = genMethod.Incl("String")
+		}
+	}
+
+	if showDerive.IsDefined() && ts.Info.Method.Get("ShowIndent").IsEmpty() && valuetp == "" {
+		fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+
+		if showDerive.Get().IsRecursive() {
+			fmt.Fprintf(w, `
+				func(r %s) ShowIndent(opt %s.ShowOption) string {
+					return %s().ShowIndent(r, opt)
+				}
+			`, valuereceiver, fppkg,
+				showDerive.Get().GeneratedInstanceName(),
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func(r %s) ShowIndent(opt %s.ShowOption) string {
+					return %s.ShowIndent(r, opt)
+				}
+			`, valuereceiver, fppkg,
+				showDerive.Get().GeneratedInstanceName(),
+			)
+		}
+
+		genMethod = genMethod.Incl("ShowIndent")
+
+	}
+
+	eqDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		return v.TypeClass.Name == "Eq" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+	})
+
+	if eqDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && valuetp == "" {
+
+		if eqDerive.Get().IsRecursive() {
+			fmt.Fprintf(w, `
+				func(r %s) Eqv(other %s) bool {
+					return %s().Eqv(r, other)
+				}
+			`, valuereceiver, valuereceiver,
+				eqDerive.Get().GeneratedInstanceName(),
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func(r %s) Eqv(other %s) bool {
+					return %s.Eqv(r, other)
+				}
+			`, valuereceiver, valuereceiver,
+				eqDerive.Get().GeneratedInstanceName(),
+			)
+		}
+		genMethod = genMethod.Incl("Eqv")
+
+	}
+
+	hashDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		return v.TypeClass.Name == "Hashable" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+	})
+	if hashDerive.IsDefined() && ts.Info.Method.Get("Hash").IsEmpty() {
+
+		if hashDerive.Get().IsRecursive() {
+			fmt.Fprintf(w, `
+				func(r %s) Hash() uint32 {
+					return %s().Hash(r)
+				}
+			`, valuereceiver,
+				hashDerive.Get().GeneratedInstanceName(),
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func(r %s) Hash() uint32 {
+					return %s.Hash(r)
+				}
+			`, valuereceiver,
+				hashDerive.Get().GeneratedInstanceName(),
+			)
+		}
+		genMethod = genMethod.Incl("Hash")
+
+	}
+
+	ordDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		return v.TypeClass.Name == "Ord" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+	})
+	if ordDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && !genMethod.Contains("Eqv") {
+
+		if ordDerive.Get().IsRecursive() {
+			fmt.Fprintf(w, `
+				func(r %s) Eqv(other %s) bool {
+					return %s().Eqv(r, other)
+				}
+			`, valuereceiver, valuereceiver,
+				ordDerive.Get().GeneratedInstanceName(),
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func(r %s) Eqv(other %s) bool {
+					return %s.Eqv(r, other)
+				}
+			`, valuereceiver, valuereceiver,
+				ordDerive.Get().GeneratedInstanceName(),
+			)
+		}
+		genMethod = genMethod.Incl("Eqv")
+
+	}
+
+	if ordDerive.IsDefined() && ts.Info.Method.Get("Less").IsEmpty() {
+
+		if ordDerive.Get().IsRecursive() {
+			fmt.Fprintf(w, `
+				func(r %s) Less(other %s) bool {
+					return %s().Less(r,other)
+				}
+			`, valuereceiver, valuereceiver,
+				ordDerive.Get().GeneratedInstanceName(),
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func(r %s) Less(other %s) bool {
+					return %s.Less(r, other)
+				}
+			`, valuereceiver, valuereceiver,
+				ordDerive.Get().GeneratedInstanceName(),
+			)
+		}
+		genMethod = genMethod.Incl("Less")
+
+	}
+
+	cloneDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+		return v.TypeClass.Name == "Cloner" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+	})
+
+	if cloneDerive.IsDefined() && ts.Info.Method.Get("Clone").IsEmpty() && valuetp == "" {
+
+		if cloneDerive.Get().IsRecursive() {
+			fmt.Fprintf(w, `
+				func(r %s) Clone() %s {
+					return %s().Clone(r)
+				}
+			`, valuereceiver, valuereceiver,
+				cloneDerive.Get().GeneratedInstanceName(),
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func(r %s) Clone() %s {
+					return %s.Clone(r)
+				}
+			`, valuereceiver, valuereceiver,
+				cloneDerive.Get().GeneratedInstanceName(),
+			)
+		}
+		genMethod = genMethod.Incl("Eqv")
+
+	}
+	return genMethod
+}
+
+func genMutable(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+
+	allFields := applyFields(ts)
+
+	valuetpdec := ts.Info.TypeParamDecl(w, workingPackage)
+	valuetp := ts.Info.TypeParamIns(w, workingPackage)
+
+	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+
+	mutablereceiver := fmt.Sprintf("%sMutable%s", ts.Name, valuetp)
+	mutableTypeName := fmt.Sprintf("%sMutable", ts.Name)
+
+	mutableType := mutableTypeName + valuetpdec
+
+	mutableFields := iterator.Map(seq.Iterator(ts.Fields), func(v metafp.StructField) string {
+
+		tag := v.Tag
+
+		if !strings.HasPrefix(v.Name, "_") {
+			if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
+				if !strings.Contains(tag, "json") {
+					if tag != "" {
+						tag = tag + " "
+					}
+					if v.Type.IsNilable() || v.Type.IsOption() {
+						tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
+					} else {
+						tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
+					}
+				}
+			}
+		}
+
+		name := fp.Seq[string]{}
+		if !v.Embedded {
+			name = name.Append(publicName(v.Name))
+		}
+
+		name = name.Append(w.TypeName(workingPackage, v.Type.Type))
+
+		if tag != "" {
+			name = name.Append(fmt.Sprintf("`%s`", tag))
+		}
+		return name.MakeString(" ")
+	}).MakeString("\n")
+
+	if !isTypeDefined(workingPackage, mutableTypeName) {
+		fmt.Fprintf(w, `
+				type %s struct {
+					%s
+				}
+			`, mutableType, mutableFields)
+	}
+
+	if ts.Info.Method.Get("AsMutable").IsEmpty() {
+
+		fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+			return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
+		})).MakeString(",\n")
+
+		fmt.Fprintf(w, `
+					func(r %s) AsMutable() %s {
+						return %s{
+							%s,
+						}
+					}
+
+				`, valuereceiver, mutablereceiver,
+			mutablereceiver, fields,
+		)
+		genMethod = genMethod.Incl("AsMutable")
+
+	}
+
+	if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
+
+		fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
+			return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
+		})).MakeString(",\n")
+
+		fmt.Fprintf(w, `
+					func(r %s) AsImmutable() %s {
+						return %s{
+							%s,
+						}
+					}
+
+				`, mutablereceiver, valuereceiver,
+			valuereceiver, fields,
+		)
+	}
+
+	return genMethod
+}
+
 func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
 
 	if _, ok := ts.Tags.Get("@fp.Value").Unapply(); ok {
 
 		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
-		allFields := ts.Fields.FilterNot(func(v metafp.StructField) bool {
-			// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
-			return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.Type.Underlying().IsStruct() && v.Type.Fields().Size() == 0)
-		})
+		allFields := applyFields(ts)
 
 		if allFields.Size() == 0 {
 			return genMethod, keyTags
 		}
 
 		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-		valuetpdec := ""
-		valuetp := ""
-		if len(ts.Info.TypeParam) > 0 {
-			valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-			valuetp = "[" + ts.Info.TypeParamIns(w, workingPackage) + "]"
-		}
+
+		valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
 		//valueType := fmt.Sprintf("%s%s", v.Name, valuetpdec)
 
 		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
-		mutablereceiver := fmt.Sprintf("%sMutable%s", ts.Name, valuetp)
-		mutableTypeName := fmt.Sprintf("%sMutable", ts.Name)
-
-		mutableType := mutableTypeName + valuetpdec
-
-		mutableFields := iterator.Map(seq.Iterator(ts.Fields), func(v metafp.StructField) string {
-
-			tag := v.Tag
-
-			if !strings.HasPrefix(v.Name, "_") {
-				if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
-					if !strings.Contains(tag, "json") {
-						if tag != "" {
-							tag = tag + " "
-						}
-						if v.Type.IsNilable() || v.Type.IsOption() {
-							tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
-						} else {
-							tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
-						}
-					}
-				}
-			}
-
-			name := fp.Seq[string]{}
-			if !v.Embedded {
-				name = name.Append(publicName(v.Name))
-			}
-
-			name = name.Append(w.TypeName(workingPackage, v.Type.Type))
-
-			if tag != "" {
-				name = name.Append(fmt.Sprintf("`%s`", tag))
-			}
-			return name.MakeString(" ")
-		}).MakeString("\n")
-
-		if !isTypeDefined(workingPackage, mutableTypeName) {
-			fmt.Fprintf(w, `
-				type %s struct {
-					%s
-				}
-			`, mutableType, mutableFields)
-		}
 
 		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
 		genMethod = genPrivateWiths(w, workingPackage, ts, privateFields, genMethod)
-		genMethod = genBuilder(w, workingPackage, ts, genMethod)
 		genMethod = genStringMethod(w, workingPackage, ts, allFields, genMethod)
-
-		// showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-		// 	return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		// })
-
-		// if showDerive.IsDefined() && ts.Info.Method.Get("ShowIndent").IsEmpty() && valuetp == "" {
-		// 	fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-
-		// 	if showDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) ShowIndent(opt %s.ShowOption) string {
-		// 				return %s().ShowIndent(r, opt)
-		// 			}
-		// 		`, valuereceiver, fppkg,
-		// 			showDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) ShowIndent(opt %s.ShowOption) string {
-		// 				return %s.ShowIndent(r, opt)
-		// 			}
-		// 		`, valuereceiver, fppkg,
-		// 			showDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-
-		// 	genMethod = genMethod.Incl("ShowIndent")
-
-		// }
-
-		// eqDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-		// 	return v.TypeClass.Name == "Eq" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		// })
-
-		// if eqDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && valuetp == "" {
-
-		// 	if eqDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Eqv(other %s) bool {
-		// 				return %s().Eqv(r, other)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			eqDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Eqv(other %s) bool {
-		// 				return %s.Eqv(r, other)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			eqDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-		// 	genMethod = genMethod.Incl("Eqv")
-
-		// }
-
-		// hashDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-		// 	return v.TypeClass.Name == "Hashable" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		// })
-		// if hashDerive.IsDefined() && ts.Info.Method.Get("Hash").IsEmpty() {
-
-		// 	if hashDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Hash() uint32 {
-		// 				return %s().Hash(r)
-		// 			}
-		// 		`, valuereceiver,
-		// 			hashDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Hash() uint32 {
-		// 				return %s.Hash(r)
-		// 			}
-		// 		`, valuereceiver,
-		// 			hashDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-		// 	genMethod = genMethod.Incl("Hash")
-
-		// }
-
-		// ordDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-		// 	return v.TypeClass.Name == "Ord" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		// })
-		// if ordDerive.IsDefined() && ts.Info.Method.Get("Eqv").IsEmpty() && !genMethod.Contains("Eqv") {
-
-		// 	if ordDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Eqv(other %s) bool {
-		// 				return %s().Eqv(r, other)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			ordDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Eqv(other %s) bool {
-		// 				return %s.Eqv(r, other)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			ordDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-		// 	genMethod = genMethod.Incl("Eqv")
-
-		// }
-
-		// if ordDerive.IsDefined() && ts.Info.Method.Get("Less").IsEmpty() {
-
-		// 	if ordDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Less(other %s) bool {
-		// 				return %s().Less(r,other)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			ordDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Less(other %s) bool {
-		// 				return %s.Less(r, other)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			ordDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-		// 	genMethod = genMethod.Incl("Less")
-
-		// }
-
-		// cloneDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-		// 	return v.TypeClass.Name == "Cloner" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-		// })
-
-		// if cloneDerive.IsDefined() && ts.Info.Method.Get("Clone").IsEmpty() && valuetp == "" {
-
-		// 	if cloneDerive.Get().IsRecursive() {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Clone() %s {
-		// 				return %s().Clone(r)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			cloneDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	} else {
-		// 		fmt.Fprintf(w, `
-		// 			func(r %s) Clone() %s {
-		// 				return %s.Clone(r)
-		// 			}
-		// 		`, valuereceiver, valuereceiver,
-		// 			cloneDerive.Get().GeneratedInstanceName(),
-		// 		)
-		// 	}
-		// 	genMethod = genMethod.Incl("Eqv")
-
-		// }
 
 		if allFields.Size() < max.Product {
 			if ts.Info.Method.Get("AsTuple").IsEmpty() {
@@ -986,44 +1065,6 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 			)
 			genMethod = genMethod.Incl("Unapply")
 
-		}
-
-		if ts.Info.Method.Get("AsMutable").IsEmpty() {
-
-			fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
-			})).MakeString(",\n")
-
-			fmt.Fprintf(w, `
-					func(r %s) AsMutable() %s {
-						return %s{
-							%s,
-						}
-					}
-
-				`, valuereceiver, mutablereceiver,
-				mutablereceiver, fields,
-			)
-			genMethod = genMethod.Incl("AsMutable")
-
-		}
-
-		if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
-
-			fields := seq.Iterator(seq.Map(allFields, func(f metafp.StructField) string {
-				return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
-			})).MakeString(",\n")
-
-			fmt.Fprintf(w, `
-					func(r %s) AsImmutable() %s {
-						return %s{
-							%s,
-						}
-					}
-
-				`, mutablereceiver, valuereceiver,
-				valuereceiver, fields,
-			)
 		}
 
 		if ts.Info.Method.Get("AsMap").IsEmpty() {
@@ -1128,6 +1169,9 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 			}
 		}
 
+		genMethod = genBuilder(w, workingPackage, ts, genMethod)
+		genMethod = genMutable(w, workingPackage, ts, genMethod)
+
 	}
 	return genMethod, keyTags
 }
@@ -1160,6 +1204,7 @@ func genValueAndGetter() {
 			"@fp.String",
 			"@fp.With",
 			"@fp.Builder",
+			"@fp.AllArgsConstructor",
 		)
 
 		if st.Size() == 0 {
