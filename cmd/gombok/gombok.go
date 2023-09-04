@@ -521,12 +521,8 @@ func genBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 func processBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 
 	if _, ok := ts.Tags.Get("@fp.Builder").Unapply(); ok {
-		allFields := ts.Fields.FilterNot(func(v metafp.StructField) bool {
-			// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
-			return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.Type.Underlying().IsStruct() && v.Type.Fields().Size() == 0)
-		})
 
-		genMethod = genStringMethod(w, workingPackage, ts, allFields, genMethod)
+		genMethod = genBuilder(w, workingPackage, ts, genMethod)
 	}
 
 	return genMethod
