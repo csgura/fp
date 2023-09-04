@@ -11,21 +11,11 @@ import (
 	"time"
 )
 
-type WorldBuilder World
-
 type WorldMutable struct {
 	Message    string    `json:"message,omitempty"`
 	Timestamp  time.Time `json:"timestamp"`
 	Pub        string    `json:"Pub,omitempty"`
 	_notExport string
-}
-
-func (r WorldBuilder) Build() World {
-	return World(r)
-}
-
-func (r World) Builder() WorldBuilder {
-	return WorldBuilder(r)
 }
 
 func (r World) Message() string {
@@ -46,6 +36,16 @@ func (r World) WithTimestamp(v time.Time) World {
 	return r
 }
 
+type WorldBuilder World
+
+func (r WorldBuilder) Build() World {
+	return World(r)
+}
+
+func (r World) Builder() WorldBuilder {
+	return WorldBuilder(r)
+}
+
 func (r WorldBuilder) Message(v string) WorldBuilder {
 	r.message = v
 	return r
@@ -53,6 +53,44 @@ func (r WorldBuilder) Message(v string) WorldBuilder {
 
 func (r WorldBuilder) Timestamp(v time.Time) WorldBuilder {
 	r.timestamp = v
+	return r
+}
+
+func (r WorldBuilder) FromTuple(t fp.Tuple3[string, time.Time, string]) WorldBuilder {
+	r.message = t.I1
+	r.timestamp = t.I2
+	r.Pub = t.I3
+	return r
+}
+
+func (r WorldBuilder) Apply(message string, timestamp time.Time, Pub string) WorldBuilder {
+	r.message = message
+	r.timestamp = timestamp
+	r.Pub = Pub
+	return r
+}
+
+func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
+
+	if v, ok := m["message"].(string); ok {
+		r.message = v
+	}
+
+	if v, ok := m["timestamp"].(time.Time); ok {
+		r.timestamp = v
+	}
+
+	if v, ok := m["Pub"].(string); ok {
+		r.Pub = v
+	}
+
+	return r
+}
+
+func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]]) WorldBuilder {
+	r.message = t.I1.Value()
+	r.timestamp = t.I2.Value()
+	r.Pub = t.I3.Value()
 	return r
 }
 
@@ -84,20 +122,6 @@ func (r WorldMutable) AsImmutable() World {
 	}
 }
 
-func (r WorldBuilder) FromTuple(t fp.Tuple3[string, time.Time, string]) WorldBuilder {
-	r.message = t.I1
-	r.timestamp = t.I2
-	r.Pub = t.I3
-	return r
-}
-
-func (r WorldBuilder) Apply(message string, timestamp time.Time, Pub string) WorldBuilder {
-	r.message = message
-	r.timestamp = timestamp
-	r.Pub = Pub
-	return r
-}
-
 func (r World) AsMap() map[string]any {
 	m := map[string]any{}
 	m["message"] = r.message
@@ -106,32 +130,8 @@ func (r World) AsMap() map[string]any {
 	return m
 }
 
-func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
-
-	if v, ok := m["message"].(string); ok {
-		r.message = v
-	}
-
-	if v, ok := m["timestamp"].(time.Time); ok {
-		r.timestamp = v
-	}
-
-	if v, ok := m["Pub"].(string); ok {
-		r.Pub = v
-	}
-
-	return r
-}
-
 func (r World) AsLabelled() fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]] {
 	return as.Labelled3(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp}, PubNamedPub[string]{r.Pub})
-}
-
-func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]]) WorldBuilder {
-	r.message = t.I1.Value()
-	r.timestamp = t.I2.Value()
-	r.Pub = t.I3.Value()
-	return r
 }
 
 func (r World) MarshalJSON() ([]byte, error) {
@@ -151,21 +151,11 @@ func (r *World) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-type HasOptionBuilder HasOption
-
 type HasOptionMutable struct {
 	Message  string
 	Addr     fp.Option[string]
 	Phone    []string
 	EmptySeq []int
-}
-
-func (r HasOptionBuilder) Build() HasOption {
-	return HasOption(r)
-}
-
-func (r HasOption) Builder() HasOptionBuilder {
-	return HasOptionBuilder(r)
 }
 
 func (r HasOption) Message() string {
@@ -214,6 +204,16 @@ func (r HasOption) WithEmptySeq(v []int) HasOption {
 	return r
 }
 
+type HasOptionBuilder HasOption
+
+func (r HasOptionBuilder) Build() HasOption {
+	return HasOption(r)
+}
+
+func (r HasOption) Builder() HasOptionBuilder {
+	return HasOptionBuilder(r)
+}
+
 func (r HasOptionBuilder) Message(v string) HasOptionBuilder {
 	r.message = v
 	return r
@@ -241,6 +241,53 @@ func (r HasOptionBuilder) Phone(v []string) HasOptionBuilder {
 
 func (r HasOptionBuilder) EmptySeq(v []int) HasOptionBuilder {
 	r.emptySeq = v
+	return r
+}
+
+func (r HasOptionBuilder) FromTuple(t fp.Tuple4[string, fp.Option[string], []string, []int]) HasOptionBuilder {
+	r.message = t.I1
+	r.addr = t.I2
+	r.phone = t.I3
+	r.emptySeq = t.I4
+	return r
+}
+
+func (r HasOptionBuilder) Apply(message string, addr fp.Option[string], phone []string, emptySeq []int) HasOptionBuilder {
+	r.message = message
+	r.addr = addr
+	r.phone = phone
+	r.emptySeq = emptySeq
+	return r
+}
+
+func (r HasOptionBuilder) FromMap(m map[string]any) HasOptionBuilder {
+
+	if v, ok := m["message"].(string); ok {
+		r.message = v
+	}
+
+	if v, ok := m["addr"].(fp.Option[string]); ok {
+		r.addr = v
+	} else if v, ok := m["addr"].(string); ok {
+		r.addr = option.Some(v)
+	}
+
+	if v, ok := m["phone"].([]string); ok {
+		r.phone = v
+	}
+
+	if v, ok := m["emptySeq"].([]int); ok {
+		r.emptySeq = v
+	}
+
+	return r
+}
+
+func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]]) HasOptionBuilder {
+	r.message = t.I1.Value()
+	r.addr = t.I2.Value()
+	r.phone = t.I3.Value()
+	r.emptySeq = t.I4.Value()
 	return r
 }
 
@@ -274,22 +321,6 @@ func (r HasOptionMutable) AsImmutable() HasOption {
 	}
 }
 
-func (r HasOptionBuilder) FromTuple(t fp.Tuple4[string, fp.Option[string], []string, []int]) HasOptionBuilder {
-	r.message = t.I1
-	r.addr = t.I2
-	r.phone = t.I3
-	r.emptySeq = t.I4
-	return r
-}
-
-func (r HasOptionBuilder) Apply(message string, addr fp.Option[string], phone []string, emptySeq []int) HasOptionBuilder {
-	r.message = message
-	r.addr = addr
-	r.phone = phone
-	r.emptySeq = emptySeq
-	return r
-}
-
 func (r HasOption) AsMap() map[string]any {
 	m := map[string]any{}
 	m["message"] = r.message
@@ -301,52 +332,13 @@ func (r HasOption) AsMap() map[string]any {
 	return m
 }
 
-func (r HasOptionBuilder) FromMap(m map[string]any) HasOptionBuilder {
-
-	if v, ok := m["message"].(string); ok {
-		r.message = v
-	}
-
-	if v, ok := m["addr"].(fp.Option[string]); ok {
-		r.addr = v
-	} else if v, ok := m["addr"].(string); ok {
-		r.addr = option.Some(v)
-	}
-
-	if v, ok := m["phone"].([]string); ok {
-		r.phone = v
-	}
-
-	if v, ok := m["emptySeq"].([]int); ok {
-		r.emptySeq = v
-	}
-
-	return r
-}
-
 func (r HasOption) AsLabelled() fp.Labelled4[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]] {
 	return as.Labelled4(NamedMessage[string]{r.message}, NamedAddr[fp.Option[string]]{r.addr}, NamedPhone[[]string]{r.phone}, NamedEmptySeq[[]int]{r.emptySeq})
-}
-
-func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]]) HasOptionBuilder {
-	r.message = t.I1.Value()
-	r.addr = t.I2.Value()
-	r.phone = t.I3.Value()
-	r.emptySeq = t.I4.Value()
-	return r
 }
 
 type CustomValueMutable struct {
 	A string
 	B int
-}
-
-func (r CustomValueBuilder) Build() CustomValue {
-	return CustomValue(r)
-}
-
-func (r CustomValue) Builder() CustomValueBuilder {
-	return CustomValueBuilder(r)
 }
 
 func (r CustomValue) B() int {
@@ -358,8 +350,41 @@ func (r CustomValue) WithA(v string) CustomValue {
 	return r
 }
 
+func (r CustomValueBuilder) Build() CustomValue {
+	return CustomValue(r)
+}
+
+func (r CustomValue) Builder() CustomValueBuilder {
+	return CustomValueBuilder(r)
+}
+
 func (r CustomValueBuilder) A(v string) CustomValueBuilder {
 	r.a = v
+	return r
+}
+
+func (r CustomValueBuilder) FromTuple(t fp.Tuple2[string, int]) CustomValueBuilder {
+	r.a = t.I1
+	r.b = t.I2
+	return r
+}
+
+func (r CustomValueBuilder) Apply(a string, b int) CustomValueBuilder {
+	r.a = a
+	r.b = b
+	return r
+}
+
+func (r CustomValueBuilder) FromMap(m map[string]any) CustomValueBuilder {
+
+	if v, ok := m["a"].(string); ok {
+		r.a = v
+	}
+
+	if v, ok := m["b"].(int); ok {
+		r.b = v
+	}
+
 	return r
 }
 
@@ -389,18 +414,6 @@ func (r CustomValueMutable) AsImmutable() CustomValue {
 	}
 }
 
-func (r CustomValueBuilder) FromTuple(t fp.Tuple2[string, int]) CustomValueBuilder {
-	r.a = t.I1
-	r.b = t.I2
-	return r
-}
-
-func (r CustomValueBuilder) Apply(a string, b int) CustomValueBuilder {
-	r.a = a
-	r.b = b
-	return r
-}
-
 func (r CustomValue) AsMap() map[string]any {
 	m := map[string]any{}
 	m["a"] = r.a
@@ -408,34 +421,11 @@ func (r CustomValue) AsMap() map[string]any {
 	return m
 }
 
-func (r CustomValueBuilder) FromMap(m map[string]any) CustomValueBuilder {
-
-	if v, ok := m["a"].(string); ok {
-		r.a = v
-	}
-
-	if v, ok := m["b"].(int); ok {
-		r.b = v
-	}
-
-	return r
-}
-
-type AliasedStructBuilder AliasedStruct
-
 type AliasedStructMutable struct {
 	Message    string
 	Timestamp  time.Time
 	Pub        string
 	_notExport string
-}
-
-func (r AliasedStructBuilder) Build() AliasedStruct {
-	return AliasedStruct(r)
-}
-
-func (r AliasedStruct) Builder() AliasedStructBuilder {
-	return AliasedStructBuilder(r)
 }
 
 func (r AliasedStruct) Message() string {
@@ -456,6 +446,16 @@ func (r AliasedStruct) WithTimestamp(v time.Time) AliasedStruct {
 	return r
 }
 
+type AliasedStructBuilder AliasedStruct
+
+func (r AliasedStructBuilder) Build() AliasedStruct {
+	return AliasedStruct(r)
+}
+
+func (r AliasedStruct) Builder() AliasedStructBuilder {
+	return AliasedStructBuilder(r)
+}
+
 func (r AliasedStructBuilder) Message(v string) AliasedStructBuilder {
 	r.message = v
 	return r
@@ -463,6 +463,37 @@ func (r AliasedStructBuilder) Message(v string) AliasedStructBuilder {
 
 func (r AliasedStructBuilder) Timestamp(v time.Time) AliasedStructBuilder {
 	r.timestamp = v
+	return r
+}
+
+func (r AliasedStructBuilder) FromTuple(t fp.Tuple3[string, time.Time, string]) AliasedStructBuilder {
+	r.message = t.I1
+	r.timestamp = t.I2
+	r.Pub = t.I3
+	return r
+}
+
+func (r AliasedStructBuilder) Apply(message string, timestamp time.Time, Pub string) AliasedStructBuilder {
+	r.message = message
+	r.timestamp = timestamp
+	r.Pub = Pub
+	return r
+}
+
+func (r AliasedStructBuilder) FromMap(m map[string]any) AliasedStructBuilder {
+
+	if v, ok := m["message"].(string); ok {
+		r.message = v
+	}
+
+	if v, ok := m["timestamp"].(time.Time); ok {
+		r.timestamp = v
+	}
+
+	if v, ok := m["Pub"].(string); ok {
+		r.Pub = v
+	}
+
 	return r
 }
 
@@ -494,20 +525,6 @@ func (r AliasedStructMutable) AsImmutable() AliasedStruct {
 	}
 }
 
-func (r AliasedStructBuilder) FromTuple(t fp.Tuple3[string, time.Time, string]) AliasedStructBuilder {
-	r.message = t.I1
-	r.timestamp = t.I2
-	r.Pub = t.I3
-	return r
-}
-
-func (r AliasedStructBuilder) Apply(message string, timestamp time.Time, Pub string) AliasedStructBuilder {
-	r.message = message
-	r.timestamp = timestamp
-	r.Pub = Pub
-	return r
-}
-
 func (r AliasedStruct) AsMap() map[string]any {
 	m := map[string]any{}
 	m["message"] = r.message
@@ -516,37 +533,10 @@ func (r AliasedStruct) AsMap() map[string]any {
 	return m
 }
 
-func (r AliasedStructBuilder) FromMap(m map[string]any) AliasedStructBuilder {
-
-	if v, ok := m["message"].(string); ok {
-		r.message = v
-	}
-
-	if v, ok := m["timestamp"].(time.Time); ok {
-		r.timestamp = v
-	}
-
-	if v, ok := m["Pub"].(string); ok {
-		r.Pub = v
-	}
-
-	return r
-}
-
-type HListInsideHListBuilder HListInsideHList
-
 type HListInsideHListMutable struct {
 	Tp    fp.Tuple2[string, int]
 	Value string
 	Hello World
-}
-
-func (r HListInsideHListBuilder) Build() HListInsideHList {
-	return HListInsideHList(r)
-}
-
-func (r HListInsideHList) Builder() HListInsideHListBuilder {
-	return HListInsideHListBuilder(r)
 }
 
 func (r HListInsideHList) Tp() fp.Tuple2[string, int] {
@@ -576,6 +566,16 @@ func (r HListInsideHList) WithHello(v World) HListInsideHList {
 	return r
 }
 
+type HListInsideHListBuilder HListInsideHList
+
+func (r HListInsideHListBuilder) Build() HListInsideHList {
+	return HListInsideHList(r)
+}
+
+func (r HListInsideHList) Builder() HListInsideHListBuilder {
+	return HListInsideHListBuilder(r)
+}
+
 func (r HListInsideHListBuilder) Tp(v fp.Tuple2[string, int]) HListInsideHListBuilder {
 	r.tp = v
 	return r
@@ -588,6 +588,37 @@ func (r HListInsideHListBuilder) Value(v string) HListInsideHListBuilder {
 
 func (r HListInsideHListBuilder) Hello(v World) HListInsideHListBuilder {
 	r.hello = v
+	return r
+}
+
+func (r HListInsideHListBuilder) FromTuple(t fp.Tuple3[fp.Tuple2[string, int], string, World]) HListInsideHListBuilder {
+	r.tp = t.I1
+	r.value = t.I2
+	r.hello = t.I3
+	return r
+}
+
+func (r HListInsideHListBuilder) Apply(tp fp.Tuple2[string, int], value string, hello World) HListInsideHListBuilder {
+	r.tp = tp
+	r.value = value
+	r.hello = hello
+	return r
+}
+
+func (r HListInsideHListBuilder) FromMap(m map[string]any) HListInsideHListBuilder {
+
+	if v, ok := m["tp"].(fp.Tuple2[string, int]); ok {
+		r.tp = v
+	}
+
+	if v, ok := m["value"].(string); ok {
+		r.value = v
+	}
+
+	if v, ok := m["hello"].(World); ok {
+		r.hello = v
+	}
+
 	return r
 }
 
@@ -619,20 +650,6 @@ func (r HListInsideHListMutable) AsImmutable() HListInsideHList {
 	}
 }
 
-func (r HListInsideHListBuilder) FromTuple(t fp.Tuple3[fp.Tuple2[string, int], string, World]) HListInsideHListBuilder {
-	r.tp = t.I1
-	r.value = t.I2
-	r.hello = t.I3
-	return r
-}
-
-func (r HListInsideHListBuilder) Apply(tp fp.Tuple2[string, int], value string, hello World) HListInsideHListBuilder {
-	r.tp = tp
-	r.value = value
-	r.hello = hello
-	return r
-}
-
 func (r HListInsideHList) AsMap() map[string]any {
 	m := map[string]any{}
 	m["tp"] = r.tp
@@ -641,35 +658,8 @@ func (r HListInsideHList) AsMap() map[string]any {
 	return m
 }
 
-func (r HListInsideHListBuilder) FromMap(m map[string]any) HListInsideHListBuilder {
-
-	if v, ok := m["tp"].(fp.Tuple2[string, int]); ok {
-		r.tp = v
-	}
-
-	if v, ok := m["value"].(string); ok {
-		r.value = v
-	}
-
-	if v, ok := m["hello"].(World); ok {
-		r.hello = v
-	}
-
-	return r
-}
-
-type WrapperBuilder[T any] Wrapper[T]
-
 type WrapperMutable[T any] struct {
 	Unwrap T
-}
-
-func (r WrapperBuilder[T]) Build() Wrapper[T] {
-	return Wrapper[T](r)
-}
-
-func (r Wrapper[T]) Builder() WrapperBuilder[T] {
-	return WrapperBuilder[T](r)
 }
 
 func (r Wrapper[T]) Unwrap() T {
@@ -681,8 +671,37 @@ func (r Wrapper[T]) WithUnwrap(v T) Wrapper[T] {
 	return r
 }
 
+type WrapperBuilder[T any] Wrapper[T]
+
+func (r WrapperBuilder[T]) Build() Wrapper[T] {
+	return Wrapper[T](r)
+}
+
+func (r Wrapper[T]) Builder() WrapperBuilder[T] {
+	return WrapperBuilder[T](r)
+}
+
 func (r WrapperBuilder[T]) Unwrap(v T) WrapperBuilder[T] {
 	r.unwrap = v
+	return r
+}
+
+func (r WrapperBuilder[T]) FromTuple(t fp.Tuple1[T]) WrapperBuilder[T] {
+	r.unwrap = t.I1
+	return r
+}
+
+func (r WrapperBuilder[T]) Apply(unwrap T) WrapperBuilder[T] {
+	r.unwrap = unwrap
+	return r
+}
+
+func (r WrapperBuilder[T]) FromMap(m map[string]any) WrapperBuilder[T] {
+
+	if v, ok := m["unwrap"].(T); ok {
+		r.unwrap = v
+	}
+
 	return r
 }
 
@@ -710,44 +729,15 @@ func (r WrapperMutable[T]) AsImmutable() Wrapper[T] {
 	}
 }
 
-func (r WrapperBuilder[T]) FromTuple(t fp.Tuple1[T]) WrapperBuilder[T] {
-	r.unwrap = t.I1
-	return r
-}
-
-func (r WrapperBuilder[T]) Apply(unwrap T) WrapperBuilder[T] {
-	r.unwrap = unwrap
-	return r
-}
-
 func (r Wrapper[T]) AsMap() map[string]any {
 	m := map[string]any{}
 	m["unwrap"] = r.unwrap
 	return m
 }
 
-func (r WrapperBuilder[T]) FromMap(m map[string]any) WrapperBuilder[T] {
-
-	if v, ok := m["unwrap"].(T); ok {
-		r.unwrap = v
-	}
-
-	return r
-}
-
-type TestOrderedEqBuilder TestOrderedEq
-
 type TestOrderedEqMutable struct {
 	List  fp.Seq[int]
 	Tlist fp.Seq[fp.Tuple2[int, int]]
-}
-
-func (r TestOrderedEqBuilder) Build() TestOrderedEq {
-	return TestOrderedEq(r)
-}
-
-func (r TestOrderedEq) Builder() TestOrderedEqBuilder {
-	return TestOrderedEqBuilder(r)
 }
 
 func (r TestOrderedEq) List() fp.Seq[int] {
@@ -768,6 +758,16 @@ func (r TestOrderedEq) WithTlist(v fp.Seq[fp.Tuple2[int, int]]) TestOrderedEq {
 	return r
 }
 
+type TestOrderedEqBuilder TestOrderedEq
+
+func (r TestOrderedEqBuilder) Build() TestOrderedEq {
+	return TestOrderedEq(r)
+}
+
+func (r TestOrderedEq) Builder() TestOrderedEqBuilder {
+	return TestOrderedEqBuilder(r)
+}
+
 func (r TestOrderedEqBuilder) List(v fp.Seq[int]) TestOrderedEqBuilder {
 	r.list = v
 	return r
@@ -775,6 +775,31 @@ func (r TestOrderedEqBuilder) List(v fp.Seq[int]) TestOrderedEqBuilder {
 
 func (r TestOrderedEqBuilder) Tlist(v fp.Seq[fp.Tuple2[int, int]]) TestOrderedEqBuilder {
 	r.tlist = v
+	return r
+}
+
+func (r TestOrderedEqBuilder) FromTuple(t fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]]) TestOrderedEqBuilder {
+	r.list = t.I1
+	r.tlist = t.I2
+	return r
+}
+
+func (r TestOrderedEqBuilder) Apply(list fp.Seq[int], tlist fp.Seq[fp.Tuple2[int, int]]) TestOrderedEqBuilder {
+	r.list = list
+	r.tlist = tlist
+	return r
+}
+
+func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
+
+	if v, ok := m["list"].(fp.Seq[int]); ok {
+		r.list = v
+	}
+
+	if v, ok := m["tlist"].(fp.Seq[fp.Tuple2[int, int]]); ok {
+		r.tlist = v
+	}
+
 	return r
 }
 
@@ -804,18 +829,6 @@ func (r TestOrderedEqMutable) AsImmutable() TestOrderedEq {
 	}
 }
 
-func (r TestOrderedEqBuilder) FromTuple(t fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]]) TestOrderedEqBuilder {
-	r.list = t.I1
-	r.tlist = t.I2
-	return r
-}
-
-func (r TestOrderedEqBuilder) Apply(list fp.Seq[int], tlist fp.Seq[fp.Tuple2[int, int]]) TestOrderedEqBuilder {
-	r.list = list
-	r.tlist = tlist
-	return r
-}
-
 func (r TestOrderedEq) AsMap() map[string]any {
 	m := map[string]any{}
 	m["list"] = r.list
@@ -823,32 +836,9 @@ func (r TestOrderedEq) AsMap() map[string]any {
 	return m
 }
 
-func (r TestOrderedEqBuilder) FromMap(m map[string]any) TestOrderedEqBuilder {
-
-	if v, ok := m["list"].(fp.Seq[int]); ok {
-		r.list = v
-	}
-
-	if v, ok := m["tlist"].(fp.Seq[fp.Tuple2[int, int]]); ok {
-		r.tlist = v
-	}
-
-	return r
-}
-
-type MapEqBuilder MapEq
-
 type MapEqMutable struct {
 	M  map[string]World
 	M2 fp.Map[string, World]
-}
-
-func (r MapEqBuilder) Build() MapEq {
-	return MapEq(r)
-}
-
-func (r MapEq) Builder() MapEqBuilder {
-	return MapEqBuilder(r)
 }
 
 func (r MapEq) M() map[string]World {
@@ -869,6 +859,16 @@ func (r MapEq) WithM2(v fp.Map[string, World]) MapEq {
 	return r
 }
 
+type MapEqBuilder MapEq
+
+func (r MapEqBuilder) Build() MapEq {
+	return MapEq(r)
+}
+
+func (r MapEq) Builder() MapEqBuilder {
+	return MapEqBuilder(r)
+}
+
 func (r MapEqBuilder) M(v map[string]World) MapEqBuilder {
 	r.m = v
 	return r
@@ -876,6 +876,31 @@ func (r MapEqBuilder) M(v map[string]World) MapEqBuilder {
 
 func (r MapEqBuilder) M2(v fp.Map[string, World]) MapEqBuilder {
 	r.m2 = v
+	return r
+}
+
+func (r MapEqBuilder) FromTuple(t fp.Tuple2[map[string]World, fp.Map[string, World]]) MapEqBuilder {
+	r.m = t.I1
+	r.m2 = t.I2
+	return r
+}
+
+func (r MapEqBuilder) Apply(m map[string]World, m2 fp.Map[string, World]) MapEqBuilder {
+	r.m = m
+	r.m2 = m2
+	return r
+}
+
+func (r MapEqBuilder) FromMap(m map[string]any) MapEqBuilder {
+
+	if v, ok := m["m"].(map[string]World); ok {
+		r.m = v
+	}
+
+	if v, ok := m["m2"].(fp.Map[string, World]); ok {
+		r.m2 = v
+	}
+
 	return r
 }
 
@@ -905,18 +930,6 @@ func (r MapEqMutable) AsImmutable() MapEq {
 	}
 }
 
-func (r MapEqBuilder) FromTuple(t fp.Tuple2[map[string]World, fp.Map[string, World]]) MapEqBuilder {
-	r.m = t.I1
-	r.m2 = t.I2
-	return r
-}
-
-func (r MapEqBuilder) Apply(m map[string]World, m2 fp.Map[string, World]) MapEqBuilder {
-	r.m = m
-	r.m2 = m2
-	return r
-}
-
 func (r MapEq) AsMap() map[string]any {
 	m := map[string]any{}
 	m["m"] = r.m
@@ -924,34 +937,11 @@ func (r MapEq) AsMap() map[string]any {
 	return m
 }
 
-func (r MapEqBuilder) FromMap(m map[string]any) MapEqBuilder {
-
-	if v, ok := m["m"].(map[string]World); ok {
-		r.m = v
-	}
-
-	if v, ok := m["m2"].(fp.Map[string, World]); ok {
-		r.m2 = v
-	}
-
-	return r
-}
-
-type SeqMonoidBuilder SeqMonoid
-
 type SeqMonoidMutable struct {
 	V  string
 	S  fp.Seq[string]
 	M  map[string]int
 	M2 fp.Map[string, World]
-}
-
-func (r SeqMonoidBuilder) Build() SeqMonoid {
-	return SeqMonoid(r)
-}
-
-func (r SeqMonoid) Builder() SeqMonoidBuilder {
-	return SeqMonoidBuilder(r)
 }
 
 func (r SeqMonoid) V() string {
@@ -990,6 +980,16 @@ func (r SeqMonoid) WithM2(v fp.Map[string, World]) SeqMonoid {
 	return r
 }
 
+type SeqMonoidBuilder SeqMonoid
+
+func (r SeqMonoidBuilder) Build() SeqMonoid {
+	return SeqMonoid(r)
+}
+
+func (r SeqMonoid) Builder() SeqMonoidBuilder {
+	return SeqMonoidBuilder(r)
+}
+
 func (r SeqMonoidBuilder) V(v string) SeqMonoidBuilder {
 	r.v = v
 	return r
@@ -1007,6 +1007,43 @@ func (r SeqMonoidBuilder) M(v map[string]int) SeqMonoidBuilder {
 
 func (r SeqMonoidBuilder) M2(v fp.Map[string, World]) SeqMonoidBuilder {
 	r.m2 = v
+	return r
+}
+
+func (r SeqMonoidBuilder) FromTuple(t fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]]) SeqMonoidBuilder {
+	r.v = t.I1
+	r.s = t.I2
+	r.m = t.I3
+	r.m2 = t.I4
+	return r
+}
+
+func (r SeqMonoidBuilder) Apply(v string, s fp.Seq[string], m map[string]int, m2 fp.Map[string, World]) SeqMonoidBuilder {
+	r.v = v
+	r.s = s
+	r.m = m
+	r.m2 = m2
+	return r
+}
+
+func (r SeqMonoidBuilder) FromMap(m map[string]any) SeqMonoidBuilder {
+
+	if v, ok := m["v"].(string); ok {
+		r.v = v
+	}
+
+	if v, ok := m["s"].(fp.Seq[string]); ok {
+		r.s = v
+	}
+
+	if v, ok := m["m"].(map[string]int); ok {
+		r.m = v
+	}
+
+	if v, ok := m["m2"].(fp.Map[string, World]); ok {
+		r.m2 = v
+	}
+
 	return r
 }
 
@@ -1040,22 +1077,6 @@ func (r SeqMonoidMutable) AsImmutable() SeqMonoid {
 	}
 }
 
-func (r SeqMonoidBuilder) FromTuple(t fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]]) SeqMonoidBuilder {
-	r.v = t.I1
-	r.s = t.I2
-	r.m = t.I3
-	r.m2 = t.I4
-	return r
-}
-
-func (r SeqMonoidBuilder) Apply(v string, s fp.Seq[string], m map[string]int, m2 fp.Map[string, World]) SeqMonoidBuilder {
-	r.v = v
-	r.s = s
-	r.m = m
-	r.m2 = m2
-	return r
-}
-
 func (r SeqMonoid) AsMap() map[string]any {
 	m := map[string]any{}
 	m["v"] = r.v
@@ -1065,39 +1086,8 @@ func (r SeqMonoid) AsMap() map[string]any {
 	return m
 }
 
-func (r SeqMonoidBuilder) FromMap(m map[string]any) SeqMonoidBuilder {
-
-	if v, ok := m["v"].(string); ok {
-		r.v = v
-	}
-
-	if v, ok := m["s"].(fp.Seq[string]); ok {
-		r.s = v
-	}
-
-	if v, ok := m["m"].(map[string]int); ok {
-		r.m = v
-	}
-
-	if v, ok := m["m2"].(fp.Map[string, World]); ok {
-		r.m2 = v
-	}
-
-	return r
-}
-
-type MapEqParamBuilder[K any, V any] MapEqParam[K, V]
-
 type MapEqParamMutable[K any, V any] struct {
 	M fp.Map[K, V]
-}
-
-func (r MapEqParamBuilder[K, V]) Build() MapEqParam[K, V] {
-	return MapEqParam[K, V](r)
-}
-
-func (r MapEqParam[K, V]) Builder() MapEqParamBuilder[K, V] {
-	return MapEqParamBuilder[K, V](r)
 }
 
 func (r MapEqParam[K, V]) M() fp.Map[K, V] {
@@ -1109,8 +1099,37 @@ func (r MapEqParam[K, V]) WithM(v fp.Map[K, V]) MapEqParam[K, V] {
 	return r
 }
 
+type MapEqParamBuilder[K any, V any] MapEqParam[K, V]
+
+func (r MapEqParamBuilder[K, V]) Build() MapEqParam[K, V] {
+	return MapEqParam[K, V](r)
+}
+
+func (r MapEqParam[K, V]) Builder() MapEqParamBuilder[K, V] {
+	return MapEqParamBuilder[K, V](r)
+}
+
 func (r MapEqParamBuilder[K, V]) M(v fp.Map[K, V]) MapEqParamBuilder[K, V] {
 	r.m = v
+	return r
+}
+
+func (r MapEqParamBuilder[K, V]) FromTuple(t fp.Tuple1[fp.Map[K, V]]) MapEqParamBuilder[K, V] {
+	r.m = t.I1
+	return r
+}
+
+func (r MapEqParamBuilder[K, V]) Apply(m fp.Map[K, V]) MapEqParamBuilder[K, V] {
+	r.m = m
+	return r
+}
+
+func (r MapEqParamBuilder[K, V]) FromMap(m map[string]any) MapEqParamBuilder[K, V] {
+
+	if v, ok := m["m"].(fp.Map[K, V]); ok {
+		r.m = v
+	}
+
 	return r
 }
 
@@ -1138,43 +1157,14 @@ func (r MapEqParamMutable[K, V]) AsImmutable() MapEqParam[K, V] {
 	}
 }
 
-func (r MapEqParamBuilder[K, V]) FromTuple(t fp.Tuple1[fp.Map[K, V]]) MapEqParamBuilder[K, V] {
-	r.m = t.I1
-	return r
-}
-
-func (r MapEqParamBuilder[K, V]) Apply(m fp.Map[K, V]) MapEqParamBuilder[K, V] {
-	r.m = m
-	return r
-}
-
 func (r MapEqParam[K, V]) AsMap() map[string]any {
 	m := map[string]any{}
 	m["m"] = r.m
 	return m
 }
 
-func (r MapEqParamBuilder[K, V]) FromMap(m map[string]any) MapEqParamBuilder[K, V] {
-
-	if v, ok := m["m"].(fp.Map[K, V]); ok {
-		r.m = v
-	}
-
-	return r
-}
-
-type NotUsedProblemBuilder NotUsedProblem
-
 type NotUsedProblemMutable struct {
 	M MapEqParam[string, int]
-}
-
-func (r NotUsedProblemBuilder) Build() NotUsedProblem {
-	return NotUsedProblem(r)
-}
-
-func (r NotUsedProblem) Builder() NotUsedProblemBuilder {
-	return NotUsedProblemBuilder(r)
 }
 
 func (r NotUsedProblem) M() MapEqParam[string, int] {
@@ -1186,8 +1176,37 @@ func (r NotUsedProblem) WithM(v MapEqParam[string, int]) NotUsedProblem {
 	return r
 }
 
+type NotUsedProblemBuilder NotUsedProblem
+
+func (r NotUsedProblemBuilder) Build() NotUsedProblem {
+	return NotUsedProblem(r)
+}
+
+func (r NotUsedProblem) Builder() NotUsedProblemBuilder {
+	return NotUsedProblemBuilder(r)
+}
+
 func (r NotUsedProblemBuilder) M(v MapEqParam[string, int]) NotUsedProblemBuilder {
 	r.m = v
+	return r
+}
+
+func (r NotUsedProblemBuilder) FromTuple(t fp.Tuple1[MapEqParam[string, int]]) NotUsedProblemBuilder {
+	r.m = t.I1
+	return r
+}
+
+func (r NotUsedProblemBuilder) Apply(m MapEqParam[string, int]) NotUsedProblemBuilder {
+	r.m = m
+	return r
+}
+
+func (r NotUsedProblemBuilder) FromMap(m map[string]any) NotUsedProblemBuilder {
+
+	if v, ok := m["m"].(MapEqParam[string, int]); ok {
+		r.m = v
+	}
+
 	return r
 }
 
@@ -1215,45 +1234,16 @@ func (r NotUsedProblemMutable) AsImmutable() NotUsedProblem {
 	}
 }
 
-func (r NotUsedProblemBuilder) FromTuple(t fp.Tuple1[MapEqParam[string, int]]) NotUsedProblemBuilder {
-	r.m = t.I1
-	return r
-}
-
-func (r NotUsedProblemBuilder) Apply(m MapEqParam[string, int]) NotUsedProblemBuilder {
-	r.m = m
-	return r
-}
-
 func (r NotUsedProblem) AsMap() map[string]any {
 	m := map[string]any{}
 	m["m"] = r.m
 	return m
 }
 
-func (r NotUsedProblemBuilder) FromMap(m map[string]any) NotUsedProblemBuilder {
-
-	if v, ok := m["m"].(MapEqParam[string, int]); ok {
-		r.m = v
-	}
-
-	return r
-}
-
-type NodeBuilder Node
-
 type NodeMutable struct {
 	Value string
 	Left  *Node
 	Right *Node
-}
-
-func (r NodeBuilder) Build() Node {
-	return Node(r)
-}
-
-func (r Node) Builder() NodeBuilder {
-	return NodeBuilder(r)
 }
 
 func (r Node) Value() string {
@@ -1283,6 +1273,16 @@ func (r Node) WithRight(v *Node) Node {
 	return r
 }
 
+type NodeBuilder Node
+
+func (r NodeBuilder) Build() Node {
+	return Node(r)
+}
+
+func (r Node) Builder() NodeBuilder {
+	return NodeBuilder(r)
+}
+
 func (r NodeBuilder) Value(v string) NodeBuilder {
 	r.value = v
 	return r
@@ -1295,6 +1295,37 @@ func (r NodeBuilder) Left(v *Node) NodeBuilder {
 
 func (r NodeBuilder) Right(v *Node) NodeBuilder {
 	r.right = v
+	return r
+}
+
+func (r NodeBuilder) FromTuple(t fp.Tuple3[string, *Node, *Node]) NodeBuilder {
+	r.value = t.I1
+	r.left = t.I2
+	r.right = t.I3
+	return r
+}
+
+func (r NodeBuilder) Apply(value string, left *Node, right *Node) NodeBuilder {
+	r.value = value
+	r.left = left
+	r.right = right
+	return r
+}
+
+func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
+
+	if v, ok := m["value"].(string); ok {
+		r.value = v
+	}
+
+	if v, ok := m["left"].(*Node); ok {
+		r.left = v
+	}
+
+	if v, ok := m["right"].(*Node); ok {
+		r.right = v
+	}
+
 	return r
 }
 
@@ -1326,20 +1357,6 @@ func (r NodeMutable) AsImmutable() Node {
 	}
 }
 
-func (r NodeBuilder) FromTuple(t fp.Tuple3[string, *Node, *Node]) NodeBuilder {
-	r.value = t.I1
-	r.left = t.I2
-	r.right = t.I3
-	return r
-}
-
-func (r NodeBuilder) Apply(value string, left *Node, right *Node) NodeBuilder {
-	r.value = value
-	r.left = left
-	r.right = right
-	return r
-}
-
 func (r Node) AsMap() map[string]any {
 	m := map[string]any{}
 	m["value"] = r.value
@@ -1348,28 +1365,11 @@ func (r Node) AsMap() map[string]any {
 	return m
 }
 
-func (r NodeBuilder) FromMap(m map[string]any) NodeBuilder {
-
-	if v, ok := m["value"].(string); ok {
-		r.value = v
-	}
-
-	if v, ok := m["left"].(*Node); ok {
-		r.left = v
-	}
-
-	if v, ok := m["right"].(*Node); ok {
-		r.right = v
-	}
-
-	return r
-}
-
-type NoPrivateBuilder NoPrivate
-
 type NoPrivateMutable struct {
 	Value int
 }
+
+type NoPrivateBuilder NoPrivate
 
 func (r NoPrivateBuilder) Build() NoPrivate {
 	return NoPrivate(r)
@@ -1377,6 +1377,25 @@ func (r NoPrivateBuilder) Build() NoPrivate {
 
 func (r NoPrivate) Builder() NoPrivateBuilder {
 	return NoPrivateBuilder(r)
+}
+
+func (r NoPrivateBuilder) FromTuple(t fp.Tuple1[int]) NoPrivateBuilder {
+	r.Value = t.I1
+	return r
+}
+
+func (r NoPrivateBuilder) Apply(Value int) NoPrivateBuilder {
+	r.Value = Value
+	return r
+}
+
+func (r NoPrivateBuilder) FromMap(m map[string]any) NoPrivateBuilder {
+
+	if v, ok := m["Value"].(int); ok {
+		r.Value = v
+	}
+
+	return r
 }
 
 func (r NoPrivate) String() string {
@@ -1403,32 +1422,11 @@ func (r NoPrivateMutable) AsImmutable() NoPrivate {
 	}
 }
 
-func (r NoPrivateBuilder) FromTuple(t fp.Tuple1[int]) NoPrivateBuilder {
-	r.Value = t.I1
-	return r
-}
-
-func (r NoPrivateBuilder) Apply(Value int) NoPrivateBuilder {
-	r.Value = Value
-	return r
-}
-
 func (r NoPrivate) AsMap() map[string]any {
 	m := map[string]any{}
 	m["Value"] = r.Value
 	return m
 }
-
-func (r NoPrivateBuilder) FromMap(m map[string]any) NoPrivateBuilder {
-
-	if v, ok := m["Value"].(int); ok {
-		r.Value = v
-	}
-
-	return r
-}
-
-type Over21Builder Over21
 
 type Over21Mutable struct {
 	I1  int
@@ -1461,14 +1459,6 @@ type Over21Mutable struct {
 	I28 int
 	I29 int
 	I30 int
-}
-
-func (r Over21Builder) Build() Over21 {
-	return Over21(r)
-}
-
-func (r Over21) Builder() Over21Builder {
-	return Over21Builder(r)
 }
 
 func (r Over21) I1() int {
@@ -1741,6 +1731,16 @@ func (r Over21) WithI30(v int) Over21 {
 	return r
 }
 
+type Over21Builder Over21
+
+func (r Over21Builder) Build() Over21 {
+	return Over21(r)
+}
+
+func (r Over21) Builder() Over21Builder {
+	return Over21Builder(r)
+}
+
 func (r Over21Builder) I1(v int) Over21Builder {
 	r.i1 = v
 	return r
@@ -1891,84 +1891,6 @@ func (r Over21Builder) I30(v int) Over21Builder {
 	return r
 }
 
-func (r Over21) String() string {
-	return fmt.Sprintf("Over21(i1=%v, i2=%v, i3=%v, i4=%v, i5=%v, i6=%v, i7=%v, i8=%v, i9=%v, i10=%v, i11=%v, i12=%v, i13=%v, i14=%v, i15=%v, i16=%v, i17=%v, i18=%v, i19=%v, i20=%v, i21=%v, i22=%v, i23=%v, i24=%v, i25=%v, i26=%v, i27=%v, i28=%v, i29=%v, i30=%v)", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
-}
-
-func (r Over21) Unapply() (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int) {
-	return r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30
-}
-
-func (r Over21) AsMutable() Over21Mutable {
-	return Over21Mutable{
-		I1:  r.i1,
-		I2:  r.i2,
-		I3:  r.i3,
-		I4:  r.i4,
-		I5:  r.i5,
-		I6:  r.i6,
-		I7:  r.i7,
-		I8:  r.i8,
-		I9:  r.i9,
-		I10: r.i10,
-		I11: r.i11,
-		I12: r.i12,
-		I13: r.i13,
-		I14: r.i14,
-		I15: r.i15,
-		I16: r.i16,
-		I17: r.i17,
-		I18: r.i18,
-		I19: r.i19,
-		I20: r.i20,
-		I21: r.i21,
-		I22: r.i22,
-		I23: r.i23,
-		I24: r.i24,
-		I25: r.i25,
-		I26: r.i26,
-		I27: r.i27,
-		I28: r.i28,
-		I29: r.i29,
-		I30: r.i30,
-	}
-}
-
-func (r Over21Mutable) AsImmutable() Over21 {
-	return Over21{
-		i1:  r.I1,
-		i2:  r.I2,
-		i3:  r.I3,
-		i4:  r.I4,
-		i5:  r.I5,
-		i6:  r.I6,
-		i7:  r.I7,
-		i8:  r.I8,
-		i9:  r.I9,
-		i10: r.I10,
-		i11: r.I11,
-		i12: r.I12,
-		i13: r.I13,
-		i14: r.I14,
-		i15: r.I15,
-		i16: r.I16,
-		i17: r.I17,
-		i18: r.I18,
-		i19: r.I19,
-		i20: r.I20,
-		i21: r.I21,
-		i22: r.I22,
-		i23: r.I23,
-		i24: r.I24,
-		i25: r.I25,
-		i26: r.I26,
-		i27: r.I27,
-		i28: r.I28,
-		i29: r.I29,
-		i30: r.I30,
-	}
-}
-
 func (r Over21Builder) Apply(i1 int, i2 int, i3 int, i4 int, i5 int, i6 int, i7 int, i8 int, i9 int, i10 int, i11 int, i12 int, i13 int, i14 int, i15 int, i16 int, i17 int, i18 int, i19 int, i20 int, i21 int, i22 int, i23 int, i24 int, i25 int, i26 int, i27 int, i28 int, i29 int, i30 int) Over21Builder {
 	r.i1 = i1
 	r.i2 = i2
@@ -2001,41 +1923,6 @@ func (r Over21Builder) Apply(i1 int, i2 int, i3 int, i4 int, i5 int, i6 int, i7 
 	r.i29 = i29
 	r.i30 = i30
 	return r
-}
-
-func (r Over21) AsMap() map[string]any {
-	m := map[string]any{}
-	m["i1"] = r.i1
-	m["i2"] = r.i2
-	m["i3"] = r.i3
-	m["i4"] = r.i4
-	m["i5"] = r.i5
-	m["i6"] = r.i6
-	m["i7"] = r.i7
-	m["i8"] = r.i8
-	m["i9"] = r.i9
-	m["i10"] = r.i10
-	m["i11"] = r.i11
-	m["i12"] = r.i12
-	m["i13"] = r.i13
-	m["i14"] = r.i14
-	m["i15"] = r.i15
-	m["i16"] = r.i16
-	m["i17"] = r.i17
-	m["i18"] = r.i18
-	m["i19"] = r.i19
-	m["i20"] = r.i20
-	m["i21"] = r.i21
-	m["i22"] = r.i22
-	m["i23"] = r.i23
-	m["i24"] = r.i24
-	m["i25"] = r.i25
-	m["i26"] = r.i26
-	m["i27"] = r.i27
-	m["i28"] = r.i28
-	m["i29"] = r.i29
-	m["i30"] = r.i30
-	return m
 }
 
 func (r Over21Builder) FromMap(m map[string]any) Over21Builder {
@@ -2163,20 +2050,123 @@ func (r Over21Builder) FromMap(m map[string]any) Over21Builder {
 	return r
 }
 
-type DefinedOtherPackageBuilder DefinedOtherPackage
+func (r Over21) String() string {
+	return fmt.Sprintf("Over21(i1=%v, i2=%v, i3=%v, i4=%v, i5=%v, i6=%v, i7=%v, i8=%v, i9=%v, i10=%v, i11=%v, i12=%v, i13=%v, i14=%v, i15=%v, i16=%v, i17=%v, i18=%v, i19=%v, i20=%v, i21=%v, i22=%v, i23=%v, i24=%v, i25=%v, i26=%v, i27=%v, i28=%v, i29=%v, i30=%v)", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
+}
+
+func (r Over21) Unapply() (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int) {
+	return r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30
+}
+
+func (r Over21) AsMutable() Over21Mutable {
+	return Over21Mutable{
+		I1:  r.i1,
+		I2:  r.i2,
+		I3:  r.i3,
+		I4:  r.i4,
+		I5:  r.i5,
+		I6:  r.i6,
+		I7:  r.i7,
+		I8:  r.i8,
+		I9:  r.i9,
+		I10: r.i10,
+		I11: r.i11,
+		I12: r.i12,
+		I13: r.i13,
+		I14: r.i14,
+		I15: r.i15,
+		I16: r.i16,
+		I17: r.i17,
+		I18: r.i18,
+		I19: r.i19,
+		I20: r.i20,
+		I21: r.i21,
+		I22: r.i22,
+		I23: r.i23,
+		I24: r.i24,
+		I25: r.i25,
+		I26: r.i26,
+		I27: r.i27,
+		I28: r.i28,
+		I29: r.i29,
+		I30: r.i30,
+	}
+}
+
+func (r Over21Mutable) AsImmutable() Over21 {
+	return Over21{
+		i1:  r.I1,
+		i2:  r.I2,
+		i3:  r.I3,
+		i4:  r.I4,
+		i5:  r.I5,
+		i6:  r.I6,
+		i7:  r.I7,
+		i8:  r.I8,
+		i9:  r.I9,
+		i10: r.I10,
+		i11: r.I11,
+		i12: r.I12,
+		i13: r.I13,
+		i14: r.I14,
+		i15: r.I15,
+		i16: r.I16,
+		i17: r.I17,
+		i18: r.I18,
+		i19: r.I19,
+		i20: r.I20,
+		i21: r.I21,
+		i22: r.I22,
+		i23: r.I23,
+		i24: r.I24,
+		i25: r.I25,
+		i26: r.I26,
+		i27: r.I27,
+		i28: r.I28,
+		i29: r.I29,
+		i30: r.I30,
+	}
+}
+
+func (r Over21) AsMap() map[string]any {
+	m := map[string]any{}
+	m["i1"] = r.i1
+	m["i2"] = r.i2
+	m["i3"] = r.i3
+	m["i4"] = r.i4
+	m["i5"] = r.i5
+	m["i6"] = r.i6
+	m["i7"] = r.i7
+	m["i8"] = r.i8
+	m["i9"] = r.i9
+	m["i10"] = r.i10
+	m["i11"] = r.i11
+	m["i12"] = r.i12
+	m["i13"] = r.i13
+	m["i14"] = r.i14
+	m["i15"] = r.i15
+	m["i16"] = r.i16
+	m["i17"] = r.i17
+	m["i18"] = r.i18
+	m["i19"] = r.i19
+	m["i20"] = r.i20
+	m["i21"] = r.i21
+	m["i22"] = r.i22
+	m["i23"] = r.i23
+	m["i24"] = r.i24
+	m["i25"] = r.i25
+	m["i26"] = r.i26
+	m["i27"] = r.i27
+	m["i28"] = r.i28
+	m["i29"] = r.i29
+	m["i30"] = r.i30
+	return m
+}
 
 type DefinedOtherPackageMutable struct {
 	PubField  string
 	PrivField string
 	DupGetter string
-}
-
-func (r DefinedOtherPackageBuilder) Build() DefinedOtherPackage {
-	return DefinedOtherPackage(r)
-}
-
-func (r DefinedOtherPackage) Builder() DefinedOtherPackageBuilder {
-	return DefinedOtherPackageBuilder(r)
 }
 
 func (r DefinedOtherPackage) PrivField() string {
@@ -2188,8 +2178,49 @@ func (r DefinedOtherPackage) WithPrivField(v string) DefinedOtherPackage {
 	return r
 }
 
+type DefinedOtherPackageBuilder DefinedOtherPackage
+
+func (r DefinedOtherPackageBuilder) Build() DefinedOtherPackage {
+	return DefinedOtherPackage(r)
+}
+
+func (r DefinedOtherPackage) Builder() DefinedOtherPackageBuilder {
+	return DefinedOtherPackageBuilder(r)
+}
+
 func (r DefinedOtherPackageBuilder) PrivField(v string) DefinedOtherPackageBuilder {
 	r.privField = v
+	return r
+}
+
+func (r DefinedOtherPackageBuilder) FromTuple(t fp.Tuple3[string, string, string]) DefinedOtherPackageBuilder {
+	r.PubField = t.I1
+	r.privField = t.I2
+	r.DupGetter = t.I3
+	return r
+}
+
+func (r DefinedOtherPackageBuilder) Apply(PubField string, privField string, DupGetter string) DefinedOtherPackageBuilder {
+	r.PubField = PubField
+	r.privField = privField
+	r.DupGetter = DupGetter
+	return r
+}
+
+func (r DefinedOtherPackageBuilder) FromMap(m map[string]any) DefinedOtherPackageBuilder {
+
+	if v, ok := m["PubField"].(string); ok {
+		r.PubField = v
+	}
+
+	if v, ok := m["privField"].(string); ok {
+		r.privField = v
+	}
+
+	if v, ok := m["DupGetter"].(string); ok {
+		r.DupGetter = v
+	}
+
 	return r
 }
 
@@ -2221,43 +2252,12 @@ func (r DefinedOtherPackageMutable) AsImmutable() DefinedOtherPackage {
 	}
 }
 
-func (r DefinedOtherPackageBuilder) FromTuple(t fp.Tuple3[string, string, string]) DefinedOtherPackageBuilder {
-	r.PubField = t.I1
-	r.privField = t.I2
-	r.DupGetter = t.I3
-	return r
-}
-
-func (r DefinedOtherPackageBuilder) Apply(PubField string, privField string, DupGetter string) DefinedOtherPackageBuilder {
-	r.PubField = PubField
-	r.privField = privField
-	r.DupGetter = DupGetter
-	return r
-}
-
 func (r DefinedOtherPackage) AsMap() map[string]any {
 	m := map[string]any{}
 	m["PubField"] = r.PubField
 	m["privField"] = r.privField
 	m["DupGetter"] = r.DupGetter
 	return m
-}
-
-func (r DefinedOtherPackageBuilder) FromMap(m map[string]any) DefinedOtherPackageBuilder {
-
-	if v, ok := m["PubField"].(string); ok {
-		r.PubField = v
-	}
-
-	if v, ok := m["privField"].(string); ok {
-		r.privField = v
-	}
-
-	if v, ok := m["DupGetter"].(string); ok {
-		r.DupGetter = v
-	}
-
-	return r
 }
 
 type PubNamedPub[T any] fp.Tuple1[T]

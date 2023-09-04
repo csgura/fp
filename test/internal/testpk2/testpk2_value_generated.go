@@ -16,19 +16,9 @@ import (
 	"sync/atomic"
 )
 
-type HelloBuilder Hello
-
 type HelloMutable struct {
 	World string `json:"world,omitempty"`
 	Hi    int    `bson:"hi" json:"merong"`
-}
-
-func (r HelloBuilder) Build() Hello {
-	return Hello(r)
-}
-
-func (r Hello) Builder() HelloBuilder {
-	return HelloBuilder(r)
 }
 
 func (r Hello) World() string {
@@ -49,6 +39,16 @@ func (r Hello) WithHi(v int) Hello {
 	return r
 }
 
+type HelloBuilder Hello
+
+func (r HelloBuilder) Build() Hello {
+	return Hello(r)
+}
+
+func (r Hello) Builder() HelloBuilder {
+	return HelloBuilder(r)
+}
+
 func (r HelloBuilder) World(v string) HelloBuilder {
 	r.world = v
 	return r
@@ -56,6 +56,31 @@ func (r HelloBuilder) World(v string) HelloBuilder {
 
 func (r HelloBuilder) Hi(v int) HelloBuilder {
 	r.hi = v
+	return r
+}
+
+func (r HelloBuilder) FromTuple(t fp.Tuple2[string, int]) HelloBuilder {
+	r.world = t.I1
+	r.hi = t.I2
+	return r
+}
+
+func (r HelloBuilder) Apply(world string, hi int) HelloBuilder {
+	r.world = world
+	r.hi = hi
+	return r
+}
+
+func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
+
+	if v, ok := m["world"].(string); ok {
+		r.world = v
+	}
+
+	if v, ok := m["hi"].(int); ok {
+		r.hi = v
+	}
+
 	return r
 }
 
@@ -85,39 +110,12 @@ func (r HelloMutable) AsImmutable() Hello {
 	}
 }
 
-func (r HelloBuilder) FromTuple(t fp.Tuple2[string, int]) HelloBuilder {
-	r.world = t.I1
-	r.hi = t.I2
-	return r
-}
-
-func (r HelloBuilder) Apply(world string, hi int) HelloBuilder {
-	r.world = world
-	r.hi = hi
-	return r
-}
-
 func (r Hello) AsMap() map[string]any {
 	m := map[string]any{}
 	m["world"] = r.world
 	m["hi"] = r.hi
 	return m
 }
-
-func (r HelloBuilder) FromMap(m map[string]any) HelloBuilder {
-
-	if v, ok := m["world"].(string); ok {
-		r.world = v
-	}
-
-	if v, ok := m["hi"].(int); ok {
-		r.hi = v
-	}
-
-	return r
-}
-
-type AllKindTypesBuilder AllKindTypes
 
 type AllKindTypesMutable struct {
 	Embed
@@ -148,14 +146,6 @@ type AllKindTypesMutable struct {
 		io.Closer
 		Hello() fp.Try[int]
 	}
-}
-
-func (r AllKindTypesBuilder) Build() AllKindTypes {
-	return AllKindTypes(r)
-}
-
-func (r AllKindTypes) Builder() AllKindTypesBuilder {
-	return AllKindTypesBuilder(r)
 }
 
 func (r AllKindTypes) Hi() fp.Option[int] {
@@ -362,6 +352,16 @@ func (r AllKindTypes) WithI2(v interface {
 	return r
 }
 
+type AllKindTypesBuilder AllKindTypes
+
+func (r AllKindTypesBuilder) Build() AllKindTypes {
+	return AllKindTypes(r)
+}
+
+func (r AllKindTypes) Builder() AllKindTypesBuilder {
+	return AllKindTypesBuilder(r)
+}
+
 func (r AllKindTypesBuilder) Hi(v fp.Option[int]) AllKindTypesBuilder {
 	r.hi = v
 	return r
@@ -479,82 +479,6 @@ func (r AllKindTypesBuilder) I2(v interface {
 	return r
 }
 
-func (r AllKindTypes) String() string {
-	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, ch2=%v, ch3=%v, fn3=%v, arr2=%v, st=%v, i2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
-}
-
-func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
-	Embed
-	A int
-	B fp.Option[string]
-}, interface {
-	io.Closer
-	Hello() fp.Try[int]
-}] {
-	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
-}
-
-func (r AllKindTypes) Unapply() (fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
-	Embed
-	A int
-	B fp.Option[string]
-}, interface {
-	io.Closer
-	Hello() fp.Try[int]
-}) {
-	return r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2
-}
-
-func (r AllKindTypes) AsMutable() AllKindTypesMutable {
-	return AllKindTypesMutable{
-		Hi:   r.hi,
-		Tpe:  r.tpe,
-		Arr:  r.arr,
-		M:    r.m,
-		A:    r.a,
-		P:    r.p,
-		L:    r.l,
-		T:    r.t,
-		M2:   r.m2,
-		Mm:   r.mm,
-		Intf: r.intf,
-		Ch:   r.ch,
-		Ch2:  r.ch2,
-		Ch3:  r.ch3,
-		Fn3:  r.fn3,
-		Fn:   r.fn,
-		Fn2:  r.fn2,
-		Arr2: r.arr2,
-		St:   r.st,
-		I2:   r.i2,
-	}
-}
-
-func (r AllKindTypesMutable) AsImmutable() AllKindTypes {
-	return AllKindTypes{
-		hi:   r.Hi,
-		tpe:  r.Tpe,
-		arr:  r.Arr,
-		m:    r.M,
-		a:    r.A,
-		p:    r.P,
-		l:    r.L,
-		t:    r.T,
-		m2:   r.M2,
-		mm:   r.Mm,
-		intf: r.Intf,
-		ch:   r.Ch,
-		ch2:  r.Ch2,
-		ch3:  r.Ch3,
-		fn3:  r.Fn3,
-		fn:   r.Fn,
-		fn2:  r.Fn2,
-		arr2: r.Arr2,
-		st:   r.St,
-		i2:   r.I2,
-	}
-}
-
 func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
@@ -615,33 +539,6 @@ func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os
 	r.st = st
 	r.i2 = i2
 	return r
-}
-
-func (r AllKindTypes) AsMap() map[string]any {
-	m := map[string]any{}
-	if r.hi.IsDefined() {
-		m["hi"] = r.hi.Get()
-	}
-	m["tpe"] = r.tpe
-	m["arr"] = r.arr
-	m["m"] = r.m
-	m["a"] = r.a
-	m["p"] = r.p
-	m["l"] = r.l
-	m["t"] = r.t
-	m["m2"] = r.m2
-	m["mm"] = r.mm
-	m["intf"] = r.intf
-	m["ch"] = r.ch
-	m["ch2"] = r.ch2
-	m["ch3"] = r.ch3
-	m["fn3"] = r.fn3
-	m["fn"] = r.fn
-	m["fn2"] = r.fn2
-	m["arr2"] = r.arr2
-	m["st"] = r.st
-	m["i2"] = r.i2
-	return m
 }
 
 func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
@@ -738,7 +635,108 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 	return r
 }
 
-type PersonBuilder Person
+func (r AllKindTypes) String() string {
+	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, ch2=%v, ch3=%v, fn3=%v, arr2=%v, st=%v, i2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
+}
+
+func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+	Embed
+	A int
+	B fp.Option[string]
+}, interface {
+	io.Closer
+	Hello() fp.Try[int]
+}] {
+	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
+}
+
+func (r AllKindTypes) Unapply() (fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+	Embed
+	A int
+	B fp.Option[string]
+}, interface {
+	io.Closer
+	Hello() fp.Try[int]
+}) {
+	return r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2
+}
+
+func (r AllKindTypes) AsMutable() AllKindTypesMutable {
+	return AllKindTypesMutable{
+		Hi:   r.hi,
+		Tpe:  r.tpe,
+		Arr:  r.arr,
+		M:    r.m,
+		A:    r.a,
+		P:    r.p,
+		L:    r.l,
+		T:    r.t,
+		M2:   r.m2,
+		Mm:   r.mm,
+		Intf: r.intf,
+		Ch:   r.ch,
+		Ch2:  r.ch2,
+		Ch3:  r.ch3,
+		Fn3:  r.fn3,
+		Fn:   r.fn,
+		Fn2:  r.fn2,
+		Arr2: r.arr2,
+		St:   r.st,
+		I2:   r.i2,
+	}
+}
+
+func (r AllKindTypesMutable) AsImmutable() AllKindTypes {
+	return AllKindTypes{
+		hi:   r.Hi,
+		tpe:  r.Tpe,
+		arr:  r.Arr,
+		m:    r.M,
+		a:    r.A,
+		p:    r.P,
+		l:    r.L,
+		t:    r.T,
+		m2:   r.M2,
+		mm:   r.Mm,
+		intf: r.Intf,
+		ch:   r.Ch,
+		ch2:  r.Ch2,
+		ch3:  r.Ch3,
+		fn3:  r.Fn3,
+		fn:   r.Fn,
+		fn2:  r.Fn2,
+		arr2: r.Arr2,
+		st:   r.St,
+		i2:   r.I2,
+	}
+}
+
+func (r AllKindTypes) AsMap() map[string]any {
+	m := map[string]any{}
+	if r.hi.IsDefined() {
+		m["hi"] = r.hi.Get()
+	}
+	m["tpe"] = r.tpe
+	m["arr"] = r.arr
+	m["m"] = r.m
+	m["a"] = r.a
+	m["p"] = r.p
+	m["l"] = r.l
+	m["t"] = r.t
+	m["m2"] = r.m2
+	m["mm"] = r.mm
+	m["intf"] = r.intf
+	m["ch"] = r.ch
+	m["ch2"] = r.ch2
+	m["ch3"] = r.ch3
+	m["fn3"] = r.fn3
+	m["fn"] = r.fn
+	m["fn2"] = r.fn2
+	m["arr2"] = r.arr2
+	m["st"] = r.st
+	m["i2"] = r.i2
+	return m
+}
 
 type PersonMutable struct {
 	Name       string
@@ -750,14 +748,6 @@ type PersonMutable struct {
 	Seq        fp.Seq[float64]
 	Blob       []byte
 	_notExport string
-}
-
-func (r PersonBuilder) Build() Person {
-	return Person(r)
-}
-
-func (r Person) Builder() PersonBuilder {
-	return PersonBuilder(r)
 }
 
 func (r Person) Name() string {
@@ -842,6 +832,16 @@ func (r Person) WithBlob(v []byte) Person {
 	return r
 }
 
+type PersonBuilder Person
+
+func (r PersonBuilder) Build() Person {
+	return Person(r)
+}
+
+func (r Person) Builder() PersonBuilder {
+	return PersonBuilder(r)
+}
+
 func (r PersonBuilder) Name(v string) PersonBuilder {
 	r.name = v
 	return r
@@ -892,44 +892,6 @@ func (r PersonBuilder) Blob(v []byte) PersonBuilder {
 	return r
 }
 
-func (r Person) String() string {
-	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v, blob=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
-}
-
-func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
-	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
-}
-
-func (r Person) Unapply() (string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte) {
-	return r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob
-}
-
-func (r Person) AsMutable() PersonMutable {
-	return PersonMutable{
-		Name:   r.name,
-		Age:    r.age,
-		Height: r.height,
-		Phone:  r.phone,
-		Addr:   r.addr,
-		List:   r.list,
-		Seq:    r.seq,
-		Blob:   r.blob,
-	}
-}
-
-func (r PersonMutable) AsImmutable() Person {
-	return Person{
-		name:   r.Name,
-		age:    r.Age,
-		height: r.Height,
-		phone:  r.Phone,
-		addr:   r.Addr,
-		list:   r.List,
-		seq:    r.Seq,
-		blob:   r.Blob,
-	}
-}
-
 func (r PersonBuilder) FromTuple(t fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte]) PersonBuilder {
 	r.name = t.I1
 	r.age = t.I2
@@ -952,21 +914,6 @@ func (r PersonBuilder) Apply(name string, age int, height float64, phone fp.Opti
 	r.seq = seq
 	r.blob = blob
 	return r
-}
-
-func (r Person) AsMap() map[string]any {
-	m := map[string]any{}
-	m["name"] = r.name
-	m["age"] = r.age
-	m["height"] = r.height
-	if r.phone.IsDefined() {
-		m["phone"] = r.phone.Get()
-	}
-	m["addr"] = r.addr
-	m["list"] = r.list
-	m["seq"] = r.seq
-	m["blob"] = r.blob
-	return m
 }
 
 func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
@@ -1008,19 +955,62 @@ func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
 	return r
 }
 
-type WalletBuilder Wallet
+func (r Person) String() string {
+	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v, blob=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
+}
+
+func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
+	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
+}
+
+func (r Person) Unapply() (string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte) {
+	return r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob
+}
+
+func (r Person) AsMutable() PersonMutable {
+	return PersonMutable{
+		Name:   r.name,
+		Age:    r.age,
+		Height: r.height,
+		Phone:  r.phone,
+		Addr:   r.addr,
+		List:   r.list,
+		Seq:    r.seq,
+		Blob:   r.blob,
+	}
+}
+
+func (r PersonMutable) AsImmutable() Person {
+	return Person{
+		name:   r.Name,
+		age:    r.Age,
+		height: r.Height,
+		phone:  r.Phone,
+		addr:   r.Addr,
+		list:   r.List,
+		seq:    r.Seq,
+		blob:   r.Blob,
+	}
+}
+
+func (r Person) AsMap() map[string]any {
+	m := map[string]any{}
+	m["name"] = r.name
+	m["age"] = r.age
+	m["height"] = r.height
+	if r.phone.IsDefined() {
+		m["phone"] = r.phone.Get()
+	}
+	m["addr"] = r.addr
+	m["list"] = r.list
+	m["seq"] = r.seq
+	m["blob"] = r.blob
+	return m
+}
 
 type WalletMutable struct {
 	Owner  Person
 	Amount int64
-}
-
-func (r WalletBuilder) Build() Wallet {
-	return Wallet(r)
-}
-
-func (r Wallet) Builder() WalletBuilder {
-	return WalletBuilder(r)
 }
 
 func (r Wallet) Owner() Person {
@@ -1041,6 +1031,16 @@ func (r Wallet) WithAmount(v int64) Wallet {
 	return r
 }
 
+type WalletBuilder Wallet
+
+func (r WalletBuilder) Build() Wallet {
+	return Wallet(r)
+}
+
+func (r Wallet) Builder() WalletBuilder {
+	return WalletBuilder(r)
+}
+
 func (r WalletBuilder) Owner(v Person) WalletBuilder {
 	r.owner = v
 	return r
@@ -1048,6 +1048,31 @@ func (r WalletBuilder) Owner(v Person) WalletBuilder {
 
 func (r WalletBuilder) Amount(v int64) WalletBuilder {
 	r.amount = v
+	return r
+}
+
+func (r WalletBuilder) FromTuple(t fp.Tuple2[Person, int64]) WalletBuilder {
+	r.owner = t.I1
+	r.amount = t.I2
+	return r
+}
+
+func (r WalletBuilder) Apply(owner Person, amount int64) WalletBuilder {
+	r.owner = owner
+	r.amount = amount
+	return r
+}
+
+func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
+
+	if v, ok := m["owner"].(Person); ok {
+		r.owner = v
+	}
+
+	if v, ok := m["amount"].(int64); ok {
+		r.amount = v
+	}
+
 	return r
 }
 
@@ -1077,18 +1102,6 @@ func (r WalletMutable) AsImmutable() Wallet {
 	}
 }
 
-func (r WalletBuilder) FromTuple(t fp.Tuple2[Person, int64]) WalletBuilder {
-	r.owner = t.I1
-	r.amount = t.I2
-	return r
-}
-
-func (r WalletBuilder) Apply(owner Person, amount int64) WalletBuilder {
-	r.owner = owner
-	r.amount = amount
-	return r
-}
-
 func (r Wallet) AsMap() map[string]any {
 	m := map[string]any{}
 	m["owner"] = r.owner
@@ -1096,37 +1109,12 @@ func (r Wallet) AsMap() map[string]any {
 	return m
 }
 
-func (r WalletBuilder) FromMap(m map[string]any) WalletBuilder {
-
-	if v, ok := m["owner"].(Person); ok {
-		r.owner = v
-	}
-
-	if v, ok := m["amount"].(int64); ok {
-		r.amount = v
-	}
-
-	return r
-}
-
-type EntryBuilder[A comparable, B any, C fmt.Stringer, D interface {
-	Hello() string
-}] Entry[A, B, C, D]
-
 type EntryMutable[A comparable, B any, C fmt.Stringer, D interface {
 	Hello() string
 }] struct {
 	Name  string
 	Value A
 	Tuple fp.Tuple2[A, B]
-}
-
-func (r EntryBuilder[A, B, C, D]) Build() Entry[A, B, C, D] {
-	return Entry[A, B, C, D](r)
-}
-
-func (r Entry[A, B, C, D]) Builder() EntryBuilder[A, B, C, D] {
-	return EntryBuilder[A, B, C, D](r)
 }
 
 func (r Entry[A, B, C, D]) Name() string {
@@ -1156,6 +1144,18 @@ func (r Entry[A, B, C, D]) WithTuple(v fp.Tuple2[A, B]) Entry[A, B, C, D] {
 	return r
 }
 
+type EntryBuilder[A comparable, B any, C fmt.Stringer, D interface {
+	Hello() string
+}] Entry[A, B, C, D]
+
+func (r EntryBuilder[A, B, C, D]) Build() Entry[A, B, C, D] {
+	return Entry[A, B, C, D](r)
+}
+
+func (r Entry[A, B, C, D]) Builder() EntryBuilder[A, B, C, D] {
+	return EntryBuilder[A, B, C, D](r)
+}
+
 func (r EntryBuilder[A, B, C, D]) Name(v string) EntryBuilder[A, B, C, D] {
 	r.name = v
 	return r
@@ -1168,6 +1168,37 @@ func (r EntryBuilder[A, B, C, D]) Value(v A) EntryBuilder[A, B, C, D] {
 
 func (r EntryBuilder[A, B, C, D]) Tuple(v fp.Tuple2[A, B]) EntryBuilder[A, B, C, D] {
 	r.tuple = v
+	return r
+}
+
+func (r EntryBuilder[A, B, C, D]) FromTuple(t fp.Tuple3[string, A, fp.Tuple2[A, B]]) EntryBuilder[A, B, C, D] {
+	r.name = t.I1
+	r.value = t.I2
+	r.tuple = t.I3
+	return r
+}
+
+func (r EntryBuilder[A, B, C, D]) Apply(name string, value A, tuple fp.Tuple2[A, B]) EntryBuilder[A, B, C, D] {
+	r.name = name
+	r.value = value
+	r.tuple = tuple
+	return r
+}
+
+func (r EntryBuilder[A, B, C, D]) FromMap(m map[string]any) EntryBuilder[A, B, C, D] {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["value"].(A); ok {
+		r.value = v
+	}
+
+	if v, ok := m["tuple"].(fp.Tuple2[A, B]); ok {
+		r.tuple = v
+	}
+
 	return r
 }
 
@@ -1199,20 +1230,6 @@ func (r EntryMutable[A, B, C, D]) AsImmutable() Entry[A, B, C, D] {
 	}
 }
 
-func (r EntryBuilder[A, B, C, D]) FromTuple(t fp.Tuple3[string, A, fp.Tuple2[A, B]]) EntryBuilder[A, B, C, D] {
-	r.name = t.I1
-	r.value = t.I2
-	r.tuple = t.I3
-	return r
-}
-
-func (r EntryBuilder[A, B, C, D]) Apply(name string, value A, tuple fp.Tuple2[A, B]) EntryBuilder[A, B, C, D] {
-	r.name = name
-	r.value = value
-	r.tuple = tuple
-	return r
-}
-
 func (r Entry[A, B, C, D]) AsMap() map[string]any {
 	m := map[string]any{}
 	m["name"] = r.name
@@ -1221,37 +1238,10 @@ func (r Entry[A, B, C, D]) AsMap() map[string]any {
 	return m
 }
 
-func (r EntryBuilder[A, B, C, D]) FromMap(m map[string]any) EntryBuilder[A, B, C, D] {
-
-	if v, ok := m["name"].(string); ok {
-		r.name = v
-	}
-
-	if v, ok := m["value"].(A); ok {
-		r.value = v
-	}
-
-	if v, ok := m["tuple"].(fp.Tuple2[A, B]); ok {
-		r.tuple = v
-	}
-
-	return r
-}
-
-type KeyBuilder Key
-
 type KeyMutable struct {
 	A int
 	B float32
 	C []byte
-}
-
-func (r KeyBuilder) Build() Key {
-	return Key(r)
-}
-
-func (r Key) Builder() KeyBuilder {
-	return KeyBuilder(r)
 }
 
 func (r Key) A() int {
@@ -1281,6 +1271,16 @@ func (r Key) WithC(v []byte) Key {
 	return r
 }
 
+type KeyBuilder Key
+
+func (r KeyBuilder) Build() Key {
+	return Key(r)
+}
+
+func (r Key) Builder() KeyBuilder {
+	return KeyBuilder(r)
+}
+
 func (r KeyBuilder) A(v int) KeyBuilder {
 	r.a = v
 	return r
@@ -1293,6 +1293,37 @@ func (r KeyBuilder) B(v float32) KeyBuilder {
 
 func (r KeyBuilder) C(v []byte) KeyBuilder {
 	r.c = v
+	return r
+}
+
+func (r KeyBuilder) FromTuple(t fp.Tuple3[int, float32, []byte]) KeyBuilder {
+	r.a = t.I1
+	r.b = t.I2
+	r.c = t.I3
+	return r
+}
+
+func (r KeyBuilder) Apply(a int, b float32, c []byte) KeyBuilder {
+	r.a = a
+	r.b = b
+	r.c = c
+	return r
+}
+
+func (r KeyBuilder) FromMap(m map[string]any) KeyBuilder {
+
+	if v, ok := m["a"].(int); ok {
+		r.a = v
+	}
+
+	if v, ok := m["b"].(float32); ok {
+		r.b = v
+	}
+
+	if v, ok := m["c"].([]byte); ok {
+		r.c = v
+	}
+
 	return r
 }
 
@@ -1324,20 +1355,6 @@ func (r KeyMutable) AsImmutable() Key {
 	}
 }
 
-func (r KeyBuilder) FromTuple(t fp.Tuple3[int, float32, []byte]) KeyBuilder {
-	r.a = t.I1
-	r.b = t.I2
-	r.c = t.I3
-	return r
-}
-
-func (r KeyBuilder) Apply(a int, b float32, c []byte) KeyBuilder {
-	r.a = a
-	r.b = b
-	r.c = c
-	return r
-}
-
 func (r Key) AsMap() map[string]any {
 	m := map[string]any{}
 	m["a"] = r.a
@@ -1346,37 +1363,10 @@ func (r Key) AsMap() map[string]any {
 	return m
 }
 
-func (r KeyBuilder) FromMap(m map[string]any) KeyBuilder {
-
-	if v, ok := m["a"].(int); ok {
-		r.a = v
-	}
-
-	if v, ok := m["b"].(float32); ok {
-		r.b = v
-	}
-
-	if v, ok := m["c"].([]byte); ok {
-		r.c = v
-	}
-
-	return r
-}
-
-type PointBuilder Point
-
 type PointMutable struct {
 	X int
 	Y int
 	Z fp.Tuple2[int, int]
-}
-
-func (r PointBuilder) Build() Point {
-	return Point(r)
-}
-
-func (r Point) Builder() PointBuilder {
-	return PointBuilder(r)
 }
 
 func (r Point) X() int {
@@ -1406,6 +1396,16 @@ func (r Point) WithZ(v fp.Tuple2[int, int]) Point {
 	return r
 }
 
+type PointBuilder Point
+
+func (r PointBuilder) Build() Point {
+	return Point(r)
+}
+
+func (r Point) Builder() PointBuilder {
+	return PointBuilder(r)
+}
+
 func (r PointBuilder) X(v int) PointBuilder {
 	r.x = v
 	return r
@@ -1418,6 +1418,37 @@ func (r PointBuilder) Y(v int) PointBuilder {
 
 func (r PointBuilder) Z(v fp.Tuple2[int, int]) PointBuilder {
 	r.z = v
+	return r
+}
+
+func (r PointBuilder) FromTuple(t fp.Tuple3[int, int, fp.Tuple2[int, int]]) PointBuilder {
+	r.x = t.I1
+	r.y = t.I2
+	r.z = t.I3
+	return r
+}
+
+func (r PointBuilder) Apply(x int, y int, z fp.Tuple2[int, int]) PointBuilder {
+	r.x = x
+	r.y = y
+	r.z = z
+	return r
+}
+
+func (r PointBuilder) FromMap(m map[string]any) PointBuilder {
+
+	if v, ok := m["x"].(int); ok {
+		r.x = v
+	}
+
+	if v, ok := m["y"].(int); ok {
+		r.y = v
+	}
+
+	if v, ok := m["z"].(fp.Tuple2[int, int]); ok {
+		r.z = v
+	}
+
 	return r
 }
 
@@ -1445,20 +1476,6 @@ func (r PointMutable) AsImmutable() Point {
 	}
 }
 
-func (r PointBuilder) FromTuple(t fp.Tuple3[int, int, fp.Tuple2[int, int]]) PointBuilder {
-	r.x = t.I1
-	r.y = t.I2
-	r.z = t.I3
-	return r
-}
-
-func (r PointBuilder) Apply(x int, y int, z fp.Tuple2[int, int]) PointBuilder {
-	r.x = x
-	r.y = y
-	r.z = z
-	return r
-}
-
 func (r Point) AsMap() map[string]any {
 	m := map[string]any{}
 	m["x"] = r.x
@@ -1467,36 +1484,9 @@ func (r Point) AsMap() map[string]any {
 	return m
 }
 
-func (r PointBuilder) FromMap(m map[string]any) PointBuilder {
-
-	if v, ok := m["x"].(int); ok {
-		r.x = v
-	}
-
-	if v, ok := m["y"].(int); ok {
-		r.y = v
-	}
-
-	if v, ok := m["z"].(fp.Tuple2[int, int]); ok {
-		r.z = v
-	}
-
-	return r
-}
-
-type GreetingBuilder Greeting
-
 type GreetingMutable struct {
 	Hello    testpk1.World `json:"hello"`
 	Language string        `json:"language,omitempty"`
-}
-
-func (r GreetingBuilder) Build() Greeting {
-	return Greeting(r)
-}
-
-func (r Greeting) Builder() GreetingBuilder {
-	return GreetingBuilder(r)
 }
 
 func (r Greeting) Hello() testpk1.World {
@@ -1517,6 +1507,16 @@ func (r Greeting) WithLanguage(v string) Greeting {
 	return r
 }
 
+type GreetingBuilder Greeting
+
+func (r GreetingBuilder) Build() Greeting {
+	return Greeting(r)
+}
+
+func (r Greeting) Builder() GreetingBuilder {
+	return GreetingBuilder(r)
+}
+
 func (r GreetingBuilder) Hello(v testpk1.World) GreetingBuilder {
 	r.hello = v
 	return r
@@ -1524,6 +1524,37 @@ func (r GreetingBuilder) Hello(v testpk1.World) GreetingBuilder {
 
 func (r GreetingBuilder) Language(v string) GreetingBuilder {
 	r.language = v
+	return r
+}
+
+func (r GreetingBuilder) FromTuple(t fp.Tuple2[testpk1.World, string]) GreetingBuilder {
+	r.hello = t.I1
+	r.language = t.I2
+	return r
+}
+
+func (r GreetingBuilder) Apply(hello testpk1.World, language string) GreetingBuilder {
+	r.hello = hello
+	r.language = language
+	return r
+}
+
+func (r GreetingBuilder) FromMap(m map[string]any) GreetingBuilder {
+
+	if v, ok := m["hello"].(testpk1.World); ok {
+		r.hello = v
+	}
+
+	if v, ok := m["language"].(string); ok {
+		r.language = v
+	}
+
+	return r
+}
+
+func (r GreetingBuilder) FromLabelled(t fp.Labelled2[NamedHello[testpk1.World], NamedLanguage[string]]) GreetingBuilder {
+	r.hello = t.I1.Value()
+	r.language = t.I2.Value()
 	return r
 }
 
@@ -1553,18 +1584,6 @@ func (r GreetingMutable) AsImmutable() Greeting {
 	}
 }
 
-func (r GreetingBuilder) FromTuple(t fp.Tuple2[testpk1.World, string]) GreetingBuilder {
-	r.hello = t.I1
-	r.language = t.I2
-	return r
-}
-
-func (r GreetingBuilder) Apply(hello testpk1.World, language string) GreetingBuilder {
-	r.hello = hello
-	r.language = language
-	return r
-}
-
 func (r Greeting) AsMap() map[string]any {
 	m := map[string]any{}
 	m["hello"] = r.hello
@@ -1572,27 +1591,8 @@ func (r Greeting) AsMap() map[string]any {
 	return m
 }
 
-func (r GreetingBuilder) FromMap(m map[string]any) GreetingBuilder {
-
-	if v, ok := m["hello"].(testpk1.World); ok {
-		r.hello = v
-	}
-
-	if v, ok := m["language"].(string); ok {
-		r.language = v
-	}
-
-	return r
-}
-
 func (r Greeting) AsLabelled() fp.Labelled2[NamedHello[testpk1.World], NamedLanguage[string]] {
 	return as.Labelled2(NamedHello[testpk1.World]{r.hello}, NamedLanguage[string]{r.language})
-}
-
-func (r GreetingBuilder) FromLabelled(t fp.Labelled2[NamedHello[testpk1.World], NamedLanguage[string]]) GreetingBuilder {
-	r.hello = t.I1.Value()
-	r.language = t.I2.Value()
-	return r
 }
 
 func (r Greeting) MarshalJSON() ([]byte, error) {
@@ -1612,20 +1612,10 @@ func (r *Greeting) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-type ThreeBuilder Three
-
 type ThreeMutable struct {
 	One   int
 	Two   string
 	Three float64
-}
-
-func (r ThreeBuilder) Build() Three {
-	return Three(r)
-}
-
-func (r Three) Builder() ThreeBuilder {
-	return ThreeBuilder(r)
 }
 
 func (r Three) One() int {
@@ -1655,6 +1645,16 @@ func (r Three) WithThree(v float64) Three {
 	return r
 }
 
+type ThreeBuilder Three
+
+func (r ThreeBuilder) Build() Three {
+	return Three(r)
+}
+
+func (r Three) Builder() ThreeBuilder {
+	return ThreeBuilder(r)
+}
+
 func (r ThreeBuilder) One(v int) ThreeBuilder {
 	r.one = v
 	return r
@@ -1667,6 +1667,44 @@ func (r ThreeBuilder) Two(v string) ThreeBuilder {
 
 func (r ThreeBuilder) Three(v float64) ThreeBuilder {
 	r.three = v
+	return r
+}
+
+func (r ThreeBuilder) FromTuple(t fp.Tuple3[int, string, float64]) ThreeBuilder {
+	r.one = t.I1
+	r.two = t.I2
+	r.three = t.I3
+	return r
+}
+
+func (r ThreeBuilder) Apply(one int, two string, three float64) ThreeBuilder {
+	r.one = one
+	r.two = two
+	r.three = three
+	return r
+}
+
+func (r ThreeBuilder) FromMap(m map[string]any) ThreeBuilder {
+
+	if v, ok := m["one"].(int); ok {
+		r.one = v
+	}
+
+	if v, ok := m["two"].(string); ok {
+		r.two = v
+	}
+
+	if v, ok := m["three"].(float64); ok {
+		r.three = v
+	}
+
+	return r
+}
+
+func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NamedOne[int], NamedTwo[string], NamedThree[float64]]) ThreeBuilder {
+	r.one = t.I1.Value()
+	r.two = t.I2.Value()
+	r.three = t.I3.Value()
 	return r
 }
 
@@ -1698,20 +1736,6 @@ func (r ThreeMutable) AsImmutable() Three {
 	}
 }
 
-func (r ThreeBuilder) FromTuple(t fp.Tuple3[int, string, float64]) ThreeBuilder {
-	r.one = t.I1
-	r.two = t.I2
-	r.three = t.I3
-	return r
-}
-
-func (r ThreeBuilder) Apply(one int, two string, three float64) ThreeBuilder {
-	r.one = one
-	r.two = two
-	r.three = three
-	return r
-}
-
 func (r Three) AsMap() map[string]any {
 	m := map[string]any{}
 	m["one"] = r.one
@@ -1720,46 +1744,12 @@ func (r Three) AsMap() map[string]any {
 	return m
 }
 
-func (r ThreeBuilder) FromMap(m map[string]any) ThreeBuilder {
-
-	if v, ok := m["one"].(int); ok {
-		r.one = v
-	}
-
-	if v, ok := m["two"].(string); ok {
-		r.two = v
-	}
-
-	if v, ok := m["three"].(float64); ok {
-		r.three = v
-	}
-
-	return r
-}
-
 func (r Three) AsLabelled() fp.Labelled3[NamedOne[int], NamedTwo[string], NamedThree[float64]] {
 	return as.Labelled3(NamedOne[int]{r.one}, NamedTwo[string]{r.two}, NamedThree[float64]{r.three})
 }
 
-func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NamedOne[int], NamedTwo[string], NamedThree[float64]]) ThreeBuilder {
-	r.one = t.I1.Value()
-	r.two = t.I2.Value()
-	r.three = t.I3.Value()
-	return r
-}
-
-type TreeBuilder Tree
-
 type TreeMutable struct {
 	Root testpk1.Node
-}
-
-func (r TreeBuilder) Build() Tree {
-	return Tree(r)
-}
-
-func (r Tree) Builder() TreeBuilder {
-	return TreeBuilder(r)
 }
 
 func (r Tree) Root() testpk1.Node {
@@ -1771,8 +1761,37 @@ func (r Tree) WithRoot(v testpk1.Node) Tree {
 	return r
 }
 
+type TreeBuilder Tree
+
+func (r TreeBuilder) Build() Tree {
+	return Tree(r)
+}
+
+func (r Tree) Builder() TreeBuilder {
+	return TreeBuilder(r)
+}
+
 func (r TreeBuilder) Root(v testpk1.Node) TreeBuilder {
 	r.root = v
+	return r
+}
+
+func (r TreeBuilder) FromTuple(t fp.Tuple1[testpk1.Node]) TreeBuilder {
+	r.root = t.I1
+	return r
+}
+
+func (r TreeBuilder) Apply(root testpk1.Node) TreeBuilder {
+	r.root = root
+	return r
+}
+
+func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
+
+	if v, ok := m["root"].(testpk1.Node); ok {
+		r.root = v
+	}
+
 	return r
 }
 
@@ -1800,29 +1819,10 @@ func (r TreeMutable) AsImmutable() Tree {
 	}
 }
 
-func (r TreeBuilder) FromTuple(t fp.Tuple1[testpk1.Node]) TreeBuilder {
-	r.root = t.I1
-	return r
-}
-
-func (r TreeBuilder) Apply(root testpk1.Node) TreeBuilder {
-	r.root = root
-	return r
-}
-
 func (r Tree) AsMap() map[string]any {
 	m := map[string]any{}
 	m["root"] = r.root
 	return m
-}
-
-func (r TreeBuilder) FromMap(m map[string]any) TreeBuilder {
-
-	if v, ok := m["root"].(testpk1.Node); ok {
-		r.root = v
-	}
-
-	return r
 }
 
 func (r AliasedStruct) GetPubField() string {
@@ -1943,18 +1943,8 @@ func (r GetterOverride) WithPrivField(v string) testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
 }
 
-type NotIgnoredBuilder NotIgnored
-
 type NotIgnoredMutable struct {
 	Ig int
-}
-
-func (r NotIgnoredBuilder) Build() NotIgnored {
-	return NotIgnored(r)
-}
-
-func (r NotIgnored) Builder() NotIgnoredBuilder {
-	return NotIgnoredBuilder(r)
 }
 
 func (r NotIgnored) Ig() int {
@@ -1966,8 +1956,37 @@ func (r NotIgnored) WithIg(v int) NotIgnored {
 	return r
 }
 
+type NotIgnoredBuilder NotIgnored
+
+func (r NotIgnoredBuilder) Build() NotIgnored {
+	return NotIgnored(r)
+}
+
+func (r NotIgnored) Builder() NotIgnoredBuilder {
+	return NotIgnoredBuilder(r)
+}
+
 func (r NotIgnoredBuilder) Ig(v int) NotIgnoredBuilder {
 	r.ig = v
+	return r
+}
+
+func (r NotIgnoredBuilder) FromTuple(t fp.Tuple1[int]) NotIgnoredBuilder {
+	r.ig = t.I1
+	return r
+}
+
+func (r NotIgnoredBuilder) Apply(ig int) NotIgnoredBuilder {
+	r.ig = ig
+	return r
+}
+
+func (r NotIgnoredBuilder) FromMap(m map[string]any) NotIgnoredBuilder {
+
+	if v, ok := m["ig"].(int); ok {
+		r.ig = v
+	}
+
 	return r
 }
 
@@ -1995,29 +2014,10 @@ func (r NotIgnoredMutable) AsImmutable() NotIgnored {
 	}
 }
 
-func (r NotIgnoredBuilder) FromTuple(t fp.Tuple1[int]) NotIgnoredBuilder {
-	r.ig = t.I1
-	return r
-}
-
-func (r NotIgnoredBuilder) Apply(ig int) NotIgnoredBuilder {
-	r.ig = ig
-	return r
-}
-
 func (r NotIgnored) AsMap() map[string]any {
 	m := map[string]any{}
 	m["ig"] = r.ig
 	return m
-}
-
-func (r NotIgnoredBuilder) FromMap(m map[string]any) NotIgnoredBuilder {
-
-	if v, ok := m["ig"].(int); ok {
-		r.ig = v
-	}
-
-	return r
 }
 
 type NamedHello[T any] fp.Tuple1[T]

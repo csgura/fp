@@ -7,19 +7,9 @@ import (
 	"github.com/csgura/fp/as"
 )
 
-type ValueStructBuilder ValueStruct
-
 type ValueStructMutable struct {
 	Hello string
 	World int
-}
-
-func (r ValueStructBuilder) Build() ValueStruct {
-	return ValueStruct(r)
-}
-
-func (r ValueStruct) Builder() ValueStructBuilder {
-	return ValueStructBuilder(r)
 }
 
 func (r ValueStruct) Hello() string {
@@ -40,6 +30,16 @@ func (r ValueStruct) WithWorld(v int) ValueStruct {
 	return r
 }
 
+type ValueStructBuilder ValueStruct
+
+func (r ValueStructBuilder) Build() ValueStruct {
+	return ValueStruct(r)
+}
+
+func (r ValueStruct) Builder() ValueStructBuilder {
+	return ValueStructBuilder(r)
+}
+
 func (r ValueStructBuilder) Hello(v string) ValueStructBuilder {
 	r.hello = v
 	return r
@@ -47,6 +47,31 @@ func (r ValueStructBuilder) Hello(v string) ValueStructBuilder {
 
 func (r ValueStructBuilder) World(v int) ValueStructBuilder {
 	r.world = v
+	return r
+}
+
+func (r ValueStructBuilder) FromTuple(t fp.Tuple2[string, int]) ValueStructBuilder {
+	r.hello = t.I1
+	r.world = t.I2
+	return r
+}
+
+func (r ValueStructBuilder) Apply(hello string, world int) ValueStructBuilder {
+	r.hello = hello
+	r.world = world
+	return r
+}
+
+func (r ValueStructBuilder) FromMap(m map[string]any) ValueStructBuilder {
+
+	if v, ok := m["hello"].(string); ok {
+		r.hello = v
+	}
+
+	if v, ok := m["world"].(int); ok {
+		r.world = v
+	}
+
 	return r
 }
 
@@ -76,18 +101,6 @@ func (r ValueStructMutable) AsImmutable() ValueStruct {
 	}
 }
 
-func (r ValueStructBuilder) FromTuple(t fp.Tuple2[string, int]) ValueStructBuilder {
-	r.hello = t.I1
-	r.world = t.I2
-	return r
-}
-
-func (r ValueStructBuilder) Apply(hello string, world int) ValueStructBuilder {
-	r.hello = hello
-	r.world = world
-	return r
-}
-
 func (r ValueStruct) AsMap() map[string]any {
 	m := map[string]any{}
 	m["hello"] = r.hello
@@ -95,32 +108,9 @@ func (r ValueStruct) AsMap() map[string]any {
 	return m
 }
 
-func (r ValueStructBuilder) FromMap(m map[string]any) ValueStructBuilder {
-
-	if v, ok := m["hello"].(string); ok {
-		r.hello = v
-	}
-
-	if v, ok := m["world"].(int); ok {
-		r.world = v
-	}
-
-	return r
-}
-
-type CloneStructBuilder CloneStruct
-
 type CloneStructMutable struct {
 	Hello string
 	World int
-}
-
-func (r CloneStructBuilder) Build() CloneStruct {
-	return CloneStruct(r)
-}
-
-func (r CloneStruct) Builder() CloneStructBuilder {
-	return CloneStructBuilder(r)
 }
 
 func (r CloneStruct) Hello() string {
@@ -141,6 +131,16 @@ func (r CloneStruct) WithWorld(v int) CloneStruct {
 	return r
 }
 
+type CloneStructBuilder CloneStruct
+
+func (r CloneStructBuilder) Build() CloneStruct {
+	return CloneStruct(r)
+}
+
+func (r CloneStruct) Builder() CloneStructBuilder {
+	return CloneStructBuilder(r)
+}
+
 func (r CloneStructBuilder) Hello(v string) CloneStructBuilder {
 	r.hello = v
 	return r
@@ -148,6 +148,31 @@ func (r CloneStructBuilder) Hello(v string) CloneStructBuilder {
 
 func (r CloneStructBuilder) World(v int) CloneStructBuilder {
 	r.world = v
+	return r
+}
+
+func (r CloneStructBuilder) FromTuple(t fp.Tuple2[string, int]) CloneStructBuilder {
+	r.hello = t.I1
+	r.world = t.I2
+	return r
+}
+
+func (r CloneStructBuilder) Apply(hello string, world int) CloneStructBuilder {
+	r.hello = hello
+	r.world = world
+	return r
+}
+
+func (r CloneStructBuilder) FromMap(m map[string]any) CloneStructBuilder {
+
+	if v, ok := m["hello"].(string); ok {
+		r.hello = v
+	}
+
+	if v, ok := m["world"].(int); ok {
+		r.world = v
+	}
+
 	return r
 }
 
@@ -177,34 +202,9 @@ func (r CloneStructMutable) AsImmutable() CloneStruct {
 	}
 }
 
-func (r CloneStructBuilder) FromTuple(t fp.Tuple2[string, int]) CloneStructBuilder {
-	r.hello = t.I1
-	r.world = t.I2
-	return r
-}
-
-func (r CloneStructBuilder) Apply(hello string, world int) CloneStructBuilder {
-	r.hello = hello
-	r.world = world
-	return r
-}
-
 func (r CloneStruct) AsMap() map[string]any {
 	m := map[string]any{}
 	m["hello"] = r.hello
 	m["world"] = r.world
 	return m
-}
-
-func (r CloneStructBuilder) FromMap(m map[string]any) CloneStructBuilder {
-
-	if v, ok := m["hello"].(string); ok {
-		r.hello = v
-	}
-
-	if v, ok := m["world"].(int); ok {
-		r.world = v
-	}
-
-	return r
 }

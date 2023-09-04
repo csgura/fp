@@ -10,19 +10,9 @@ import (
 	"net/http"
 )
 
-type PersonBuilder Person
-
 type PersonMutable struct {
 	Name string
 	Age  int
-}
-
-func (r PersonBuilder) Build() Person {
-	return Person(r)
-}
-
-func (r Person) Builder() PersonBuilder {
-	return PersonBuilder(r)
 }
 
 func (r Person) Name() string {
@@ -43,6 +33,16 @@ func (r Person) WithAge(v int) Person {
 	return r
 }
 
+type PersonBuilder Person
+
+func (r PersonBuilder) Build() Person {
+	return Person(r)
+}
+
+func (r Person) Builder() PersonBuilder {
+	return PersonBuilder(r)
+}
+
 func (r PersonBuilder) Name(v string) PersonBuilder {
 	r.name = v
 	return r
@@ -50,6 +50,31 @@ func (r PersonBuilder) Name(v string) PersonBuilder {
 
 func (r PersonBuilder) Age(v int) PersonBuilder {
 	r.age = v
+	return r
+}
+
+func (r PersonBuilder) FromTuple(t fp.Tuple2[string, int]) PersonBuilder {
+	r.name = t.I1
+	r.age = t.I2
+	return r
+}
+
+func (r PersonBuilder) Apply(name string, age int) PersonBuilder {
+	r.name = name
+	r.age = age
+	return r
+}
+
+func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["age"].(int); ok {
+		r.age = v
+	}
+
 	return r
 }
 
@@ -79,18 +104,6 @@ func (r PersonMutable) AsImmutable() Person {
 	}
 }
 
-func (r PersonBuilder) FromTuple(t fp.Tuple2[string, int]) PersonBuilder {
-	r.name = t.I1
-	r.age = t.I2
-	return r
-}
-
-func (r PersonBuilder) Apply(name string, age int) PersonBuilder {
-	r.name = name
-	r.age = age
-	return r
-}
-
 func (r Person) AsMap() map[string]any {
 	m := map[string]any{}
 	m["name"] = r.name
@@ -98,33 +111,10 @@ func (r Person) AsMap() map[string]any {
 	return m
 }
 
-func (r PersonBuilder) FromMap(m map[string]any) PersonBuilder {
-
-	if v, ok := m["name"].(string); ok {
-		r.name = v
-	}
-
-	if v, ok := m["age"].(int); ok {
-		r.age = v
-	}
-
-	return r
-}
-
-type AddressBuilder Address
-
 type AddressMutable struct {
 	Country string `json:"country,omitempty"`
 	City    string `json:"city,omitempty"`
 	Street  string `json:"street,omitempty"`
-}
-
-func (r AddressBuilder) Build() Address {
-	return Address(r)
-}
-
-func (r Address) Builder() AddressBuilder {
-	return AddressBuilder(r)
 }
 
 func (r Address) Country() string {
@@ -154,6 +144,16 @@ func (r Address) WithStreet(v string) Address {
 	return r
 }
 
+type AddressBuilder Address
+
+func (r AddressBuilder) Build() Address {
+	return Address(r)
+}
+
+func (r Address) Builder() AddressBuilder {
+	return AddressBuilder(r)
+}
+
 func (r AddressBuilder) Country(v string) AddressBuilder {
 	r.country = v
 	return r
@@ -166,6 +166,37 @@ func (r AddressBuilder) City(v string) AddressBuilder {
 
 func (r AddressBuilder) Street(v string) AddressBuilder {
 	r.street = v
+	return r
+}
+
+func (r AddressBuilder) FromTuple(t fp.Tuple3[string, string, string]) AddressBuilder {
+	r.country = t.I1
+	r.city = t.I2
+	r.street = t.I3
+	return r
+}
+
+func (r AddressBuilder) Apply(country string, city string, street string) AddressBuilder {
+	r.country = country
+	r.city = city
+	r.street = street
+	return r
+}
+
+func (r AddressBuilder) FromMap(m map[string]any) AddressBuilder {
+
+	if v, ok := m["country"].(string); ok {
+		r.country = v
+	}
+
+	if v, ok := m["city"].(string); ok {
+		r.city = v
+	}
+
+	if v, ok := m["street"].(string); ok {
+		r.street = v
+	}
+
 	return r
 }
 
@@ -197,43 +228,12 @@ func (r AddressMutable) AsImmutable() Address {
 	}
 }
 
-func (r AddressBuilder) FromTuple(t fp.Tuple3[string, string, string]) AddressBuilder {
-	r.country = t.I1
-	r.city = t.I2
-	r.street = t.I3
-	return r
-}
-
-func (r AddressBuilder) Apply(country string, city string, street string) AddressBuilder {
-	r.country = country
-	r.city = city
-	r.street = street
-	return r
-}
-
 func (r Address) AsMap() map[string]any {
 	m := map[string]any{}
 	m["country"] = r.country
 	m["city"] = r.city
 	m["street"] = r.street
 	return m
-}
-
-func (r AddressBuilder) FromMap(m map[string]any) AddressBuilder {
-
-	if v, ok := m["country"].(string); ok {
-		r.country = v
-	}
-
-	if v, ok := m["city"].(string); ok {
-		r.city = v
-	}
-
-	if v, ok := m["street"].(string); ok {
-		r.street = v
-	}
-
-	return r
 }
 
 func (r Address) MarshalJSON() ([]byte, error) {
@@ -253,20 +253,10 @@ func (r *Address) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-type CarBuilder Car
-
 type CarMutable struct {
 	Company string
 	Model   string
 	Year    int
-}
-
-func (r CarBuilder) Build() Car {
-	return Car(r)
-}
-
-func (r Car) Builder() CarBuilder {
-	return CarBuilder(r)
 }
 
 func (r Car) Company() string {
@@ -296,6 +286,16 @@ func (r Car) WithYear(v int) Car {
 	return r
 }
 
+type CarBuilder Car
+
+func (r CarBuilder) Build() Car {
+	return Car(r)
+}
+
+func (r Car) Builder() CarBuilder {
+	return CarBuilder(r)
+}
+
 func (r CarBuilder) Company(v string) CarBuilder {
 	r.company = v
 	return r
@@ -308,6 +308,44 @@ func (r CarBuilder) Model(v string) CarBuilder {
 
 func (r CarBuilder) Year(v int) CarBuilder {
 	r.year = v
+	return r
+}
+
+func (r CarBuilder) FromTuple(t fp.Tuple3[string, string, int]) CarBuilder {
+	r.company = t.I1
+	r.model = t.I2
+	r.year = t.I3
+	return r
+}
+
+func (r CarBuilder) Apply(company string, model string, year int) CarBuilder {
+	r.company = company
+	r.model = model
+	r.year = year
+	return r
+}
+
+func (r CarBuilder) FromMap(m map[string]any) CarBuilder {
+
+	if v, ok := m["company"].(string); ok {
+		r.company = v
+	}
+
+	if v, ok := m["model"].(string); ok {
+		r.model = v
+	}
+
+	if v, ok := m["year"].(int); ok {
+		r.year = v
+	}
+
+	return r
+}
+
+func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]]) CarBuilder {
+	r.company = t.I1.Value()
+	r.model = t.I2.Value()
+	r.year = t.I3.Value()
 	return r
 }
 
@@ -339,20 +377,6 @@ func (r CarMutable) AsImmutable() Car {
 	}
 }
 
-func (r CarBuilder) FromTuple(t fp.Tuple3[string, string, int]) CarBuilder {
-	r.company = t.I1
-	r.model = t.I2
-	r.year = t.I3
-	return r
-}
-
-func (r CarBuilder) Apply(company string, model string, year int) CarBuilder {
-	r.company = company
-	r.model = model
-	r.year = year
-	return r
-}
-
 func (r Car) AsMap() map[string]any {
 	m := map[string]any{}
 	m["company"] = r.company
@@ -361,47 +385,13 @@ func (r Car) AsMap() map[string]any {
 	return m
 }
 
-func (r CarBuilder) FromMap(m map[string]any) CarBuilder {
-
-	if v, ok := m["company"].(string); ok {
-		r.company = v
-	}
-
-	if v, ok := m["model"].(string); ok {
-		r.model = v
-	}
-
-	if v, ok := m["year"].(int); ok {
-		r.year = v
-	}
-
-	return r
-}
-
 func (r Car) AsLabelled() fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]] {
 	return as.Labelled3(NamedCompany[string]{r.company}, NamedModel[string]{r.model}, NamedYear[int]{r.year})
 }
 
-func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]]) CarBuilder {
-	r.company = t.I1.Value()
-	r.model = t.I2.Value()
-	r.year = t.I3.Value()
-	return r
-}
-
-type EntryBuilder[A comparable, B any] Entry[A, B]
-
 type EntryMutable[A comparable, B any] struct {
 	Key   A
 	Value B
-}
-
-func (r EntryBuilder[A, B]) Build() Entry[A, B] {
-	return Entry[A, B](r)
-}
-
-func (r Entry[A, B]) Builder() EntryBuilder[A, B] {
-	return EntryBuilder[A, B](r)
 }
 
 func (r Entry[A, B]) Key() A {
@@ -422,6 +412,16 @@ func (r Entry[A, B]) WithValue(v B) Entry[A, B] {
 	return r
 }
 
+type EntryBuilder[A comparable, B any] Entry[A, B]
+
+func (r EntryBuilder[A, B]) Build() Entry[A, B] {
+	return Entry[A, B](r)
+}
+
+func (r Entry[A, B]) Builder() EntryBuilder[A, B] {
+	return EntryBuilder[A, B](r)
+}
+
 func (r EntryBuilder[A, B]) Key(v A) EntryBuilder[A, B] {
 	r.key = v
 	return r
@@ -429,6 +429,31 @@ func (r EntryBuilder[A, B]) Key(v A) EntryBuilder[A, B] {
 
 func (r EntryBuilder[A, B]) Value(v B) EntryBuilder[A, B] {
 	r.value = v
+	return r
+}
+
+func (r EntryBuilder[A, B]) FromTuple(t fp.Tuple2[A, B]) EntryBuilder[A, B] {
+	r.key = t.I1
+	r.value = t.I2
+	return r
+}
+
+func (r EntryBuilder[A, B]) Apply(key A, value B) EntryBuilder[A, B] {
+	r.key = key
+	r.value = value
+	return r
+}
+
+func (r EntryBuilder[A, B]) FromMap(m map[string]any) EntryBuilder[A, B] {
+
+	if v, ok := m["key"].(A); ok {
+		r.key = v
+	}
+
+	if v, ok := m["value"].(B); ok {
+		r.value = v
+	}
+
 	return r
 }
 
@@ -458,18 +483,6 @@ func (r EntryMutable[A, B]) AsImmutable() Entry[A, B] {
 	}
 }
 
-func (r EntryBuilder[A, B]) FromTuple(t fp.Tuple2[A, B]) EntryBuilder[A, B] {
-	r.key = t.I1
-	r.value = t.I2
-	return r
-}
-
-func (r EntryBuilder[A, B]) Apply(key A, value B) EntryBuilder[A, B] {
-	r.key = key
-	r.value = value
-	return r
-}
-
 func (r Entry[A, B]) AsMap() map[string]any {
 	m := map[string]any{}
 	m["key"] = r.key
@@ -477,32 +490,9 @@ func (r Entry[A, B]) AsMap() map[string]any {
 	return m
 }
 
-func (r EntryBuilder[A, B]) FromMap(m map[string]any) EntryBuilder[A, B] {
-
-	if v, ok := m["key"].(A); ok {
-		r.key = v
-	}
-
-	if v, ok := m["value"].(B); ok {
-		r.value = v
-	}
-
-	return r
-}
-
-type CarsOwnedBuilder CarsOwned
-
 type CarsOwnedMutable struct {
 	Owner Person
 	Cars  fp.Seq[Car]
-}
-
-func (r CarsOwnedBuilder) Build() CarsOwned {
-	return CarsOwned(r)
-}
-
-func (r CarsOwned) Builder() CarsOwnedBuilder {
-	return CarsOwnedBuilder(r)
 }
 
 func (r CarsOwned) Owner() Person {
@@ -523,6 +513,16 @@ func (r CarsOwned) WithCars(v fp.Seq[Car]) CarsOwned {
 	return r
 }
 
+type CarsOwnedBuilder CarsOwned
+
+func (r CarsOwnedBuilder) Build() CarsOwned {
+	return CarsOwned(r)
+}
+
+func (r CarsOwned) Builder() CarsOwnedBuilder {
+	return CarsOwnedBuilder(r)
+}
+
 func (r CarsOwnedBuilder) Owner(v Person) CarsOwnedBuilder {
 	r.owner = v
 	return r
@@ -530,6 +530,31 @@ func (r CarsOwnedBuilder) Owner(v Person) CarsOwnedBuilder {
 
 func (r CarsOwnedBuilder) Cars(v fp.Seq[Car]) CarsOwnedBuilder {
 	r.cars = v
+	return r
+}
+
+func (r CarsOwnedBuilder) FromTuple(t fp.Tuple2[Person, fp.Seq[Car]]) CarsOwnedBuilder {
+	r.owner = t.I1
+	r.cars = t.I2
+	return r
+}
+
+func (r CarsOwnedBuilder) Apply(owner Person, cars fp.Seq[Car]) CarsOwnedBuilder {
+	r.owner = owner
+	r.cars = cars
+	return r
+}
+
+func (r CarsOwnedBuilder) FromMap(m map[string]any) CarsOwnedBuilder {
+
+	if v, ok := m["owner"].(Person); ok {
+		r.owner = v
+	}
+
+	if v, ok := m["cars"].(fp.Seq[Car]); ok {
+		r.cars = v
+	}
+
 	return r
 }
 
@@ -559,18 +584,6 @@ func (r CarsOwnedMutable) AsImmutable() CarsOwned {
 	}
 }
 
-func (r CarsOwnedBuilder) FromTuple(t fp.Tuple2[Person, fp.Seq[Car]]) CarsOwnedBuilder {
-	r.owner = t.I1
-	r.cars = t.I2
-	return r
-}
-
-func (r CarsOwnedBuilder) Apply(owner Person, cars fp.Seq[Car]) CarsOwnedBuilder {
-	r.owner = owner
-	r.cars = cars
-	return r
-}
-
 func (r CarsOwned) AsMap() map[string]any {
 	m := map[string]any{}
 	m["owner"] = r.owner
@@ -578,33 +591,10 @@ func (r CarsOwned) AsMap() map[string]any {
 	return m
 }
 
-func (r CarsOwnedBuilder) FromMap(m map[string]any) CarsOwnedBuilder {
-
-	if v, ok := m["owner"].(Person); ok {
-		r.owner = v
-	}
-
-	if v, ok := m["cars"].(fp.Seq[Car]); ok {
-		r.cars = v
-	}
-
-	return r
-}
-
-type UserBuilder User
-
 type UserMutable struct {
 	Name   string
 	Email  fp.Option[string]
 	Active bool
-}
-
-func (r UserBuilder) Build() User {
-	return User(r)
-}
-
-func (r User) Builder() UserBuilder {
-	return UserBuilder(r)
 }
 
 func (r User) Name() string {
@@ -644,6 +634,16 @@ func (r User) WithActive(v bool) User {
 	return r
 }
 
+type UserBuilder User
+
+func (r UserBuilder) Build() User {
+	return User(r)
+}
+
+func (r User) Builder() UserBuilder {
+	return UserBuilder(r)
+}
+
 func (r UserBuilder) Name(v string) UserBuilder {
 	r.name = v
 	return r
@@ -666,6 +666,39 @@ func (r UserBuilder) NoneEmail() UserBuilder {
 
 func (r UserBuilder) Active(v bool) UserBuilder {
 	r.active = v
+	return r
+}
+
+func (r UserBuilder) FromTuple(t fp.Tuple3[string, fp.Option[string], bool]) UserBuilder {
+	r.name = t.I1
+	r.email = t.I2
+	r.active = t.I3
+	return r
+}
+
+func (r UserBuilder) Apply(name string, email fp.Option[string], active bool) UserBuilder {
+	r.name = name
+	r.email = email
+	r.active = active
+	return r
+}
+
+func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
+
+	if v, ok := m["name"].(string); ok {
+		r.name = v
+	}
+
+	if v, ok := m["email"].(fp.Option[string]); ok {
+		r.email = v
+	} else if v, ok := m["email"].(string); ok {
+		r.email = option.Some(v)
+	}
+
+	if v, ok := m["active"].(bool); ok {
+		r.active = v
+	}
+
 	return r
 }
 
@@ -697,20 +730,6 @@ func (r UserMutable) AsImmutable() User {
 	}
 }
 
-func (r UserBuilder) FromTuple(t fp.Tuple3[string, fp.Option[string], bool]) UserBuilder {
-	r.name = t.I1
-	r.email = t.I2
-	r.active = t.I3
-	return r
-}
-
-func (r UserBuilder) Apply(name string, email fp.Option[string], active bool) UserBuilder {
-	r.name = name
-	r.email = email
-	r.active = active
-	return r
-}
-
 func (r User) AsMap() map[string]any {
 	m := map[string]any{}
 	m["name"] = r.name
@@ -719,25 +738,6 @@ func (r User) AsMap() map[string]any {
 	}
 	m["active"] = r.active
 	return m
-}
-
-func (r UserBuilder) FromMap(m map[string]any) UserBuilder {
-
-	if v, ok := m["name"].(string); ok {
-		r.name = v
-	}
-
-	if v, ok := m["email"].(fp.Option[string]); ok {
-		r.email = v
-	} else if v, ok := m["email"].(string); ok {
-		r.email = option.Some(v)
-	}
-
-	if v, ok := m["active"].(bool); ok {
-		r.active = v
-	}
-
-	return r
 }
 
 func (r MapEntry[K, V]) Deref() fp.Tuple2[K, V] {

@@ -9,18 +9,8 @@ import (
 	"github.com/csgura/fp/option"
 )
 
-type DecoderContextBuilder DecoderContext
-
 type DecoderContextMutable struct {
 	WorkingObject fp.Option[map[string]json.RawMessage]
-}
-
-func (r DecoderContextBuilder) Build() DecoderContext {
-	return DecoderContext(r)
-}
-
-func (r DecoderContext) Builder() DecoderContextBuilder {
-	return DecoderContextBuilder(r)
 }
 
 func (r DecoderContext) WorkingObject() fp.Option[map[string]json.RawMessage] {
@@ -42,6 +32,16 @@ func (r DecoderContext) WithNoneWorkingObject() DecoderContext {
 	return r
 }
 
+type DecoderContextBuilder DecoderContext
+
+func (r DecoderContextBuilder) Build() DecoderContext {
+	return DecoderContext(r)
+}
+
+func (r DecoderContext) Builder() DecoderContextBuilder {
+	return DecoderContextBuilder(r)
+}
+
 func (r DecoderContextBuilder) WorkingObject(v fp.Option[map[string]json.RawMessage]) DecoderContextBuilder {
 	r.workingObject = v
 	return r
@@ -54,6 +54,27 @@ func (r DecoderContextBuilder) SomeWorkingObject(v map[string]json.RawMessage) D
 
 func (r DecoderContextBuilder) NoneWorkingObject() DecoderContextBuilder {
 	r.workingObject = option.None[map[string]json.RawMessage]()
+	return r
+}
+
+func (r DecoderContextBuilder) FromTuple(t fp.Tuple1[fp.Option[map[string]json.RawMessage]]) DecoderContextBuilder {
+	r.workingObject = t.I1
+	return r
+}
+
+func (r DecoderContextBuilder) Apply(workingObject fp.Option[map[string]json.RawMessage]) DecoderContextBuilder {
+	r.workingObject = workingObject
+	return r
+}
+
+func (r DecoderContextBuilder) FromMap(m map[string]any) DecoderContextBuilder {
+
+	if v, ok := m["workingObject"].(fp.Option[map[string]json.RawMessage]); ok {
+		r.workingObject = v
+	} else if v, ok := m["workingObject"].(map[string]json.RawMessage); ok {
+		r.workingObject = option.Some(v)
+	}
+
 	return r
 }
 
@@ -81,31 +102,10 @@ func (r DecoderContextMutable) AsImmutable() DecoderContext {
 	}
 }
 
-func (r DecoderContextBuilder) FromTuple(t fp.Tuple1[fp.Option[map[string]json.RawMessage]]) DecoderContextBuilder {
-	r.workingObject = t.I1
-	return r
-}
-
-func (r DecoderContextBuilder) Apply(workingObject fp.Option[map[string]json.RawMessage]) DecoderContextBuilder {
-	r.workingObject = workingObject
-	return r
-}
-
 func (r DecoderContext) AsMap() map[string]any {
 	m := map[string]any{}
 	if r.workingObject.IsDefined() {
 		m["workingObject"] = r.workingObject.Get()
 	}
 	return m
-}
-
-func (r DecoderContextBuilder) FromMap(m map[string]any) DecoderContextBuilder {
-
-	if v, ok := m["workingObject"].(fp.Option[map[string]json.RawMessage]); ok {
-		r.workingObject = v
-	} else if v, ok := m["workingObject"].(map[string]json.RawMessage); ok {
-		r.workingObject = option.Some(v)
-	}
-
-	return r
 }
