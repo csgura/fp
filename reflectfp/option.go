@@ -9,31 +9,24 @@ import (
 	"github.com/csgura/fp/try"
 )
 
+var zeroOption = reflect.TypeOf(option.None[fp.Unit]())
+var optionTypeName = eraseTypeParam(zeroOption.Name())
+
 func MatchOption(tpe reflect.Type) fp.Option[reflect.Type] {
 
 	none := option.None[reflect.Type]()
 
+	if tpe.PkgPath() != zeroOption.PkgPath() {
+		return none
+	}
+
+	if optionTypeName != eraseTypeParam(tpe.Name()) {
+		return none
+	}
+
 	getm, exists := tpe.MethodByName("Get")
 
 	if !exists || getm.Type.NumIn() != 1 || getm.Type.NumOut() != 1 {
-		return none
-	}
-
-	recoverm, exists := tpe.MethodByName("Recover")
-	if !exists || recoverm.Type.NumIn() != 2 || recoverm.Type.NumOut() != 1 {
-		return none
-	}
-	cbtype := recoverm.Type.In(1)
-
-	if cbtype.Kind() != reflect.Func {
-		return none
-	}
-
-	if cbtype.NumIn() != 0 || cbtype.NumOut() != 1 {
-		return none
-	}
-
-	if cbtype.Out(0) != getm.Type.Out(0) {
 		return none
 	}
 

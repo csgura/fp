@@ -18,6 +18,9 @@ func TestReflectOption(t *testing.T) {
 	isopt := reflectfp.MatchOption(reflect.TypeOf(opt))
 	assert.True(isopt.IsDefined())
 
+	islazy := reflectfp.MatchLazyEval(reflect.TypeOf(opt))
+	assert.False(islazy.IsDefined())
+
 	res := reflectfp.Some(reflect.TypeOf(opt), reflect.ValueOf(20))
 
 	assert.True(res.IsSuccess())
@@ -50,8 +53,11 @@ func TestReflectLazyConvert(t *testing.T) {
 
 	lv := lazy.Done(10)
 
-	isopt := reflectfp.MatchLazyEval(reflect.TypeOf(lv))
-	assert.True(isopt.IsDefined())
+	isopt := reflectfp.MatchOption(reflect.TypeOf(lv))
+	assert.False(isopt.IsDefined())
+
+	ialazy := reflectfp.MatchLazyEval(reflect.TypeOf(lv))
+	assert.True(ialazy.IsDefined())
 
 	res := reflectfp.LazyCall(reflect.TypeOf(lv), func() reflect.Value {
 		return reflect.ValueOf(20.2)
