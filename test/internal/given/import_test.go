@@ -13,7 +13,7 @@ func TestImport(t *testing.T) {
 	cwd, _ := os.Getwd()
 
 	cfg := &packages.Config{
-		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)

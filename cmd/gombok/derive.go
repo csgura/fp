@@ -28,11 +28,12 @@ type TypeClassInstanceGenerated struct {
 }
 
 type TypeClassSummonContext struct {
-	w            genfp.Writer
-	tcCache      *metafp.TypeClassInstanceCache
-	summoned     fp.Map[string, TypeClassInstanceGenerated]
-	loopCheck    fp.Set[string]
-	recursiveGen fp.Seq[metafp.TypeClassDerive]
+	w                     genfp.Writer
+	tcCache               *metafp.TypeClassInstanceCache
+	summoned              fp.Map[string, TypeClassInstanceGenerated]
+	loopCheck             fp.Set[string]
+	recursiveGen          fp.Seq[metafp.TypeClassDerive]
+	implicitTypeInference bool
 }
 
 type CurrentContext struct {
@@ -988,7 +989,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), r.w.TypeName(ctx.working, f.I2.Type))
 						}).Take(arity).MakeString(",")
 
-						if implicitTypeInference {
+						if r.implicitTypeInference {
 							return fmt.Sprintf(`%s.Compose(
 								%s,
 								%s.HList%dLabelled,
@@ -1072,7 +1073,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						}).Take(arity).MakeString(",")
 
 						hlistToTuple := func() string {
-							if implicitTypeInference {
+							if r.implicitTypeInference {
 								return fmt.Sprintf(`%s.LabelledFromHList%d`,
 									productpk,
 									arity,
@@ -1667,7 +1668,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 				return r.w.TypeName(ctx.working, f.Type)
 			}).Take(arity).MakeString(",")
 
-			if implicitTypeInference {
+			if r.implicitTypeInference {
 				return fmt.Sprintf(`%s.HList%d`,
 					aspk, arity,
 				)
@@ -1688,7 +1689,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			}).Take(arity).MakeString(",")
 
 			hlistToTuple := func() string {
-				if implicitTypeInference && explicit == false {
+				if r.implicitTypeInference && explicit == false {
 					return fmt.Sprintf(`%s.TupleFromHList%d`,
 						productpk, arity,
 					)
@@ -2020,7 +2021,7 @@ func genDerive() {
 		cwd, _ := os.Getwd()
 
 		cfg := &packages.Config{
-			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax,
+			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 		}
 
 		pkgs, err := packages.Load(cfg, cwd)
@@ -2049,10 +2050,19 @@ func genDerive() {
 			tccache.WillGenerated(v)
 		})
 
+		moduleInf := option.FlatMap(seq.Head(pkgs),
+			option.Compose3(
+				func(p *packages.Package) fp.Option[packages.Module] { return option.Ptr(p.Module) },
+				option.Pure1(func(m packages.Module) string { return m.GoVersion }),
+				option.Pure1(func(v string) bool { return v >= "1.21" }),
+			),
+		).OrElse(true)
+
 		summonCtx := TypeClassSummonContext{
-			w:            w,
-			tcCache:      &tccache,
-			recursiveGen: derives,
+			w:                     w,
+			tcCache:               &tccache,
+			recursiveGen:          derives,
+			implicitTypeInference: implicitTypeInference && moduleInf,
 		}
 
 		for len(summonCtx.recursiveGen) > 0 {

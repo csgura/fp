@@ -395,6 +395,18 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
 	return ApplicativeFunctor1[A, R]{fn: Some(fn)}
 }
 
+func Pure0[R any](f func() R) fp.Func1[fp.Unit, fp.Option[R]] {
+	return func(fp.Unit) fp.Option[R] {
+		return Some(f())
+	}
+}
+
+func Pure1[A, R any](f func(A) R) fp.Func1[A, fp.Option[R]] {
+	return func(a A) fp.Option[R] {
+		return Some(f(a))
+	}
+}
+
 // type ApplicativeFunctor2[H hlist.Header[HT], HT, A, B, R any] struct {
 // 	h  fp.Option[H]
 // 	fn fp.Option[fp.Func1[A, fp.Func1[B, R]]]
