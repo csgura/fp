@@ -30,6 +30,14 @@ func FromOption[T any](v fp.Option[T]) fp.Try[T] {
 	}
 }
 
+func FromPtr[T any](v *T) fp.Try[T] {
+	if v != nil {
+		return Success(*v)
+	} else {
+		return Failure[T](fp.ErrOptionEmpty)
+	}
+}
+
 type Panic interface {
 	error
 	Panic() any

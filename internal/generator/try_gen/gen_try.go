@@ -326,6 +326,15 @@ func Unit%d[%s any]( f func(%s) error) fp.Func%d[%s,fp.Try[fp.Unit]] {
 }
 `, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
 
+			fmt.Fprintf(f, `
+func Ptr%d[%s,R any]( f func(%s) (*R,error)) fp.Func%d[%s,fp.Try[R]] {
+	return func(%s) fp.Try[R] {
+		ret , err := f(%s)
+		return FlatMap(Apply(ret,err), FromPtr)
+	}
+}
+`, i, genfp.FuncTypeArgs(1, i), genfp.FuncTypeArgs(1, i), i, genfp.FuncTypeArgs(1, i), genfp.FuncDeclArgs(1, i), genfp.FuncCallArgs(1, i))
+
 		}
 
 		for i := 3; i < max.Compose; i++ {
