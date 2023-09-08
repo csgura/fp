@@ -29,7 +29,7 @@ func (r DecoderContext) WithNoneWorkingObject() DecoderContext {
 }
 
 func (r DecoderContext) String() string {
-	return fmt.Sprintf("DecoderContext(workingObject=%v)", r.workingObject)
+	return fmt.Sprintf("js.DecoderContext{workingObject:%v}", r.workingObject)
 }
 
 func (r DecoderContext) AsTuple() fp.Tuple1[fp.Option[map[string]json.RawMessage]] {

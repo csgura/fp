@@ -26,7 +26,7 @@ func (r Result[T]) WithRemains(v string) Result[T] {
 }
 
 func (r Result[T]) String() string {
-	return fmt.Sprintf("Result(value=%v, remains=%v)", r.value, r.remains)
+	return fmt.Sprintf("read.Result{value:%v, remains:%v}", r.value, r.remains)
 }
 
 func (r Result[T]) AsTuple() fp.Tuple2[T, string] {

@@ -32,7 +32,7 @@ func (r EmbeddedStruct) WithWorld(v struct {
 }
 
 func (r EmbeddedStruct) String() string {
-	return fmt.Sprintf("EmbeddedStruct(hello=%v, world=%v)", r.hello, r.world)
+	return fmt.Sprintf("showtest.EmbeddedStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
 func (r EmbeddedStruct) AsTuple() fp.Tuple2[string, struct {
@@ -160,7 +160,7 @@ func (r EmbeddedTypeParamStruct[T]) WithWorld(v struct {
 }
 
 func (r EmbeddedTypeParamStruct[T]) String() string {
-	return fmt.Sprintf("EmbeddedTypeParamStruct(hello=%v, world=%v)", r.hello, r.world)
+	return fmt.Sprintf("showtest.EmbeddedTypeParamStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
 func (r EmbeddedTypeParamStruct[T]) AsTuple() fp.Tuple2[string, struct {

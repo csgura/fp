@@ -35,7 +35,7 @@ func (r Hello) WithHi(v int) Hello {
 }
 
 func (r Hello) String() string {
-	return fmt.Sprintf("Hello(world=%v, hi=%v)", r.world, r.hi)
+	return fmt.Sprintf("testpk2.Hello{world:%v, hi:%v}", r.world, r.hi)
 }
 
 func (r Hello) AsTuple() fp.Tuple2[string, int] {
@@ -322,7 +322,7 @@ func (r AllKindTypes) WithI2(v interface {
 }
 
 func (r AllKindTypes) String() string {
-	return fmt.Sprintf("AllKindTypes(hi=%v, tpe=%v, arr=%v, m=%v, a=%v, p=%v, l=%v, t=%v, m2=%v, mm=%v, intf=%v, ch=%v, ch2=%v, ch3=%v, fn3=%v, arr2=%v, st=%v, i2=%v)", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
+	return fmt.Sprintf("testpk2.AllKindTypes{hi:%v, tpe:%v, arr:%v, m:%v, a:%v, p:%v, l:%v, t:%v, m2:%v, mm:%v, intf:%v, ch:%v, ch2:%v, ch3:%v, fn3:%v, arr2:%v, st:%v, i2:%v}", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
 }
 
 func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
@@ -821,7 +821,7 @@ func (r Person) WithBlob(v []byte) Person {
 }
 
 func (r Person) String() string {
-	return fmt.Sprintf("Person(name=%v, age=%v, height=%v, phone=%v, addr=%v, list=%v, seq=%v, blob=%v)", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
+	return fmt.Sprintf("testpk2.Person{name:%v, age:%v, height:%v, phone:%v, addr:%v, list:%v, seq:%v, blob:%v}", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
 func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
@@ -1027,7 +1027,7 @@ func (r Wallet) WithAmount(v int64) Wallet {
 }
 
 func (r Wallet) String() string {
-	return fmt.Sprintf("Wallet(owner=%v, amount=%v)", r.owner, r.amount)
+	return fmt.Sprintf("testpk2.Wallet{owner:%v, amount:%v}", r.owner, r.amount)
 }
 
 func (r Wallet) AsTuple() fp.Tuple2[Person, int64] {
@@ -1137,7 +1137,7 @@ func (r Entry[A, B, C, D]) WithTuple(v fp.Tuple2[A, B]) Entry[A, B, C, D] {
 }
 
 func (r Entry[A, B, C, D]) String() string {
-	return fmt.Sprintf("Entry(name=%v, value=%v, tuple=%v)", r.name, r.value, r.tuple)
+	return fmt.Sprintf("testpk2.Entry{name:%v, value:%v, tuple:%v}", r.name, r.value, r.tuple)
 }
 
 func (r Entry[A, B, C, D]) AsTuple() fp.Tuple3[string, A, fp.Tuple2[A, B]] {
@@ -1266,7 +1266,7 @@ func (r Key) WithC(v []byte) Key {
 }
 
 func (r Key) String() string {
-	return fmt.Sprintf("Key(a=%v, b=%v, c=%v)", r.a, r.b, r.c)
+	return fmt.Sprintf("testpk2.Key{a:%v, b:%v, c:%v}", r.a, r.b, r.c)
 }
 
 func (r Key) AsTuple() fp.Tuple3[int, float32, []byte] {
@@ -1503,7 +1503,7 @@ func (r Greeting) WithLanguage(v string) Greeting {
 }
 
 func (r Greeting) String() string {
-	return fmt.Sprintf("Greeting(hello=%v, language=%v)", r.hello, r.language)
+	return fmt.Sprintf("testpk2.Greeting{hello:%v, language:%v}", r.hello, r.language)
 }
 
 func (r Greeting) AsTuple() fp.Tuple2[testpk1.World, string] {
@@ -1640,7 +1640,7 @@ func (r Three) WithThree(v float64) Three {
 }
 
 func (r Three) String() string {
-	return fmt.Sprintf("Three(one=%v, two=%v, three=%v)", r.one, r.two, r.three)
+	return fmt.Sprintf("testpk2.Three{one:%v, two:%v, three:%v}", r.one, r.two, r.three)
 }
 
 func (r Three) AsTuple() fp.Tuple3[int, string, float64] {
@@ -1758,7 +1758,7 @@ func (r Tree) WithRoot(v testpk1.Node) Tree {
 }
 
 func (r Tree) String() string {
-	return fmt.Sprintf("Tree(root=%v)", r.root)
+	return fmt.Sprintf("testpk2.Tree{root:%v}", r.root)
 }
 
 func (r Tree) AsTuple() fp.Tuple1[testpk1.Node] {
@@ -1953,7 +1953,7 @@ func (r NotIgnored) WithIg(v int) NotIgnored {
 }
 
 func (r NotIgnored) String() string {
-	return fmt.Sprintf("NotIgnored(ig=%v)", r.ig)
+	return fmt.Sprintf("testpk2.NotIgnored{ig:%v}", r.ig)
 }
 
 func (r NotIgnored) AsTuple() fp.Tuple1[int] {

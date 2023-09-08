@@ -280,7 +280,7 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 		})
 
 		fm := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
-			return fmt.Sprintf("%s=%%v", f.Name)
+			return fmt.Sprintf("%s:%%v", f.Name)
 		}).MakeString(", ")
 
 		fields := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
@@ -289,10 +289,10 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 
 		fmt.Fprintf(w, `
 					func(r %s) String() string {
-						return %s.Sprintf("%s(%s)", %s)
+						return %s.Sprintf("%s.%s{%s}", %s)
 					}
 				`, valuereceiver,
-			fmtalias, ts.Name, fm, fields,
+			fmtalias, ts.Package.Name(), ts.Name, fm, fields,
 		)
 		genMethod = genMethod.Incl("String")
 

@@ -325,7 +325,7 @@ var _ eq.Derives[fp.Eq[LocalEmbedPrivate]]
 // @fp.String
 // @fp.AllArgsConstructor
 type ExplicitTag struct {
-	ctx   context.Context `gombok:"String.Exclude"`
+	ctx   context.Context `fp:"String.Exclude"`
 	hello string
 	world int
 }

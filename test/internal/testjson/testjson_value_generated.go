@@ -80,7 +80,7 @@ func (r Root) WithH(v Child) Root {
 }
 
 func (r Root) String() string {
-	return fmt.Sprintf("Root(a=%v, b=%v, c=%v, d=%v, e=%v, f=%v, g=%v, h=%v)", r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
+	return fmt.Sprintf("testjson.Root{a:%v, b:%v, c:%v, d:%v, e:%v, f:%v, g:%v, h:%v}", r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
 }
 
 func (r Root) AsTuple() fp.Tuple8[int, string, float64, bool, *int, []int, map[string]int, Child] {
@@ -287,7 +287,7 @@ func (r Child) WithB(v any) Child {
 }
 
 func (r Child) String() string {
-	return fmt.Sprintf("Child(a=%v, b=%v)", r.a, r.b)
+	return fmt.Sprintf("testjson.Child{a:%v, b:%v}", r.a, r.b)
 }
 
 func (r Child) AsTuple() fp.Tuple2[map[string]any, any] {
@@ -407,7 +407,7 @@ func (r Node) WithRight(v *Node) Node {
 }
 
 func (r Node) String() string {
-	return fmt.Sprintf("Node(name=%v, left=%v, right=%v)", r.name, r.left, r.right)
+	return fmt.Sprintf("testjson.Node{name:%v, left:%v, right:%v}", r.name, r.left, r.right)
 }
 
 func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
@@ -525,7 +525,7 @@ func (r Tree) WithRoot(v *Node) Tree {
 }
 
 func (r Tree) String() string {
-	return fmt.Sprintf("Tree(root=%v)", r.root)
+	return fmt.Sprintf("testjson.Tree{root:%v}", r.root)
 }
 
 func (r Tree) AsTuple() fp.Tuple1[*Node] {
@@ -620,7 +620,7 @@ func (r Entry[V]) WithValue(v V) Entry[V] {
 }
 
 func (r Entry[V]) String() string {
-	return fmt.Sprintf("Entry(name=%v, value=%v)", r.name, r.value)
+	return fmt.Sprintf("testjson.Entry{name:%v, value:%v}", r.name, r.value)
 }
 
 func (r Entry[V]) AsTuple() fp.Tuple2[string, V] {
@@ -731,7 +731,7 @@ func (r NotUsedParam[K, V]) WithValue(v V) NotUsedParam[K, V] {
 }
 
 func (r NotUsedParam[K, V]) String() string {
-	return fmt.Sprintf("NotUsedParam(param=%v, value=%v)", r.param, r.value)
+	return fmt.Sprintf("testjson.NotUsedParam{param:%v, value:%v}", r.param, r.value)
 }
 
 func (r NotUsedParam[K, V]) AsTuple() fp.Tuple2[string, V] {
@@ -851,7 +851,7 @@ func (r Movie) WithNotUsed(v NotUsedParam[int, string]) Movie {
 }
 
 func (r Movie) String() string {
-	return fmt.Sprintf("Movie(name=%v, casting=%v, notUsed=%v)", r.name, r.casting, r.notUsed)
+	return fmt.Sprintf("testjson.Movie{name:%v, casting:%v, notUsed:%v}", r.name, r.casting, r.notUsed)
 }
 
 func (r Movie) AsTuple() fp.Tuple3[string, Entry[string], NotUsedParam[int, string]] {
@@ -960,7 +960,7 @@ func (r MovieMutable) AsImmutable() Movie {
 }
 
 func (r NoPrivate) String() string {
-	return fmt.Sprintf("NoPrivate(Root=%v)", r.Root)
+	return fmt.Sprintf("testjson.NoPrivate{Root:%v}", r.Root)
 }
 
 func (r NoPrivate) AsTuple() fp.Tuple1[string] {

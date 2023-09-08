@@ -29,7 +29,7 @@ func (r Person) WithAge(v int) Person {
 }
 
 func (r Person) String() string {
-	return fmt.Sprintf("Person(name=%v, age=%v)", r.name, r.age)
+	return fmt.Sprintf("docexample.Person{name:%v, age:%v}", r.name, r.age)
 }
 
 func (r Person) AsTuple() fp.Tuple2[string, int] {
@@ -139,7 +139,7 @@ func (r Address) WithStreet(v string) Address {
 }
 
 func (r Address) String() string {
-	return fmt.Sprintf("Address(country=%v, city=%v, street=%v)", r.country, r.city, r.street)
+	return fmt.Sprintf("docexample.Address{country:%v, city:%v, street:%v}", r.country, r.city, r.street)
 }
 
 func (r Address) AsTuple() fp.Tuple3[string, string, string] {
@@ -281,7 +281,7 @@ func (r Car) WithYear(v int) Car {
 }
 
 func (r Car) String() string {
-	return fmt.Sprintf("Car(company=%v, model=%v, year=%v)", r.company, r.model, r.year)
+	return fmt.Sprintf("docexample.Car{company:%v, model:%v, year:%v}", r.company, r.model, r.year)
 }
 
 func (r Car) AsTuple() fp.Tuple3[string, string, int] {
@@ -408,7 +408,7 @@ func (r Entry[A, B]) WithValue(v B) Entry[A, B] {
 }
 
 func (r Entry[A, B]) String() string {
-	return fmt.Sprintf("Entry(key=%v, value=%v)", r.key, r.value)
+	return fmt.Sprintf("docexample.Entry{key:%v, value:%v}", r.key, r.value)
 }
 
 func (r Entry[A, B]) AsTuple() fp.Tuple2[A, B] {
@@ -509,7 +509,7 @@ func (r CarsOwned) WithCars(v fp.Seq[Car]) CarsOwned {
 }
 
 func (r CarsOwned) String() string {
-	return fmt.Sprintf("CarsOwned(owner=%v, cars=%v)", r.owner, r.cars)
+	return fmt.Sprintf("docexample.CarsOwned{owner:%v, cars:%v}", r.owner, r.cars)
 }
 
 func (r CarsOwned) AsTuple() fp.Tuple2[Person, fp.Seq[Car]] {
@@ -629,7 +629,7 @@ func (r User) WithActive(v bool) User {
 }
 
 func (r User) String() string {
-	return fmt.Sprintf("User(name=%v, email=%v, active=%v)", r.name, r.email, r.active)
+	return fmt.Sprintf("docexample.User{name:%v, email:%v, active:%v}", r.name, r.email, r.active)
 }
 
 func (r User) AsTuple() fp.Tuple3[string, fp.Option[string], bool] {

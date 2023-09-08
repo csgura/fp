@@ -31,7 +31,7 @@ func (r World) WithTimestamp(v time.Time) World {
 }
 
 func (r World) String() string {
-	return fmt.Sprintf("World(message=%v, timestamp=%v, Pub=%v)", r.message, r.timestamp, r.Pub)
+	return fmt.Sprintf("testpk1.World{message:%v, timestamp:%v, Pub:%v}", r.message, r.timestamp, r.Pub)
 }
 
 func (r World) AsTuple() fp.Tuple3[string, time.Time, string] {
@@ -199,7 +199,7 @@ func (r HasOption) WithEmptySeq(v []int) HasOption {
 }
 
 func (r HasOption) String() string {
-	return fmt.Sprintf("HasOption(message=%v, addr=%v, phone=%v, emptySeq=%v)", r.message, r.addr, r.phone, r.emptySeq)
+	return fmt.Sprintf("testpk1.HasOption{message:%v, addr:%v, phone:%v, emptySeq:%v}", r.message, r.addr, r.phone, r.emptySeq)
 }
 
 func (r HasOption) AsTuple() fp.Tuple4[string, fp.Option[string], []string, []int] {
@@ -347,7 +347,7 @@ func (r CustomValue) WithA(v string) CustomValue {
 }
 
 func (r CustomValue) String() string {
-	return fmt.Sprintf("CustomValue(a=%v, b=%v)", r.a, r.b)
+	return fmt.Sprintf("testpk1.CustomValue{a:%v, b:%v}", r.a, r.b)
 }
 
 func (r CustomValue) AsTuple() fp.Tuple2[string, int] {
@@ -441,7 +441,7 @@ func (r AliasedStruct) WithTimestamp(v time.Time) AliasedStruct {
 }
 
 func (r AliasedStruct) String() string {
-	return fmt.Sprintf("AliasedStruct(message=%v, timestamp=%v, Pub=%v)", r.message, r.timestamp, r.Pub)
+	return fmt.Sprintf("testpk1.AliasedStruct{message:%v, timestamp:%v, Pub:%v}", r.message, r.timestamp, r.Pub)
 }
 
 func (r AliasedStruct) AsTuple() fp.Tuple3[string, time.Time, string] {
@@ -562,7 +562,7 @@ func (r HListInsideHList) WithHello(v World) HListInsideHList {
 }
 
 func (r HListInsideHList) String() string {
-	return fmt.Sprintf("HListInsideHList(tp=%v, value=%v, hello=%v)", r.tp, r.value, r.hello)
+	return fmt.Sprintf("testpk1.HListInsideHList{tp:%v, value:%v, hello:%v}", r.tp, r.value, r.hello)
 }
 
 func (r HListInsideHList) AsTuple() fp.Tuple3[fp.Tuple2[string, int], string, World] {
@@ -669,7 +669,7 @@ func (r Wrapper[T]) WithUnwrap(v T) Wrapper[T] {
 }
 
 func (r Wrapper[T]) String() string {
-	return fmt.Sprintf("Wrapper(unwrap=%v)", r.unwrap)
+	return fmt.Sprintf("testpk1.Wrapper{unwrap:%v}", r.unwrap)
 }
 
 func (r Wrapper[T]) AsTuple() fp.Tuple1[T] {
@@ -755,7 +755,7 @@ func (r TestOrderedEq) WithTlist(v fp.Seq[fp.Tuple2[int, int]]) TestOrderedEq {
 }
 
 func (r TestOrderedEq) String() string {
-	return fmt.Sprintf("TestOrderedEq(list=%v, tlist=%v)", r.list, r.tlist)
+	return fmt.Sprintf("testpk1.TestOrderedEq{list:%v, tlist:%v}", r.list, r.tlist)
 }
 
 func (r TestOrderedEq) AsTuple() fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]] {
@@ -856,7 +856,7 @@ func (r MapEq) WithM2(v fp.Map[string, World]) MapEq {
 }
 
 func (r MapEq) String() string {
-	return fmt.Sprintf("MapEq(m=%v, m2=%v)", r.m, r.m2)
+	return fmt.Sprintf("testpk1.MapEq{m:%v, m2:%v}", r.m, r.m2)
 }
 
 func (r MapEq) AsTuple() fp.Tuple2[map[string]World, fp.Map[string, World]] {
@@ -975,7 +975,7 @@ func (r SeqMonoid) WithM2(v fp.Map[string, World]) SeqMonoid {
 }
 
 func (r SeqMonoid) String() string {
-	return fmt.Sprintf("SeqMonoid(v=%v, s=%v, m=%v, m2=%v)", r.v, r.s, r.m, r.m2)
+	return fmt.Sprintf("testpk1.SeqMonoid{v:%v, s:%v, m:%v, m2:%v}", r.v, r.s, r.m, r.m2)
 }
 
 func (r SeqMonoid) AsTuple() fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]] {
@@ -1097,7 +1097,7 @@ func (r MapEqParam[K, V]) WithM(v fp.Map[K, V]) MapEqParam[K, V] {
 }
 
 func (r MapEqParam[K, V]) String() string {
-	return fmt.Sprintf("MapEqParam(m=%v)", r.m)
+	return fmt.Sprintf("testpk1.MapEqParam{m:%v}", r.m)
 }
 
 func (r MapEqParam[K, V]) AsTuple() fp.Tuple1[fp.Map[K, V]] {
@@ -1174,7 +1174,7 @@ func (r NotUsedProblem) WithM(v MapEqParam[string, int]) NotUsedProblem {
 }
 
 func (r NotUsedProblem) String() string {
-	return fmt.Sprintf("NotUsedProblem(m=%v)", r.m)
+	return fmt.Sprintf("testpk1.NotUsedProblem{m:%v}", r.m)
 }
 
 func (r NotUsedProblem) AsTuple() fp.Tuple1[MapEqParam[string, int]] {
@@ -1269,7 +1269,7 @@ func (r Node) WithRight(v *Node) Node {
 }
 
 func (r Node) String() string {
-	return fmt.Sprintf("Node(value=%v, left=%v, right=%v)", r.value, r.left, r.right)
+	return fmt.Sprintf("testpk1.Node{value:%v, left:%v, right:%v}", r.value, r.left, r.right)
 }
 
 func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
@@ -1367,7 +1367,7 @@ func (r NodeMutable) AsImmutable() Node {
 }
 
 func (r NoPrivate) String() string {
-	return fmt.Sprintf("NoPrivate(Value=%v)", r.Value)
+	return fmt.Sprintf("testpk1.NoPrivate{Value:%v}", r.Value)
 }
 
 func (r NoPrivate) AsTuple() fp.Tuple1[int] {
@@ -1700,7 +1700,7 @@ func (r Over21) WithI30(v int) Over21 {
 }
 
 func (r Over21) String() string {
-	return fmt.Sprintf("Over21(i1=%v, i2=%v, i3=%v, i4=%v, i5=%v, i6=%v, i7=%v, i8=%v, i9=%v, i10=%v, i11=%v, i12=%v, i13=%v, i14=%v, i15=%v, i16=%v, i17=%v, i18=%v, i19=%v, i20=%v, i21=%v, i22=%v, i23=%v, i24=%v, i25=%v, i26=%v, i27=%v, i28=%v, i29=%v, i30=%v)", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
+	return fmt.Sprintf("testpk1.Over21{i1:%v, i2:%v, i3:%v, i4:%v, i5:%v, i6:%v, i7:%v, i8:%v, i9:%v, i10:%v, i11:%v, i12:%v, i13:%v, i14:%v, i15:%v, i16:%v, i17:%v, i18:%v, i19:%v, i20:%v, i21:%v, i22:%v, i23:%v, i24:%v, i25:%v, i26:%v, i27:%v, i28:%v, i29:%v, i30:%v}", r.i1, r.i2, r.i3, r.i4, r.i5, r.i6, r.i7, r.i8, r.i9, r.i10, r.i11, r.i12, r.i13, r.i14, r.i15, r.i16, r.i17, r.i18, r.i19, r.i20, r.i21, r.i22, r.i23, r.i24, r.i25, r.i26, r.i27, r.i28, r.i29, r.i30)
 }
 
 func (r Over21) Unapply() (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int) {
@@ -2174,7 +2174,7 @@ func (r DefinedOtherPackage) WithPrivField(v string) DefinedOtherPackage {
 }
 
 func (r DefinedOtherPackage) String() string {
-	return fmt.Sprintf("DefinedOtherPackage(PubField=%v, privField=%v, DupGetter=%v)", r.PubField, r.privField, r.DupGetter)
+	return fmt.Sprintf("testpk1.DefinedOtherPackage{PubField:%v, privField:%v, DupGetter:%v}", r.PubField, r.privField, r.DupGetter)
 }
 
 func (r DefinedOtherPackage) AsTuple() fp.Tuple3[string, string, string] {
@@ -2297,7 +2297,7 @@ func (r ExplicitTag) WithWorld(v int) ExplicitTag {
 }
 
 func (r ExplicitTag) String() string {
-	return fmt.Sprintf("ExplicitTag(hello=%v, world=%v)", r.hello, r.world)
+	return fmt.Sprintf("testpk1.ExplicitTag{hello:%v, world:%v}", r.hello, r.world)
 }
 
 func NewGenericExplicitTag[T any](hello string, world int, message T) GenericExplicitTag[T] {
@@ -2336,7 +2336,7 @@ func (r GenericExplicitTag[T]) WithMessage(v T) GenericExplicitTag[T] {
 }
 
 func (r GenericExplicitTag[T]) String() string {
-	return fmt.Sprintf("GenericExplicitTag(hello=%v, world=%v, message=%v)", r.hello, r.world, r.message)
+	return fmt.Sprintf("testpk1.GenericExplicitTag{hello:%v, world:%v, message:%v}", r.hello, r.world, r.message)
 }
 
 type GenericExplicitTagBuilder[T any] GenericExplicitTag[T]

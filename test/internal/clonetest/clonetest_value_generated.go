@@ -26,7 +26,7 @@ func (r ValueStruct) WithWorld(v int) ValueStruct {
 }
 
 func (r ValueStruct) String() string {
-	return fmt.Sprintf("ValueStruct(hello=%v, world=%v)", r.hello, r.world)
+	return fmt.Sprintf("clonetest.ValueStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
 func (r ValueStruct) AsTuple() fp.Tuple2[string, int] {
@@ -127,7 +127,7 @@ func (r CloneStruct) WithWorld(v int) CloneStruct {
 }
 
 func (r CloneStruct) String() string {
-	return fmt.Sprintf("CloneStruct(hello=%v, world=%v)", r.hello, r.world)
+	return fmt.Sprintf("clonetest.CloneStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
 func (r CloneStruct) AsTuple() fp.Tuple2[string, int] {
