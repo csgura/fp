@@ -247,7 +247,7 @@ type ParsedTag struct {
 
 func parseGombokTag(tags reflect.StructTag) ParsedTag {
 	ret := ParsedTag{}
-	tag, ok := tags.Lookup("gombok")
+	tag, ok := tags.Lookup("fp")
 	if ok {
 		values := strings.Split(tag, ",")
 		for _, v := range values {
