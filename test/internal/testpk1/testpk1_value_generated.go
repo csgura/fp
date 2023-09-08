@@ -2,6 +2,7 @@
 package testpk1
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
@@ -2260,11 +2261,16 @@ func (r DefinedOtherPackageMutable) AsImmutable() DefinedOtherPackage {
 	}
 }
 
-func NewExplicitTag(hello string, world int) ExplicitTag {
+func NewExplicitTag(ctx context.Context, hello string, world int) ExplicitTag {
 	return ExplicitTag{
+		ctx:   ctx,
 		hello: hello,
 		world: world,
 	}
+}
+
+func (r ExplicitTag) Ctx() context.Context {
+	return r.ctx
 }
 
 func (r ExplicitTag) Hello() string {
@@ -2273,6 +2279,11 @@ func (r ExplicitTag) Hello() string {
 
 func (r ExplicitTag) World() int {
 	return r.world
+}
+
+func (r ExplicitTag) WithCtx(v context.Context) ExplicitTag {
+	r.ctx = v
+	return r
 }
 
 func (r ExplicitTag) WithHello(v string) ExplicitTag {

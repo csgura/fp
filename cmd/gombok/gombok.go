@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"go/types"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
@@ -237,6 +240,32 @@ func processGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagg
 	return genMethod
 }
 
+type ParsedTag struct {
+	NotLabeled []string
+	Labels     fp.Map[string, string]
+}
+
+func parseGombokTag(tags reflect.StructTag) ParsedTag {
+	ret := ParsedTag{}
+	tag, ok := tags.Lookup("gombok")
+	if ok {
+		values := strings.Split(tag, ",")
+		for _, v := range values {
+			attrs := strings.Split(v, ";")
+			for _, a := range attrs {
+				kv := strings.Split(a, "=")
+				if len(kv) == 2 {
+
+					ret.Labels = ret.Labels.Updated(kv[0], kv[1])
+				} else {
+					ret.NotLabeled = append(ret.NotLabeled, kv[0])
+				}
+			}
+		}
+	}
+	return ret
+}
+
 func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
 	if ts.Info.Method.Get("String").IsEmpty() && !genMethod.Contains("String") {
 
@@ -245,7 +274,11 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 
 		printable := allFields.Filter(func(v metafp.StructField) bool {
 			return v.Type.IsPrintable()
+		}).FilterNot(func(v metafp.StructField) bool {
+			t := parseGombokTag(reflect.StructTag(v.Tag))
+			return as.Seq(t.NotLabeled).Exists(eq.GivenValue("String.Exclude"))
 		})
+
 		fm := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
 			return fmt.Sprintf("%s=%%v", f.Name)
 		}).MakeString(", ")

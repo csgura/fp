@@ -1,6 +1,7 @@
 package testpk1
 
 import (
+	"context"
 	"time"
 
 	"github.com/csgura/fp"
@@ -324,6 +325,7 @@ var _ eq.Derives[fp.Eq[LocalEmbedPrivate]]
 // @fp.String
 // @fp.AllArgsConstructor
 type ExplicitTag struct {
+	ctx   context.Context `gombok:"String.Exclude"`
 	hello string
 	world int
 }
