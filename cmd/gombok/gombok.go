@@ -690,10 +690,45 @@ func genAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.Tag
 	return genMethod
 }
 
+func genRequiredArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+
+	fnName := fmt.Sprintf("New%s", ts.Name)
+
+	if !genMethod.Contains(fnName) {
+
+		allFields := applyFields(ts).FilterNot(func(v metafp.StructField) bool {
+			return v.Type.IsPtr() || v.Type.IsOption()
+		})
+
+		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
+			return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPackage, v.Type.Type))
+		}).MakeString(",")
+
+		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+			return fmt.Sprintf("%s : %s", f.I2.Name, f.I2.Name)
+		}).MakeString(",\n")
+
+		valueType := ts.Info.TypeStr(w, workingPackage)
+		fmt.Fprintf(w, `
+			func %s%s(%s) %s {
+				return %s {
+					%s,
+				}
+			}
+		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+			valueType,
+			fields,
+		)
+	}
+
+	return genMethod
+}
+
 func processAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
 	if _, ok := ts.Tags.Get("@fp.AllArgsConstructor").Unapply(); ok {
-
 		genMethod = genAllArgsCons(w, workingPackage, ts, genMethod)
+	} else if _, ok := ts.Tags.Get("@fp.RequiredArgsConstructor").Unapply(); ok {
+		genMethod = genRequiredArgsCons(w, workingPackage, ts, genMethod)
 	}
 	return genMethod
 }
@@ -1212,6 +1247,7 @@ func genValueAndGetter() {
 			"@fp.With",
 			"@fp.Builder",
 			"@fp.AllArgsConstructor",
+			"@fp.RequiredArgsConstructor",
 		)
 
 		if st.Size() == 0 {

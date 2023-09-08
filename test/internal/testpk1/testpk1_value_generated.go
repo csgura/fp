@@ -2384,6 +2384,12 @@ func (r GenericExplicitTagBuilder[T]) FromMap(m map[string]any) GenericExplicitT
 	return r
 }
 
+func NewRequiredArgs(hello string) RequiredArgs {
+	return RequiredArgs{
+		hello: hello,
+	}
+}
+
 type PubNamedPub[T any] fp.Tuple1[T]
 
 func (r PubNamedPub[T]) Name() string {

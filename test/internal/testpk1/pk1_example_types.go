@@ -338,3 +338,10 @@ type GenericExplicitTag[T any] struct {
 	world   int
 	message T
 }
+
+// @fp.RequiredArgsConstructor
+type RequiredArgs struct {
+	hello string
+	world *int
+	etc   fp.Option[string]
+}
