@@ -129,6 +129,17 @@ func Map2[A, B, R any](ta fp.Try[A], tb fp.Try[B], fab func(A, B) R) fp.Try[R] {
 	})
 }
 
+// fp.With 의 try 버젼
+// fp.With 가 Flip 과 사실상 같은 것처럼
+// FlapMap 의 Flip 버젼과 동일
+// var b fp.Try[B]
+// a := try.Sucesss(A{})
+// a.FlatMap( try.With(A.WithB, b))
+// 형태로 코딩 가능
+func With[A, B any](withf func(A, B) A, v fp.Try[B]) func(A) fp.Try[A] {
+	return Flap(Map(v, fp.Flip2(withf)))
+}
+
 // func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
 // 	return Ap(Success(as.Func1(f)), opt)
 // }

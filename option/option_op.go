@@ -103,6 +103,17 @@ func Map2[A, B, U any](a fp.Option[A], b fp.Option[B], f func(A, B) U) fp.Option
 	})
 }
 
+// fp.With 의 option 버젼
+// fp.With 가 Flip 과 사실상 같은 것처럼
+// FlapMap 의 Flip 버젼과 동일
+// var b fp.Option[B]
+// a := option.Some(A{})
+// a.FlatMap( option.With(A.WithB, b))
+// 형태로 코딩 가능
+func With[A, B any](withf func(A, B) A, v fp.Option[B]) func(A) fp.Option[A] {
+	return Flap(Map(v, fp.Flip2(withf)))
+}
+
 func Lift[T, U any](f func(v T) U) func(fp.Option[T]) fp.Option[U] {
 	return func(opt fp.Option[T]) fp.Option[U] {
 		return Map(opt, f)

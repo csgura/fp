@@ -120,6 +120,17 @@ func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp
 	}, ctx...)
 }
 
+// fp.With 의 future 버젼
+// fp.With 가 Flip 과 사실상 같은 것처럼
+// FlapMap 의 Flip 버젼과 동일
+// var b fp.Future[B]
+// a := future.Successful(A{})
+// a.FlatMap( future.With(A.WithB, b))
+// 형태로 코딩 가능
+func With[A, B any](withf func(A, B) A, v fp.Future[B], ctx ...fp.Executor) func(A) fp.Future[A] {
+	return Flap(Map(v, fp.Flip2(withf), ctx...), ctx...)
+}
+
 func Lift[T, U any](f func(v T) U, ctx ...fp.Executor) func(fp.Future[T]) fp.Future[U] {
 	return func(opt fp.Future[T]) fp.Future[U] {
 		return Map(opt, f, ctx...)
