@@ -41,7 +41,7 @@ func InstanceOf[T any](v any) T {
 }
 
 func Tuple[K, V any](k K, v V) fp.Tuple2[K, V] {
-	return fp.Tuple2[K, V]{k, v}
+	return fp.Tuple2[K, V]{I1: k, I2: v}
 }
 
 func Named[V any](name string, v V) fp.RuntimeNamed[V] {

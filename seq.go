@@ -213,9 +213,12 @@ func IteratorOfSeq[T any](r []T) Iterator[T] {
 			return idx < len(r)
 		},
 		func() T {
-			ret := r[idx]
-			idx++
-			return ret
+			if idx < len(r) {
+				ret := r[idx]
+				idx++
+				return ret
+			}
+			panic("next on empty iterator")
 		},
 	)
 }

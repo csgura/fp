@@ -25,6 +25,10 @@ func List[T any](list fp.List[T]) fp.Iterator[T] {
 	return FromList(list)
 }
 
+func FromOption[T any](opt fp.Option[T]) fp.Iterator[T] {
+	return fp.IteratorOfOption(opt)
+}
+
 func FromList[T any](list fp.List[T]) fp.Iterator[T] {
 	current := list
 
