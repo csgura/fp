@@ -37,9 +37,12 @@ func FromList[T any](list fp.List[T]) fp.Iterator[T] {
 			return current.NonEmpty()
 		},
 		func() T {
-			ret := current.Head()
-			current = current.Tail()
-			return ret
+			if current.NonEmpty() {
+				ret := current.Head()
+				current = current.Tail()
+				return ret
+			}
+			panic("next on empty iterator")
 		},
 	)
 }
@@ -60,9 +63,12 @@ func ReverseSeq[T any](seq []T) fp.Iterator[T] {
 			return idx > 0
 		},
 		func() T {
-			ret := seq[idx-1]
-			idx--
-			return ret
+			if idx > 0 {
+				ret := seq[idx-1]
+				idx--
+				return ret
+			}
+			panic("next on empty iterator")
 		},
 	)
 }
