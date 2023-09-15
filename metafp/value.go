@@ -3,6 +3,7 @@ package metafp
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 	"unicode"
@@ -168,6 +169,19 @@ type PackagedName struct {
 	Name    string
 }
 
+func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Named {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
+	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+
+	ti := info.Types[typeExpr]
+	if named, ok := ti.Type.(*types.Named); ok {
+		return named
+	}
+	return nil
+}
+
 func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags ...string) fp.Seq[*ast.CompositeLit] {
 	tagSeq := as.Seq(tags)
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[*ast.CompositeLit] {
@@ -201,12 +215,15 @@ func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags .
 							}
 
 							if cl, ok := v.I2.(*ast.CompositeLit); ok {
+								named := checkType(pk, cl.Type, v.I2.Pos())
+								if named != nil {
+									tpe := typeInfo(named)
+									if tpe.PackagedName() == typ {
+										return option.Some(cl)
 
-								obj := pk.Types.Scope().Lookup(v.I1.Name)
-								tpe := typeInfo(obj.Type())
-								if tpe.PackagedName() == typ {
-									return option.Some(cl)
+									}
 								}
+
 							}
 							return option.None[*ast.CompositeLit]()
 						})

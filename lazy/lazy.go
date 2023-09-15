@@ -259,7 +259,7 @@ func Func3[A, B, C, R any](f func(A, B, C) R) func(A, B, C) Eval[R] {
 }
 
 // @internal.Generate
-var GenShow = genfp.GenerateFromUntil{
+var _ = genfp.GenerateFromUntil{
 	File:    "tailcall_gen.go",
 	Imports: []genfp.ImportPackage{},
 	From:    1,

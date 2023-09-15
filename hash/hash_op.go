@@ -130,7 +130,7 @@ type Derives[T any] interface {
 }
 
 // @internal.Generate
-var GenShow = genfp.GenerateFromUntil{
+var _ = genfp.GenerateFromUntil{
 	File: "tuple_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},

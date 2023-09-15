@@ -243,7 +243,7 @@ func FieldNoneOr[A, B any](getter func(A) fp.Option[B], pf fp.Predicate[B]) fp.P
 }
 
 // @internal.Generate
-var GenShow = genfp.GenerateFromUntil{
+var _ = genfp.GenerateFromUntil{
 	File: "tuple_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},

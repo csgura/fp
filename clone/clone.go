@@ -89,7 +89,7 @@ func Tuple2[A1, A2 any](ins1 fp.Clone[A1], ins2 fp.Clone[A2]) fp.Clone[fp.Tuple2
 }
 
 // @fp.Generate
-var GenClone = genfp.GenerateFromUntil{
+var _ = genfp.GenerateFromUntil{
 	File: "clone_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},

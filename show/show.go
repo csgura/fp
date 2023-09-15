@@ -353,7 +353,7 @@ func Labelled2[N1, N2 fp.Named](ins1 fp.Show[N1], ins2 fp.Show[N2]) fp.Show[fp.L
 }
 
 // @fp.Generate
-var GenShow = genfp.GenerateFromUntil{
+var _ = genfp.GenerateFromUntil{
 	File: "show_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},

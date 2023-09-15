@@ -111,7 +111,7 @@ func Ptr[T any](ordT lazy.Eval[fp.Ord[T]]) fp.Ord[*T] {
 }
 
 // @internal.Generate
-var GenShow = genfp.GenerateFromUntil{
+var _ = genfp.GenerateFromUntil{
 	File: "tuple_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},

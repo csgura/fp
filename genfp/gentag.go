@@ -3,6 +3,7 @@ package genfp
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 
@@ -152,6 +153,19 @@ func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]G
 	return ret
 }
 
+func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Named {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
+	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+
+	ti := info.Types[typeExpr]
+	if named, ok := ti.Type.(*types.Named); ok {
+		return named
+	}
+	return nil
+}
+
 func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []*ast.CompositeLit {
 	tagSeq := tags
 	return seqFlatMap(p, func(pk *packages.Package) []*ast.CompositeLit {
@@ -194,9 +208,8 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 							}
 
 							if cl, ok := v.I2.(*ast.CompositeLit); ok {
-
-								obj := pk.Types.Scope().Lookup(v.I1.Name)
-								if named, ok := obj.Type().(*types.Named); ok {
+								named := checkType(pk, cl.Type, v.I2.Pos())
+								if named != nil {
 									if named.Obj().Name() == typeName {
 										return []*ast.CompositeLit{cl}
 									}
