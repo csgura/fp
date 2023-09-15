@@ -41,7 +41,7 @@ var OrdinalName = []string{
 }
 
 var defaultFunc = map[string]any{
-	"FormtStr":          FormatStr,
+	"FormatStr":         FormatStr,
 	"FuncChain":         FuncChain,
 	"ConsType":          ConsType,
 	"ReversConsType":    ReversConsType,
