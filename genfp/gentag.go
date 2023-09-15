@@ -1,6 +1,7 @@
 package genfp
 
 import (
+	"fmt"
 	"go/ast"
 	"go/types"
 	"strings"
@@ -132,6 +133,23 @@ func seqExists[T any](r []T, p func(v T) bool) bool {
 		}
 	}
 	return false
+}
+
+func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]GenerateFromUntil {
+	ret := map[string][]GenerateFromUntil{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateFromUntil", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateFromUntil(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
 }
 
 func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []*ast.CompositeLit {

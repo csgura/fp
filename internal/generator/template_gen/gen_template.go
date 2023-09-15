@@ -24,20 +24,17 @@ func main() {
 		return
 	}
 
-	genseq := genfp.FindTaggedCompositeVariable(pkgs, "GenerateFromUntil", "@internal.Generate")
-	for _, cl := range genseq {
-		gfu, err := genfp.ParseGenerateFromUntil(cl)
-		if err != nil {
-			fmt.Printf("invalid generate directive : %s", err)
-		} else {
-			genfp.Generate(pack, gfu.File, func(w genfp.Writer) {
+	genseq := genfp.FindGenerateFromUntil(pkgs, "@internal.Generate")
+	for file, list := range genseq {
+
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
 				for _, im := range gfu.Imports {
 					w.GetImportedName(types.NewPackage(im.Package, im.Name))
 				}
 
 				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, map[string]any{})
-			})
-		}
+			}
+		})
 	}
-
 }

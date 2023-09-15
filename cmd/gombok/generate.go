@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"go/ast"
 	"go/types"
 	"os"
 
 	"github.com/csgura/fp/genfp"
-	"github.com/csgura/fp/metafp"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -26,20 +24,17 @@ func genGenerate() {
 		return
 	}
 
-	genseq := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateFromUntil"}, "@fp.Generate")
+	genseq := genfp.FindGenerateFromUntil(pkgs, "@fp.Generate")
 
-	genseq.Foreach(func(cl *ast.CompositeLit) {
-		gfu, err := genfp.ParseGenerateFromUntil(cl)
-		if err != nil {
-			fmt.Printf("invalid generate directive : %s", err)
-		} else {
-			genfp.Generate(pack, gfu.File, func(w genfp.Writer) {
+	for file, list := range genseq {
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
 				for _, im := range gfu.Imports {
 					w.GetImportedName(types.NewPackage(im.Package, im.Name))
 				}
 
 				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, map[string]any{})
-			})
-		}
-	})
+			}
+		})
+	}
 }
