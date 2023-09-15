@@ -1,4 +1,4 @@
-//go:generate go run github.com/csgura/fp/internal/generator/hash_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package hash
 
 import (
@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/seq"
@@ -126,4 +127,28 @@ func ContraMap[T, U any](teq fp.Hashable[T], fn func(U) T) fp.Hashable[U] {
 
 type Derives[T any] interface {
 	Target() T
+}
+
+// @internal.Generate
+var GenShow = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/eq", Name: "eq"},
+		{Package: "github.com/csgura/fp/as", Name: "as"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]( {{DeclTypeClassArgs 1 .N "fp.Hashable"}} ) fp.Hashable[fp.{{TupleType .N}}] {
+
+	pt := Tuple{{dec .N}}({{CallArgs 2 .N "ins"}})
+
+	return New( eq.New( func( a, b fp.{{TupleType .N}} ) bool {
+		return ins1.Eqv(a.Head(),b.Head()) && pt.Eqv(as.Tuple{{dec .N}}(a.Tail()), as.Tuple{{dec .N}}(b.Tail()))
+	}), func(t fp.{{TupleType .N}} ) uint32 {
+		return ins1.Hash(t.Head()) * 31 + pt.Hash(as.Tuple{{dec .N}}(t.Tail()))
+	})
+}
+	`,
 }

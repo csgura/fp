@@ -1,8 +1,10 @@
-//go:generate go run github.com/csgura/fp/internal/generator/lazy_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package lazy
 
 import (
 	"sync"
+
+	"github.com/csgura/fp/genfp"
 )
 
 // https://github.com/onflow/cadence/blob/v0.5.0-beta2/runtime/trampoline/trampoline.go
@@ -254,4 +256,19 @@ func Func3[A, B, C, R any](f func(A, B, C) R) func(A, B, C) Eval[R] {
 			return f(a, b, c)
 		})
 	}
+}
+
+// @internal.Generate
+var GenShow = genfp.GenerateFromUntil{
+	File:    "tailcall_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    1,
+	Until:   genfp.MaxFunc,
+	Template: `
+func TailCall{{.N}}[{{TypeArgs 1 .N}}, R any]( f func({{TypeArgs 1 .N}}) Eval[R], {{DeclArgs 1 .N}} ) Eval[R] {
+	return TailCall( func() Eval[R] {
+		return f({{CallArgs 1 .N}})
+	})
+}
+	`,
 }

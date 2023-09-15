@@ -1,10 +1,11 @@
-//go:generate go run github.com/csgura/fp/internal/generator/ord_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package ord
 
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
@@ -107,4 +108,34 @@ func Ptr[T any](ordT lazy.Eval[fp.Ord[T]]) fp.Ord[*T] {
 
 		return a == nil
 	})
+}
+
+// @internal.Generate
+var GenShow = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/eq", Name: "eq"},
+		{Package: "github.com/csgura/fp/as", Name: "as"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]( {{DeclTypeClassArgs 1 .N "fp.Ord"}} ) fp.Ord[fp.{{TupleType .N}}] {
+
+	pt := Tuple{{dec .N}}({{CallArgs 2 .N "ins"}})
+
+	return New( eq.New( func( a, b fp.{{TupleType .N}} ) bool {
+		return ins1.Eqv(a.Head(),b.Head()) && pt.Eqv(as.Tuple{{dec .N}}(a.Tail()), as.Tuple{{dec .N}}(b.Tail()))
+	}), fp.LessFunc[fp.{{TupleType .N}}](func(t1 , t2 fp.{{TupleType .N}}) bool {
+		if ins1.Less(t1.I1, t2.I1) {
+			return true
+		}
+		if ins1.Less(t2.I1, t1.I1) {
+			return false
+		}
+		return pt.Less(as.Tuple{{dec .N}}(t1.Tail()), as.Tuple{{dec .N}}(t2.Tail()))
+	}))
+}
+	`,
 }
