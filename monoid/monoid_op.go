@@ -1,10 +1,11 @@
-//go:generate go run github.com/csgura/fp/internal/generator/monoid_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package monoid
 
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/future"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
@@ -228,3 +229,30 @@ func Ptr[T any](monoidT lazy.Eval[fp.Monoid[T]]) fp.Monoid[*T] {
 var Unit = New(fp.Zero[fp.Unit], func(a, b fp.Unit) fp.Unit {
 	return fp.Unit{}
 })
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/product", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclTypeClassArgs 1 .N "fp.Monoid"}}) fp.Monoid[fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]] {
+	return New(
+		func() fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+			return product.Tuple{{.N}}({{ (Args "ins" 1 .N).Dot "Empty()"}})
+		},
+		func(t1 fp.Tuple{{.N}}[{{TypeArgs 1 .N}}], t2 fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+			return product.Tuple{{.N}}(
+				{{- range $idx := Range 1 .N -}}
+				ins{{$idx}}.Combine(t1.I{{$idx}}, t2.I{{$idx}}),
+				{{- end -}}
+			)
+		},
+	)
+}
+	`,
+}

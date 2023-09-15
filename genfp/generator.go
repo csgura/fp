@@ -63,8 +63,8 @@ var defaultFunc = map[string]any{
 	"Monad": func(s string) Monad {
 		return Monad(s)
 	},
-	"Args": func(s string) Args {
-		return Args(s)
+	"Args": func(s string, start, until int) ArgsRange {
+		return ArgsRange{s, start, until}
 	},
 	"TupleType": func(n int) string {
 		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
@@ -72,6 +72,16 @@ var defaultFunc = map[string]any{
 	"dec": func(n int) int {
 		return n - 1
 	},
+}
+
+type ArgsRange struct {
+	prefix string
+	start  int
+	until  int
+}
+
+func (r ArgsRange) Dot(expr string) string {
+	return Args(r.prefix).Dot(r.start, r.until, expr)
 }
 
 func FuncDecl(prefix string, start, until int, ret string) string {
@@ -170,6 +180,17 @@ func (r Args) Call(start, until int) string {
 			fmt.Fprintf(f, ", ")
 		}
 		fmt.Fprintf(f, "%s%d", r, j)
+	}
+	return f.String()
+}
+
+func (r Args) Dot(start, until int, expr string) string {
+	f := &bytes.Buffer{}
+	for j := start; j <= until; j++ {
+		if j != start {
+			fmt.Fprintf(f, ", ")
+		}
+		fmt.Fprintf(f, "%s%d.%s", r, j, expr)
 	}
 	return f.String()
 }
@@ -549,6 +570,7 @@ func (r Range) Write(txt string, param map[string]any) {
 			}
 		}
 	} else {
+		fmt.Printf("template = %s\n", txt)
 		panic(err)
 	}
 }
