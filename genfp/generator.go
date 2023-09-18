@@ -53,6 +53,8 @@ var defaultFunc = map[string]any{
 	"CurriedCallArgs":   CurriedCallArgs,
 	"TypeClassArgs":     TypeClassArgs,
 	"CurriedType":       CurriedType,
+	"RecursiveType":     RecursiveType,
+
 	"Range": func(start, until int) []int {
 		var ret = make([]int, until-start+1)
 		for i := start; i <= until; i++ {
@@ -442,15 +444,11 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 }
 
 func ConsType(start, until int, last string) string {
-	ret := last
-	for j := until; j >= start; j-- {
-		ret = fmt.Sprintf("hlist.Cons[A%d, %s]", j, ret)
-	}
-	return ret
+	return RecursiveType("hlist.Cons", start, until, last)
 }
 
 func ReversConsType(start, until int) string {
-	ret := "Nil"
+	ret := "hlist.Nil"
 	for j := start; j <= until; j++ {
 		ret = fmt.Sprintf("hlist.Cons[A%d, %s]", j, ret)
 	}
@@ -537,15 +535,32 @@ func TypeClassArgs(start, until int, typeClass string) string {
 }
 
 func CurriedType(start, until int, rtype string) string {
-	f := &bytes.Buffer{}
-	endBracket := ""
-	for j := start; j <= until; j++ {
-		fmt.Fprintf(f, "fp.Func1[A%d, ", j)
-		endBracket = endBracket + "]"
-	}
-	fmt.Fprintf(f, "%s%s", rtype, endBracket)
+	return RecursiveType("fp.Func1", start, until, rtype)
+}
 
-	return f.String()
+func RecursiveType(tp string, start, until int, rtype string) string {
+	if start > until {
+		f := &bytes.Buffer{}
+		endBracket := ""
+		for j := start; j >= until; j-- {
+			fmt.Fprintf(f, "%s[A%d, ", tp, j)
+			endBracket = endBracket + "]"
+		}
+		fmt.Fprintf(f, "%s%s", rtype, endBracket)
+
+		return f.String()
+	} else {
+		f := &bytes.Buffer{}
+		endBracket := ""
+		for j := start; j <= until; j++ {
+			fmt.Fprintf(f, "%s[A%d, ", tp, j)
+			endBracket = endBracket + "]"
+		}
+		fmt.Fprintf(f, "%s%s", rtype, endBracket)
+
+		return f.String()
+	}
+
 }
 
 type Range struct {

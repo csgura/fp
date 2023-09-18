@@ -1,8 +1,10 @@
-//go:generate go run github.com/csgura/fp/internal/generator/hlist_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package hlist
 
 import (
 	"fmt"
+
+	"github.com/csgura/fp/genfp"
 )
 
 // Sealed is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
@@ -102,4 +104,75 @@ func Case1[A1 any, T HList, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 
 func Unapply[H any, T HList](list Cons[H, T]) (H, T) {
 	return list.Head(), list.Tail()
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "lift_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    2,
+	Until:   genfp.MaxFunc,
+	Template: `
+func Lift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func({{RecursiveType "Cons" 1 .N "Nil"}}) R {
+	return func(v {{RecursiveType "Cons" 1 .N "Nil"}}) R {
+		rf := Lift{{dec .N}}(func({{DeclArgs 2 .N}}) R {
+			return f(v.Head(),{{CallArgs 2 .N}})
+		})
+
+		return rf(v.Tail())
+	}
+}
+func Rift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func({{RecursiveType "Cons" .N 1 "Nil"}}) R {
+	return func(v {{RecursiveType "Cons" .N 1 "Nil"}}) R {
+		rf := Rift{{dec .N}}(func({{DeclArgs 1 (dec .N)}}) R {
+			return f({{CallArgs 1 (dec .N)}}, v.Head())
+		})
+
+		return rf(v.Tail())
+	}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "case_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    2,
+	Until:   genfp.MaxProduct,
+	Template: `
+func Case{{.N}}[{{TypeArgs 1 .N}} any, T HList, R any](hl {{RecursiveType "Cons" 1 .N "T"}}, f func({{TypeArgs 1 .N}}) R) R {
+	return Case{{dec .N}}(hl.Tail(), func({{DeclArgs 2 .N}}) R {
+		return f(hl.Head(), {{CallArgs 2 .N}})
+	})
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "of_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    2,
+	Until:   genfp.MaxProduct,
+	Template: `
+func Of{{.N}}[{{TypeArgs 1 .N}} any]({{DeclArgs 1 .N}}) {{RecursiveType "Cons" 1 .N "Nil"}} {
+	return Concat(a1, Of{{dec .N}}({{CallArgs 2 .N}}))
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "reverse_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    2,
+	Until:   genfp.MaxFunc,
+	Template: `
+func Reverse{{.N}}[{{TypeArgs 1 .N}} any](hl {{RecursiveType "Cons" 1 .N "Nil"}}) {{RecursiveType "Cons" .N 1 "Nil"}} {
+	return Case{{.N}}(hl, func({{DeclArgs 1 .N}}) {{RecursiveType "Cons" .N 1 "Nil"}} {
+		return Of{{.N}}({{ReverseCallArgs 1 .N}})
+	})
+}
+	`,
 }
