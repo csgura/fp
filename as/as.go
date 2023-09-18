@@ -1,7 +1,10 @@
-//go:generate go run github.com/csgura/fp/internal/generator/as_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package as
 
-import "github.com/csgura/fp"
+import (
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/genfp"
+)
 
 func Func0[R any](f func() R) fp.Func1[fp.Unit, R] {
 	return func(u fp.Unit) R {
@@ -83,4 +86,183 @@ func Tupled2[A1, A2, R any](fn fp.Func2[A1, A2, R]) func(fp.Tuple2[A1, A2]) R {
 	return func(t fp.Tuple2[A1, A2]) R {
 		return fn(t.Unapply())
 	}
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  1,
+	Until: genfp.MaxFunc,
+	Template: `
+
+func Func{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) fp.Func{{.N}}[{{TypeArgs 1 .N}}, R] {
+	return fp.Func{{.N}}[{{TypeArgs 1 .N}}, R](f)
+}
+
+func Supplier{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R, {{DeclArgs 1 .N}}) func() R {
+	return func() R {
+		return f({{CallArgs 1 .N}})
+	}
+}	
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  2,
+	Until: 3,
+	Template: `
+func Curried2[A1, A2, R any](f func(A1,A2) R) fp.Func1[A1, fp.Func1[A2, R]] {
+	return func(a1 A1) fp.Func1[A2, R] {
+		return func(a2 A2) R {
+			return f(a1, a2)
+		}
+	}
+}	
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+func Curried{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) {{CurriedFunc 1 .N "R"}} {
+	return func(a1 A1) {{CurriedFunc 2 .N "R"}} {
+		return Curried{{dec .N}}(func({{DeclArgs 2 .N}}) R {
+			return f({{CallArgs 1 .N}})
+		})
+	}
+}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+func UnTupled{{.N}}[{{TypeArgs 1 .N}}, R any](f func(fp.{{TupleType .N}}) R) func({{TypeArgs 1 .N}}) R {
+	return func({{DeclArgs 1 .N}}) R {
+		return f(Tuple{{.N}}({{CallArgs 1 .N}}))
+	}
+}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  1,
+	Until: genfp.MaxProduct,
+	Template: `
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclArgs 1 .N}}) fp.{{TupleType .N}} {
+	return fp.{{TupleType .N}}{
+	{{- range $idx := Range 1 .N}}
+		I{{$idx}}: a{{$idx}},
+	{{- end}}
+	}
+}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  1,
+	Until: 2,
+	Template: `
+		func HList1[A1 any](tuple fp.Tuple1[A1]) hlist.Cons[A1, hlist.Nil] {
+			return hlist.Concat(tuple.Head(), hlist.Empty())
+		}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+func HList{{.N}}[{{TypeArgs 1 .N}} any](tuple fp.{{TupleType .N}}) {{ConsType 1 .N "hlist.Nil"}} {
+	return hlist.Concat(tuple.Head(), hlist.Of{{dec .N}}(tuple.Tail()))
+}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "labelled_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  1,
+	Until: genfp.MaxProduct,
+	Template: `
+func Labelled{{.N}}[{{TypeArgs 1 .N}} fp.Named]({{DeclArgs 1 .N}}) fp.Labelled{{.N}}[{{TypeArgs 1 .N}}] {
+	return fp.Labelled{{.N}}[{{TypeArgs 1 .N}}]{
+	{{- range $idx := Range 1 .N}}
+		I{{$idx}}: a{{$idx}},
+	{{- end}}
+	}
+}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "labelled_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  1,
+	Until: 2,
+	Template: `
+		func HList1Labelled[A1 fp.Named](tuple fp.Labelled1[A1]) hlist.Cons[A1, hlist.Nil] {
+			return hlist.Concat(tuple.Head(), hlist.Empty())
+		}
+`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "labelled_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+func HList{{.N}}Labelled[{{TypeArgs 1 .N}} fp.Named](tuple fp.Labelled{{.N}}[{{TypeArgs 1 .N}}]) {{ConsType 1 .N "hlist.Nil"}} {
+	return hlist.Of{{.N}}(tuple.Unapply())
+}
+`,
 }
