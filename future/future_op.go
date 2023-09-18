@@ -689,47 +689,47 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxFunc,
 	Template: `
-func LiftA{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) R) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
-	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+func LiftA{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) R, exec ...fp.Executor) func({{TypeClassArgs 1 .N "fp.Future"}}) fp.Future[R] {
+	return func({{DeclTypeClassArgs 1 .N "fp.Future"}}) fp.Future[R] {
 
-		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
 			return LiftA{{dec .N}}(func({{DeclArgs 2 .N}}) R {
 				return f({{CallArgs 1 .N}})
-			})({{CallArgs 2 .N "ins"}})
-		})
+			}, exec...)({{CallArgs 2 .N "ins"}})
+		}, exec...)
 	}
 }
 
-func LiftM{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
-	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+func LiftM{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) fp.Future[R], exec ...fp.Executor) func({{TypeClassArgs 1 .N "fp.Future"}}) fp.Future[R] {
+	return func({{DeclTypeClassArgs 1 .N "fp.Future"}}) fp.Future[R] {
 
-		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
-			return LiftM{{dec .N}}(func({{DeclArgs 2 .N}}) fp.Try[R] {
+		return FlatMap(ins1, func(a1 A1) fp.Future[R] {
+			return LiftM{{dec .N}}(func({{DeclArgs 2 .N}}) fp.Future[R] {
 				return f({{CallArgs 1 .N}})
-			})({{CallArgs 2 .N "ins"}})
-		})
+			}, exec...)({{CallArgs 2 .N "ins"}})
+		}, exec...)
 	}
 }
 
-func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Try[{{CurriedFunc 1 .N "R"}}]) {{CurriedFunc 1 .N "fp.Try[R]"}} {
-	return func(a1 A1) {{CurriedFunc 2 .N "fp.Try[R]"}} {
-		return Flap{{dec .N}}(Ap(tf, Success(a1)))
+func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Future[{{CurriedFunc 1 .N "R"}}], exec ...fp.Executor) {{CurriedFunc 1 .N "fp.Future[R]"}} {
+	return func(a1 A1) {{CurriedFunc 2 .N "fp.Future[R]"}} {
+		return Flap{{dec .N}}(Ap(tf, Successful(a1)), exec...)
 	}
 }
 
-func Method{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Try[A1], fa1 func({{DeclArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) fp.Try[R] {
-	return func({{DeclArgs 2 .N}}) fp.Try[R] {
+func Method{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Future[A1], fa1 func({{DeclArgs 1 .N}}) R, exec ...fp.Executor) func({{TypeArgs 2 .N}}) fp.Future[R] {
+	return func({{DeclArgs 2 .N}}) fp.Future[R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1({{CallArgs 1 .N}})
-		})
+		}, exec...)
 	}
 }
 
-func FlatMethod{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Try[A1], fa1 func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeArgs 2 .N}}) fp.Try[R] {
-	return func({{DeclArgs 2 .N}}) fp.Try[R] {
-		return FlatMap(ta1, func(a1 A1) fp.Try[R] {
+func FlatMethod{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Future[A1], fa1 func({{DeclArgs 1 .N}}) fp.Future[R], exec ...fp.Executor) func({{TypeArgs 2 .N}}) fp.Future[R] {
+	return func({{DeclArgs 2 .N}}) fp.Future[R] {
+		return FlatMap(ta1, func(a1 A1) fp.Future[R] {
 			return fa1({{CallArgs 1 .N}})
-		})
+		}, exec...)
 	}
 }
 	`,
@@ -744,30 +744,20 @@ var _ = genfp.GenerateFromUntil{
 	From:  1,
 	Until: genfp.MaxFunc,
 	Template: `
-func Func{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (R, error)) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[R]] {
-	return func({{DeclArgs 1 .N}}) fp.Try[R] {
-		ret, err := f({{CallArgs 1 .N}})
-		return Apply(ret, err)
+func Func{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (R, error), exec ...fp.Executor) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Future[R]] {
+	return func({{DeclArgs 1 .N}}) fp.Future[R] {
+		return Apply2(func() (R, error) {
+			return f({{CallArgs 1 .N}})
+		})
 	}
 }
 
-func Pure{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[R]] {
-	return func({{DeclArgs 1 .N}}) fp.Try[R] {
-		return Success(f({{CallArgs 1 .N}}))
-	}
-}
-
-func Unit{{.N}}[{{TypeArgs 1 .N}} any](f func({{TypeArgs 1 .N}}) error) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[fp.Unit]] {
-	return func({{DeclArgs 1 .N}}) fp.Try[fp.Unit] {
-		err := f({{CallArgs 1 .N}})
-		return Apply(fp.Unit{}, err)
-	}
-}
-
-func Ptr{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (*R, error)) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[R]] {
-	return func({{DeclArgs 1 .N}}) fp.Try[R] {
-		ret, err := f({{CallArgs 1 .N}})
-		return FlatMap(Apply(ret, err), FromPtr)
+func Unit{{.N}}[{{TypeArgs 1 .N}} any](f func({{TypeArgs 1 .N}}) error, exec ...fp.Executor) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Future[fp.Unit]] {
+	return func({{DeclArgs 1 .N}}) fp.Future[fp.Unit] {
+		return Apply2(func() (fp.Unit, error) {
+			err := f({{CallArgs 1 .N}})
+			return fp.Unit{}, err
+		})
 	}
 }
 	`,
@@ -782,8 +772,8 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxCompose,
 	Template: `
-func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N}}) fp.Func1[A1, fp.Try[R]] {
-	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Future").FuncChain 1 .N}}, exec ...fp.Executor) fp.Func1[A1, fp.Future[R]] {
+	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}, exec...), exec...)
 }
 	`,
 }
