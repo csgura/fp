@@ -589,8 +589,8 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxFunc,
 	Template: `
-func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Iterator[{{CurriedType 1 .N "R"}}]) {{CurriedType 1 .N "fp.Iterator[R]"}} {
-	return func(a1 A1) {{CurriedType 2 .N "fp.Iterator[R]"}} {
+func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Iterator[{{CurriedFunc 1 .N "R"}}]) {{CurriedFunc 1 .N "fp.Iterator[R]"}} {
+	return func(a1 A1) {{CurriedFunc 2 .N "fp.Iterator[R]"}} {
 		return Flap{{dec .N}}(Ap(tf, Of(a1)))
 	}
 }

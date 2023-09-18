@@ -60,8 +60,8 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxProduct,
 	Template: `
-func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclArgs 1 .N}}) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
-	return fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]{
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclArgs 1 .N}}) fp.{{TupleType .N}} {
+	return fp.{{TupleType .N}}{
 		{{- range $idx := Range 1 .N}}
 			I{{$idx}}: a{{$idx}},
 		{{- end}}
@@ -81,7 +81,7 @@ var _ = genfp.GenerateFromUntil{
 	From:  2,
 	Until: genfp.MaxProduct,
 	Template: `
-func TupleFromHList{{.N}}[{{TypeArgs 1 .N}} any](list {{ConsType 1 .N "hlist.Nil"}}) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+func TupleFromHList{{.N}}[{{TypeArgs 1 .N}} any](list {{ConsType 1 .N "hlist.Nil"}}) fp.{{TupleType .N}} {
 	tail := TupleFromHList{{dec .N}}(list.Tail())
 	return Tuple{{.N}}(list.Head(), {{CallArgs 1 (dec .N) "tail.I"}})
 }
@@ -117,7 +117,7 @@ var _ = genfp.GenerateFromUntil{
 	From:  2,
 	Until: genfp.MaxProduct,
 	Template: `
-func Lift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func(fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]) R {
+func Lift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func(fp.{{TupleType .N}}) R {
 	return func(t fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]) R {
 		return f(t.Unapply())
 	}

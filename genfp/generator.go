@@ -52,7 +52,7 @@ var defaultFunc = map[string]any{
 	"DeclTypeClassArgs": FuncDeclTypeClassArgs,
 	"CurriedCallArgs":   CurriedCallArgs,
 	"TypeClassArgs":     TypeClassArgs,
-	"CurriedType":       CurriedType,
+	"CurriedFunc":       CurriedType,
 	"RecursiveType":     RecursiveType,
 
 	"Range": func(start, until int) []int {

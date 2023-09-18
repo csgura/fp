@@ -240,12 +240,12 @@ var _ = genfp.GenerateFromUntil{
 	From:  2,
 	Until: genfp.MaxProduct,
 	Template: `
-func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclTypeClassArgs 1 .N "fp.Monoid"}}) fp.Monoid[fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]] {
+func Tuple{{.N}}[{{TypeArgs 1 .N}} any]({{DeclTypeClassArgs 1 .N "fp.Monoid"}}) fp.Monoid[fp.{{TupleType .N}}] {
 	return New(
-		func() fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+		func() fp.{{TupleType .N}} {
 			return product.Tuple{{.N}}({{ (Args "ins" 1 .N).Dot "Empty()"}})
 		},
-		func(t1 fp.Tuple{{.N}}[{{TypeArgs 1 .N}}], t2 fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+		func(t1 fp.{{TupleType .N}}, t2 fp.{{TupleType .N}}) fp.{{TupleType .N}} {
 			return product.Tuple{{.N}}(
 				{{- range $idx := Range 1 .N -}}
 				ins{{$idx}}.Combine(t1.I{{$idx}}, t2.I{{$idx}}),
