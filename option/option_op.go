@@ -1,4 +1,4 @@
-//go:generate go run github.com/csgura/fp/internal/generator/option_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package option
 
 import (
@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
@@ -418,157 +419,203 @@ func Pure1[A, R any](f func(A) R) fp.Func1[A, fp.Option[R]] {
 	}
 }
 
-// type ApplicativeFunctor2[H hlist.Header[HT], HT, A, B, R any] struct {
-// 	h  fp.Option[H]
-// 	fn fp.Option[fp.Func1[A, fp.Func1[B, R]]]
-// }
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "applicative_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/curried", Name: "curried"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+{{define "Receiver"}}func (r MonadChain{{.N}}[H, HT, {{TypeArgs 1 .N}}, R]){{end}}
+{{define "Next"}}MonadChain{{dec .N}}[hlist.Cons[A1, H], {{TypeArgs 1 .N}}, R]{{end}}
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) FlatMap(a func(HT) fp.Option[A]) MonadChain1[hlist.Cons[A, H], A, B, R] {
 
-// 	av := FlatMap(r.h, func(v H) fp.Option[A] {
-// 		return a(v.Head())
-// 	})
-// 	return r.ApOption(av)
-// }
+type MonadChain{{.N}}[H hlist.Header[HT], HT, {{TypeArgs 1 .N}}, R any] struct {
+	h  fp.Option[H]
+	fn fp.Option[{{CurriedFunc 1 .N "R"}}]
+}
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) Map(a func(HT) A) MonadChain1[hlist.Cons[A, H], A, B, R] {
-// 	return r.FlatMap(func(h HT) fp.Option[A] {
-// 		return Some(a(h))
-// 	})
-// }
+{{template "Receiver" .}} FlatMap(a func(HT) fp.Option[A1]) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) HListMap(a func(H) A) MonadChain1[hlist.Cons[A, H], A, B, R] {
-// 	return r.HListFlatMap(func(h H) fp.Option[A] {
-// 		return Some(a(h))
-// 	})
-// }
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v.Head())
+	})
+	return r.ApOption(av)
+}
+{{template "Receiver" .}} Map(a func(HT) A1) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) HListFlatMap(a func(H) fp.Option[A]) MonadChain1[hlist.Cons[A, H], A, B, R] {
-// 	av := FlatMap(r.h, func(v H) fp.Option[A] {
-// 		return a(v)
-// 	})
+	return r.FlatMap(func(h HT) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+{{template "Receiver" .}} HListMap(a func(H) A1) {{template "Next" .}} {
 
-// 	return r.ApOption(av)
-// }
+	return r.HListFlatMap(func(h H) fp.Option[A1] {
+		return Some(a(h))
+	})
+}
+{{template "Receiver" .}} HListFlatMap(a func(H) fp.Option[A1]) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) ApOption(a fp.Option[A]) MonadChain1[hlist.Cons[A, H], A, B, R] {
-// 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
-// 		return Map(a, func(av A) hlist.Cons[A, H] {
-// 			return hlist.Concat(av, hv)
-// 		})
-// 	})
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a(v)
+	})
 
-// 	return MonadChain1[hlist.Cons[A, H], A, B, R]{nh, Ap(r.fn, a)}
-// }
+	return r.ApOption(av)
+}
 
-// func (r ApplicativeFunctor2[H, HT, A, B, R]) Ap(a A) MonadChain1[hlist.Cons[A, H], A, B, R] {
-// 	return r.ApOption(Some(a))
-// }
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
 
-// func Applicative2[A, B, R any](fn fp.Func2[A, B, R]) ApplicativeFunctor2[hlist.Nil, hlist.Nil, A, B, R] {
-// 	return ApplicativeFunctor2[hlist.Nil, hlist.Nil, A, B, R]{Some(hlist.Empty()), Some(curried.Func2(fn))}
-// }
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
 
-// type ApplicativeFunctor3[H hlist.Header[HT], HT, A, B, C, R any] struct {
-// 	h  fp.Option[H]
-// 	fn fp.Option[fp.Func1[A, fp.Func1[B, fp.Func1[C, R]]]]
-// }
+	return {{template "Next" .}}{nh, Ap(r.fn, a)}
+}
 
-// func (r ApplicativeFunctor3[H, HT, A, B, C, R]) ApOption(a fp.Option[A]) ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R] {
+{{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
 
-// 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
-// 		return Map(a, func(av A) hlist.Cons[A, H] {
-// 			return hlist.Concat(av, hv)
-// 		})
-// 	})
+	return r.ApOption(Some(a))
 
-// 	return ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R]{nh, Ap(r.fn, a)}
-// }
+}
 
-// func (r ApplicativeFunctor3[H, HT, A, B, C, R]) Ap(a A) ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R] {
-// 	return r.ApOption(Some(a))
-// }
+{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor3[H, HT, A, B, C, R]) FlatMap(a func(HT) fp.Option[A]) ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R] {
+	av := FlatMap(r.h, func(v H) fp.Option[A1] {
+		return a()
+	})
+	return r.ApOption(av)
+}
 
-// 	av := FlatMap(r.h, func(v H) fp.Option[A] {
-// 		return a(v.Head())
-// 	})
-// 	return r.ApOption(av)
-// }
+{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor3[H, HT, A, B, C, R]) Map(a func(HT) A) ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R] {
-// 	return r.FlatMap(func(h HT) fp.Option[A] {
-// 		return Some(a(h))
-// 	})
-// }
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApOption(av)
+}
 
-// func (r ApplicativeFunctor3[H, HT, A, B, C, R]) HListMap(a func(H) A) ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R] {
-// 	return r.HListFlatMap(func(h H) fp.Option[A] {
-// 		return Some(a(h))
-// 	})
-// }
+func Chain{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) MonadChain{{.N}}[hlist.Nil, hlist.Nil, {{TypeArgs 1 .N}}, R] {
+	return MonadChain{{.N}}[hlist.Nil, hlist.Nil, {{TypeArgs 1 .N}}, R]{Some(hlist.Empty()), Some(curried.Func{{.N}}(fn))}
+}
+	`,
+}
 
-// func (r ApplicativeFunctor3[H, HT, A, B, C, R]) HListFlatMap(a func(H) fp.Option[A]) ApplicativeFunctor2[hlist.Cons[A, H], A, B, C, R] {
-// 	av := FlatMap(r.h, func(v H) fp.Option[A] {
-// 		return a(v)
-// 	})
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "applicative_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/curried", Name: "curried"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+{{define "Receiver"}}func (r ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]){{end}}
+{{define "Next"}}ApplicativeFunctor{{dec .N}}[{{TypeArgs 2 .N}}, R]{{end}}
 
-// 	return r.ApOption(av)
-// }
+type ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R any] struct {
+	fn fp.Option[{{CurriedFunc 1 .N "R"}}]
+}
 
-// func Applicative3[A, B, C, R any](fn fp.Func3[A, B, C, R]) ApplicativeFunctor3[hlist.Nil, hlist.Nil, A, B, C, R] {
-// 	return ApplicativeFunctor3[hlist.Nil, hlist.Nil, A, B, C, R]{Some(hlist.Empty()), Some(curried.Func3(fn))}
-// }
 
-// type ApplicativeFunctor4[H hlist.Header[HT], HT, A, B, C, D, R any] struct {
-// 	h  fp.Option[H]
-// 	fn fp.Option[fp.Func1[A, fp.Func1[B, fp.Func1[C, fp.Func1[D, R]]]]]
-// }
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor4[H, HT, A, B, C, D, R]) ApOption(a fp.Option[A]) ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R] {
+	return {{template "Next" .}}{Ap(r.fn, a)}
+}
 
-// 	nh := FlatMap(r.h, func(hv H) fp.Option[hlist.Cons[A, H]] {
-// 		return Map(a, func(av A) hlist.Cons[A, H] {
-// 			return hlist.Concat(av, hv)
-// 		})
-// 	})
+{{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
 
-// 	return ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R]{nh, Ap(r.fn, a)}
-// }
+	return r.ApOption(Some(a))
 
-// func (r ApplicativeFunctor4[H, HT, A, B, C, D, R]) Ap(a A) ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R] {
-// 	return r.ApOption(Some(a))
-// }
+}
 
-// func (r ApplicativeFunctor4[H, HT, A, B, C, D, R]) FlatMap(a func(HT) fp.Option[A]) ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R] {
+{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
 
-// 	av := FlatMap(r.h, func(v H) fp.Option[A] {
-// 		return a(v.Head())
-// 	})
-// 	return r.ApOption(av)
-// }
+	return {{template "Next" .}}{ApFunc(r.fn, a)}
 
-// func (r ApplicativeFunctor4[H, HT, A, B, C, D, R]) Map(a func(HT) A) ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R] {
-// 	return r.FlatMap(func(h HT) fp.Option[A] {
-// 		return Some(a(h))
-// 	})
-// }
+}
 
-// func (r ApplicativeFunctor4[H, HT, A, B, C, D, R]) HListMap(a func(H) A) ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R] {
-// 	return r.HListFlatMap(func(h H) fp.Option[A] {
-// 		return Some(a(h))
-// 	})
-// }
+{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
 
-// func (r ApplicativeFunctor4[H, HT, A, B, C, D, R]) HListFlatMap(a func(H) fp.Option[A]) ApplicativeFunctor3[hlist.Cons[A, H], A, B, C, D, R] {
-// 	av := FlatMap(r.h, func(v H) fp.Option[A] {
-// 		return a(v)
-// 	})
+	return r.ApOptionFunc(func() fp.Option[A1] {
+		return Some(a())
+	})
+}
+func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R] {
+	return ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]{Some(curried.Func{{.N}}(fn))}
+}
+	`,
+}
 
-// 	return r.ApOption(av)
-// }
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+func LiftA{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) R) func({{TypeClassArgs 1 .N "fp.Option"}}) fp.Option[R] {
+	return func({{DeclTypeClassArgs 1 .N "fp.Option"}}) fp.Option[R] {
 
-// func Applicative4[A, B, C, D, R any](fn fp.Func4[A, B, C, D, R]) ApplicativeFunctor4[hlist.Nil, hlist.Nil, A, B, C, D, R] {
-// 	return ApplicativeFunctor4[hlist.Nil, hlist.Nil, A, B, C, D, R]{Some(hlist.Empty()), Some(curried.Func4(fn))}
-// }
+		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
+			return LiftA{{dec .N}}(func({{DeclArgs 2 .N}}) R {
+				return f({{CallArgs 1 .N}})
+			})({{CallArgs 2 .N "ins"}})
+		})
+	}
+}
+
+func LiftM{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) fp.Option[R]) func({{TypeClassArgs 1 .N "fp.Option"}}) fp.Option[R] {
+	return func({{DeclTypeClassArgs 1 .N "fp.Option"}}) fp.Option[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Option[R] {
+			return LiftM{{dec .N}}(func({{DeclArgs 2 .N}}) fp.Option[R] {
+				return f({{CallArgs 1 .N}})
+			})({{CallArgs 2 .N "ins"}})
+		})
+	}
+}
+
+func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Option[{{CurriedFunc 1 .N "R"}}]) {{CurriedFunc 1 .N "fp.Option[R]"}} {
+	return func(a1 A1) {{CurriedFunc 2 .N "fp.Option[R]"}} {
+		return Flap{{dec .N}}(Ap(tf, Some(a1)))
+	}
+}
+
+func Method{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Option[A1], fa1 func({{DeclArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) fp.Option[R] {
+	return func({{DeclArgs 2 .N}}) fp.Option[R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1({{CallArgs 1 .N}})
+		})
+	}
+}
+
+func FlatMethod{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Option[A1], fa1 func({{DeclArgs 1 .N}}) fp.Option[R]) func({{TypeArgs 2 .N}}) fp.Option[R] {
+	return func({{DeclArgs 2 .N}}) fp.Option[R] {
+		return FlatMap(ta1, func(a1 A1) fp.Option[R] {
+			return fa1({{CallArgs 1 .N}})
+		})
+	}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxCompose,
+	Template: `
+func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Option").FuncChain 1 .N}}) fp.Func1[A1, fp.Option[R]] {
+	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+}
+	`,
+}
