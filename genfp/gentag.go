@@ -140,7 +140,7 @@ func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]G
 	ret := map[string][]GenerateFromUntil{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateFromUntil", tags...)
 	for _, cl := range genseq {
-		gfu, err := ParseGenerateFromUntil(cl)
+		gfu, err := ParseGenerateFromUntil(cl.Lit)
 		if err != nil {
 			fmt.Printf("invalid generate directive : %s", err)
 		} else {
@@ -166,9 +166,14 @@ func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Na
 	return nil
 }
 
-func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []*ast.CompositeLit {
+type TaggedLit struct {
+	Type *types.Named
+	Lit  *ast.CompositeLit
+}
+
+func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []TaggedLit {
 	tagSeq := tags
-	return seqFlatMap(p, func(pk *packages.Package) []*ast.CompositeLit {
+	return seqFlatMap(p, func(pk *packages.Package) []TaggedLit {
 		s2 := seqFlatMap(pk.Syntax, func(v *ast.File) []ast.Decl {
 
 			return v.Decls
@@ -182,10 +187,10 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 			return []*ast.GenDecl{}
 		})
 
-		return seqFlatMap(s3, func(gd *ast.GenDecl) []*ast.CompositeLit {
+		return seqFlatMap(s3, func(gd *ast.GenDecl) []TaggedLit {
 			gdDoc := gd.Doc
 
-			return seqFlatMap(gd.Specs, func(v ast.Spec) []*ast.CompositeLit {
+			return seqFlatMap(gd.Specs, func(v ast.Spec) []TaggedLit {
 				if ts, ok := v.(*ast.ValueSpec); ok {
 					comment := func() string {
 						if ts.Doc != nil {
@@ -199,7 +204,7 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 					}()
 
 					if comment != "" && seqExists(tagSeq, func(tag string) bool { return strings.Contains(comment, tag) }) {
-						return seqFlatMap(seqZip(ts.Names, ts.Values), func(v tuple2[*ast.Ident, ast.Expr]) []*ast.CompositeLit {
+						return seqFlatMap(seqZip(ts.Names, ts.Values), func(v tuple2[*ast.Ident, ast.Expr]) []TaggedLit {
 
 							tags := extractTag(comment)
 
@@ -211,7 +216,7 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 								named := checkType(pk, cl.Type, v.I2.Pos())
 								if named != nil {
 									if named.Obj().Name() == typeName {
-										return []*ast.CompositeLit{cl}
+										return []TaggedLit{{named, cl}}
 									}
 								}
 							}

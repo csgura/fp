@@ -607,6 +607,16 @@ type GenerateFromUntil struct {
 	Template string
 }
 
+type GenerateAdaptor[T any] struct {
+	File         string
+	Name         string
+	Extends      bool
+	Self         bool
+	Getter       []any
+	EventHandler []any
+	ValOverride  []any
+}
+
 func asKeyValue(e ast.Expr, defName string) (string, ast.Expr) {
 	if kv, ok := e.(*ast.KeyValueExpr); ok {
 		if id, ok := kv.Key.(*ast.Ident); ok {
@@ -626,6 +636,61 @@ func evalStringValue(e ast.Expr) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("can't eval %T as string", e)
+}
+
+func evalSelectorExpr(e ast.Expr) (string, error) {
+	switch t := e.(type) {
+	case *ast.SelectorExpr:
+		switch x := t.X.(type) {
+		case *ast.SelectorExpr:
+			p, err := evalSelectorExpr(x)
+			if err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("%s.%s", p, t.Sel.Name), nil
+		case *ast.Ident:
+			return fmt.Sprintf("%s.%s", x.Name, t.Sel.Name), nil
+		}
+	}
+	return "", fmt.Errorf("can't eval %T as method reference", e)
+}
+
+func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
+	return func(e ast.Expr) (string, error) {
+		switch t := e.(type) {
+		case *ast.SelectorExpr:
+			switch x := t.X.(type) {
+			case *ast.SelectorExpr:
+				p, err := evalSelectorExpr(x)
+				if err != nil {
+					return "", err
+				}
+				if strings.HasSuffix(p, tname) {
+					return t.Sel.Name, nil
+				}
+				return "", fmt.Errorf("invalid method reference : %s", p)
+			case *ast.Ident:
+				if x.Name == tname {
+					return t.Sel.Name, nil
+				}
+				return "", fmt.Errorf("invalid method reference : %s", x.Name)
+			}
+		}
+		return "", fmt.Errorf("can't eval %T as method reference", e)
+	}
+
+}
+
+func evalBoolValue(e ast.Expr) (bool, error) {
+	switch t := e.(type) {
+	case *ast.Ident:
+		if t.Name == "true" {
+			return true, nil
+		} else if t.Name == "false" {
+			return false, nil
+		}
+	}
+	return false, fmt.Errorf("can't eval %T as bool", e)
 }
 
 func evalIntValue(e ast.Expr) (int, error) {
@@ -777,4 +842,90 @@ func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
 
 	return ret, nil
 
+}
+
+type GenerateAdaptorDirective struct {
+	Interface    *types.Named
+	File         string
+	Name         string
+	Extends      bool
+	Self         bool
+	Getter       []string
+	EventHandler []string
+	ValOverride  []string
+}
+
+func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
+	ret := GenerateAdaptorDirective{}
+
+	if lit.Type.TypeArgs().Len() != 1 {
+		return ret, fmt.Errorf("invalid number of type argument")
+	}
+
+	argType, ok := lit.Type.TypeArgs().At(0).(*types.Named)
+	if !ok {
+		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
+	}
+
+	if _, ok := argType.Underlying().(*types.Interface); !ok {
+		return ret, fmt.Errorf("target type is not interface type : %s", lit.Type.TypeArgs().At(0))
+	}
+
+	ret.Interface = argType
+	intfname := argType.Obj().Name()
+
+	names := []string{"File", "Name", "Extends", "Self", "Getter", "EventHandler", "ValOverride"}
+	for idx, e := range lit.Lit.Elts {
+		if idx >= len(names) {
+			return ret, fmt.Errorf("invalid number of literals")
+		}
+
+		name := names[idx]
+		name, value := asKeyValue(e, name)
+		switch name {
+		case "File":
+			v, err := evalStringValue(value)
+			if err != nil {
+				return ret, err
+			}
+			ret.File = v
+		case "Name":
+			v, err := evalStringValue(value)
+			if err != nil {
+				return ret, err
+			}
+			ret.Name = v
+		case "Extends":
+			v, err := evalBoolValue(value)
+			if err != nil {
+				return ret, err
+			}
+			ret.Extends = v
+		case "Self":
+			v, err := evalBoolValue(value)
+			if err != nil {
+				return ret, err
+			}
+			ret.Self = v
+		case "Getter":
+			v, err := evalArray(value, evalMethodRef(intfname))
+			if err != nil {
+				return ret, err
+			}
+			ret.Getter = v
+		case "EventHandler":
+			v, err := evalArray(value, evalMethodRef(intfname))
+			if err != nil {
+				return ret, err
+			}
+			ret.EventHandler = v
+		case "ValOverride":
+			v, err := evalArray(value, evalMethodRef(intfname))
+			if err != nil {
+				return ret, err
+			}
+			ret.ValOverride = v
+		}
+	}
+	return ret, nil
 }

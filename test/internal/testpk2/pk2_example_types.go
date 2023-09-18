@@ -226,3 +226,41 @@ var _ = genfp.GenerateFromUntil{
 	Until:    genfp.MaxProduct,
 	Template: "hello world",
 }
+
+type AdaptorAPI interface {
+	Hello() string
+	Send(target string) string
+	Active() bool
+	Receive(msg string)
+}
+
+// @fp.GenerateTest
+var _ = genfp.GenerateAdaptor[AdaptorAPI]{
+	File:         "hello",
+	Name:         "APIAdaptor",
+	Extends:      false,
+	Self:         false,
+	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active},
+	EventHandler: []any{AdaptorAPI.Receive},
+	ValOverride:  []any{AdaptorAPI.Hello},
+}
+
+// @fp.GenerateTest
+var _ = genfp.GenerateAdaptor[Tree]{
+	File:         "hello",
+	Extends:      false,
+	Self:         false,
+	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active},
+	EventHandler: []any{AdaptorAPI.Receive},
+	ValOverride:  []any{AdaptorAPI.Hello},
+}
+
+// @fp.GenerateTest
+var _ = genfp.GenerateAdaptor[io.Closer]{
+	File:         "hello",
+	Extends:      false,
+	Self:         false,
+	Getter:       []any{io.Closer.Close, AdaptorAPI.Active},
+	EventHandler: []any{AdaptorAPI.Receive},
+	ValOverride:  []any{AdaptorAPI.Hello},
+}

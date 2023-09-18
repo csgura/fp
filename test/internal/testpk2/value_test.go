@@ -182,3 +182,38 @@ func TestParseGenerateDirective(t *testing.T) {
 	fmt.Printf("v = %v\n", v)
 
 }
+
+func TestParseGenerateAdaptorDirective(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	ret := genfp.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.GenerateTest")
+	fmt.Printf("ret = %v\n", ret)
+
+	v, err := genfp.ParseGenerateAdaptor(ret[0])
+	if err != nil {
+		fmt.Printf("err = %s\n", err)
+	}
+	fmt.Printf("v = %v\n", v)
+
+	ti := metafp.GetTypeInfo(ret[0].Type)
+	ti.TypeArgs.Foreach(func(v metafp.TypeInfo) {
+		fmt.Printf("args = %s\n", v)
+	})
+
+	v, err = genfp.ParseGenerateAdaptor(ret[2])
+	if err != nil {
+		fmt.Printf("err = %s\n", err)
+	}
+	fmt.Printf("v = %v\n", v)
+
+}
