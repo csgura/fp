@@ -584,6 +584,7 @@ func (r Range) Write(txt string, param map[string]any) {
 			param["N"] = i
 			err := tpl.Execute(r.writer, param)
 			if err != nil {
+				fmt.Printf("template = %s\n", txt)
 				panic(err)
 			}
 		}

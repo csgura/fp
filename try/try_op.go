@@ -1,4 +1,4 @@
-//go:generate go run github.com/csgura/fp/internal/generator/try_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package try
 
 import (
@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
@@ -459,4 +460,256 @@ func Func0[R any](f func() (R, error)) fp.Func1[fp.Unit, fp.Try[R]] {
 		ret, err := f()
 		return Apply(ret, err)
 	}
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "applicative_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/curried", Name: "curried"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+{{define "Receiver"}}func (r MonadChain{{.N}}[H, HT, {{TypeArgs 1 .N}}, R]){{end}}
+{{define "Next"}}MonadChain{{dec .N}}[hlist.Cons[A1, H], {{TypeArgs 1 .N}}, R]{{end}}
+
+
+type MonadChain{{.N}}[H hlist.Header[HT], HT, {{TypeArgs 1 .N}}, R any] struct {
+	h  fp.Try[H]
+	fn fp.Try[{{CurriedFunc 1 .N "R"}}]
+}
+
+{{template "Receiver" .}} FlatMap(a func(HT) fp.Try[A1]) {{template "Next" .}} {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a(v.Head())
+	})
+	return r.ApTry(av)
+}
+{{template "Receiver" .}} Map(a func(HT) A1) {{template "Next" .}} {
+
+	return r.FlatMap(func(h HT) fp.Try[A1] {
+		return Success(a(h))
+	})
+}
+{{template "Receiver" .}} HListMap(a func(H) A1) {{template "Next" .}} {
+
+	return r.HListFlatMap(func(h H) fp.Try[A1] {
+		return Success(a(h))
+	})
+}
+{{template "Receiver" .}} HListFlatMap(a func(H) fp.Try[A1]) {{template "Next" .}} {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a(v)
+	})
+
+	return r.ApTry(av)
+}
+{{template "Receiver" .}} ApTry(a fp.Try[A1]) {{template "Next" .}} {
+
+	nh := Map2(a, r.h, hlist.Concat[A1, H])
+
+	return {{template "Next" .}}{nh, Ap(r.fn, a)}
+}
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
+
+	return r.ApTry(FromOption(a))
+}
+{{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
+
+	return r.ApTry(Success(a))
+
+}
+{{template "Receiver" .}} ApTryFunc(a func() fp.Try[A1]) {{template "Next" .}} {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return a()
+	})
+	return r.ApTry(av)
+}
+{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
+
+	av := FlatMap(r.h, func(v H) fp.Try[A1] {
+		return FromOption(a())
+	})
+	return r.ApTry(av)
+}
+{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
+
+	av := Map(r.h, func(v H) A1 {
+		return a()
+	})
+	return r.ApTry(av)
+}
+
+func Chain{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) MonadChain{{.N}}[hlist.Nil, hlist.Nil, {{TypeArgs 1 .N}}, R] {
+	return MonadChain{{.N}}[hlist.Nil, hlist.Nil, {{TypeArgs 1 .N}}, R]{Success(hlist.Empty()), Success(curried.Func{{.N}}(fn))}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "applicative_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/curried", Name: "curried"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+{{define "Receiver"}}func (r ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]){{end}}
+{{define "Next"}}ApplicativeFunctor{{dec .N}}[{{TypeArgs 2 .N}}, R]{{end}}
+
+type ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R any] struct {
+	fn fp.Try[{{CurriedFunc 1 .N "R"}}]
+}
+
+{{template "Receiver" .}} ApTry(a fp.Try[A1]) {{template "Next" .}} {
+
+	return {{template "Next" .}}{Ap(r.fn, a)}
+}
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
+
+	return r.ApTry(FromOption(a))
+}
+{{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
+
+	return r.ApTry(Success(a))
+
+}
+{{template "Receiver" .}} ApTryFunc(a func() fp.Try[A1]) {{template "Next" .}} {
+
+	return {{template "Next" .}}{ApFunc(r.fn, a)}
+
+}
+{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
+
+	return r.ApTryFunc(func() fp.Try[A1] {
+		return FromOption(a())
+	})
+}
+{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
+
+	return r.ApTryFunc(func() fp.Try[A1] {
+		return Success(a())
+	})
+}
+func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R] {
+	return ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]{Success(curried.Func{{.N}}(fn))}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+func LiftA{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) R) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA{{dec .N}}(func({{DeclArgs 2 .N}}) R {
+				return f({{CallArgs 1 .N}})
+			})({{CallArgs 2 .N "ins"}})
+		})
+	}
+}
+
+func LiftM{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftM{{dec .N}}(func({{DeclArgs 2 .N}}) fp.Try[R] {
+				return f({{CallArgs 1 .N}})
+			})({{CallArgs 2 .N "ins"}})
+		})
+	}
+}
+
+func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Try[{{CurriedFunc 1 .N "R"}}]) {{CurriedFunc 1 .N "fp.Try[R]"}} {
+	return func(a1 A1) {{CurriedFunc 2 .N "fp.Try[R]"}} {
+		return Flap{{dec .N}}(Ap(tf, Success(a1)))
+	}
+}
+
+func Method{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Try[A1], fa1 func({{DeclArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) fp.Try[R] {
+	return func({{DeclArgs 2 .N}}) fp.Try[R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1({{CallArgs 1 .N}})
+		})
+	}
+}
+
+func FlatMethod{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Try[A1], fa1 func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeArgs 2 .N}}) fp.Try[R] {
+	return func({{DeclArgs 2 .N}}) fp.Try[R] {
+		return FlatMap(ta1, func(a1 A1) fp.Try[R] {
+			return fa1({{CallArgs 1 .N}})
+		})
+	}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  1,
+	Until: genfp.MaxFunc,
+	Template: `
+func Func{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (R, error)) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[R]] {
+	return func({{DeclArgs 1 .N}}) fp.Try[R] {
+		ret, err := f({{CallArgs 1 .N}})
+		return Apply(ret, err)
+	}
+}
+
+func Pure{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[R]] {
+	return func({{DeclArgs 1 .N}}) fp.Try[R] {
+		return Success(f({{CallArgs 1 .N}}))
+	}
+}
+
+func Unit{{.N}}[{{TypeArgs 1 .N}} any](f func({{TypeArgs 1 .N}}) error) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[fp.Unit]] {
+	return func({{DeclArgs 1 .N}}) fp.Try[fp.Unit] {
+		err := f({{CallArgs 1 .N}})
+		return Apply(fp.Unit{}, err)
+	}
+}
+
+func Ptr{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (*R, error)) fp.Func{{.N}}[{{TypeArgs 1 .N}}, fp.Try[R]] {
+	return func({{DeclArgs 1 .N}}) fp.Try[R] {
+		ret, err := f({{CallArgs 1 .N}})
+		return FlatMap(Apply(ret, err), FromPtr)
+	}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxCompose,
+	Template: `
+func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N}}) fp.Func1[A1, fp.Try[R]] {
+	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+}
+	`,
 }
