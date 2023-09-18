@@ -1,4 +1,4 @@
-//go:generate go run github.com/csgura/fp/internal/generator/itr_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package iterator
 
 import (
@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
@@ -577,4 +578,29 @@ func Max[T any](r fp.Iterator[T], ord fp.Ord[T]) fp.Option[T] {
 		}
 		return fp.Some[T](v)
 	})
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Iterator[{{CurriedType 1 .N "R"}}]) {{CurriedType 1 .N "fp.Iterator[R]"}} {
+	return func(a1 A1) {{CurriedType 2 .N "fp.Iterator[R]"}} {
+		return Flap{{dec .N}}(Ap(tf, Of(a1)))
+	}
+}
+
+func Method{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Iterator[A1], fa1 func({{TypeArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) fp.Iterator[R] {
+	return func({{DeclArgs 2 .N}}) fp.Iterator[R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1({{CallArgs 1 .N}})
+		})
+	}
+}
+	`,
 }
