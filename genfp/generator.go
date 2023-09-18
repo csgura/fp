@@ -112,7 +112,10 @@ func TypeArgs(prefix string, start, until int) string {
 	return f.String()
 }
 
-func FuncTypeArgs(start, until int) string {
+func FuncTypeArgs(start, until int, prefix ...string) string {
+	if len(prefix) > 0 {
+		return TypeArgs(prefix[0], start, until)
+	}
 	return TypeArgs("A", start, until)
 }
 

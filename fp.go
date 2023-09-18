@@ -1,4 +1,4 @@
-//go:generate go run github.com/csgura/fp/internal/generator/fp_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 package fp
 
 import (
@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"runtime/debug"
 	"sync"
+
+	"github.com/csgura/fp/genfp"
 )
 
 type Unit struct {
@@ -416,4 +418,148 @@ func TestWith[A, B any](getter func(A) B) func(pf Predicate[B]) Predicate[A] {
 
 type Deref[T any] interface {
 	Deref() T
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "func_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    3,
+	Until:   genfp.MaxFunc,
+	Template: `
+type Func{{.N}}[{{TypeArgs 1 .N}}, R any] func({{TypeArgs 1 .N}}) R
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "func_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    3,
+	Until:   genfp.MaxFunc,
+	Template: `
+func (r Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplyFirst{{dec .N}}({{DeclArgs 1 (dec .N)}}) func(A{{.N}}) R {
+	return func(a{{.N}} A{{.N}}) R {
+		return r({{CallArgs 1 .N}})
+	}
+}
+
+func (r Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplyLast{{dec .N}}({{DeclArgs 2 .N}}) func(A1) R {
+	return func(a1 A1) R {
+		return r({{CallArgs 1 .N}})
+	}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "func_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    3,
+	Until:   genfp.MaxCompose,
+	Template: `
+func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{FuncChain 1 .N}}) Func1[A1, R] {
+	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File:    "func_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    2,
+	Until:   genfp.MaxFunc,
+	Template: `
+func Id{{.N}}[{{TypeArgs 1 (dec .N)}}, R any]({{DeclArgs 1 (dec .N)}}, r R) R {
+	return r
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "fmt", Name: "fmt"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+{{define "Receiver"}}func(r Tuple{{.N}}[{{TypeArgs 1 .N "T"}}]){{end}}
+
+type Tuple{{.N}}[{{TypeArgs 1 .N "T"}} any] struct {
+	{{- range $idx := Range 1 .N}}
+		I{{$idx}} T{{$idx}}
+	{{- end}}
+}
+
+{{template "Receiver" .}} Head() T1 {
+	return r.I1
+}
+
+{{template "Receiver" .}} Last() T{{.N}} {
+	return r.I{{.N}}
+}
+
+{{template "Receiver" .}} Init() ({{TypeArgs 1 (dec .N) "T"}}) {
+	return {{CallArgs 1 (dec .N) "r.I"}}
+}
+
+{{template "Receiver" .}} Tail() ({{TypeArgs 2 .N "T"}}) {
+	return {{CallArgs 2 .N "r.I"}}
+}
+
+{{template "Receiver" .}} String() string {
+	return fmt.Sprintf("({{FormatStr 1 .N}})", {{CallArgs 1 .N "r.I"}})
+}
+
+{{template "Receiver" .}} Unapply() ({{TypeArgs 1 .N "T"}}) {
+	return {{CallArgs 1 .N "r.I"}}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "labelled_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "fmt", Name: "fmt"},
+	},
+	From:  2,
+	Until: genfp.MaxProduct,
+	Template: `
+{{define "Receiver"}}func(r Labelled{{.N}}[{{TypeArgs 1 .N "T"}}]){{end}}
+
+type Labelled{{.N}}[{{TypeArgs 1 .N "T"}} Named] struct {
+	{{- range $idx := Range 1 .N}}
+		I{{$idx}} T{{$idx}}
+	{{- end}}
+}
+
+{{template "Receiver" .}} Head() T1 {
+	return r.I1
+}
+
+{{template "Receiver" .}} Last() T{{.N}} {
+	return r.I{{.N}}
+}
+
+{{template "Receiver" .}} Init() ({{TypeArgs 1 (dec .N) "T"}}) {
+	return {{CallArgs 1 (dec .N) "r.I"}}
+}
+
+{{template "Receiver" .}} Tail() ({{TypeArgs 2 .N "T"}}) {
+	return {{CallArgs 2 .N "r.I"}}
+}
+
+{{template "Receiver" .}} String() string {
+	return fmt.Sprintf("({{FormatStr 1 .N}})", {{CallArgs 1 .N "r.I"}})
+}
+
+{{template "Receiver" .}} Unapply() ({{TypeArgs 1 .N "T"}}) {
+	return {{CallArgs 1 .N "r.I"}}
+}
+	`,
 }
