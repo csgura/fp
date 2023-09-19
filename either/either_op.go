@@ -8,6 +8,10 @@ func Left[L, R any](l L) fp.Either[L, R] {
 	return left[L, R]{l}
 }
 
+func NotRight[R, L any](l L) fp.Either[L, R] {
+	return left[L, R]{l}
+}
+
 func Right[L, R any](r R) fp.Either[L, R] {
 	return right[L, R]{r}
 }
