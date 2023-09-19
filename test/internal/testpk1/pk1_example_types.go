@@ -2,6 +2,7 @@ package testpk1
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/csgura/fp"
@@ -346,4 +347,12 @@ type RequiredArgs struct {
 	hello string
 	world *int
 	etc   fp.Option[string]
+}
+
+type AdTester interface {
+	Write(w io.Writer, b []byte) (int, error)
+}
+
+func DefaultWrite(self AdTester, w io.Writer, b []byte) (int, error) {
+	return 0, nil
 }

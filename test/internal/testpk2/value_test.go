@@ -196,7 +196,7 @@ func TestParseGenerateAdaptorDirective(t *testing.T) {
 		return
 	}
 
-	ret := genfp.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.GenerateTest")
+	ret := genfp.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.Generate")
 	fmt.Printf("ret = %v\n", ret)
 
 	v, err := genfp.ParseGenerateAdaptor(ret[0])
@@ -210,7 +210,10 @@ func TestParseGenerateAdaptorDirective(t *testing.T) {
 		fmt.Printf("args = %s\n", v)
 	})
 
-	v, err = genfp.ParseGenerateAdaptor(ret[2])
+	ret = genfp.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.GenerateTest")
+	fmt.Printf("ret = %v\n", ret)
+
+	v, err = genfp.ParseGenerateAdaptor(ret[1])
 	if err != nil {
 		fmt.Printf("err = %s\n", err)
 	}

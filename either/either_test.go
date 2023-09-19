@@ -9,10 +9,13 @@ import (
 )
 
 func TestEither(t *testing.T) {
-	l := either.Left[int, float64](10)
+	l := either.NotRight[float64](10)
+
 	either.Fold(l, option.Some, option.ConstNone).Foreach(fp.Println[int])
 
 	s := either.Swap(l)
 	s.Foreach(fp.Println[int])
+
+	l = either.Right[int](10.2)
 
 }

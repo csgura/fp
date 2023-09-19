@@ -169,6 +169,15 @@ type PackagedName struct {
 	Name    string
 }
 
+func EvalTypeExpr(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) types.Type {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
+	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+	ti := info.Types[typeExpr]
+	return ti.Type
+}
+
 func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Named {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),

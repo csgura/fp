@@ -3,14 +3,12 @@ package genfp
 import (
 	"bytes"
 	"fmt"
-	"go/ast"
 	"go/format"
 	"go/types"
 	"io"
 	"log"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -281,6 +279,49 @@ func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) []s
 	}
 	return ret
 }
+func (r *writer) ZeroExpr(pk *types.Package, tpe types.Type) string {
+	switch realtp := tpe.(type) {
+	case *types.Named:
+		if _, ok := realtp.Underlying().(*types.Interface); ok {
+			return "nil"
+		}
+		return fmt.Sprintf("%s{}", r.TypeName(pk, tpe))
+	case *types.Array:
+		return fmt.Sprintf("%s{}", r.TypeName(pk, tpe))
+	case *types.Map:
+		return fmt.Sprintf("%s{}", r.TypeName(pk, tpe))
+	case *types.Slice:
+		return "nil"
+	case *types.Pointer:
+		return "nil"
+	case *types.Chan:
+		return "nil"
+	case *types.Signature:
+		return "nil"
+	case *types.Struct:
+		return fmt.Sprintf("%s{}", r.TypeName(pk, tpe))
+	case *types.Interface:
+		return "nil"
+	case *types.Basic:
+
+		switch realtp.Info() {
+		case types.IsBoolean:
+			return "false"
+		case types.IsInteger:
+			return "0"
+		case types.IsUnsigned:
+			return "0"
+		case types.IsFloat:
+			return "0"
+		case types.IsComplex:
+			return "0"
+		case types.IsString:
+			return `""`
+		}
+	}
+
+	return tpe.String()
+}
 
 func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 	switch realtp := tpe.(type) {
@@ -387,6 +428,7 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 type ImportSet interface {
 	GetImportedName(p *types.Package) string
 	TypeName(pk *types.Package, tpe types.Type) string
+	ZeroExpr(pk *types.Package, tpe types.Type) string
 }
 
 type Writer interface {
@@ -597,335 +639,4 @@ func (r Range) Write(txt string, param map[string]any) {
 type ImportPackage struct {
 	Package string
 	Name    string
-}
-
-type GenerateFromUntil struct {
-	File     string
-	Imports  []ImportPackage
-	From     int
-	Until    int
-	Template string
-}
-
-type GenerateAdaptor[T any] struct {
-	File         string
-	Name         string
-	Extends      bool
-	Self         bool
-	Getter       []any
-	EventHandler []any
-	ValOverride  []any
-}
-
-func asKeyValue(e ast.Expr, defName string) (string, ast.Expr) {
-	if kv, ok := e.(*ast.KeyValueExpr); ok {
-		if id, ok := kv.Key.(*ast.Ident); ok {
-			return id.Name, kv.Value
-		}
-	}
-	return defName, e
-}
-
-func evalStringValue(e ast.Expr) (string, error) {
-	switch t := e.(type) {
-	case *ast.BasicLit:
-		if strings.HasPrefix(t.Value, `"`) && strings.HasSuffix(t.Value, `"`) {
-			return t.Value[1 : len(t.Value)-1], nil
-		} else if strings.HasPrefix(t.Value, "`") && strings.HasSuffix(t.Value, "`") {
-			return t.Value[1 : len(t.Value)-1], nil
-		}
-	}
-	return "", fmt.Errorf("can't eval %T as string", e)
-}
-
-func evalSelectorExpr(e ast.Expr) (string, error) {
-	switch t := e.(type) {
-	case *ast.SelectorExpr:
-		switch x := t.X.(type) {
-		case *ast.SelectorExpr:
-			p, err := evalSelectorExpr(x)
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("%s.%s", p, t.Sel.Name), nil
-		case *ast.Ident:
-			return fmt.Sprintf("%s.%s", x.Name, t.Sel.Name), nil
-		}
-	}
-	return "", fmt.Errorf("can't eval %T as method reference", e)
-}
-
-func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
-	return func(e ast.Expr) (string, error) {
-		switch t := e.(type) {
-		case *ast.SelectorExpr:
-			switch x := t.X.(type) {
-			case *ast.SelectorExpr:
-				p, err := evalSelectorExpr(x)
-				if err != nil {
-					return "", err
-				}
-				if strings.HasSuffix(p, tname) {
-					return t.Sel.Name, nil
-				}
-				return "", fmt.Errorf("invalid method reference : %s", p)
-			case *ast.Ident:
-				if x.Name == tname {
-					return t.Sel.Name, nil
-				}
-				return "", fmt.Errorf("invalid method reference : %s", x.Name)
-			}
-		}
-		return "", fmt.Errorf("can't eval %T as method reference", e)
-	}
-
-}
-
-func evalBoolValue(e ast.Expr) (bool, error) {
-	switch t := e.(type) {
-	case *ast.Ident:
-		if t.Name == "true" {
-			return true, nil
-		} else if t.Name == "false" {
-			return false, nil
-		}
-	}
-	return false, fmt.Errorf("can't eval %T as bool", e)
-}
-
-func evalIntValue(e ast.Expr) (int, error) {
-	switch t := e.(type) {
-	case *ast.BasicLit:
-		i, err := strconv.ParseInt(t.Value, 10, 64)
-		if err != nil {
-			return 0, fmt.Errorf("can't parseInt %s", t.Value)
-		}
-		return int(i), nil
-	case *ast.SelectorExpr:
-		if matchSelExpr(t, []string{"genfp", "MaxProduct"}) {
-			return MaxProduct, nil
-		}
-		if matchSelExpr(t, []string{"genfp", "MaxFunc"}) {
-			return MaxFunc, nil
-		}
-
-		if matchSelExpr(t, []string{"genfp", "MaxCompose"}) {
-			return MaxCompose, nil
-		}
-
-		if matchSelExpr(t, []string{"genfp", "MaxShift"}) {
-			return MaxShift, nil
-		}
-
-		if matchSelExpr(t, []string{"genfp", "MaxFlip"}) {
-			return MaxFlip, nil
-		}
-	}
-	return 0, fmt.Errorf("can't eval %T as int", e)
-}
-
-func evalImport(e ast.Expr) (ImportPackage, error) {
-	if lt, ok := e.(*ast.CompositeLit); ok {
-		ret := ImportPackage{}
-		names := []string{"Package", "Name"}
-		for idx, e := range lt.Elts {
-			if idx >= len(names) {
-				return ImportPackage{}, fmt.Errorf("invalid number of literals")
-			}
-
-			name := names[idx]
-			name, value := asKeyValue(e, name)
-
-			switch name {
-			case "Package":
-				v, err := evalStringValue(value)
-				if err != nil {
-					return ImportPackage{}, err
-				}
-				ret.Package = v
-			case "Name":
-				v, err := evalStringValue(value)
-				if err != nil {
-					return ImportPackage{}, err
-				}
-				ret.Name = v
-			}
-		}
-		return ret, nil
-	}
-	return ImportPackage{}, fmt.Errorf("expr is not composite expr : %T", e)
-
-}
-
-func matchSelExpr(sel *ast.SelectorExpr, exp []string) bool {
-	if len(exp) == 0 {
-		return false
-	}
-	init := exp[0 : len(exp)-1]
-	last := exp[len(exp)-1]
-	if sel.Sel.Name == last {
-		switch t := sel.X.(type) {
-		case *ast.SelectorExpr:
-			return matchSelExpr(t, init)
-		case *ast.Ident:
-			if len(init) == 1 {
-				return t.Name == init[0]
-			}
-		}
-	}
-	return false
-}
-
-func evalArray[T any](e ast.Expr, f func(ast.Expr) (T, error)) ([]T, error) {
-
-	if lt, ok := e.(*ast.CompositeLit); ok {
-		var ret []T
-
-		for _, e := range lt.Elts {
-			v, err := f(e)
-			if err != nil {
-				return nil, err
-			}
-			ret = append(ret, v)
-		}
-		return ret, nil
-
-	}
-	return nil, fmt.Errorf("expr is not array expr : %T", e)
-}
-
-func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
-
-	ret := GenerateFromUntil{}
-
-	names := []string{"File", "Imports", "From", "Until", "Template"}
-	for idx, e := range lit.Elts {
-		if idx >= len(names) {
-			return GenerateFromUntil{}, fmt.Errorf("invalid number of literals")
-		}
-
-		name := names[idx]
-		name, value := asKeyValue(e, name)
-		switch name {
-		case "File":
-			v, err := evalStringValue(value)
-			if err != nil {
-				return GenerateFromUntil{}, err
-			}
-			ret.File = v
-		case "Imports":
-			v, err := evalArray(value, evalImport)
-			if err != nil {
-				return GenerateFromUntil{}, err
-			}
-			ret.Imports = v
-		case "From":
-			v, err := evalIntValue(value)
-			if err != nil {
-				return GenerateFromUntil{}, err
-			}
-			ret.From = v
-		case "Until":
-			v, err := evalIntValue(value)
-			if err != nil {
-				return GenerateFromUntil{}, err
-			}
-			ret.Until = v
-		case "Template":
-			v, err := evalStringValue(value)
-			if err != nil {
-				return GenerateFromUntil{}, err
-			}
-			ret.Template = v
-		}
-	}
-
-	return ret, nil
-
-}
-
-type GenerateAdaptorDirective struct {
-	Interface    *types.Named
-	File         string
-	Name         string
-	Extends      bool
-	Self         bool
-	Getter       []string
-	EventHandler []string
-	ValOverride  []string
-}
-
-func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
-	ret := GenerateAdaptorDirective{}
-
-	if lit.Type.TypeArgs().Len() != 1 {
-		return ret, fmt.Errorf("invalid number of type argument")
-	}
-
-	argType, ok := lit.Type.TypeArgs().At(0).(*types.Named)
-	if !ok {
-		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
-	}
-
-	if _, ok := argType.Underlying().(*types.Interface); !ok {
-		return ret, fmt.Errorf("target type is not interface type : %s", lit.Type.TypeArgs().At(0))
-	}
-
-	ret.Interface = argType
-	intfname := argType.Obj().Name()
-
-	names := []string{"File", "Name", "Extends", "Self", "Getter", "EventHandler", "ValOverride"}
-	for idx, e := range lit.Lit.Elts {
-		if idx >= len(names) {
-			return ret, fmt.Errorf("invalid number of literals")
-		}
-
-		name := names[idx]
-		name, value := asKeyValue(e, name)
-		switch name {
-		case "File":
-			v, err := evalStringValue(value)
-			if err != nil {
-				return ret, err
-			}
-			ret.File = v
-		case "Name":
-			v, err := evalStringValue(value)
-			if err != nil {
-				return ret, err
-			}
-			ret.Name = v
-		case "Extends":
-			v, err := evalBoolValue(value)
-			if err != nil {
-				return ret, err
-			}
-			ret.Extends = v
-		case "Self":
-			v, err := evalBoolValue(value)
-			if err != nil {
-				return ret, err
-			}
-			ret.Self = v
-		case "Getter":
-			v, err := evalArray(value, evalMethodRef(intfname))
-			if err != nil {
-				return ret, err
-			}
-			ret.Getter = v
-		case "EventHandler":
-			v, err := evalArray(value, evalMethodRef(intfname))
-			if err != nil {
-				return ret, err
-			}
-			ret.EventHandler = v
-		case "ValOverride":
-			v, err := evalArray(value, evalMethodRef(intfname))
-			if err != nil {
-				return ret, err
-			}
-			ret.ValOverride = v
-		}
-	}
-	return ret, nil
 }

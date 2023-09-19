@@ -6,6 +6,7 @@ import (
 	"os"
 	rf "reflect"
 	"sync/atomic"
+	"time"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
@@ -228,21 +229,65 @@ var _ = genfp.GenerateFromUntil{
 }
 
 type AdaptorAPI interface {
+	TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	Hello() string
 	Send(target string) string
 	Active() bool
+	IsOk() bool
 	Receive(msg string)
+	Write(w io.Writer, b []byte) (int, error)
 }
 
-// @fp.GenerateTest
+// @fp.Generate
 var _ = genfp.GenerateAdaptor[AdaptorAPI]{
-	File:         "hello",
+	File:         "adaptor_generated.go",
 	Name:         "APIAdaptor",
 	Extends:      false,
 	Self:         false,
-	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active},
+	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
 	EventHandler: []any{AdaptorAPI.Receive},
 	ValOverride:  []any{AdaptorAPI.Hello},
+	Options: genfp.AdaptorMethods{
+		{
+			Method:      AdaptorAPI.Receive,
+			Prefix:      "On",
+			DefaultImpl: genfp.ZeroReturn,
+		},
+		{
+			Method:      AdaptorAPI.Write,
+			DefaultImpl: genfp.ZeroReturn,
+		},
+		{
+			Method:      AdaptorAPI.TestZero,
+			DefaultImpl: genfp.ZeroReturn,
+		},
+	},
+}
+
+func defaultWrite(self AdaptorAPI, w io.Writer, b []byte) (int, error) {
+	return 0, nil
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[AdaptorAPI]{
+	File:         "adaptor_generated.go",
+	Name:         "APIAdaptorExtends",
+	Extends:      true,
+	Self:         true,
+	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
+	EventHandler: []any{AdaptorAPI.Receive},
+	ValOverride:  []any{AdaptorAPI.Hello},
+	Options: genfp.AdaptorMethods{
+		{
+			Method:      AdaptorAPI.Receive,
+			Prefix:      "On",
+			DefaultImpl: genfp.ZeroReturn,
+		},
+		{
+			Method:      AdaptorAPI.Write,
+			DefaultImpl: defaultWrite,
+		},
+	},
 }
 
 // @fp.GenerateTest
@@ -263,4 +308,17 @@ var _ = genfp.GenerateAdaptor[io.Closer]{
 	Getter:       []any{io.Closer.Close, AdaptorAPI.Active},
 	EventHandler: []any{AdaptorAPI.Receive},
 	ValOverride:  []any{AdaptorAPI.Hello},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[testpk1.AdTester]{
+	File:    "adaptor_generated.go",
+	Extends: true,
+	Self:    true,
+	Options: genfp.AdaptorMethods{
+		{
+			Method:      testpk1.AdTester.Write,
+			DefaultImpl: testpk1.DefaultWrite,
+		},
+	},
 }

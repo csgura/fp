@@ -142,7 +142,24 @@ func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]G
 	for _, cl := range genseq {
 		gfu, err := ParseGenerateFromUntil(cl.Lit)
 		if err != nil {
-			fmt.Printf("invalid generate directive : %s", err)
+			fmt.Printf("invalid generate directive : %s\n", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
+}
+
+func FindGenerateAdaptor(p []*packages.Package, tags ...string) map[string][]GenerateAdaptorDirective {
+	ret := map[string][]GenerateAdaptorDirective{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateAdaptor", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateAdaptor(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s\n", err)
 		} else {
 			s := ret[gfu.File]
 			s = append(s, gfu)
@@ -167,8 +184,9 @@ func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Na
 }
 
 type TaggedLit struct {
-	Type *types.Named
-	Lit  *ast.CompositeLit
+	Package *packages.Package
+	Type    *types.Named
+	Lit     *ast.CompositeLit
 }
 
 func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []TaggedLit {
@@ -216,7 +234,7 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 								named := checkType(pk, cl.Type, v.I2.Pos())
 								if named != nil {
 									if named.Obj().Name() == typeName {
-										return []TaggedLit{{named, cl}}
+										return []TaggedLit{{pk, named, cl}}
 									}
 								}
 							}

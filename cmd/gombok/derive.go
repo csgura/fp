@@ -260,7 +260,7 @@ func (r *TypeClassSummonContext) typeclassInstanceMust(ctx CurrentContext, req m
 	// 에러내기 위해 사용. instance 가 None
 
 	return lookupTarget{
-		target: either.Left[NotDefinedInstance, fp.Either[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance]]](ret),
+		target: either.NotRight[fp.Either[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance]]](ret),
 	}
 }
 
@@ -772,7 +772,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx CurrentContext, req
 		// type parameter 의 instance ,
 		// type parameter의 타입이 컴파일 타입에 정해지지 않기 때문에 instance를 아규먼트로 받아야 하는 값
 		return lookupTarget{
-			target: either.Right[NotDefinedInstance](either.Right[SummonExprInstance](either.Left[ArgumentInstance, DefinedInstance](ret))),
+			target: either.Right[NotDefinedInstance](either.Right[SummonExprInstance](either.NotRight[DefinedInstance](ret))),
 		}
 	case *types.Named:
 		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
@@ -822,7 +822,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx CurrentContext, req
 				return r.summonUntypedStruct(ctx, req.TypeClass, f, fields)
 			}
 			return lookupTarget{
-				target: either.Right[NotDefinedInstance](either.Left[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance]](SummonExprInstance{ret})),
+				target: either.Right[NotDefinedInstance](either.NotRight[fp.Either[ArgumentInstance, DefinedInstance]](SummonExprInstance{ret})),
 			}
 		} else {
 			fmt.Printf("fieldOf = %v\n", req.FieldOf)
