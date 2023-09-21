@@ -51,11 +51,7 @@ func (r *APIAdaptor) Create(a string, b int) (int, error) {
 }
 
 func (r *APIAdaptor) Hello() string {
-	if r.DefaultHello != "" {
-		return r.DefaultHello
-	}
-
-	panic("not implemented")
+	return r.DefaultHello
 }
 
 func (r *APIAdaptor) IsOk() bool {

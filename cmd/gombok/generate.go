@@ -122,7 +122,14 @@ func genGenerate() {
 					if valoverride {
 
 						zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
-						if zeroVal == "nil" || zeroVal == "0" || zeroVal == `""` {
+						if zeroVal == "nil" {
+							defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
+									return r.Default%s
+								}
+						
+						`, t.Name(), zeroVal,
+								t.Name())
+						} else if zeroVal == "0" || zeroVal == `""` && (opt.OmitGetterIfValOverride == false || gad.Extends == true) {
 							defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
 									return r.Default%s
 								}
