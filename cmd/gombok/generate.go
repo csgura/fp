@@ -120,11 +120,11 @@ func genGenerate() {
 					if valoverride {
 
 						if opt.OmitGetterIfValOverride {
-							cbfield = fmt.Sprintf("Default%s %s", t.Name(), sig.Results().At(0).Type())
+							cbfield = fmt.Sprintf("Default%s %s", t.Name(), w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
 							cbExpr = ""
 
 						} else {
-							cbfield = fmt.Sprintf("Default%s %s\n%s", t.Name(), sig.Results().At(0).Type(), cbfield)
+							cbfield = fmt.Sprintf("Default%s %s\n%s", t.Name(), w.TypeName(gad.Package.Types, sig.Results().At(0).Type()), cbfield)
 						}
 
 						defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
