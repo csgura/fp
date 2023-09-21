@@ -29,16 +29,18 @@ type GenerateAdaptor[T any] struct {
 	Getter       []any
 	EventHandler []any
 	ValOverride  []any
+	ZeroReturn   []any
 	Options      []ImplOption
 }
 
 type AdaptorMethods []ImplOption
 
 type ImplOption struct {
-	Method      any
-	Prefix      string
-	ValOverride bool
-	DefaultImpl any
+	Method                  any
+	Prefix                  string
+	ValOverride             bool
+	OmitGetterIfValOverride bool
+	DefaultImpl             any
 }
 
 func ZeroReturn() {
@@ -312,6 +314,7 @@ type GenerateAdaptorDirective struct {
 	Getter       []string
 	EventHandler []string
 	ValOverride  []string
+	ZeroReturn   []string
 	Methods      map[string]ImplOptionDirective
 }
 
@@ -337,7 +340,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret.Interface = argType
 	intfname := argType.Obj().Name()
 
-	names := []string{"File", "Name", "Extends", "Self", "Getter", "EventHandler", "ValOverride", "Options"}
+	names := []string{"File", "Name", "Extends", "Self", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -388,6 +391,12 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				return ret, err
 			}
 			ret.ValOverride = v
+		case "ZeroReturn":
+			v, err := evalArray(value, evalMethodRef(intfname))
+			if err != nil {
+				return ret, err
+			}
+			ret.ZeroReturn = v
 		case "Options":
 			v, err := evalArray(value, evalImplOption(lit.Package, intfname))
 			if err != nil {
@@ -430,6 +439,13 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 
 		if opt.ValOverride == false {
 			opt.ValOverride = slices.Contains(ret.ValOverride, m.Name())
+			if opt.ValOverride {
+				opt.OmitGetterIfValOverride = true
+			}
+		}
+
+		if opt.DefaultImplExpr == nil && slices.Contains(ret.ZeroReturn, m.Name()) {
+			opt.DefaultImplExpr = &ast.SelectorExpr{X: ast.NewIdent("genfp"), Sel: ast.NewIdent("ZeroReturn")}
 		}
 
 		ret.Methods[m.Name()] = opt
@@ -438,11 +454,13 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 }
 
 type ImplOptionDirective struct {
-	Method               string
-	Prefix               string
-	ValOverride          bool
-	DefaultImplExpr      ast.Expr
-	DefaultImplSignature *types.Signature
+	Method                  string
+	Prefix                  string
+	ValOverride             bool
+	OmitGetterIfValOverride bool
+	DefaultImplExpr         ast.Expr
+	DefaultImplSignature    *types.Signature
+	DefaultImplImports      []ImportPackage
 
 	Type      *types.Func
 	Signature *types.Signature
@@ -463,11 +481,33 @@ func lookupIdent(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) types.T
 	return ti.Type
 }
 
+func evalFuncLit(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) (types.Type, []ImportPackage) {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+		Uses:  map[*ast.Ident]types.Object{},
+	}
+	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+
+	var imports []ImportPackage
+	for k, v := range info.Uses {
+		if pk, ok := v.(*types.PkgName); ok {
+			imports = append(imports, ImportPackage{
+				Package: pk.Imported().Path(),
+				Name:    k.Name,
+			})
+
+		}
+	}
+
+	ti := info.Types[typeExpr]
+	return ti.Type, imports
+}
+
 func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (ImplOptionDirective, error) {
 	return func(e ast.Expr) (ImplOptionDirective, error) {
 		if lt, ok := e.(*ast.CompositeLit); ok {
 			ret := ImplOptionDirective{}
-			names := []string{"Method", "Prefix", "ValOverride", "DefaultImpl"}
+			names := []string{"Method", "Prefix", "ValOverride", "OmitGetterIfValOverride", "DefaultImpl"}
 			for idx, e := range lt.Elts {
 				if idx >= len(names) {
 					return ret, fmt.Errorf("invalid number of literals")
@@ -495,13 +535,41 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 						return ret, err
 					}
 					ret.ValOverride = v
-				case "DefaultImpl":
-					found := lookupIdent(pk, value, value.Pos())
-
-					ret.DefaultImplExpr = value
-					if sig, ok := found.(*types.Signature); ok {
-						ret.DefaultImplSignature = sig
+				case "OmitGetterIfValOverride":
+					v, err := evalBoolValue(value)
+					if err != nil {
+						return ret, err
 					}
+					ret.OmitGetterIfValOverride = v
+				case "DefaultImpl":
+					switch value.(type) {
+					case *ast.FuncLit:
+						found, imports := evalFuncLit(pk, value, value.Pos())
+
+						ret.DefaultImplExpr = value
+						if sig, ok := found.(*types.Signature); ok {
+							ret.DefaultImplSignature = sig
+							ret.DefaultImplImports = imports
+						}
+
+					case *ast.Ident:
+						found := lookupIdent(pk, value, value.Pos())
+
+						ret.DefaultImplExpr = value
+						if sig, ok := found.(*types.Signature); ok {
+							ret.DefaultImplSignature = sig
+						}
+					case *ast.SelectorExpr:
+						found := lookupIdent(pk, value, value.Pos())
+
+						ret.DefaultImplExpr = value
+						if sig, ok := found.(*types.Signature); ok {
+							ret.DefaultImplSignature = sig
+						}
+					default:
+						return ret, fmt.Errorf("can't use %s as default impl expression", types.ExprString(value))
+					}
+
 				}
 			}
 			return ret, nil

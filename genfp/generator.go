@@ -218,7 +218,9 @@ type importAlias struct {
 	isalias bool
 }
 
-func (r *writer) AddImport(p *types.Package, alias string) bool {
+func (r *writer) AddImport(p *types.Package) bool {
+	alias := p.Name()
+
 	_, ok := r.PathToName[p.Path()]
 	if ok {
 		return false
@@ -229,9 +231,12 @@ func (r *writer) AddImport(p *types.Package, alias string) bool {
 		return false
 	}
 
+	parr := strings.Split(p.Path(), "/")
+	plast := parr[len(parr)-1]
+
 	r.PathToName[p.Path()] = importAlias{
 		alias:   alias,
-		isalias: p.Name() == alias,
+		isalias: plast != alias,
 	}
 	r.NameToPath[alias] = p.Path()
 
@@ -248,12 +253,14 @@ func (r *writer) GetImportedName(p *types.Package) string {
 	alias := p.Name()
 
 	for {
-		added := r.AddImport(p, alias)
+		added := r.AddImport(p)
 		if added {
 			return alias
 		}
 
 		alias = fmt.Sprintf("%s%d", p.Name(), i)
+		p = types.NewPackage(p.Path(), alias)
+		i++
 	}
 }
 
@@ -261,7 +268,7 @@ func (r *writer) ImportList() []string {
 	var ret = []string{}
 
 	for k, v := range r.PathToName {
-		if v.isalias {
+		if !v.isalias {
 			ret = append(ret, fmt.Sprintf(`"%s"`, k))
 
 		} else {
@@ -426,6 +433,7 @@ func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
 }
 
 type ImportSet interface {
+	AddImport(p *types.Package) bool
 	GetImportedName(p *types.Package) string
 	TypeName(pk *types.Package, tpe types.Type) string
 	ZeroExpr(pk *types.Package, tpe types.Type) string

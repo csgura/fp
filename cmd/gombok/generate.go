@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
+	"go/printer"
+	"go/token"
 	"go/types"
 	"os"
 
@@ -79,8 +82,6 @@ func genGenerate() {
 						return w.TypeName(gad.Package.Types, t.Type())
 					}).MakeString(",")
 
-					cb := fmt.Sprintf("%s%s func(%s%s) (%s)", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
-
 					withReturn := func(fmtstr string, args ...any) string {
 						e := fmt.Sprintf(fmtstr, args...)
 						if sig.Results().Len() == 0 {
@@ -96,6 +97,32 @@ func genGenerate() {
 						}
 						return withReturn(`r.%s%s(self,%s)`, opt.Prefix, t.Name(), argStr)
 					}()
+
+					valoverride := opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
+					defaultValExpr := ""
+					cbExpr := fmt.Sprintf(`if r.%s%s != nil {
+								%s
+							}`, opt.Prefix, t.Name(),
+						callcb)
+
+					cbfield := fmt.Sprintf("%s%s func(%s%s) (%s)", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
+					if valoverride {
+
+						if opt.OmitGetterIfValOverride {
+							cbfield = fmt.Sprintf("Default%s %s", t.Name(), sig.Results().At(0).Type())
+							cbExpr = ""
+
+						} else {
+							cbfield = fmt.Sprintf("Default%s %s\n%s", t.Name(), sig.Results().At(0).Type(), cbfield)
+						}
+
+						defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
+								return r.Default%s
+							}
+						
+						`, t.Name(), w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type()),
+							t.Name())
+					}
 
 					implName := func() string {
 						if gad.Self {
@@ -149,42 +176,53 @@ func genGenerate() {
 						} else if opt.DefaultImplExpr != nil {
 
 							if opt.DefaultImplSignature != nil {
-								os := opt.DefaultImplSignature
+								if fl, ok := opt.DefaultImplExpr.(*ast.FuncLit); ok {
+									fs := token.NewFileSet()
 
-								defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
-									return t.Type()
-								})
-
-								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-									if gad.Self {
-										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
+									buf := &bytes.Buffer{}
+									for _, i := range opt.DefaultImplImports {
+										w.AddImport(types.NewPackage(i.Package, i.Name))
 									}
-									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
-								}()
+									printer.Fprint(buf, fs, fl.Body.List)
+									return buf.String()
+								} else {
+									os := opt.DefaultImplSignature
 
-								type CallArgs struct {
-									avail fp.Seq[fp.Tuple2[string, types.Type]]
-									args  fp.Seq[string]
-								}
-
-								args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
-									init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
-										return t.I2.String() != tp.String()
+									defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
+										return t.Type()
 									})
 
-									arg := tail.NextOption()
-									if arg.IsDefined() {
-										return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
+									availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
+										if gad.Self {
+											return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
+										}
+										return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
+									}()
+
+									type CallArgs struct {
+										avail fp.Seq[fp.Tuple2[string, types.Type]]
+										args  fp.Seq[string]
 									}
-									return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
-								})
 
-								if args.IsSuccess() {
+									args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
+										init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
+											return t.I2.String() != tp.String()
+										})
 
-									return withReturn(`%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
+										arg := tail.NextOption()
+										if arg.IsDefined() {
+											return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
+										}
+										return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
+									})
 
-								} else {
-									fmt.Printf("err : %s\n", args.Failed().Get())
+									if args.IsSuccess() {
+
+										return withReturn(`%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
+
+									} else {
+										fmt.Printf("err : %s\n", args.Failed().Get())
+									}
 								}
 							}
 
@@ -197,20 +235,20 @@ func genGenerate() {
 							}
 
 						}
+
 						return fmt.Sprintf(`panic("not implemented")`)
 					}()
 
 					impl := fmt.Sprintf(`
 						func (r *%s) %s(%s) (%s) {
-							if r.%s%s != nil {
-								%s
-							}
+							%s
+							%s
 							%s
 							%s
 						}
 					`, adaptorTypeName, implName, implArgs, resstr,
-						opt.Prefix, t.Name(),
-						callcb,
+						defaultValExpr,
+						cbExpr,
 						extendscb,
 						defaultcb,
 					)
@@ -226,7 +264,7 @@ func genGenerate() {
 
 					}
 
-					return as.Tuple(cb, impl)
+					return as.Tuple(cbfield, impl)
 
 				})
 

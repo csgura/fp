@@ -18,6 +18,7 @@ import (
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
 	"github.com/csgura/fp/test/internal/testpk1"
+	ftry "github.com/csgura/fp/try"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -231,7 +232,7 @@ var _ = genfp.GenerateFromUntil{
 type AdaptorAPI interface {
 	TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	Hello() string
-	Send(target string) string
+	Send(target string) fp.Try[string]
 	Active() bool
 	IsOk() bool
 	Receive(msg string)
@@ -247,6 +248,7 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
 	EventHandler: []any{AdaptorAPI.Receive},
 	ValOverride:  []any{AdaptorAPI.Hello},
+	ZeroReturn:   []any{AdaptorAPI.TestZero},
 	Options: genfp.AdaptorMethods{
 		{
 			Method:      AdaptorAPI.Receive,
@@ -258,8 +260,10 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 			DefaultImpl: defaultWrite,
 		},
 		{
-			Method:      AdaptorAPI.TestZero,
-			DefaultImpl: genfp.ZeroReturn,
+			Method: AdaptorAPI.Send,
+			DefaultImpl: func() fp.Try[string] {
+				return ftry.Success("hello")
+			},
 		},
 	},
 }
@@ -286,6 +290,32 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 		{
 			Method:      AdaptorAPI.Write,
 			DefaultImpl: defaultWrite,
+		},
+	},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[AdaptorAPI]{
+	File:         "adaptor_generated.go",
+	Name:         "APIAdaptorExtendsNotSelf",
+	Extends:      true,
+	Self:         false,
+	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
+	EventHandler: []any{AdaptorAPI.Receive},
+	ValOverride:  []any{AdaptorAPI.Hello},
+	Options: genfp.AdaptorMethods{
+		{
+			Method:      AdaptorAPI.Receive,
+			Prefix:      "On",
+			DefaultImpl: genfp.ZeroReturn,
+		},
+		{
+			Method:      AdaptorAPI.Write,
+			DefaultImpl: defaultWrite,
+		},
+		{
+			Method:      AdaptorAPI.Hello,
+			ValOverride: true,
 		},
 	},
 }

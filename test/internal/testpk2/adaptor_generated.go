@@ -2,22 +2,25 @@
 package testpk2
 
 import (
+	"github.com/csgura/fp"
 	"github.com/csgura/fp/test/internal/testpk1"
+	ftry "github.com/csgura/fp/try"
 	"io"
 	"time"
 )
 
 type APIAdaptor struct {
-	IsActive   func() bool
-	GetHello   func() string
-	GetIsOk    func() bool
-	OnReceive  func(msg string)
-	DoSend     func(target string) string
-	DoTestZero func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
-	DoWrite    func(w io.Writer, b []byte) (int, error)
+	IsActive     func() bool
+	DefaultHello string
+	GetIsOk      func() bool
+	OnReceive    func(msg string)
+	DoSend       func(target string) fp.Try[string]
+	DoTestZero   func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoWrite      func(w io.Writer, b []byte) (int, error)
 }
 
 func (r *APIAdaptor) Active() bool {
+
 	if r.IsActive != nil {
 		return r.IsActive()
 	}
@@ -26,14 +29,15 @@ func (r *APIAdaptor) Active() bool {
 }
 
 func (r *APIAdaptor) Hello() string {
-	if r.GetHello != nil {
-		return r.GetHello()
+	if r.DefaultHello != "" {
+		return r.DefaultHello
 	}
 
 	panic("not implemented")
 }
 
 func (r *APIAdaptor) IsOk() bool {
+
 	if r.GetIsOk != nil {
 		return r.GetIsOk()
 	}
@@ -42,6 +46,7 @@ func (r *APIAdaptor) IsOk() bool {
 }
 
 func (r *APIAdaptor) Receive(msg string) {
+
 	if r.OnReceive != nil {
 		r.OnReceive(msg)
 		return
@@ -50,15 +55,17 @@ func (r *APIAdaptor) Receive(msg string) {
 	return
 }
 
-func (r *APIAdaptor) Send(target string) string {
+func (r *APIAdaptor) Send(target string) fp.Try[string] {
+
 	if r.DoSend != nil {
 		return r.DoSend(target)
 	}
 
-	panic("not implemented")
+	return ftry.Success("hello")
 }
 
 func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
+
 	if r.DoTestZero != nil {
 		return r.DoTestZero()
 	}
@@ -67,6 +74,7 @@ func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, 
 }
 
 func (r *APIAdaptor) Write(w io.Writer, b []byte) (int, error) {
+
 	if r.DoWrite != nil {
 		return r.DoWrite(w, b)
 	}
@@ -75,14 +83,14 @@ func (r *APIAdaptor) Write(w io.Writer, b []byte) (int, error) {
 }
 
 type APIAdaptorExtends struct {
-	Extends    AdaptorAPI
-	IsActive   func(self AdaptorAPI) bool
-	GetHello   func(self AdaptorAPI) string
-	GetIsOk    func(self AdaptorAPI) bool
-	OnReceive  func(self AdaptorAPI, msg string)
-	DoSend     func(self AdaptorAPI, target string) string
-	DoTestZero func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
-	DoWrite    func(self AdaptorAPI, w io.Writer, b []byte) (int, error)
+	Extends      AdaptorAPI
+	IsActive     func(self AdaptorAPI) bool
+	DefaultHello string
+	GetIsOk      func(self AdaptorAPI) bool
+	OnReceive    func(self AdaptorAPI, msg string)
+	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
+	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoWrite      func(self AdaptorAPI, w io.Writer, b []byte) (int, error)
 }
 
 func (r *APIAdaptorExtends) Active() bool {
@@ -90,6 +98,7 @@ func (r *APIAdaptorExtends) Active() bool {
 }
 
 func (r *APIAdaptorExtends) ActiveImpl(self AdaptorAPI) bool {
+
 	if r.IsActive != nil {
 		return r.IsActive(self)
 	}
@@ -113,8 +122,8 @@ func (r *APIAdaptorExtends) Hello() string {
 }
 
 func (r *APIAdaptorExtends) HelloImpl(self AdaptorAPI) string {
-	if r.GetHello != nil {
-		return r.GetHello(self)
+	if r.DefaultHello != "" {
+		return r.DefaultHello
 	}
 
 	if r.Extends != nil {
@@ -136,6 +145,7 @@ func (r *APIAdaptorExtends) IsOk() bool {
 }
 
 func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
+
 	if r.GetIsOk != nil {
 		return r.GetIsOk(self)
 	}
@@ -160,6 +170,7 @@ func (r *APIAdaptorExtends) Receive(msg string) {
 }
 
 func (r *APIAdaptorExtends) ReceiveImpl(self AdaptorAPI, msg string) {
+
 	if r.OnReceive != nil {
 		r.OnReceive(self, msg)
 		return
@@ -181,18 +192,19 @@ func (r *APIAdaptorExtends) ReceiveImpl(self AdaptorAPI, msg string) {
 	return
 }
 
-func (r *APIAdaptorExtends) Send(target string) string {
+func (r *APIAdaptorExtends) Send(target string) fp.Try[string] {
 	return r.SendImpl(r, target)
 }
 
-func (r *APIAdaptorExtends) SendImpl(self AdaptorAPI, target string) string {
+func (r *APIAdaptorExtends) SendImpl(self AdaptorAPI, target string) fp.Try[string] {
+
 	if r.DoSend != nil {
 		return r.DoSend(self, target)
 	}
 
 	if r.Extends != nil {
 		type impl interface {
-			SendImpl(self AdaptorAPI, target string) string
+			SendImpl(self AdaptorAPI, target string) fp.Try[string]
 		}
 
 		if super, ok := r.Extends.(impl); ok {
@@ -209,6 +221,7 @@ func (r *APIAdaptorExtends) TestZero() (complex64, time.Time, *string, []int, [3
 }
 
 func (r *APIAdaptorExtends) TestZeroImpl(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
+
 	if r.DoTestZero != nil {
 		return r.DoTestZero(self)
 	}
@@ -232,6 +245,7 @@ func (r *APIAdaptorExtends) Write(w io.Writer, b []byte) (int, error) {
 }
 
 func (r *APIAdaptorExtends) WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (int, error) {
+
 	if r.DoWrite != nil {
 		return r.DoWrite(self, w, b)
 	}
@@ -250,6 +264,114 @@ func (r *APIAdaptorExtends) WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (i
 	return defaultWrite(self, w, b)
 }
 
+type APIAdaptorExtendsNotSelf struct {
+	Extends      AdaptorAPI
+	IsActive     func() bool
+	DefaultHello string
+	GetHello     func() string
+	GetIsOk      func() bool
+	OnReceive    func(msg string)
+	DoSend       func(target string) fp.Try[string]
+	DoTestZero   func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoWrite      func(w io.Writer, b []byte) (int, error)
+}
+
+func (r *APIAdaptorExtendsNotSelf) Active() bool {
+
+	if r.IsActive != nil {
+		return r.IsActive()
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Active()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) Hello() string {
+	if r.DefaultHello != "" {
+		return r.DefaultHello
+	}
+
+	if r.GetHello != nil {
+		return r.GetHello()
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Hello()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) IsOk() bool {
+
+	if r.GetIsOk != nil {
+		return r.GetIsOk()
+	}
+
+	if r.Extends != nil {
+		return r.Extends.IsOk()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) Receive(msg string) {
+
+	if r.OnReceive != nil {
+		r.OnReceive(msg)
+		return
+	}
+
+	if r.Extends != nil {
+		r.Extends.Receive(msg)
+		return
+	}
+
+	return
+}
+
+func (r *APIAdaptorExtendsNotSelf) Send(target string) fp.Try[string] {
+
+	if r.DoSend != nil {
+		return r.DoSend(target)
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Send(target)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
+
+	if r.DoTestZero != nil {
+		return r.DoTestZero()
+	}
+
+	if r.Extends != nil {
+		return r.Extends.TestZero()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) Write(w io.Writer, b []byte) (int, error) {
+
+	if r.DoWrite != nil {
+		return r.DoWrite(w, b)
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Write(w, b)
+	}
+
+	return defaultWrite(r, w, b)
+}
+
 type AdTesterAdaptor struct {
 	Extends testpk1.AdTester
 	DoWrite func(self testpk1.AdTester, w io.Writer, b []byte) (int, error)
@@ -260,6 +382,7 @@ func (r *AdTesterAdaptor) Write(w io.Writer, b []byte) (int, error) {
 }
 
 func (r *AdTesterAdaptor) WriteImpl(self testpk1.AdTester, w io.Writer, b []byte) (int, error) {
+
 	if r.DoWrite != nil {
 		return r.DoWrite(self, w, b)
 	}
