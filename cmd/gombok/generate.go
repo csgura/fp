@@ -86,9 +86,12 @@ func genGenerate() {
 						return fmt.Sprintf("%s %s", t.Name(), w.TypeName(gad.Package.Types, t.Type()))
 					}).MakeString(",")
 
-					resstr := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-						return w.TypeName(gad.Package.Types, t.Type())
-					}).MakeString(",")
+					resstr := ""
+					if sig.Results().Len() > 0 {
+						resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+							return w.TypeName(gad.Package.Types, t.Type())
+						}).MakeString(",") + ")"
+					}
 
 					withReturn := func(fmtstr string, args ...any) string {
 						e := fmt.Sprintf(fmtstr, args...)
@@ -113,7 +116,7 @@ func genGenerate() {
 							}`, opt.Prefix, t.Name(),
 						callcb)
 
-					cbfield := fmt.Sprintf("%s%s func(%s%s) (%s)", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
+					cbfield := fmt.Sprintf("%s%s func(%s%s) %s", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
 					if valoverride {
 
 						if opt.OmitGetterIfValOverride {
@@ -149,7 +152,7 @@ func genGenerate() {
 							superexpr := ""
 							if gad.Self {
 								superexpr = fmt.Sprintf(`type impl interface {
-										%s(%s) (%s)
+										%s(%s) %s
 									}
 
 									if super, ok := r.Extends.(impl); ok {
@@ -256,7 +259,7 @@ func genGenerate() {
 					}()
 
 					impl := fmt.Sprintf(`
-						func (r *%s) %s(%s) (%s) {
+						func (r *%s) %s(%s) %s {
 							%s
 							%s
 							%s
@@ -271,7 +274,7 @@ func genGenerate() {
 
 					if gad.Self {
 						impl = fmt.Sprintf(`
-						func (r *%s) %s(%s) (%s) {
+						func (r *%s) %s(%s) %s {
 							%s
 						}
 					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
