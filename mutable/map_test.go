@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
 )
 
@@ -38,5 +40,41 @@ func TestMapZeroValue(t *testing.T) {
 	s2 := s.Incl("hello")
 	assert.False(s.Contains("hello"))
 	assert.True(s2.Contains("hello"))
+
+}
+
+func TestMapForAll(t *testing.T) {
+	m := map[string]bool{
+		"1": false,
+		"2": true,
+	}
+
+	allTrue := mutable.MapOf(m).Values().ForAll(fp.Id)
+	assert.False(allTrue)
+
+	anyTrue := mutable.MapOf(m).Values().Exists(fp.Id)
+	assert.True(anyTrue)
+
+	allTrue = iterator.FromMapValue(m).ForAll(eq.GivenValue(true))
+	assert.False(allTrue)
+
+	m = map[string]bool{
+		"1": true,
+		"2": true,
+	}
+
+	allTrue = mutable.MapOf(m).Values().Exists(fp.Id)
+	assert.True(allTrue)
+
+	allTrue = iterator.FromMapValue(m).ForAll(eq.GivenValue(true))
+	assert.True(allTrue)
+
+	m = map[string]bool{}
+
+	allTrue = mutable.MapOf(m).Values().ForAll(fp.Id)
+	assert.True(allTrue)
+
+	anyTrue = mutable.MapOf(m).Values().Exists(fp.Id)
+	assert.False(anyTrue)
 
 }

@@ -175,64 +175,72 @@ func genGenerate() {
 							return "return"
 						} else if opt.DefaultImplExpr != nil {
 
+							for _, i := range opt.DefaultImplImports {
+								w.AddImport(types.NewPackage(i.Package, i.Name))
+							}
+
 							if opt.DefaultImplSignature != nil {
-								if fl, ok := opt.DefaultImplExpr.(*ast.FuncLit); ok {
-									fs := token.NewFileSet()
+								os := opt.DefaultImplSignature
 
-									buf := &bytes.Buffer{}
-									for _, i := range opt.DefaultImplImports {
-										w.AddImport(types.NewPackage(i.Package, i.Name))
+								defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
+									return t.Type()
+								})
+
+								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
+									if gad.Self {
+										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
 									}
-									printer.Fprint(buf, fs, fl.Body.List)
-									return buf.String()
-								} else {
-									os := opt.DefaultImplSignature
+									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
+								}()
 
-									defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
-										return t.Type()
+								type CallArgs struct {
+									avail fp.Seq[fp.Tuple2[string, types.Type]]
+									args  fp.Seq[string]
+								}
+
+								args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
+									init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
+										return t.I2.String() != tp.String()
 									})
 
-									availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-										if gad.Self {
-											return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
-										}
-										return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
-									}()
-
-									type CallArgs struct {
-										avail fp.Seq[fp.Tuple2[string, types.Type]]
-										args  fp.Seq[string]
+									arg := tail.NextOption()
+									if arg.IsDefined() {
+										return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
 									}
+									return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
+								})
 
-									args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
-										init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
-											return t.I2.String() != tp.String()
-										})
+								if args.IsSuccess() {
+									if fl, ok := opt.DefaultImplExpr.(*ast.FuncLit); ok {
+										fs := token.NewFileSet()
 
-										arg := tail.NextOption()
-										if arg.IsDefined() {
-											return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
-										}
-										return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
-									})
+										buf := &bytes.Buffer{}
 
-									if args.IsSuccess() {
+										printer.Fprint(buf, fs, fl)
+										return withReturn("%s(%s)", buf.String(), args.Get().args.MakeString(","))
+									} else {
 
 										return withReturn(`%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
 
-									} else {
-										fmt.Printf("err : %s\n", args.Failed().Get())
 									}
+								} else {
+									fmt.Printf("err : %s\n", args.Failed().Get())
+								}
+								if gad.Self {
+									e := types.ExprString(opt.DefaultImplExpr)
+									return withReturn(`%s(self, %s)`, e, argStr)
+								} else {
+									e := types.ExprString(opt.DefaultImplExpr)
+									return withReturn(`%s(r, %s)`, e, argStr)
 								}
 							}
 
-							if gad.Self {
-								e := types.ExprString(opt.DefaultImplExpr)
-								return withReturn(`%s(self, %s)`, e, argStr)
-							} else {
-								e := types.ExprString(opt.DefaultImplExpr)
-								return withReturn(`%s(r, %s)`, e, argStr)
-							}
+							fs := token.NewFileSet()
+
+							buf := &bytes.Buffer{}
+
+							printer.Fprint(buf, fs, opt.DefaultImplExpr)
+							return "return " + buf.String()
 
 						}
 

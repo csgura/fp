@@ -18,6 +18,7 @@ import (
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
 	"github.com/csgura/fp/test/internal/testpk1"
+	"github.com/csgura/fp/try"
 	ftry "github.com/csgura/fp/try"
 )
 
@@ -237,6 +238,7 @@ type AdaptorAPI interface {
 	IsOk() bool
 	Receive(msg string)
 	Write(w io.Writer, b []byte) (int, error)
+	Create(a string, b int) (int, error)
 }
 
 // @fp.Generate
@@ -265,6 +267,12 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 				return ftry.Success("hello")
 			},
 		},
+		{
+			Method: AdaptorAPI.Create,
+			DefaultImpl: func(v int) (int, error) {
+				return v, nil
+			},
+		},
 	},
 }
 
@@ -290,6 +298,10 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 		{
 			Method:      AdaptorAPI.Write,
 			DefaultImpl: defaultWrite,
+		},
+		{
+			Method:      AdaptorAPI.Send,
+			DefaultImpl: try.Success("ok"),
 		},
 	},
 }

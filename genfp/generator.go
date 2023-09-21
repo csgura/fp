@@ -202,7 +202,7 @@ type writer struct {
 	Package    string
 	Buffer     *bytes.Buffer
 	PathToName map[string]importAlias
-	NameToPath map[string]string
+	NameToPath map[string]importAlias
 }
 
 func (r *writer) Write(b []byte) (int, error) {
@@ -214,6 +214,7 @@ func (r *writer) Iteration(start, end int) Range {
 }
 
 type importAlias struct {
+	path    string
 	alias   string
 	isalias bool
 }
@@ -221,12 +222,7 @@ type importAlias struct {
 func (r *writer) AddImport(p *types.Package) bool {
 	alias := p.Name()
 
-	_, ok := r.PathToName[p.Path()]
-	if ok {
-		return false
-	}
-
-	_, ok = r.NameToPath[alias]
+	_, ok := r.NameToPath[alias]
 	if ok {
 		return false
 	}
@@ -234,11 +230,14 @@ func (r *writer) AddImport(p *types.Package) bool {
 	parr := strings.Split(p.Path(), "/")
 	plast := parr[len(parr)-1]
 
-	r.PathToName[p.Path()] = importAlias{
+	ia := importAlias{
+		path:    p.Path(),
 		alias:   alias,
 		isalias: plast != alias,
 	}
-	r.NameToPath[alias] = p.Path()
+
+	r.PathToName[p.Path()] = ia
+	r.NameToPath[alias] = ia
 
 	return true
 }
@@ -267,12 +266,12 @@ func (r *writer) GetImportedName(p *types.Package) string {
 func (r *writer) ImportList() []string {
 	var ret = []string{}
 
-	for k, v := range r.PathToName {
+	for _, v := range r.NameToPath {
 		if !v.isalias {
-			ret = append(ret, fmt.Sprintf(`"%s"`, k))
+			ret = append(ret, fmt.Sprintf(`"%s"`, v.path))
 
 		} else {
-			ret = append(ret, fmt.Sprintf(`%s "%s"`, v.alias, k))
+			ret = append(ret, fmt.Sprintf(`%s "%s"`, v.alias, v.path))
 		}
 	}
 
@@ -451,7 +450,7 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 	fmt.Println()
 	os.Remove(filename)
 
-	f := &writer{packname, &bytes.Buffer{}, map[string]importAlias{}, map[string]string{}}
+	f := &writer{packname, &bytes.Buffer{}, map[string]importAlias{}, map[string]importAlias{}}
 
 	writeFunc(f)
 

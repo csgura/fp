@@ -542,32 +542,13 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 					}
 					ret.OmitGetterIfValOverride = v
 				case "DefaultImpl":
-					switch value.(type) {
-					case *ast.FuncLit:
-						found, imports := evalFuncLit(pk, value, value.Pos())
 
-						ret.DefaultImplExpr = value
-						if sig, ok := found.(*types.Signature); ok {
-							ret.DefaultImplSignature = sig
-							ret.DefaultImplImports = imports
-						}
+					found, imports := evalFuncLit(pk, value, value.Pos())
+					ret.DefaultImplImports = imports
 
-					case *ast.Ident:
-						found := lookupIdent(pk, value, value.Pos())
-
-						ret.DefaultImplExpr = value
-						if sig, ok := found.(*types.Signature); ok {
-							ret.DefaultImplSignature = sig
-						}
-					case *ast.SelectorExpr:
-						found := lookupIdent(pk, value, value.Pos())
-
-						ret.DefaultImplExpr = value
-						if sig, ok := found.(*types.Signature); ok {
-							ret.DefaultImplSignature = sig
-						}
-					default:
-						return ret, fmt.Errorf("can't use %s as default impl expression", types.ExprString(value))
+					ret.DefaultImplExpr = value
+					if sig, ok := found.(*types.Signature); ok {
+						ret.DefaultImplSignature = sig
 					}
 
 				}

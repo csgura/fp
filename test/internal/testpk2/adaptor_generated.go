@@ -4,6 +4,7 @@ package testpk2
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/test/internal/testpk1"
+	"github.com/csgura/fp/try"
 	ftry "github.com/csgura/fp/try"
 	"io"
 	"time"
@@ -11,6 +12,7 @@ import (
 
 type APIAdaptor struct {
 	IsActive     func() bool
+	DoCreate     func(a string, b int) (int, error)
 	DefaultHello string
 	GetIsOk      func() bool
 	OnReceive    func(msg string)
@@ -26,6 +28,17 @@ func (r *APIAdaptor) Active() bool {
 	}
 
 	panic("not implemented")
+}
+
+func (r *APIAdaptor) Create(a string, b int) (int, error) {
+
+	if r.DoCreate != nil {
+		return r.DoCreate(a, b)
+	}
+
+	return func(v int) (int, error) {
+		return v, nil
+	}(b)
 }
 
 func (r *APIAdaptor) Hello() string {
@@ -61,7 +74,9 @@ func (r *APIAdaptor) Send(target string) fp.Try[string] {
 		return r.DoSend(target)
 	}
 
-	return ftry.Success("hello")
+	return func() fp.Try[string] {
+		return ftry.Success("hello")
+	}()
 }
 
 func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
@@ -85,6 +100,7 @@ func (r *APIAdaptor) Write(w io.Writer, b []byte) (int, error) {
 type APIAdaptorExtends struct {
 	Extends      AdaptorAPI
 	IsActive     func(self AdaptorAPI) bool
+	DoCreate     func(self AdaptorAPI, a string, b int) (int, error)
 	DefaultHello string
 	GetIsOk      func(self AdaptorAPI) bool
 	OnReceive    func(self AdaptorAPI, msg string)
@@ -112,6 +128,30 @@ func (r *APIAdaptorExtends) ActiveImpl(self AdaptorAPI) bool {
 			return super.ActiveImpl(self)
 		}
 		return r.Extends.Active()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtends) Create(a string, b int) (int, error) {
+	return r.CreateImpl(r, a, b)
+}
+
+func (r *APIAdaptorExtends) CreateImpl(self AdaptorAPI, a string, b int) (int, error) {
+
+	if r.DoCreate != nil {
+		return r.DoCreate(self, a, b)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			CreateImpl(self AdaptorAPI, a string, b int) (int, error)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.CreateImpl(self, a, b)
+		}
+		return r.Extends.Create(a, b)
 	}
 
 	panic("not implemented")
@@ -213,7 +253,7 @@ func (r *APIAdaptorExtends) SendImpl(self AdaptorAPI, target string) fp.Try[stri
 		return r.Extends.Send(target)
 	}
 
-	panic("not implemented")
+	return try.Success("ok")
 }
 
 func (r *APIAdaptorExtends) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
@@ -267,6 +307,7 @@ func (r *APIAdaptorExtends) WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (i
 type APIAdaptorExtendsNotSelf struct {
 	Extends      AdaptorAPI
 	IsActive     func() bool
+	DoCreate     func(a string, b int) (int, error)
 	DefaultHello string
 	GetHello     func() string
 	GetIsOk      func() bool
@@ -284,6 +325,19 @@ func (r *APIAdaptorExtendsNotSelf) Active() bool {
 
 	if r.Extends != nil {
 		return r.Extends.Active()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) Create(a string, b int) (int, error) {
+
+	if r.DoCreate != nil {
+		return r.DoCreate(a, b)
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Create(a, b)
 	}
 
 	panic("not implemented")
