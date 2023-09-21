@@ -71,10 +71,18 @@ func genGenerate() {
 					})
 
 					argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-						return fmt.Sprintf("%s", t.Name())
+						if sig.Variadic() && i == sig.Params().Len()-1 {
+							return fmt.Sprintf("%s...", t.Name())
+						} else {
+							return fmt.Sprintf("%s", t.Name())
+						}
 					}).MakeString(",")
 
 					argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+						if sig.Variadic() && i == sig.Params().Len()-1 {
+							st := t.Type().(*types.Slice)
+							return fmt.Sprintf("%s ...%s", t.Name(), w.TypeName(gad.Package.Types, st.Elem()))
+						}
 						return fmt.Sprintf("%s %s", t.Name(), w.TypeName(gad.Package.Types, t.Type()))
 					}).MakeString(",")
 

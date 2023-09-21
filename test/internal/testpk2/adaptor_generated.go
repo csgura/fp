@@ -18,6 +18,7 @@ type APIAdaptor struct {
 	OnReceive    func(msg string)
 	DoSend       func(target string) fp.Try[string]
 	DoTestZero   func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoVarArgs    func(fmtstr string, args ...string)
 	DoWrite      func(w io.Writer, b []byte) (int, error)
 }
 
@@ -88,6 +89,16 @@ func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, 
 	return 0, time.Time{}, nil, nil, [3]byte{}, map[string]any{}
 }
 
+func (r *APIAdaptor) VarArgs(fmtstr string, args ...string) {
+
+	if r.DoVarArgs != nil {
+		r.DoVarArgs(fmtstr, args...)
+		return
+	}
+
+	panic("not implemented")
+}
+
 func (r *APIAdaptor) Write(w io.Writer, b []byte) (int, error) {
 
 	if r.DoWrite != nil {
@@ -106,6 +117,7 @@ type APIAdaptorExtends struct {
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoVarArgs    func(self AdaptorAPI, fmtstr string, args ...string)
 	DoWrite      func(self AdaptorAPI, w io.Writer, b []byte) (int, error)
 }
 
@@ -280,6 +292,34 @@ func (r *APIAdaptorExtends) TestZeroImpl(self AdaptorAPI) (complex64, time.Time,
 	panic("not implemented")
 }
 
+func (r *APIAdaptorExtends) VarArgs(fmtstr string, args ...string) {
+	r.VarArgsImpl(r, fmtstr, args...)
+	return
+}
+
+func (r *APIAdaptorExtends) VarArgsImpl(self AdaptorAPI, fmtstr string, args ...string) {
+
+	if r.DoVarArgs != nil {
+		r.DoVarArgs(self, fmtstr, args...)
+		return
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			VarArgsImpl(self AdaptorAPI, fmtstr string, args ...string)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			super.VarArgsImpl(self, fmtstr, args...)
+			return
+		}
+		r.Extends.VarArgs(fmtstr, args...)
+		return
+	}
+
+	panic("not implemented")
+}
+
 func (r *APIAdaptorExtends) Write(w io.Writer, b []byte) (int, error) {
 	return r.WriteImpl(r, w, b)
 }
@@ -314,6 +354,7 @@ type APIAdaptorExtendsNotSelf struct {
 	OnReceive    func(msg string)
 	DoSend       func(target string) fp.Try[string]
 	DoTestZero   func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoVarArgs    func(fmtstr string, args ...string)
 	DoWrite      func(w io.Writer, b []byte) (int, error)
 }
 
@@ -408,6 +449,21 @@ func (r *APIAdaptorExtendsNotSelf) TestZero() (complex64, time.Time, *string, []
 
 	if r.Extends != nil {
 		return r.Extends.TestZero()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) VarArgs(fmtstr string, args ...string) {
+
+	if r.DoVarArgs != nil {
+		r.DoVarArgs(fmtstr, args...)
+		return
+	}
+
+	if r.Extends != nil {
+		r.Extends.VarArgs(fmtstr, args...)
+		return
 	}
 
 	panic("not implemented")
