@@ -132,3 +132,25 @@ func TestZipIndex(t *testing.T) {
 	assert.False(z.HasNext())
 
 }
+
+func TestDropWhile(t *testing.T) {
+	i := iterator.Range(0, 10)
+
+	tail := i.DropWhile(func(i int) bool {
+		return i != 9
+	})
+
+	fmt.Printf("tail.Next = %s\n", tail.NextOption())
+
+}
+
+func TestSpan(t *testing.T) {
+	i := iterator.Range(0, 10)
+
+	_, tail := iterator.Span(i, func(i int) bool {
+		return i != 9
+	})
+
+	fmt.Printf("tail.Next = %s\n", tail.NextOption())
+
+}

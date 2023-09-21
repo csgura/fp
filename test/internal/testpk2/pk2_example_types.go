@@ -255,7 +255,7 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 		},
 		{
 			Method:      AdaptorAPI.Write,
-			DefaultImpl: genfp.ZeroReturn,
+			DefaultImpl: defaultWrite,
 		},
 		{
 			Method:      AdaptorAPI.TestZero,

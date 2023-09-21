@@ -12,6 +12,7 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -62,6 +63,10 @@ func genGenerate() {
 						selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
 					}
 
+					argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
+						return as.Tuple2(t.Name(), t.Type())
+					})
+
 					argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 						return fmt.Sprintf("%s", t.Name())
 					}).MakeString(",")
@@ -76,28 +81,20 @@ func genGenerate() {
 
 					cb := fmt.Sprintf("%s%s func(%s%s) (%s)", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
 
-					retExpr := "return "
-					voidExpr := ""
-					if sig.Results().Len() == 0 {
-						retExpr = ""
-						voidExpr = "return"
+					withReturn := func(fmtstr string, args ...any) string {
+						e := fmt.Sprintf(fmtstr, args...)
+						if sig.Results().Len() == 0 {
+							return fmt.Sprintf("%s\nreturn", e)
+						}
+						return "return " + e
 					}
 
 					callcb := func() string {
 						if gad.Self == false {
-							return fmt.Sprintf(`
-								%s r.%s%s(%s)
-								%s
-							`, retExpr, opt.Prefix, t.Name(), argStr,
-								voidExpr,
-							)
+							return withReturn(`r.%s%s(%s)`, opt.Prefix, t.Name(), argStr)
 
 						}
-						return fmt.Sprintf(`
-							%s r.%s%s(self,%s)
-							%s
-							`, retExpr, opt.Prefix, t.Name(), argStr,
-							voidExpr)
+						return withReturn(`r.%s%s(self,%s)`, opt.Prefix, t.Name(), argStr)
 					}()
 
 					implName := func() string {
@@ -116,29 +113,24 @@ func genGenerate() {
 						if gad.Extends {
 							superexpr := ""
 							if gad.Self {
-								superexpr = fmt.Sprintf(`
-									type impl interface {
+								superexpr = fmt.Sprintf(`type impl interface {
 										%s(%s) (%s)
 									}
+
 									if super, ok := r.Extends.(impl); ok {
-										%s super.%s(self, %s)
-										%s
+										%s 
 									}
-								`, implName, implArgs, resstr,
-									retExpr, implName, argStr,
-									voidExpr,
+									`, implName, implArgs, resstr,
+									withReturn("super.%s(self, %s)", implName, argStr),
 								)
 							}
 							return fmt.Sprintf(`
 								if r.Extends != nil {
-									%s
-									%s r.Extends.%s(%s)
-									%s
+									%s%s 
 								}
 							`,
 								superexpr,
-								retExpr, t.Name(), argStr,
-								voidExpr,
+								withReturn("r.Extends.%s(%s)", t.Name(), argStr),
 							)
 						}
 						return ""
@@ -155,24 +147,55 @@ func genGenerate() {
 							}
 							return "return"
 						} else if opt.DefaultImplExpr != nil {
-							if gad.Self {
 
-								if opt.DefaultImplSignature != nil {
-									os := opt.DefaultImplSignature
-									if os.Params().Len() != sig.Params().Len() && os.Params().Len() > 0 {
+							if opt.DefaultImplSignature != nil {
+								os := opt.DefaultImplSignature
 
-										if os.Params().At(0).Type() == gad.Interface {
-											return fmt.Sprintf(`%s %s(self,%s)
-										%s`, retExpr, types.ExprString(opt.DefaultImplExpr), argStr, voidExpr)
-										}
+								defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
+									return t.Type()
+								})
+
+								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
+									if gad.Self {
+										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
 									}
+									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
+								}()
+
+								type CallArgs struct {
+									avail fp.Seq[fp.Tuple2[string, types.Type]]
+									args  fp.Seq[string]
 								}
 
+								args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
+									init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
+										return t.I2.String() != tp.String()
+									})
+
+									arg := tail.NextOption()
+									if arg.IsDefined() {
+										return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
+									}
+									return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
+								})
+
+								if args.IsSuccess() {
+
+									return withReturn(`%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
+
+								} else {
+									fmt.Printf("err : %s\n", args.Failed().Get())
+								}
 							}
 
-							e := types.ExprString(opt.DefaultImplExpr)
-							return fmt.Sprintf(`%s %s(%s)
-							%s`, retExpr, e, argStr, voidExpr)
+							if gad.Self {
+								e := types.ExprString(opt.DefaultImplExpr)
+								return withReturn(`%s(self, %s)`, e, argStr)
+							} else {
+								e := types.ExprString(opt.DefaultImplExpr)
+								return withReturn(`%s(r, %s)`, e, argStr)
+							}
+
 						}
 						return fmt.Sprintf(`panic("not implemented")`)
 					}()
@@ -195,10 +218,10 @@ func genGenerate() {
 					if gad.Self {
 						impl = fmt.Sprintf(`
 						func (r *%s) %s(%s) (%s) {
-							%s r.%sImpl(r,%s)
+							%s
 						}
 					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-							retExpr, t.Name(), argStr,
+							withReturn("r.%sImpl(r,%s)", t.Name(), argStr),
 						) + impl
 
 					}

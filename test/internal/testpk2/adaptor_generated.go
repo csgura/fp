@@ -19,9 +19,7 @@ type APIAdaptor struct {
 
 func (r *APIAdaptor) Active() bool {
 	if r.IsActive != nil {
-
 		return r.IsActive()
-
 	}
 
 	panic("not implemented")
@@ -29,9 +27,7 @@ func (r *APIAdaptor) Active() bool {
 
 func (r *APIAdaptor) Hello() string {
 	if r.GetHello != nil {
-
 		return r.GetHello()
-
 	}
 
 	panic("not implemented")
@@ -39,9 +35,7 @@ func (r *APIAdaptor) Hello() string {
 
 func (r *APIAdaptor) IsOk() bool {
 	if r.GetIsOk != nil {
-
 		return r.GetIsOk()
-
 	}
 
 	panic("not implemented")
@@ -49,10 +43,8 @@ func (r *APIAdaptor) IsOk() bool {
 
 func (r *APIAdaptor) Receive(msg string) {
 	if r.OnReceive != nil {
-
 		r.OnReceive(msg)
 		return
-
 	}
 
 	return
@@ -60,9 +52,7 @@ func (r *APIAdaptor) Receive(msg string) {
 
 func (r *APIAdaptor) Send(target string) string {
 	if r.DoSend != nil {
-
 		return r.DoSend(target)
-
 	}
 
 	panic("not implemented")
@@ -70,9 +60,7 @@ func (r *APIAdaptor) Send(target string) string {
 
 func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
 	if r.DoTestZero != nil {
-
 		return r.DoTestZero()
-
 	}
 
 	return 0, time.Time{}, nil, nil, [3]byte{}, map[string]any{}
@@ -80,12 +68,10 @@ func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, 
 
 func (r *APIAdaptor) Write(w io.Writer, b []byte) (int, error) {
 	if r.DoWrite != nil {
-
 		return r.DoWrite(w, b)
-
 	}
 
-	return 0, nil
+	return defaultWrite(r, w, b)
 }
 
 type APIAdaptorExtends struct {
@@ -105,23 +91,18 @@ func (r *APIAdaptorExtends) Active() bool {
 
 func (r *APIAdaptorExtends) ActiveImpl(self AdaptorAPI) bool {
 	if r.IsActive != nil {
-
 		return r.IsActive(self)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			ActiveImpl(self AdaptorAPI) bool
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.ActiveImpl(self)
-
 		}
-
 		return r.Extends.Active()
-
 	}
 
 	panic("not implemented")
@@ -133,23 +114,18 @@ func (r *APIAdaptorExtends) Hello() string {
 
 func (r *APIAdaptorExtends) HelloImpl(self AdaptorAPI) string {
 	if r.GetHello != nil {
-
 		return r.GetHello(self)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			HelloImpl(self AdaptorAPI) string
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.HelloImpl(self)
-
 		}
-
 		return r.Extends.Hello()
-
 	}
 
 	panic("not implemented")
@@ -161,23 +137,18 @@ func (r *APIAdaptorExtends) IsOk() bool {
 
 func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
 	if r.GetIsOk != nil {
-
 		return r.GetIsOk(self)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			IsOkImpl(self AdaptorAPI) bool
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.IsOkImpl(self)
-
 		}
-
 		return r.Extends.IsOk()
-
 	}
 
 	panic("not implemented")
@@ -185,26 +156,24 @@ func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
 
 func (r *APIAdaptorExtends) Receive(msg string) {
 	r.ReceiveImpl(r, msg)
+	return
 }
 
 func (r *APIAdaptorExtends) ReceiveImpl(self AdaptorAPI, msg string) {
 	if r.OnReceive != nil {
-
 		r.OnReceive(self, msg)
 		return
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			ReceiveImpl(self AdaptorAPI, msg string)
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			super.ReceiveImpl(self, msg)
 			return
 		}
-
 		r.Extends.Receive(msg)
 		return
 	}
@@ -218,23 +187,18 @@ func (r *APIAdaptorExtends) Send(target string) string {
 
 func (r *APIAdaptorExtends) SendImpl(self AdaptorAPI, target string) string {
 	if r.DoSend != nil {
-
 		return r.DoSend(self, target)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			SendImpl(self AdaptorAPI, target string) string
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.SendImpl(self, target)
-
 		}
-
 		return r.Extends.Send(target)
-
 	}
 
 	panic("not implemented")
@@ -246,23 +210,18 @@ func (r *APIAdaptorExtends) TestZero() (complex64, time.Time, *string, []int, [3
 
 func (r *APIAdaptorExtends) TestZeroImpl(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
 	if r.DoTestZero != nil {
-
 		return r.DoTestZero(self)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			TestZeroImpl(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.TestZeroImpl(self)
-
 		}
-
 		return r.Extends.TestZero()
-
 	}
 
 	panic("not implemented")
@@ -274,27 +233,21 @@ func (r *APIAdaptorExtends) Write(w io.Writer, b []byte) (int, error) {
 
 func (r *APIAdaptorExtends) WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (int, error) {
 	if r.DoWrite != nil {
-
 		return r.DoWrite(self, w, b)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (int, error)
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.WriteImpl(self, w, b)
-
 		}
-
 		return r.Extends.Write(w, b)
-
 	}
 
 	return defaultWrite(self, w, b)
-
 }
 
 type AdTesterAdaptor struct {
@@ -308,25 +261,19 @@ func (r *AdTesterAdaptor) Write(w io.Writer, b []byte) (int, error) {
 
 func (r *AdTesterAdaptor) WriteImpl(self testpk1.AdTester, w io.Writer, b []byte) (int, error) {
 	if r.DoWrite != nil {
-
 		return r.DoWrite(self, w, b)
-
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			WriteImpl(self testpk1.AdTester, w io.Writer, b []byte) (int, error)
 		}
+
 		if super, ok := r.Extends.(impl); ok {
 			return super.WriteImpl(self, w, b)
-
 		}
-
 		return r.Extends.Write(w, b)
-
 	}
 
-	return testpk1.DefaultWrite(self, w, b)
-
+	return testpk1.DefaultWrite(b)
 }

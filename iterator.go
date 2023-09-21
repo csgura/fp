@@ -181,12 +181,14 @@ func (r Iterator[T]) DropWhile(p func(T) bool) Iterator[T] {
 	found := false
 	var first Option[T] = None[T]()
 	hasNext := func() bool {
-		if found {
-			return r.HasNext()
-		}
 		if first.IsDefined() {
 			return true
 		}
+
+		if found {
+			return r.HasNext()
+		}
+
 		for r.HasNext() {
 			v := r.Next()
 			if !p(v) {
