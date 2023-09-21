@@ -230,7 +230,14 @@ var _ = genfp.GenerateFromUntil{
 	Template: "hello world",
 }
 
+type ApiContext struct {
+	Map map[string]any
+}
+
 type AdaptorAPI interface {
+	Context() ApiContext
+	TTL() time.Duration
+	Timeout() time.Duration
 	TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	Hello() string
 	Send(target string) fp.Try[string]
@@ -250,9 +257,16 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 	Self:         false,
 	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
 	EventHandler: []any{AdaptorAPI.Receive},
-	ValOverride:  []any{AdaptorAPI.Hello},
+	ValOverride:  []any{AdaptorAPI.Hello, AdaptorAPI.TTL, AdaptorAPI.Context},
 	ZeroReturn:   []any{AdaptorAPI.TestZero},
 	Options: genfp.AdaptorMethods{
+		{
+
+			Method:                  AdaptorAPI.Timeout,
+			Prefix:                  "Get",
+			ValOverride:             true,
+			OmitGetterIfValOverride: false,
+		},
 		{
 			Method:      AdaptorAPI.Receive,
 			Prefix:      "On",
@@ -289,7 +303,7 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 	Self:         true,
 	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
 	EventHandler: []any{AdaptorAPI.Receive},
-	ValOverride:  []any{AdaptorAPI.Hello},
+	ValOverride:  []any{AdaptorAPI.Hello, AdaptorAPI.TTL},
 	Options: genfp.AdaptorMethods{
 		{
 			Method:      AdaptorAPI.Receive,

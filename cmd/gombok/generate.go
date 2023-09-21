@@ -117,7 +117,33 @@ func genGenerate() {
 						callcb)
 
 					cbfield := fmt.Sprintf("%s%s func(%s%s) %s", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
+
+					valOverrideOnly := false
 					if valoverride {
+
+						zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
+						if zeroVal == "nil" || zeroVal == "0" || zeroVal == `""` {
+							defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
+									return r.Default%s
+								}
+						
+						`, t.Name(), zeroVal,
+								t.Name())
+						} else if types.Comparable(sig.Results().At(0).Type()) && (opt.OmitGetterIfValOverride == false || gad.Extends == true) {
+							defaultValExpr = fmt.Sprintf(`
+							var _zero %s
+							if r.Default%s != _zero {
+								return r.Default%s
+							}
+						
+						`, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()),
+								t.Name(),
+								t.Name())
+						} else {
+							defaultValExpr = fmt.Sprintf("return r.Default%s", t.Name())
+							opt.OmitGetterIfValOverride = true
+							valOverrideOnly = true
+						}
 
 						if opt.OmitGetterIfValOverride {
 							cbfield = fmt.Sprintf("Default%s %s", t.Name(), w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
@@ -127,12 +153,6 @@ func genGenerate() {
 							cbfield = fmt.Sprintf("Default%s %s\n%s", t.Name(), w.TypeName(gad.Package.Types, sig.Results().At(0).Type()), cbfield)
 						}
 
-						defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
-								return r.Default%s
-							}
-						
-						`, t.Name(), w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type()),
-							t.Name())
 					}
 
 					implName := func() string {
@@ -265,12 +285,22 @@ func genGenerate() {
 							%s
 							%s
 						}
-					`, adaptorTypeName, implName, implArgs, resstr,
+						`, adaptorTypeName, implName, implArgs, resstr,
 						defaultValExpr,
 						cbExpr,
 						extendscb,
 						defaultcb,
 					)
+
+					if valOverrideOnly {
+						impl = fmt.Sprintf(`
+							func (r *%s) %s(%s) %s {
+								%s
+							}
+						`, adaptorTypeName, implName, implArgs, resstr,
+							defaultValExpr,
+						)
+					}
 
 					if gad.Self {
 						impl = fmt.Sprintf(`
