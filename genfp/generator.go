@@ -330,7 +330,13 @@ func (r *writer) ZeroExpr(pk *types.Package, tpe types.Type) string {
 }
 
 func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
+	//fmt.Printf("type %s %T\n", tpe.String(), tpe)
 	switch realtp := tpe.(type) {
+	case *types.Basic:
+		if realtp.Kind() == types.UnsafePointer {
+			r.AddImport(types.NewPackage("unsafe", "unsafe"))
+		}
+		return tpe.String()
 	case *types.Named:
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname

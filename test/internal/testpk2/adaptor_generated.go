@@ -8,6 +8,7 @@ import (
 	ftry "github.com/csgura/fp/try"
 	"io"
 	"time"
+	"unsafe"
 )
 
 type APIAdaptor struct {
@@ -16,6 +17,7 @@ type APIAdaptor struct {
 	DoCreate       func(a string, b int) (int, error)
 	DefaultHello   string
 	GetIsOk        func() bool
+	DoIsZero       func(ptr unsafe.Pointer) bool
 	OnReceive      func(msg string)
 	DoSend         func(target string) fp.Try[string]
 	DefaultTTL     time.Duration
@@ -58,6 +60,15 @@ func (r *APIAdaptor) IsOk() bool {
 
 	if r.GetIsOk != nil {
 		return r.GetIsOk()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptor) IsZero(ptr unsafe.Pointer) bool {
+
+	if r.DoIsZero != nil {
+		return r.DoIsZero(ptr)
 	}
 
 	panic("not implemented")
@@ -143,6 +154,7 @@ type APIAdaptorExtends struct {
 	DefaultHello string
 	GetHello     func(self AdaptorAPI) string
 	GetIsOk      func(self AdaptorAPI) bool
+	DoIsZero     func(self AdaptorAPI, ptr unsafe.Pointer) bool
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DefaultTTL   time.Duration
@@ -270,6 +282,30 @@ func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
 			return super.IsOkImpl(self)
 		}
 		return r.Extends.IsOk()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtends) IsZero(ptr unsafe.Pointer) bool {
+	return r.IsZeroImpl(r, ptr)
+}
+
+func (r *APIAdaptorExtends) IsZeroImpl(self AdaptorAPI, ptr unsafe.Pointer) bool {
+
+	if r.DoIsZero != nil {
+		return r.DoIsZero(self, ptr)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			IsZeroImpl(self AdaptorAPI, ptr unsafe.Pointer) bool
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.IsZeroImpl(self, ptr)
+		}
+		return r.Extends.IsZero(ptr)
 	}
 
 	panic("not implemented")
@@ -463,6 +499,7 @@ type APIAdaptorExtendsNotSelf struct {
 	DefaultHello string
 	GetHello     func() string
 	GetIsOk      func() bool
+	DoIsZero     func(ptr unsafe.Pointer) bool
 	OnReceive    func(msg string)
 	DoSend       func(target string) fp.Try[string]
 	DoTTL        func() time.Duration
@@ -536,6 +573,19 @@ func (r *APIAdaptorExtendsNotSelf) IsOk() bool {
 
 	if r.Extends != nil {
 		return r.Extends.IsOk()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) IsZero(ptr unsafe.Pointer) bool {
+
+	if r.DoIsZero != nil {
+		return r.DoIsZero(ptr)
+	}
+
+	if r.Extends != nil {
+		return r.Extends.IsZero(ptr)
 	}
 
 	panic("not implemented")
@@ -684,6 +734,7 @@ type APIAdaptorNotExtendsWithSelf struct {
 	DefaultHello string
 	GetHello     func(self AdaptorAPI) string
 	GetIsOk      func(self AdaptorAPI) bool
+	DoIsZero     func(self AdaptorAPI, ptr unsafe.Pointer) bool
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DoTTL        func(self AdaptorAPI) time.Duration
@@ -737,6 +788,15 @@ func (r *APIAdaptorNotExtendsWithSelf) IsOk() bool {
 
 	if r.GetIsOk != nil {
 		return r.GetIsOk(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) IsZero(ptr unsafe.Pointer) bool {
+
+	if r.DoIsZero != nil {
+		return r.DoIsZero(r, ptr)
 	}
 
 	panic("not implemented")

@@ -7,6 +7,7 @@ import (
 	rf "reflect"
 	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
@@ -248,6 +249,7 @@ type AdaptorAPI interface {
 	Write(w io.Writer, b []byte) (int, error)
 	Create(a string, b int) (int, error)
 	VarArgs(fmtstr string, args ...string)
+	IsZero(ptr unsafe.Pointer) bool
 }
 
 // @fp.Generate
