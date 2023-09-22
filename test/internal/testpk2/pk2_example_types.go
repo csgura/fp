@@ -394,3 +394,29 @@ var _ = genfp.GenerateAdaptor[testpk1.AdTester]{
 		},
 	},
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[AdaptorAPI]{
+	File:         "adaptor_generated.go",
+	Name:         "APIAdaptorNotExtendsWithSelf",
+	Extends:      false,
+	Self:         true,
+	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
+	EventHandler: []any{AdaptorAPI.Receive},
+	ValOverride:  []any{AdaptorAPI.Hello},
+	Options: genfp.AdaptorMethods{
+		{
+			Method:      AdaptorAPI.Receive,
+			Prefix:      "On",
+			DefaultImpl: genfp.ZeroReturn,
+		},
+		{
+			Method:      AdaptorAPI.Write,
+			DefaultImpl: defaultWrite,
+		},
+		{
+			Method:      AdaptorAPI.Hello,
+			ValOverride: true,
+		},
+	},
+}

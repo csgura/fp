@@ -676,3 +676,141 @@ func (r *AdTesterAdaptor) WriteImpl(self testpk1.AdTester, w io.Writer, b []byte
 
 	return testpk1.DefaultWrite(b)
 }
+
+type APIAdaptorNotExtendsWithSelf struct {
+	IsActive     func(self AdaptorAPI) bool
+	DoContext    func(self AdaptorAPI) ApiContext
+	DoCreate     func(self AdaptorAPI, a string, b int) (int, error)
+	DefaultHello string
+	GetHello     func(self AdaptorAPI) string
+	GetIsOk      func(self AdaptorAPI) bool
+	OnReceive    func(self AdaptorAPI, msg string)
+	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
+	DoTTL        func(self AdaptorAPI) time.Duration
+	DoTell       func(self AdaptorAPI, target string) fp.Try[string]
+	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
+	DoTimeout    func(self AdaptorAPI) time.Duration
+	DoVarArgs    func(self AdaptorAPI, fmtstr string, args ...string)
+	DoWrite      func(self AdaptorAPI, w io.Writer, b []byte) (int, error)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Active() bool {
+
+	if r.IsActive != nil {
+		return r.IsActive(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Context() ApiContext {
+
+	if r.DoContext != nil {
+		return r.DoContext(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Create(a string, b int) (int, error) {
+
+	if r.DoCreate != nil {
+		return r.DoCreate(r, a, b)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Hello() string {
+	if r.DefaultHello != "" {
+		return r.DefaultHello
+	}
+
+	if r.GetHello != nil {
+		return r.GetHello(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) IsOk() bool {
+
+	if r.GetIsOk != nil {
+		return r.GetIsOk(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Receive(msg string) {
+
+	if r.OnReceive != nil {
+		r.OnReceive(r, msg)
+		return
+	}
+
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Send(target string) fp.Try[string] {
+
+	if r.DoSend != nil {
+		return r.DoSend(r, target)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) TTL() time.Duration {
+
+	if r.DoTTL != nil {
+		return r.DoTTL(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Tell(target string) fp.Try[string] {
+
+	if r.DoTell != nil {
+		return r.DoTell(r, target)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
+
+	if r.DoTestZero != nil {
+		return r.DoTestZero(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Timeout() time.Duration {
+
+	if r.DoTimeout != nil {
+		return r.DoTimeout(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) VarArgs(fmtstr string, args ...string) {
+
+	if r.DoVarArgs != nil {
+		r.DoVarArgs(r, fmtstr, args...)
+		return
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Write(w io.Writer, b []byte) (int, error) {
+
+	if r.DoWrite != nil {
+		return r.DoWrite(r, w, b)
+	}
+
+	return defaultWrite(r, w, b)
+}

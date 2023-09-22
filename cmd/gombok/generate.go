@@ -112,11 +112,14 @@ func genGenerate() {
 					}
 
 					callcb := func() string {
-						if gad.Self == false {
-							return withReturn(false, `r.%s(%s)`, cbName, argStr)
-
+						if gad.Self {
+							if gad.Extends {
+								return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
+							}
+							return withReturn(false, `r.%s(r, %s)`, cbName, argStr)
 						}
-						return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
+						return withReturn(false, `r.%s(%s)`, cbName, argStr)
+
 					}()
 
 					valoverride := opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
@@ -177,14 +180,14 @@ func genGenerate() {
 					}
 
 					implName := func() string {
-						if gad.Self && !opt.Private {
+						if gad.Self && !opt.Private && gad.Extends {
 							return t.Name() + "Impl"
 						}
 						return t.Name()
 					}()
 
 					implArgs := argTypeStr
-					if gad.Self && !opt.Private {
+					if gad.Self && !opt.Private && gad.Extends {
 						implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
 					}
 
@@ -242,7 +245,7 @@ func genGenerate() {
 								})
 
 								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-									if gad.Self && !opt.Private {
+									if gad.Self && !opt.Private && gad.Extends {
 										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
 									}
 									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
@@ -281,7 +284,7 @@ func genGenerate() {
 								} else {
 									fmt.Printf("err : %s\n", args.Failed().Get())
 								}
-								if gad.Self {
+								if gad.Self && gad.Extends {
 									e := types.ExprString(opt.DefaultImplExpr)
 									return withReturn(true, `%s(self, %s)`, e, argStr)
 								} else {
@@ -335,7 +338,7 @@ func genGenerate() {
 							)
 						}
 
-						if gad.Self {
+						if gad.Self && gad.Extends {
 							impl = fmt.Sprintf(`
 						func (r *%s) %s(%s) %s {
 							%s
