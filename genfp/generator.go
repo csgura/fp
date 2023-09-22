@@ -451,10 +451,13 @@ type Writer interface {
 }
 
 func Generate(packname string, filename string, writeFunc func(w Writer)) {
+
 	cmdName := path.Base(os.Args[0])
-	fmt.Printf("%s generate %s", cmdName, filename)
-	fmt.Println()
-	os.Remove(filename)
+	if filename != "" {
+		fmt.Printf("%s generate %s", cmdName, filename)
+		fmt.Println()
+		os.Remove(filename)
+	}
 
 	f := &writer{packname, &bytes.Buffer{}, map[string]importAlias{}, map[string]importAlias{}}
 
@@ -495,9 +498,14 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 		return
 	}
 
-	err = os.WriteFile(filename, formatted, 0644)
-	if err != nil {
-		return
+	if filename != "" {
+		err = os.WriteFile(filename, formatted, 0644)
+		if err != nil {
+			return
+		}
+	} else {
+		fmt.Printf("%s", formatted)
+		fmt.Println()
 	}
 }
 

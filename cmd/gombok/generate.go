@@ -64,7 +64,7 @@ func genGenerate() {
 					valName := fmt.Sprintf("Default%s", t.Name())
 					cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
 					if opt.Name != "" {
-						cbName = opt.Name
+						cbName = fmt.Sprintf("%s%s", opt.Prefix, opt.Name)
 						valName = fmt.Sprintf("Default%s", opt.Name)
 					}
 

@@ -427,3 +427,26 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 		},
 	},
 }
+
+type HTTP interface {
+	Send(msg string) (int, error)
+}
+
+type HTTP2 interface {
+	HTTP
+	KeepAlive(v bool)
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[HTTP]{
+	File:    "adaptor_generated.go",
+	Self:    true,
+	Extends: true,
+}
+
+// HTTPAdaptor 를 embedding 하는 방법??
+var _ = genfp.GenerateAdaptor[HTTP2]{
+	File:    "adaptor_generated.go",
+	Self:    true,
+	Extends: true,
+}

@@ -997,3 +997,32 @@ func (r *APIAdaptorNotExtendsWithSelf) WriteImpl(self AdaptorAPI, w io.Writer, b
 
 	return defaultWrite(self, w, b)
 }
+
+type HTTPAdaptor struct {
+	Extends HTTP
+	DoSend  func(self HTTP, msg string) (int, error)
+}
+
+func (r *HTTPAdaptor) Send(msg string) (int, error) {
+	return r.SendImpl(r, msg)
+}
+
+func (r *HTTPAdaptor) SendImpl(self HTTP, msg string) (int, error) {
+
+	if r.DoSend != nil {
+		return r.DoSend(self, msg)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			SendImpl(self HTTP, msg string) (int, error)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.SendImpl(self, msg)
+		}
+		return r.Extends.Send(msg)
+	}
+
+	panic("HTTPAdaptor.Send not implemented")
+}
