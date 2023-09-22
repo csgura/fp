@@ -60,6 +60,12 @@ func genGenerate() {
 				fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
 					opt := gad.Methods[t.Name()]
 					sig := opt.Signature
+					valName := fmt.Sprintf("Default%s", t.Name())
+					cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
+					if opt.Name != "" {
+						cbName = opt.Name
+						valName = fmt.Sprintf("Default%s", opt.Name)
+					}
 
 					selfarg := ""
 					if gad.Self {
@@ -103,61 +109,61 @@ func genGenerate() {
 
 					callcb := func() string {
 						if gad.Self == false {
-							return withReturn(`r.%s%s(%s)`, opt.Prefix, t.Name(), argStr)
+							return withReturn(`r.%s(%s)`, cbName, argStr)
 
 						}
-						return withReturn(`r.%s%s(self,%s)`, opt.Prefix, t.Name(), argStr)
+						return withReturn(`r.%s(self,%s)`, cbName, argStr)
 					}()
 
 					valoverride := opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
 					defaultValExpr := ""
-					cbExpr := fmt.Sprintf(`if r.%s%s != nil {
+					cbExpr := fmt.Sprintf(`if r.%s != nil {
 								%s
-							}`, opt.Prefix, t.Name(),
+							}`, cbName,
 						callcb)
 
-					cbfield := fmt.Sprintf("%s%s func(%s%s) %s", opt.Prefix, t.Name(), selfarg, argTypeStr, resstr)
+					cbfield := fmt.Sprintf("%s func(%s%s) %s", cbName, selfarg, argTypeStr, resstr)
 
 					valOverrideOnly := false
 					if valoverride {
 
 						zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
 						if zeroVal == "nil" {
-							defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
-									return r.Default%s
+							defaultValExpr = fmt.Sprintf(`if r.%s != %s {
+									return r.%s
 								}
 						
-						`, t.Name(), zeroVal,
-								t.Name())
+						`, valName, zeroVal,
+								valName)
 						} else if zeroVal == "0" || zeroVal == `""` && (opt.OmitGetterIfValOverride == false || gad.Extends == true) {
-							defaultValExpr = fmt.Sprintf(`if r.Default%s != %s {
-									return r.Default%s
+							defaultValExpr = fmt.Sprintf(`if r.%s != %s {
+									return r.%s
 								}
 						
-						`, t.Name(), zeroVal,
-								t.Name())
+						`, valName, zeroVal,
+								valName)
 						} else if types.Comparable(sig.Results().At(0).Type()) && (opt.OmitGetterIfValOverride == false || gad.Extends == true) {
 							defaultValExpr = fmt.Sprintf(`
 							var _zero %s
-							if r.Default%s != _zero {
-								return r.Default%s
+							if r.%s != _zero {
+								return r.%s
 							}
 						
 						`, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()),
-								t.Name(),
-								t.Name())
+								valName,
+								valName)
 						} else {
-							defaultValExpr = fmt.Sprintf("return r.Default%s", t.Name())
+							defaultValExpr = fmt.Sprintf("return r.%s", valName)
 							opt.OmitGetterIfValOverride = true
 							valOverrideOnly = true
 						}
 
 						if opt.OmitGetterIfValOverride {
-							cbfield = fmt.Sprintf("Default%s %s", t.Name(), w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
+							cbfield = fmt.Sprintf("%s %s", valName, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
 							cbExpr = ""
 
 						} else {
-							cbfield = fmt.Sprintf("Default%s %s\n%s", t.Name(), w.TypeName(gad.Package.Types, sig.Results().At(0).Type()), cbfield)
+							cbfield = fmt.Sprintf("%s %s\n%s", valName, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()), cbfield)
 						}
 
 					}

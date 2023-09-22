@@ -255,7 +255,7 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 	Name:         "APIAdaptor",
 	Extends:      false,
 	Self:         false,
-	Getter:       []any{AdaptorAPI.Hello, AdaptorAPI.Active, AdaptorAPI.IsOk},
+	Getter:       []any{AdaptorAPI.Active, AdaptorAPI.IsOk},
 	EventHandler: []any{AdaptorAPI.Receive},
 	ValOverride:  []any{AdaptorAPI.Hello, AdaptorAPI.TTL, AdaptorAPI.Context},
 	ZeroReturn:   []any{AdaptorAPI.TestZero},

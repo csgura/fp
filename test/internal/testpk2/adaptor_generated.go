@@ -136,6 +136,7 @@ type APIAdaptorExtends struct {
 	DoContext    func(self AdaptorAPI) ApiContext
 	DoCreate     func(self AdaptorAPI, a string, b int) (int, error)
 	DefaultHello string
+	GetHello     func(self AdaptorAPI) string
 	GetIsOk      func(self AdaptorAPI) bool
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
@@ -225,6 +226,10 @@ func (r *APIAdaptorExtends) Hello() string {
 func (r *APIAdaptorExtends) HelloImpl(self AdaptorAPI) string {
 	if r.DefaultHello != "" {
 		return r.DefaultHello
+	}
+
+	if r.GetHello != nil {
+		return r.GetHello(self)
 	}
 
 	if r.Extends != nil {
