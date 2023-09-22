@@ -154,3 +154,16 @@ func TestSpan(t *testing.T) {
 	fmt.Printf("tail.Next = %s\n", tail.NextOption())
 
 }
+
+func TestSpanAt0(t *testing.T) {
+	i := iterator.Range(0, 10)
+
+	init, tail := iterator.Span(i, func(i int) bool {
+		return i != 0
+	})
+
+	fmt.Printf("tail.Next = %s\n", tail.NextOption())
+
+	assert.Equal(init.Concat(tail).Count(), 9)
+
+}

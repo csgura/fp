@@ -11,6 +11,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
@@ -171,6 +172,10 @@ func genGenerate() {
 
 					}
 
+					if opt.Private {
+						cbfield = ""
+					}
+
 					implName := func() string {
 						if gad.Self {
 							return t.Name() + "Impl"
@@ -237,7 +242,7 @@ func genGenerate() {
 								})
 
 								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-									if gad.Self {
+									if gad.Self && !opt.Private {
 										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
 									}
 									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
@@ -311,25 +316,35 @@ func genGenerate() {
 						defaultcb,
 					)
 
-					if valOverrideOnly {
-						impl = fmt.Sprintf(`
-							func (r *%s) %s(%s) %s {
-								%s
-							}
-						`, adaptorTypeName, implName, implArgs, resstr,
-							defaultValExpr,
-						)
-					}
-
-					if gad.Self {
+					if opt.Private {
 						impl = fmt.Sprintf(`
 						func (r *%s) %s(%s) %s {
 							%s
 						}
-					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-							withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
-						) + impl
+						`, adaptorTypeName, implName, implArgs, resstr,
+							defaultcb)
+					} else {
 
+						if valOverrideOnly {
+							impl = fmt.Sprintf(`
+							func (r *%s) %s(%s) %s {
+								%s
+							}
+						`, adaptorTypeName, implName, implArgs, resstr,
+								defaultValExpr,
+							)
+						}
+
+						if gad.Self {
+							impl = fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
+								withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
+							) + impl
+
+						}
 					}
 
 					return as.Tuple(cbfield, impl)
@@ -345,7 +360,7 @@ func genGenerate() {
 					%s
 					%s
 				}
-				`, adaptorTypeName, extends, seq.Map(fields, fp.Tuple2[string, string].Head).MakeString("\n"))
+				`, adaptorTypeName, extends, seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")).MakeString("\n"))
 
 				fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
 			}

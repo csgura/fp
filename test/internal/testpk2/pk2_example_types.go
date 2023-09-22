@@ -240,6 +240,7 @@ type AdaptorAPI interface {
 	Timeout() time.Duration
 	TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	Hello() string
+	Tell(target string) fp.Try[string]
 	Send(target string) fp.Try[string]
 	Active() bool
 	IsOk() bool
@@ -286,6 +287,13 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 			Method: AdaptorAPI.Create,
 			DefaultImpl: func(v int) (int, error) {
 				return v, nil
+			},
+		},
+		{
+			Method:  AdaptorAPI.Tell,
+			Private: true,
+			DefaultImpl: func(self AdaptorAPI, target string) fp.Try[string] {
+				return self.Send(target)
 			},
 		},
 	},

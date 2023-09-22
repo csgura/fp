@@ -87,6 +87,12 @@ func (r *APIAdaptor) TTL() time.Duration {
 	return r.DefaultTTL
 }
 
+func (r *APIAdaptor) Tell(target string) fp.Try[string] {
+	return func(self AdaptorAPI, target string) fp.Try[string] {
+		return self.Send(target)
+	}(r, target)
+}
+
 func (r *APIAdaptor) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
 
 	if r.DoTestZero != nil {
@@ -140,6 +146,7 @@ type APIAdaptorExtends struct {
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DefaultTTL   time.Duration
+	DoTell       func(self AdaptorAPI, target string) fp.Try[string]
 	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DoTimeout    func(self AdaptorAPI) time.Duration
 	DoVarArgs    func(self AdaptorAPI, fmtstr string, args ...string)
@@ -344,6 +351,30 @@ func (r *APIAdaptorExtends) TTLImpl(self AdaptorAPI) time.Duration {
 	panic("not implemented")
 }
 
+func (r *APIAdaptorExtends) Tell(target string) fp.Try[string] {
+	return r.TellImpl(r, target)
+}
+
+func (r *APIAdaptorExtends) TellImpl(self AdaptorAPI, target string) fp.Try[string] {
+
+	if r.DoTell != nil {
+		return r.DoTell(self, target)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			TellImpl(self AdaptorAPI, target string) fp.Try[string]
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.TellImpl(self, target)
+		}
+		return r.Extends.Tell(target)
+	}
+
+	panic("not implemented")
+}
+
 func (r *APIAdaptorExtends) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
 	return r.TestZeroImpl(r)
 }
@@ -454,6 +485,7 @@ type APIAdaptorExtendsNotSelf struct {
 	OnReceive    func(msg string)
 	DoSend       func(target string) fp.Try[string]
 	DoTTL        func() time.Duration
+	DoTell       func(target string) fp.Try[string]
 	DoTestZero   func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DoTimeout    func() time.Duration
 	DoVarArgs    func(fmtstr string, args ...string)
@@ -563,6 +595,19 @@ func (r *APIAdaptorExtendsNotSelf) TTL() time.Duration {
 
 	if r.Extends != nil {
 		return r.Extends.TTL()
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) Tell(target string) fp.Try[string] {
+
+	if r.DoTell != nil {
+		return r.DoTell(target)
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Tell(target)
 	}
 
 	panic("not implemented")

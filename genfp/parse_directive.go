@@ -39,6 +39,7 @@ type ImplOption struct {
 	Method                  any
 	Prefix                  string
 	Name                    string
+	Private                 bool
 	ValOverride             bool
 	OmitGetterIfValOverride bool
 	DefaultImpl             any
@@ -458,6 +459,7 @@ type ImplOptionDirective struct {
 	Method                  string
 	Prefix                  string
 	Name                    string
+	Private                 bool
 	ValOverride             bool
 	OmitGetterIfValOverride bool
 	DefaultImplExpr         ast.Expr
@@ -509,7 +511,7 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 	return func(e ast.Expr) (ImplOptionDirective, error) {
 		if lt, ok := e.(*ast.CompositeLit); ok {
 			ret := ImplOptionDirective{}
-			names := []string{"Method", "Prefix", "Name", "ValOverride", "OmitGetterIfValOverride", "DefaultImpl"}
+			names := []string{"Method", "Prefix", "Name", "Private", "ValOverride", "OmitGetterIfValOverride", "DefaultImpl"}
 			for idx, e := range lt.Elts {
 				if idx >= len(names) {
 					return ret, fmt.Errorf("invalid number of literals")
@@ -537,6 +539,12 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 						return ret, err
 					}
 					ret.Name = v
+				case "Private":
+					v, err := evalBoolValue(value)
+					if err != nil {
+						return ret, err
+					}
+					ret.Private = v
 				case "ValOverride":
 					v, err := evalBoolValue(value)
 					if err != nil {
