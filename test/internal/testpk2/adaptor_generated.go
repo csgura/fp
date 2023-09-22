@@ -398,9 +398,13 @@ func (r *APIAdaptorExtends) TTLImpl(self AdaptorAPI) time.Duration {
 }
 
 func (r *APIAdaptorExtends) Tell(target string) fp.Try[string] {
+	return r.TellImpl(r, target)
+}
+
+func (r *APIAdaptorExtends) TellImpl(self AdaptorAPI, target string) fp.Try[string] {
 	return func(self AdaptorAPI, target string) fp.Try[string] {
 		return self.Send(target)
-	}(r, target)
+	}(self, target)
 }
 
 func (r *APIAdaptorExtends) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
@@ -796,129 +800,185 @@ type APIAdaptorNotExtendsWithSelf struct {
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Active() bool {
+	return r.ActiveImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) ActiveImpl(self AdaptorAPI) bool {
 
 	if r.IsActive != nil {
-		return r.IsActive(r)
+		return r.IsActive(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Active not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Context() ApiContext {
+	return r.ContextImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) ContextImpl(self AdaptorAPI) ApiContext {
 
 	if r.DoContext != nil {
-		return r.DoContext(r)
+		return r.DoContext(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Context not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Create(a string, b int) (int, error) {
+	return r.CreateImpl(r, a, b)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) CreateImpl(self AdaptorAPI, a string, b int) (int, error) {
 
 	if r.DoCreate != nil {
-		return r.DoCreate(r, a, b)
+		return r.DoCreate(self, a, b)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Create not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Hello() string {
+	return r.HelloImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) HelloImpl(self AdaptorAPI) string {
 	if r.DefaultHello != "" {
 		return r.DefaultHello
 	}
 
 	if r.GetHello != nil {
-		return r.GetHello(r)
+		return r.GetHello(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Hello not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) IsOk() bool {
+	return r.IsOkImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) IsOkImpl(self AdaptorAPI) bool {
 
 	if r.GetIsOk != nil {
-		return r.GetIsOk(r)
+		return r.GetIsOk(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.IsOk not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) IsZero(ptr unsafe.Pointer) bool {
+	return r.IsZeroImpl(r, ptr)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) IsZeroImpl(self AdaptorAPI, ptr unsafe.Pointer) bool {
 
 	if r.DoIsZero != nil {
-		return r.DoIsZero(r, ptr)
+		return r.DoIsZero(self, ptr)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.IsZero not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Receive(msg string) {
+	r.ReceiveImpl(r, msg)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) ReceiveImpl(self AdaptorAPI, msg string) {
 
 	if r.OnReceive != nil {
-		r.OnReceive(r, msg)
+		r.OnReceive(self, msg)
 		return
 	}
 
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Send(target string) fp.Try[string] {
+	return r.SendImpl(r, target)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) SendImpl(self AdaptorAPI, target string) fp.Try[string] {
 
 	if r.DoSend != nil {
-		return r.DoSend(r, target)
+		return r.DoSend(self, target)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Send not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) TTL() time.Duration {
+	return r.TTLImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) TTLImpl(self AdaptorAPI) time.Duration {
 
 	if r.DoTTL != nil {
-		return r.DoTTL(r)
+		return r.DoTTL(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.TTL not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Tell(target string) fp.Try[string] {
+	return r.TellImpl(r, target)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) TellImpl(self AdaptorAPI, target string) fp.Try[string] {
 
 	if r.DoTell != nil {
-		return r.DoTell(r, target)
+		return r.DoTell(self, target)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Tell not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
+	return r.TestZeroImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) TestZeroImpl(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
 
 	if r.DoTestZero != nil {
-		return r.DoTestZero(r)
+		return r.DoTestZero(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.TestZero not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Timeout() time.Duration {
+	return r.TimeoutImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) TimeoutImpl(self AdaptorAPI) time.Duration {
 
 	if r.DoTimeout != nil {
-		return r.DoTimeout(r)
+		return r.DoTimeout(self)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Timeout not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Update(a string, b int) (int, error) {
+	return r.UpdateImpl(r, a, b)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) UpdateImpl(self AdaptorAPI, a string, b int) (int, error) {
 
 	if r.DoUpdate != nil {
-		return r.DoUpdate(r, a, b)
+		return r.DoUpdate(self, a, b)
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.Update not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) VarArgs(fmtstr string, args ...string) {
+	r.VarArgsImpl(r, fmtstr, args...)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) VarArgsImpl(self AdaptorAPI, fmtstr string, args ...string) {
 
 	if r.DoVarArgs != nil {
-		r.DoVarArgs(r, fmtstr, args...)
+		r.DoVarArgs(self, fmtstr, args...)
 		return
 	}
 
@@ -926,10 +986,14 @@ func (r *APIAdaptorNotExtendsWithSelf) VarArgs(fmtstr string, args ...string) {
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Write(w io.Writer, b []byte) (int, error) {
+	return r.WriteImpl(r, w, b)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (int, error) {
 
 	if r.DoWrite != nil {
-		return r.DoWrite(r, w, b)
+		return r.DoWrite(self, w, b)
 	}
 
-	return defaultWrite(r, w, b)
+	return defaultWrite(self, w, b)
 }

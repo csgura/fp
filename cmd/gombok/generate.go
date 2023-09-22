@@ -113,10 +113,7 @@ func genGenerate() {
 
 					callcb := func() string {
 						if gad.Self {
-							if gad.Extends {
-								return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
-							}
-							return withReturn(false, `r.%s(r, %s)`, cbName, argStr)
+							return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
 						}
 						return withReturn(false, `r.%s(%s)`, cbName, argStr)
 
@@ -180,14 +177,14 @@ func genGenerate() {
 					}
 
 					implName := func() string {
-						if gad.Self && !opt.Private && gad.Extends {
+						if gad.Self {
 							return t.Name() + "Impl"
 						}
 						return t.Name()
 					}()
 
 					implArgs := argTypeStr
-					if gad.Self && !opt.Private && gad.Extends {
+					if gad.Self {
 						implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
 					}
 
@@ -245,7 +242,7 @@ func genGenerate() {
 								})
 
 								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-									if gad.Self && !opt.Private && gad.Extends {
+									if gad.Self {
 										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
 									}
 									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
@@ -284,7 +281,7 @@ func genGenerate() {
 								} else {
 									fmt.Printf("err : %s\n", args.Failed().Get())
 								}
-								if gad.Self && gad.Extends {
+								if gad.Self {
 									e := types.ExprString(opt.DefaultImplExpr)
 									return withReturn(true, `%s(self, %s)`, e, argStr)
 								} else {
@@ -333,28 +330,25 @@ func genGenerate() {
 						}
 						`, adaptorTypeName, implName, implArgs, resstr,
 							defaultcb)
-					} else {
-
-						if valOverrideOnly {
-							impl = fmt.Sprintf(`
+					} else if valOverrideOnly {
+						impl = fmt.Sprintf(`
 							func (r *%s) %s(%s) %s {
 								%s
 							}
 						`, adaptorTypeName, implName, implArgs, resstr,
-								defaultValExpr,
-							)
-						}
+							defaultValExpr,
+						)
+					}
 
-						if gad.Self && gad.Extends {
-							impl = fmt.Sprintf(`
+					if gad.Self {
+						impl = fmt.Sprintf(`
 						func (r *%s) %s(%s) %s {
 							%s
 						}
 					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-								withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
-							) + impl
+							withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
+						) + impl
 
-						}
 					}
 
 					return as.Tuple(cbfield, impl)
