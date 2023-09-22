@@ -99,9 +99,12 @@ func genGenerate() {
 						}).MakeString(",") + ")"
 					}
 
-					withReturn := func(fmtstr string, args ...any) string {
+					withReturn := func(lastPos bool, fmtstr string, args ...any) string {
 						e := fmt.Sprintf(fmtstr, args...)
 						if sig.Results().Len() == 0 {
+							if lastPos {
+								return e
+							}
 							return fmt.Sprintf("%s\nreturn", e)
 						}
 						return "return " + e
@@ -109,10 +112,10 @@ func genGenerate() {
 
 					callcb := func() string {
 						if gad.Self == false {
-							return withReturn(`r.%s(%s)`, cbName, argStr)
+							return withReturn(false, `r.%s(%s)`, cbName, argStr)
 
 						}
-						return withReturn(`r.%s(self,%s)`, cbName, argStr)
+						return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
 					}()
 
 					valoverride := opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
@@ -192,7 +195,7 @@ func genGenerate() {
 										%s 
 									}
 									`, implName, implArgs, resstr,
-									withReturn("super.%s(self, %s)", implName, argStr),
+									withReturn(false, "super.%s(self, %s)", implName, argStr),
 								)
 							}
 							return fmt.Sprintf(`
@@ -201,7 +204,7 @@ func genGenerate() {
 								}
 							`,
 								superexpr,
-								withReturn("r.Extends.%s(%s)", t.Name(), argStr),
+								withReturn(false, "r.Extends.%s(%s)", t.Name(), argStr),
 							)
 						}
 						return ""
@@ -264,10 +267,10 @@ func genGenerate() {
 										buf := &bytes.Buffer{}
 
 										printer.Fprint(buf, fs, fl)
-										return withReturn("%s(%s)", buf.String(), args.Get().args.MakeString(","))
+										return withReturn(true, "%s(%s)", buf.String(), args.Get().args.MakeString(","))
 									} else {
 
-										return withReturn(`%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
+										return withReturn(true, `%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
 
 									}
 								} else {
@@ -275,10 +278,10 @@ func genGenerate() {
 								}
 								if gad.Self {
 									e := types.ExprString(opt.DefaultImplExpr)
-									return withReturn(`%s(self, %s)`, e, argStr)
+									return withReturn(true, `%s(self, %s)`, e, argStr)
 								} else {
 									e := types.ExprString(opt.DefaultImplExpr)
-									return withReturn(`%s(r, %s)`, e, argStr)
+									return withReturn(true, `%s(r, %s)`, e, argStr)
 								}
 							}
 
@@ -324,7 +327,7 @@ func genGenerate() {
 							%s
 						}
 					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-							withReturn("r.%sImpl(r,%s)", t.Name(), argStr),
+							withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
 						) + impl
 
 					}

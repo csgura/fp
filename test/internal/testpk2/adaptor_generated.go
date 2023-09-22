@@ -271,7 +271,6 @@ func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
 
 func (r *APIAdaptorExtends) Receive(msg string) {
 	r.ReceiveImpl(r, msg)
-	return
 }
 
 func (r *APIAdaptorExtends) ReceiveImpl(self AdaptorAPI, msg string) {
@@ -395,7 +394,6 @@ func (r *APIAdaptorExtends) TimeoutImpl(self AdaptorAPI) time.Duration {
 
 func (r *APIAdaptorExtends) VarArgs(fmtstr string, args ...string) {
 	r.VarArgsImpl(r, fmtstr, args...)
-	return
 }
 
 func (r *APIAdaptorExtends) VarArgsImpl(self AdaptorAPI, fmtstr string, args ...string) {
