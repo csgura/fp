@@ -326,6 +326,13 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 			Method:      AdaptorAPI.Send,
 			DefaultImpl: try.Success("ok"),
 		},
+		{
+			Method:  AdaptorAPI.Tell,
+			Private: true,
+			DefaultImpl: func(self AdaptorAPI, target string) fp.Try[string] {
+				return self.Send(target)
+			},
+		},
 	},
 }
 

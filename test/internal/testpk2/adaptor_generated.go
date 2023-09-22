@@ -146,7 +146,6 @@ type APIAdaptorExtends struct {
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DefaultTTL   time.Duration
-	DoTell       func(self AdaptorAPI, target string) fp.Try[string]
 	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DoTimeout    func(self AdaptorAPI) time.Duration
 	DoVarArgs    func(self AdaptorAPI, fmtstr string, args ...string)
@@ -352,27 +351,9 @@ func (r *APIAdaptorExtends) TTLImpl(self AdaptorAPI) time.Duration {
 }
 
 func (r *APIAdaptorExtends) Tell(target string) fp.Try[string] {
-	return r.TellImpl(r, target)
-}
-
-func (r *APIAdaptorExtends) TellImpl(self AdaptorAPI, target string) fp.Try[string] {
-
-	if r.DoTell != nil {
-		return r.DoTell(self, target)
-	}
-
-	if r.Extends != nil {
-		type impl interface {
-			TellImpl(self AdaptorAPI, target string) fp.Try[string]
-		}
-
-		if super, ok := r.Extends.(impl); ok {
-			return super.TellImpl(self, target)
-		}
-		return r.Extends.Tell(target)
-	}
-
-	panic("not implemented")
+	return func(self AdaptorAPI, target string) fp.Try[string] {
+		return self.Send(target)
+	}(r, target)
 }
 
 func (r *APIAdaptorExtends) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {

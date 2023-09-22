@@ -177,14 +177,14 @@ func genGenerate() {
 					}
 
 					implName := func() string {
-						if gad.Self {
+						if gad.Self && !opt.Private {
 							return t.Name() + "Impl"
 						}
 						return t.Name()
 					}()
 
 					implArgs := argTypeStr
-					if gad.Self {
+					if gad.Self && !opt.Private {
 						implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
 					}
 
