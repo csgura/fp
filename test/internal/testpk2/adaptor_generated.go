@@ -24,6 +24,7 @@ type APIAdaptor struct {
 	DoTestZero     func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DefaultTimeout time.Duration
 	GetTimeout     func() time.Duration
+	DoUpdate       func(a string, b int) (int, error)
 	DoVarArgs      func(fmtstr string, args ...string)
 	DoWrite        func(w io.Writer, b []byte) (int, error)
 }
@@ -127,6 +128,15 @@ func (r *APIAdaptor) Timeout() time.Duration {
 	panic("not implemented")
 }
 
+func (r *APIAdaptor) Update(a string, b int) (int, error) {
+
+	if r.DoUpdate != nil {
+		return r.DoUpdate(a, b)
+	}
+
+	return 1, nil
+}
+
 func (r *APIAdaptor) VarArgs(fmtstr string, args ...string) {
 
 	if r.DoVarArgs != nil {
@@ -160,6 +170,7 @@ type APIAdaptorExtends struct {
 	DefaultTTL   time.Duration
 	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DoTimeout    func(self AdaptorAPI) time.Duration
+	DoUpdate     func(self AdaptorAPI, a string, b int) (int, error)
 	DoVarArgs    func(self AdaptorAPI, fmtstr string, args ...string)
 	DoWrite      func(self AdaptorAPI, w io.Writer, b []byte) (int, error)
 }
@@ -440,6 +451,30 @@ func (r *APIAdaptorExtends) TimeoutImpl(self AdaptorAPI) time.Duration {
 	panic("not implemented")
 }
 
+func (r *APIAdaptorExtends) Update(a string, b int) (int, error) {
+	return r.UpdateImpl(r, a, b)
+}
+
+func (r *APIAdaptorExtends) UpdateImpl(self AdaptorAPI, a string, b int) (int, error) {
+
+	if r.DoUpdate != nil {
+		return r.DoUpdate(self, a, b)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			UpdateImpl(self AdaptorAPI, a string, b int) (int, error)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.UpdateImpl(self, a, b)
+		}
+		return r.Extends.Update(a, b)
+	}
+
+	panic("not implemented")
+}
+
 func (r *APIAdaptorExtends) VarArgs(fmtstr string, args ...string) {
 	r.VarArgsImpl(r, fmtstr, args...)
 }
@@ -506,6 +541,7 @@ type APIAdaptorExtendsNotSelf struct {
 	DoTell       func(target string) fp.Try[string]
 	DoTestZero   func() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DoTimeout    func() time.Duration
+	DoUpdate     func(a string, b int) (int, error)
 	DoVarArgs    func(fmtstr string, args ...string)
 	DoWrite      func(w io.Writer, b []byte) (int, error)
 }
@@ -670,6 +706,19 @@ func (r *APIAdaptorExtendsNotSelf) Timeout() time.Duration {
 	panic("not implemented")
 }
 
+func (r *APIAdaptorExtendsNotSelf) Update(a string, b int) (int, error) {
+
+	if r.DoUpdate != nil {
+		return r.DoUpdate(a, b)
+	}
+
+	if r.Extends != nil {
+		return r.Extends.Update(a, b)
+	}
+
+	panic("not implemented")
+}
+
 func (r *APIAdaptorExtendsNotSelf) VarArgs(fmtstr string, args ...string) {
 
 	if r.DoVarArgs != nil {
@@ -741,6 +790,7 @@ type APIAdaptorNotExtendsWithSelf struct {
 	DoTell       func(self AdaptorAPI, target string) fp.Try[string]
 	DoTestZero   func(self AdaptorAPI) (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	DoTimeout    func(self AdaptorAPI) time.Duration
+	DoUpdate     func(self AdaptorAPI, a string, b int) (int, error)
 	DoVarArgs    func(self AdaptorAPI, fmtstr string, args ...string)
 	DoWrite      func(self AdaptorAPI, w io.Writer, b []byte) (int, error)
 }
@@ -851,6 +901,15 @@ func (r *APIAdaptorNotExtendsWithSelf) Timeout() time.Duration {
 
 	if r.DoTimeout != nil {
 		return r.DoTimeout(r)
+	}
+
+	panic("not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) Update(a string, b int) (int, error) {
+
+	if r.DoUpdate != nil {
+		return r.DoUpdate(r, a, b)
 	}
 
 	panic("not implemented")

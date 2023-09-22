@@ -298,7 +298,14 @@ func genGenerate() {
 							buf := &bytes.Buffer{}
 
 							printer.Fprint(buf, fs, opt.DefaultImplExpr)
-							return "return " + buf.String()
+							if sig.Results().Len() > 1 {
+								zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+									return w.ZeroExpr(gad.Package.Types, t.Type())
+								}).Drop(1).MakeString(",")
+								return "return " + buf.String() + "," + zeroval
+							} else {
+								return "return " + buf.String()
+							}
 
 						}
 

@@ -248,6 +248,7 @@ type AdaptorAPI interface {
 	Receive(msg string)
 	Write(w io.Writer, b []byte) (int, error)
 	Create(a string, b int) (int, error)
+	Update(a string, b int) (int, error)
 	VarArgs(fmtstr string, args ...string)
 	IsZero(ptr unsafe.Pointer) bool
 }
@@ -290,6 +291,10 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 			DefaultImpl: func(v int) (int, error) {
 				return v, nil
 			},
+		},
+		{
+			Method:      AdaptorAPI.Update,
+			DefaultImpl: 1,
 		},
 		{
 			Method:  AdaptorAPI.Tell,
