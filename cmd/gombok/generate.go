@@ -210,6 +210,9 @@ func genGenerate() {
 
 					defaultcb := func() string {
 						if matchSelExpr(opt.DefaultImplExpr, "genfp", "ZeroReturn") {
+							if sig.Results().Len() == 0 {
+								return ""
+							}
 							zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
 								return w.ZeroExpr(gad.Package.Types, t.Type())
 							}).MakeString(",")

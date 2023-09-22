@@ -70,7 +70,6 @@ func (r *APIAdaptor) Receive(msg string) {
 		return
 	}
 
-	return
 }
 
 func (r *APIAdaptor) Send(target string) fp.Try[string] {
@@ -295,7 +294,6 @@ func (r *APIAdaptorExtends) ReceiveImpl(self AdaptorAPI, msg string) {
 		return
 	}
 
-	return
 }
 
 func (r *APIAdaptorExtends) Send(target string) fp.Try[string] {
@@ -544,7 +542,6 @@ func (r *APIAdaptorExtendsNotSelf) Receive(msg string) {
 		return
 	}
 
-	return
 }
 
 func (r *APIAdaptorExtendsNotSelf) Send(target string) fp.Try[string] {
