@@ -309,7 +309,7 @@ func genGenerate() {
 
 						}
 
-						return fmt.Sprintf(`panic("not implemented")`)
+						return fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name())
 					}()
 
 					impl := fmt.Sprintf(`

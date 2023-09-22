@@ -35,7 +35,7 @@ func (r *APIAdaptor) Active() bool {
 		return r.IsActive()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptor.Active not implemented")
 }
 
 func (r *APIAdaptor) Context() ApiContext {
@@ -63,7 +63,7 @@ func (r *APIAdaptor) IsOk() bool {
 		return r.GetIsOk()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptor.IsOk not implemented")
 }
 
 func (r *APIAdaptor) IsZero(ptr unsafe.Pointer) bool {
@@ -72,7 +72,7 @@ func (r *APIAdaptor) IsZero(ptr unsafe.Pointer) bool {
 		return r.DoIsZero(ptr)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptor.IsZero not implemented")
 }
 
 func (r *APIAdaptor) Receive(msg string) {
@@ -125,7 +125,7 @@ func (r *APIAdaptor) Timeout() time.Duration {
 		return r.GetTimeout()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptor.Timeout not implemented")
 }
 
 func (r *APIAdaptor) Update(a string, b int) (int, error) {
@@ -144,7 +144,7 @@ func (r *APIAdaptor) VarArgs(fmtstr string, args ...string) {
 		return
 	}
 
-	panic("not implemented")
+	panic("APIAdaptor.VarArgs not implemented")
 }
 
 func (r *APIAdaptor) Write(w io.Writer, b []byte) (int, error) {
@@ -196,7 +196,7 @@ func (r *APIAdaptorExtends) ActiveImpl(self AdaptorAPI) bool {
 		return r.Extends.Active()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.Active not implemented")
 }
 
 func (r *APIAdaptorExtends) Context() ApiContext {
@@ -220,7 +220,7 @@ func (r *APIAdaptorExtends) ContextImpl(self AdaptorAPI) ApiContext {
 		return r.Extends.Context()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.Context not implemented")
 }
 
 func (r *APIAdaptorExtends) Create(a string, b int) (int, error) {
@@ -244,7 +244,7 @@ func (r *APIAdaptorExtends) CreateImpl(self AdaptorAPI, a string, b int) (int, e
 		return r.Extends.Create(a, b)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.Create not implemented")
 }
 
 func (r *APIAdaptorExtends) Hello() string {
@@ -271,7 +271,7 @@ func (r *APIAdaptorExtends) HelloImpl(self AdaptorAPI) string {
 		return r.Extends.Hello()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.Hello not implemented")
 }
 
 func (r *APIAdaptorExtends) IsOk() bool {
@@ -295,7 +295,7 @@ func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
 		return r.Extends.IsOk()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.IsOk not implemented")
 }
 
 func (r *APIAdaptorExtends) IsZero(ptr unsafe.Pointer) bool {
@@ -319,7 +319,7 @@ func (r *APIAdaptorExtends) IsZeroImpl(self AdaptorAPI, ptr unsafe.Pointer) bool
 		return r.Extends.IsZero(ptr)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.IsZero not implemented")
 }
 
 func (r *APIAdaptorExtends) Receive(msg string) {
@@ -394,7 +394,7 @@ func (r *APIAdaptorExtends) TTLImpl(self AdaptorAPI) time.Duration {
 		return r.Extends.TTL()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.TTL not implemented")
 }
 
 func (r *APIAdaptorExtends) Tell(target string) fp.Try[string] {
@@ -424,7 +424,7 @@ func (r *APIAdaptorExtends) TestZeroImpl(self AdaptorAPI) (complex64, time.Time,
 		return r.Extends.TestZero()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.TestZero not implemented")
 }
 
 func (r *APIAdaptorExtends) Timeout() time.Duration {
@@ -448,7 +448,7 @@ func (r *APIAdaptorExtends) TimeoutImpl(self AdaptorAPI) time.Duration {
 		return r.Extends.Timeout()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.Timeout not implemented")
 }
 
 func (r *APIAdaptorExtends) Update(a string, b int) (int, error) {
@@ -472,7 +472,7 @@ func (r *APIAdaptorExtends) UpdateImpl(self AdaptorAPI, a string, b int) (int, e
 		return r.Extends.Update(a, b)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.Update not implemented")
 }
 
 func (r *APIAdaptorExtends) VarArgs(fmtstr string, args ...string) {
@@ -499,7 +499,7 @@ func (r *APIAdaptorExtends) VarArgsImpl(self AdaptorAPI, fmtstr string, args ...
 		return
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtends.VarArgs not implemented")
 }
 
 func (r *APIAdaptorExtends) Write(w io.Writer, b []byte) (int, error) {
@@ -556,7 +556,7 @@ func (r *APIAdaptorExtendsNotSelf) Active() bool {
 		return r.Extends.Active()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Active not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Context() ApiContext {
@@ -569,7 +569,7 @@ func (r *APIAdaptorExtendsNotSelf) Context() ApiContext {
 		return r.Extends.Context()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Context not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Create(a string, b int) (int, error) {
@@ -582,7 +582,7 @@ func (r *APIAdaptorExtendsNotSelf) Create(a string, b int) (int, error) {
 		return r.Extends.Create(a, b)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Create not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Hello() string {
@@ -598,7 +598,7 @@ func (r *APIAdaptorExtendsNotSelf) Hello() string {
 		return r.Extends.Hello()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Hello not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) IsOk() bool {
@@ -611,7 +611,7 @@ func (r *APIAdaptorExtendsNotSelf) IsOk() bool {
 		return r.Extends.IsOk()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.IsOk not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) IsZero(ptr unsafe.Pointer) bool {
@@ -624,7 +624,7 @@ func (r *APIAdaptorExtendsNotSelf) IsZero(ptr unsafe.Pointer) bool {
 		return r.Extends.IsZero(ptr)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.IsZero not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Receive(msg string) {
@@ -651,7 +651,7 @@ func (r *APIAdaptorExtendsNotSelf) Send(target string) fp.Try[string] {
 		return r.Extends.Send(target)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Send not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) TTL() time.Duration {
@@ -664,7 +664,7 @@ func (r *APIAdaptorExtendsNotSelf) TTL() time.Duration {
 		return r.Extends.TTL()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.TTL not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Tell(target string) fp.Try[string] {
@@ -677,7 +677,7 @@ func (r *APIAdaptorExtendsNotSelf) Tell(target string) fp.Try[string] {
 		return r.Extends.Tell(target)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Tell not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
@@ -690,7 +690,7 @@ func (r *APIAdaptorExtendsNotSelf) TestZero() (complex64, time.Time, *string, []
 		return r.Extends.TestZero()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.TestZero not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Timeout() time.Duration {
@@ -703,7 +703,7 @@ func (r *APIAdaptorExtendsNotSelf) Timeout() time.Duration {
 		return r.Extends.Timeout()
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Timeout not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Update(a string, b int) (int, error) {
@@ -716,7 +716,7 @@ func (r *APIAdaptorExtendsNotSelf) Update(a string, b int) (int, error) {
 		return r.Extends.Update(a, b)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.Update not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) VarArgs(fmtstr string, args ...string) {
@@ -731,7 +731,7 @@ func (r *APIAdaptorExtendsNotSelf) VarArgs(fmtstr string, args ...string) {
 		return
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorExtendsNotSelf.VarArgs not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Write(w io.Writer, b []byte) (int, error) {
@@ -801,7 +801,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Active() bool {
 		return r.IsActive(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Active not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Context() ApiContext {
@@ -810,7 +810,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Context() ApiContext {
 		return r.DoContext(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Context not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Create(a string, b int) (int, error) {
@@ -819,7 +819,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Create(a string, b int) (int, error) {
 		return r.DoCreate(r, a, b)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Create not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Hello() string {
@@ -831,7 +831,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Hello() string {
 		return r.GetHello(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Hello not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) IsOk() bool {
@@ -840,7 +840,7 @@ func (r *APIAdaptorNotExtendsWithSelf) IsOk() bool {
 		return r.GetIsOk(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.IsOk not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) IsZero(ptr unsafe.Pointer) bool {
@@ -849,7 +849,7 @@ func (r *APIAdaptorNotExtendsWithSelf) IsZero(ptr unsafe.Pointer) bool {
 		return r.DoIsZero(r, ptr)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.IsZero not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Receive(msg string) {
@@ -867,7 +867,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Send(target string) fp.Try[string] {
 		return r.DoSend(r, target)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Send not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) TTL() time.Duration {
@@ -876,7 +876,7 @@ func (r *APIAdaptorNotExtendsWithSelf) TTL() time.Duration {
 		return r.DoTTL(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.TTL not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Tell(target string) fp.Try[string] {
@@ -885,7 +885,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Tell(target string) fp.Try[string] {
 		return r.DoTell(r, target)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Tell not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any) {
@@ -894,7 +894,7 @@ func (r *APIAdaptorNotExtendsWithSelf) TestZero() (complex64, time.Time, *string
 		return r.DoTestZero(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.TestZero not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Timeout() time.Duration {
@@ -903,7 +903,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Timeout() time.Duration {
 		return r.DoTimeout(r)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Timeout not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Update(a string, b int) (int, error) {
@@ -912,7 +912,7 @@ func (r *APIAdaptorNotExtendsWithSelf) Update(a string, b int) (int, error) {
 		return r.DoUpdate(r, a, b)
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.Update not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) VarArgs(fmtstr string, args ...string) {
@@ -922,7 +922,7 @@ func (r *APIAdaptorNotExtendsWithSelf) VarArgs(fmtstr string, args ...string) {
 		return
 	}
 
-	panic("not implemented")
+	panic("APIAdaptorNotExtendsWithSelf.VarArgs not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Write(w io.Writer, b []byte) (int, error) {
