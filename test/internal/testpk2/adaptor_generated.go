@@ -19,6 +19,7 @@ type APIAdaptor struct {
 	DefaultHello   string
 	GetIsOk        func() bool
 	DoIsZero       func(ptr unsafe.Pointer) bool
+	DefaultMaxConn int
 	OnReceive      func(msg string)
 	DoSend         func(target string) fp.Try[string]
 	DefaultTTL     time.Duration
@@ -74,6 +75,10 @@ func (r *APIAdaptor) IsZero(ptr unsafe.Pointer) bool {
 	}
 
 	panic("APIAdaptor.IsZero not implemented")
+}
+
+func (r *APIAdaptor) MaxConn() int {
+	return r.DefaultMaxConn
 }
 
 func (r *APIAdaptor) Receive(msg string) {
@@ -166,6 +171,7 @@ type APIAdaptorExtends struct {
 	GetHello     func(self AdaptorAPI) string
 	GetIsOk      func(self AdaptorAPI) bool
 	DoIsZero     func(self AdaptorAPI, ptr unsafe.Pointer) bool
+	DoMaxConn    func(self AdaptorAPI) int
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DefaultTTL   time.Duration
@@ -321,6 +327,30 @@ func (r *APIAdaptorExtends) IsZeroImpl(self AdaptorAPI, ptr unsafe.Pointer) bool
 	}
 
 	panic("APIAdaptorExtends.IsZero not implemented")
+}
+
+func (r *APIAdaptorExtends) MaxConn() int {
+	return r.MaxConnImpl(r)
+}
+
+func (r *APIAdaptorExtends) MaxConnImpl(self AdaptorAPI) int {
+
+	if r.DoMaxConn != nil {
+		return r.DoMaxConn(self)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			MaxConnImpl(self AdaptorAPI) int
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.MaxConnImpl(self)
+		}
+		return r.Extends.MaxConn()
+	}
+
+	panic("APIAdaptorExtends.MaxConn not implemented")
 }
 
 func (r *APIAdaptorExtends) Receive(msg string) {
@@ -540,6 +570,7 @@ type APIAdaptorExtendsNotSelf struct {
 	GetHello     func() string
 	GetIsOk      func() bool
 	DoIsZero     func(ptr unsafe.Pointer) bool
+	DoMaxConn    func() int
 	OnReceive    func(msg string)
 	DoSend       func(target string) fp.Try[string]
 	DoTTL        func() time.Duration
@@ -630,6 +661,19 @@ func (r *APIAdaptorExtendsNotSelf) IsZero(ptr unsafe.Pointer) bool {
 	}
 
 	panic("APIAdaptorExtendsNotSelf.IsZero not implemented")
+}
+
+func (r *APIAdaptorExtendsNotSelf) MaxConn() int {
+
+	if r.DoMaxConn != nil {
+		return r.DoMaxConn()
+	}
+
+	if r.Extends != nil {
+		return r.Extends.MaxConn()
+	}
+
+	panic("APIAdaptorExtendsNotSelf.MaxConn not implemented")
 }
 
 func (r *APIAdaptorExtendsNotSelf) Receive(msg string) {
@@ -789,6 +833,7 @@ type APIAdaptorNotExtendsWithSelf struct {
 	GetHello     func(self AdaptorAPI) string
 	GetIsOk      func(self AdaptorAPI) bool
 	DoIsZero     func(self AdaptorAPI, ptr unsafe.Pointer) bool
+	DoMaxConn    func(self AdaptorAPI) int
 	OnReceive    func(self AdaptorAPI, msg string)
 	DoSend       func(self AdaptorAPI, target string) fp.Try[string]
 	DoTTL        func(self AdaptorAPI) time.Duration
@@ -879,6 +924,19 @@ func (r *APIAdaptorNotExtendsWithSelf) IsZeroImpl(self AdaptorAPI, ptr unsafe.Po
 	}
 
 	panic("APIAdaptorNotExtendsWithSelf.IsZero not implemented")
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) MaxConn() int {
+	return r.MaxConnImpl(r)
+}
+
+func (r *APIAdaptorNotExtendsWithSelf) MaxConnImpl(self AdaptorAPI) int {
+
+	if r.DoMaxConn != nil {
+		return r.DoMaxConn(self)
+	}
+
+	panic("APIAdaptorNotExtendsWithSelf.MaxConn not implemented")
 }
 
 func (r *APIAdaptorNotExtendsWithSelf) Receive(msg string) {

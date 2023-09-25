@@ -343,7 +343,6 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 		}
 
 		extendscb := func() string {
-
 			if superField != "" && gad.ExtendsByEmbedding == false {
 				return fmt.Sprintf(`
 					if r.%s != nil {
@@ -373,7 +372,7 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 						
 						`, valName, zeroVal,
 					valName)
-			} else if zeroVal == "0" || zeroVal == `""` && (opt.OmitGetterIfValOverride == false || extendscb != "") {
+			} else if (zeroVal == "0" || zeroVal == `""`) && (opt.OmitGetterIfValOverride == false || extendscb != "") {
 				defaultValExpr = fmt.Sprintf(`if r.%s != %s {
 									return r.%s
 								}

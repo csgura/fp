@@ -240,6 +240,7 @@ type AdaptorAPI interface {
 	Context() ApiContext
 	TTL() time.Duration
 	Timeout() time.Duration
+	MaxConn() int
 	TestZero() (complex64, time.Time, *string, []int, [3]byte, map[string]any)
 	Hello() string
 	Tell(target string) fp.Try[string]
@@ -262,7 +263,7 @@ var _ = genfp.GenerateAdaptor[AdaptorAPI]{
 	Self:         false,
 	Getter:       []any{AdaptorAPI.Active, AdaptorAPI.IsOk},
 	EventHandler: []any{AdaptorAPI.Receive},
-	ValOverride:  []any{AdaptorAPI.Hello, AdaptorAPI.TTL, AdaptorAPI.Context},
+	ValOverride:  []any{AdaptorAPI.Hello, AdaptorAPI.TTL, AdaptorAPI.Context, AdaptorAPI.MaxConn},
 	ZeroReturn:   []any{AdaptorAPI.TestZero},
 	Options: genfp.AdaptorMethods{
 		{
