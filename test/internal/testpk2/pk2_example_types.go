@@ -449,8 +449,8 @@ var _ = genfp.GenerateAdaptor[HTTP]{
 var _ = genfp.GenerateAdaptor[HTTP2]{
 	File:           "adaptor_generated.go",
 	ImplementsWith: []genfp.TypeTag{genfp.TypeOf[io.Closer]()},
-	ExtendsWith: map[genfp.TypeTag]string{
-		genfp.TypeOf[io.Closer](): "Closer",
+	ExtendsWith: map[string]genfp.TypeTag{
+		"Closer": genfp.TypeOf[io.Closer](),
 	},
 	Embedding: []genfp.TypeTag{genfp.TypeOf[HTTPAdaptor]()},
 	Self:      true,
@@ -462,15 +462,12 @@ type SpanContext interface {
 	Hello() string
 }
 
-// TODO: HTTPAdaptor 를 embedding 하는 방법??
+// @fp.Generate
 var _ = genfp.GenerateAdaptor[SpanContext]{
-	File:     "adaptor_generated.go",
-	Delegate: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
-	Options: []genfp.ImplOption{
-		{
-			Method:   SpanContext.Deadline,
-			Delegate: genfp.DelegateOf[context.Context](),
-		},
+	File: "adaptor_generated.go",
+	Self: true,
+	Delegate: map[string]genfp.TypeTag{
+		"DefaultContext": genfp.TypeOf[context.Context](),
 	},
 }
 

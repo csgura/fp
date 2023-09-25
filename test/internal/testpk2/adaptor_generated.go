@@ -2,6 +2,7 @@
 package testpk2
 
 import (
+	"context"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/test/internal/testpk1"
 	"github.com/csgura/fp/try"
@@ -1096,16 +1097,121 @@ func (r *HTTP2Adaptor) CloseImpl(self HTTP2) error {
 		return r.DoClose(self)
 	}
 
-	type impl interface {
-		CloseImpl(self HTTP2) error
-	}
+	if r.Extends != nil {
 
-	if super, ok := r.Extends.(impl); ok {
-		return super.CloseImpl(self)
-	}
-	if super, ok := r.Extends.(io.Closer); ok {
-		super.Close()
+		type impl interface {
+			CloseImpl(self HTTP2) error
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.CloseImpl(self)
+		}
+		if super, ok := r.Extends.(io.Closer); ok {
+			return super.Close()
+		}
+
 	}
 
 	panic("HTTP2Adaptor.Close not implemented")
+}
+
+type SpanContextAdaptor struct {
+	DefaultContext context.Context
+	DoHello        func(self SpanContext) string
+}
+
+func (r *SpanContextAdaptor) Deadline() (time.Time, bool) {
+	return r.DeadlineImpl(r)
+}
+
+func (r *SpanContextAdaptor) DeadlineImpl(self SpanContext) (time.Time, bool) {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			DeadlineImpl(self SpanContext) (time.Time, bool)
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.DeadlineImpl(self)
+		}
+		return r.DefaultContext.Deadline()
+	}
+
+	panic("SpanContextAdaptor.Deadline not implemented")
+}
+
+func (r *SpanContextAdaptor) Done() <-chan struct {
+} {
+	return r.DoneImpl(r)
+}
+
+func (r *SpanContextAdaptor) DoneImpl(self SpanContext) <-chan struct {
+} {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			DoneImpl(self SpanContext) <-chan struct {
+			}
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.DoneImpl(self)
+		}
+		return r.DefaultContext.Done()
+	}
+
+	panic("SpanContextAdaptor.Done not implemented")
+}
+
+func (r *SpanContextAdaptor) Err() error {
+	return r.ErrImpl(r)
+}
+
+func (r *SpanContextAdaptor) ErrImpl(self SpanContext) error {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			ErrImpl(self SpanContext) error
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.ErrImpl(self)
+		}
+		return r.DefaultContext.Err()
+	}
+
+	panic("SpanContextAdaptor.Err not implemented")
+}
+
+func (r *SpanContextAdaptor) Hello() string {
+	return r.HelloImpl(r)
+}
+
+func (r *SpanContextAdaptor) HelloImpl(self SpanContext) string {
+
+	if r.DoHello != nil {
+		return r.DoHello(self)
+	}
+
+	panic("SpanContextAdaptor.Hello not implemented")
+}
+
+func (r *SpanContextAdaptor) Value(key any) any {
+	return r.ValueImpl(r, key)
+}
+
+func (r *SpanContextAdaptor) ValueImpl(self SpanContext, key any) any {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			ValueImpl(self SpanContext, key any) any
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.ValueImpl(self, key)
+		}
+		return r.DefaultContext.Value(key)
+	}
+
+	panic("SpanContextAdaptor.Value not implemented")
 }

@@ -18,10 +18,35 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 	"golang.org/x/tools/go/packages"
 )
+
+func hasMethod(v types.Type, name string) bool {
+
+	if intf, ok := v.Underlying().(*types.Interface); ok {
+		f := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) bool {
+			return t.Name() == name
+		})
+		return f.Exists(fp.Id)
+	}
+
+	switch t := v.(type) {
+	case *types.Named:
+		f := iterate(t.NumMethods(), t.Method, func(i int, t *types.Func) bool {
+			return t.Name() == name
+		})
+		return f.Exists(fp.Id)
+	case *types.Interface:
+		f := iterate(t.NumMethods(), t.Method, func(i int, t *types.Func) bool {
+			return t.Name() == name
+		})
+		return f.Exists(fp.Id)
+	}
+	return false
+}
 
 func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genfp.GenerateAdaptorDirective, error) {
 	for i := 0; i < intf.NumMethods(); i++ {
@@ -29,6 +54,14 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 
 		opt := ret.Methods[m.Name()]
 		opt.Type = m
+
+		for df, d := range ret.Delegate {
+
+			if hasMethod(d.Type, m.Name()) {
+				opt.DelegateField = df
+
+			}
+		}
 
 		sig, ok := m.Type().(*types.Signature)
 		if !ok {
@@ -130,6 +163,13 @@ func genGenerate() {
 
 				fieldDecl := seq.Of(extends)
 
+				delegateFields := iterator.Sort(iterator.FromMapKey(gad.Delegate), ord.Given[string]())
+
+				fieldDecl = fieldDecl.Concat(seq.Map(delegateFields, func(k string) string {
+					tpe := gad.Delegate[k]
+					return fmt.Sprintf("%s %s", k, w.TypeName(gad.Package.Types, tpe.Type))
+				}))
+
 				fieldDecl = fieldDecl.Concat(seq.Map(gad.Embedding, func(v genfp.TypeReference) string {
 					if v.Type != nil {
 						return w.TypeName(gad.Package.Types, v.Type)
@@ -164,6 +204,9 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			valName = fmt.Sprintf("Default%s", opt.Name)
 		}
 
+		if opt.DelegateField != "" {
+			cbName = opt.DelegateField
+		}
 		selfarg := ""
 		if gad.Self {
 			selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
@@ -207,7 +250,53 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			return "return " + e
 		}
 
+		implArgs := argTypeStr
+		if gad.Self {
+			implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
+		}
+
+		implName := func() string {
+			if gad.Self {
+				return t.Name() + "Impl"
+			}
+			return t.Name()
+		}()
+
+		callSuperImpl := func(field string) string {
+
+			if gad.Self {
+				return fmt.Sprintf(`type impl interface {
+										%s(%s) %s
+									}
+
+									if super, ok := r.%s.(impl); ok {
+										%s 
+									}
+									`, implName, implArgs, resstr,
+					field,
+					withReturn(false, "super.%s(self, %s)", implName, argStr),
+				)
+			}
+			return ""
+
+		}
+
+		callSupercheck := func(field string) string {
+			return fmt.Sprintf(`
+					%sif super , ok := r.%s.(%s); ok {
+						%s
+					}
+				`, callSuperImpl(field), field, w.TypeName(gad.Package.Types, namedInterface),
+				withReturn(false, "super.%s(%s)", t.Name(), argStr),
+			)
+		}
+
 		callcb := func() string {
+			if opt.DelegateField != "" {
+
+				return fmt.Sprintf("%s%s", callSuperImpl(opt.DelegateField), withReturn(false, `r.%s.%s(%s)`, opt.DelegateField, t.Name(), argStr))
+			}
+
 			if gad.Self {
 				return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
 			}
@@ -223,73 +312,25 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			callcb)
 
 		cbfield := fmt.Sprintf("%s func(%s%s) %s", cbName, selfarg, argTypeStr, resstr)
-
-		implName := func() string {
-			if gad.Self {
-				return t.Name() + "Impl"
-			}
-			return t.Name()
-		}()
-
-		implArgs := argTypeStr
-		if gad.Self {
-
-			implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
-
+		if opt.DelegateField != "" {
+			cbfield = ""
 		}
 
 		extendscb := func() string {
 
 			if superField != "" {
-				superexpr := ""
-
-				if gad.Self {
-					superexpr = fmt.Sprintf(`type impl interface {
-										%s(%s) %s
-									}
-
-									if super, ok := r.%s.(impl); ok {
-										%s 
-									}
-									`, implName, implArgs, resstr,
-						superField,
-						withReturn(false, "super.%s(self, %s)", implName, argStr),
-					)
-				}
-
 				return fmt.Sprintf(`
-								if r.%s != nil {
-									%s%s 
-								}
-							`,
-					superField,
-					superexpr,
-					withReturn(false, "r.%s.%s(%s)", superField, t.Name(), argStr),
+					if r.%s != nil {
+						%s%s
+					}
+				`, superField, callSuperImpl(superField), withReturn(false, "r.%s.%s(%s)", superField, t.Name(), argStr),
 				)
 			} else if gad.Extends {
-				superexpr := ""
-
-				if gad.Self {
-					superexpr = fmt.Sprintf(`type impl interface {
-										%s(%s) %s
-									}
-
-									if super, ok := r.%s.(impl); ok {
-										%s 
-									}
-									`, implName, implArgs, resstr,
-						"Extends",
-						withReturn(false, "super.%s(self, %s)", implName, argStr),
-					)
-				}
-
 				return fmt.Sprintf(`
-					%sif super , ok := r.Extends.(%s); ok {
-						super.%s(%s)
+					if r.Extends != nil {
+						%s
 					}
-				`, superexpr, w.TypeName(gad.Package.Types, namedInterface),
-					t.Name(), argStr,
-				)
+				`, callSupercheck("Extends"))
 			}
 			return ""
 
