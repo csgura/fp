@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	rf "reflect"
 	"sync/atomic"
@@ -477,4 +478,18 @@ var _ = genfp.GenerateAdaptor[SpanContext]{
 
 type SpanContextAdaptorToBe struct {
 	DefaultContext context.Context
+}
+
+type ConnHandler interface {
+	NewReader(conn net.Conn)
+}
+
+// TODO : 아규먼트 공변
+type ConnHandlerAdaptor struct {
+	ReaderMaker func(conn io.Reader)
+}
+
+// net.Conn 은 io.Reader 기 때문에 , ReaderMaker 호출 가능
+func (r *ConnHandlerAdaptor) NewReader(conn net.Conn) {
+	r.ReaderMaker(conn)
 }
