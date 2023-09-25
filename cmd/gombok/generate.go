@@ -18,6 +18,7 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
@@ -133,6 +134,10 @@ func genGenerate() {
 			}
 
 			for _, gad := range genadaptor[file] {
+				if gad.ExtendsByEmbedding {
+					gad.Extends = true
+				}
+
 				adaptorTypeName := gad.Name
 				if adaptorTypeName == "" {
 					adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
@@ -157,13 +162,15 @@ func genGenerate() {
 				}
 
 				extends := ""
-				if gad.Extends {
+				if gad.Extends && gad.ExtendsByEmbedding == false {
 					extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
 				}
 
 				fieldDecl := seq.Of(extends)
 
-				delegateFields := iterator.Sort(iterator.FromMapKey(gad.Delegate), ord.Given[string]())
+				delegateFields := iterator.Sort(iterator.FromMapKey(gad.Delegate), ord.Given[string]()).FilterNot(func(v string) bool {
+					return isEmbeddingField(gad, v)
+				})
 
 				fieldDecl = fieldDecl.Concat(seq.Map(delegateFields, func(k string) string {
 					tpe := gad.Delegate[k]
@@ -191,6 +198,12 @@ func genGenerate() {
 
 }
 
+func isEmbeddingField(gad genfp.GenerateAdaptorDirective, field string) bool {
+	for _, e := range gad.Embedding {
+		return seq.Last(strings.Split(e.StringExpr, ".")) == option.Some(field)
+	}
+	return false
+}
 func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string) fp.Seq[fp.Tuple2[string, string]] {
 	intf := namedInterface.Underlying().(*types.Interface)
 
@@ -204,9 +217,6 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			valName = fmt.Sprintf("Default%s", opt.Name)
 		}
 
-		if opt.DelegateField != "" {
-			cbName = opt.DelegateField
-		}
 		selfarg := ""
 		if gad.Self {
 			selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
@@ -239,17 +249,6 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			}).MakeString(",") + ")"
 		}
 
-		withReturn := func(lastPos bool, fmtstr string, args ...any) string {
-			e := fmt.Sprintf(fmtstr, args...)
-			if sig.Results().Len() == 0 {
-				if lastPos {
-					return e
-				}
-				return fmt.Sprintf("%s\nreturn", e)
-			}
-			return "return " + e
-		}
-
 		implArgs := argTypeStr
 		if gad.Self {
 			implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
@@ -261,6 +260,33 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			}
 			return t.Name()
 		}()
+
+		withReturn := func(lastPos bool, fmtstr string, args ...any) string {
+			e := fmt.Sprintf(fmtstr, args...)
+			if sig.Results().Len() == 0 {
+				if lastPos {
+					return e
+				}
+				return fmt.Sprintf("%s\nreturn", e)
+			}
+			return "return " + e
+		}
+
+		if opt.DelegateField != "" {
+			cbName = opt.DelegateField
+			if isEmbeddingField(gad, opt.DelegateField) {
+				if gad.Self && gad.ExtendsByEmbedding {
+					return as.Tuple("", fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+						`, adaptorTypeName, t.Name(), argTypeStr, resstr,
+						withReturn(true, `r.%sImpl(r, %s)`, t.Name(), argStr),
+					))
+				}
+				return as.Tuple("", "")
+			}
+		}
 
 		callSuperImpl := func(field string) string {
 
@@ -318,7 +344,7 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 
 		extendscb := func() string {
 
-			if superField != "" {
+			if superField != "" && gad.ExtendsByEmbedding == false {
 				return fmt.Sprintf(`
 					if r.%s != nil {
 						%s%s

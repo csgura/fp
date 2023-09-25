@@ -453,8 +453,11 @@ var _ = genfp.GenerateAdaptor[HTTP2]{
 		"Closer": genfp.TypeOf[io.Closer](),
 	},
 	Embedding: []genfp.TypeTag{genfp.TypeOf[HTTPAdaptor]()},
-	Self:      true,
-	Extends:   true,
+	Delegate: map[string]genfp.TypeTag{
+		"HTTPAdaptor": genfp.TypeOf[HTTP](),
+	},
+	Self:               true,
+	ExtendsByEmbedding: true,
 }
 
 type SpanContext interface {

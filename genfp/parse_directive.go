@@ -49,19 +49,20 @@ type GenerateFromUntil struct {
 }
 
 type GenerateAdaptor[T any] struct {
-	File           string
-	Name           string
-	Extends        bool
-	Self           bool
-	ImplementsWith []TypeTag
-	ExtendsWith    map[string]TypeTag
-	Embedding      []TypeTag
-	Delegate       map[string]TypeTag
-	Getter         []any
-	EventHandler   []any
-	ValOverride    []any
-	ZeroReturn     []any
-	Options        []ImplOption
+	File               string
+	Name               string
+	Extends            bool
+	Self               bool
+	ImplementsWith     []TypeTag
+	ExtendsWith        map[string]TypeTag
+	Embedding          []TypeTag
+	ExtendsByEmbedding bool
+	Delegate           map[string]TypeTag
+	Getter             []any
+	EventHandler       []any
+	ValOverride        []any
+	ZeroReturn         []any
+	Options            []ImplOption
 }
 
 type AdaptorMethods []ImplOption
@@ -341,21 +342,22 @@ func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
 }
 
 type GenerateAdaptorDirective struct {
-	Package        *packages.Package
-	Interface      *types.Named
-	File           string
-	Name           string
-	Extends        bool
-	Self           bool
-	ImplementsWith []TypeReference
-	ExtendsWith    map[string]TypeReference
-	Embedding      []TypeReference
-	Delegate       map[string]TypeReference
-	Getter         []string
-	EventHandler   []string
-	ValOverride    []string
-	ZeroReturn     []string
-	Methods        map[string]ImplOptionDirective
+	Package            *packages.Package
+	Interface          *types.Named
+	File               string
+	Name               string
+	Extends            bool
+	Self               bool
+	ImplementsWith     []TypeReference
+	ExtendsWith        map[string]TypeReference
+	Embedding          []TypeReference
+	ExtendsByEmbedding bool
+	Delegate           map[string]TypeReference
+	Getter             []string
+	EventHandler       []string
+	ValOverride        []string
+	ZeroReturn         []string
+	Methods            map[string]ImplOptionDirective
 }
 
 type TypeReference struct {
@@ -436,7 +438,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret.Interface = argType
 	intfname := argType.Obj().Name()
 
-	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "ExtendsWith", "Embedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
+	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "ExtendsWith", "Embedding", "ExtendsByEmbedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -487,6 +489,12 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				return ret, err
 			}
 			ret.Embedding = v
+		case "ExtendsByEmbedding":
+			v, err := evalBoolValue(value)
+			if err != nil {
+				return ret, err
+			}
+			ret.ExtendsByEmbedding = v
 		case "Delegate":
 			v, err := evalMap(value, evalStringValue, evalTypeOf(lit.Package))
 			if err != nil {

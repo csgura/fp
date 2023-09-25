@@ -1029,10 +1029,8 @@ func (r *HTTPAdaptor) SendImpl(self HTTP, msg string) (int, error) {
 }
 
 type HTTP2Adaptor struct {
-	Extends HTTP2
 	HTTPAdaptor
 	DoKeepAlive func(self HTTP2, v bool)
-	DoSend      func(self HTTP2, msg string) (int, error)
 	DoClose     func(self HTTP2) error
 }
 
@@ -1048,6 +1046,7 @@ func (r *HTTP2Adaptor) KeepAliveImpl(self HTTP2, v bool) {
 	}
 
 	if r.Extends != nil {
+
 		type impl interface {
 			KeepAliveImpl(self HTTP2, v bool)
 		}
@@ -1056,8 +1055,11 @@ func (r *HTTP2Adaptor) KeepAliveImpl(self HTTP2, v bool) {
 			super.KeepAliveImpl(self, v)
 			return
 		}
-		r.Extends.KeepAlive(v)
-		return
+		if super, ok := r.Extends.(HTTP2); ok {
+			super.KeepAlive(v)
+			return
+		}
+
 	}
 
 	panic("HTTP2Adaptor.KeepAlive not implemented")
@@ -1065,26 +1067,6 @@ func (r *HTTP2Adaptor) KeepAliveImpl(self HTTP2, v bool) {
 
 func (r *HTTP2Adaptor) Send(msg string) (int, error) {
 	return r.SendImpl(r, msg)
-}
-
-func (r *HTTP2Adaptor) SendImpl(self HTTP2, msg string) (int, error) {
-
-	if r.DoSend != nil {
-		return r.DoSend(self, msg)
-	}
-
-	if r.Extends != nil {
-		type impl interface {
-			SendImpl(self HTTP2, msg string) (int, error)
-		}
-
-		if super, ok := r.Extends.(impl); ok {
-			return super.SendImpl(self, msg)
-		}
-		return r.Extends.Send(msg)
-	}
-
-	panic("HTTP2Adaptor.Send not implemented")
 }
 
 func (r *HTTP2Adaptor) Close() error {
