@@ -5,13 +5,40 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"reflect"
 	"strconv"
 	"strings"
 
-	"slices"
-
 	"golang.org/x/tools/go/packages"
 )
+
+type TypeTag interface {
+	Type() reflect.Type
+}
+
+type TypeTagOf[T any] struct {
+}
+
+func (r TypeTagOf[T]) Type() reflect.Type {
+	var pt *T
+	return reflect.TypeOf(pt).Elem()
+}
+
+func TypeOf[T any]() TypeTag {
+	return TypeTagOf[T]{}
+}
+
+type Delegate struct {
+	TypeOf TypeTag
+	Field  string
+}
+
+func DelegateOf[T any]() Delegate {
+	return Delegate{
+		TypeOf: TypeOf[T](),
+		Field:  "",
+	}
+}
 
 type GenerateFromUntil struct {
 	File     string
@@ -22,15 +49,19 @@ type GenerateFromUntil struct {
 }
 
 type GenerateAdaptor[T any] struct {
-	File         string
-	Name         string
-	Extends      bool
-	Self         bool
-	Getter       []any
-	EventHandler []any
-	ValOverride  []any
-	ZeroReturn   []any
-	Options      []ImplOption
+	File           string
+	Name           string
+	Extends        bool
+	Self           bool
+	ImplementsWith []TypeTag
+	ExtendsWith    map[TypeTag]string
+	Embedding      []TypeTag
+	Delegate       []TypeTag
+	Getter         []any
+	EventHandler   []any
+	ValOverride    []any
+	ZeroReturn     []any
+	Options        []ImplOption
 }
 
 type AdaptorMethods []ImplOption
@@ -42,6 +73,7 @@ type ImplOption struct {
 	Private                 bool
 	ValOverride             bool
 	OmitGetterIfValOverride bool
+	Delegate                Delegate
 	DefaultImpl             any
 }
 
@@ -307,17 +339,76 @@ func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
 }
 
 type GenerateAdaptorDirective struct {
-	Package      *packages.Package
-	Interface    *types.Named
-	File         string
-	Name         string
-	Extends      bool
-	Self         bool
-	Getter       []string
-	EventHandler []string
-	ValOverride  []string
-	ZeroReturn   []string
-	Methods      map[string]ImplOptionDirective
+	Package        *packages.Package
+	Interface      *types.Named
+	File           string
+	Name           string
+	Extends        bool
+	Self           bool
+	ImplementsWith []TypeReference
+	Embedding      []TypeReference
+	Delegate       []TypeReference
+	Getter         []string
+	EventHandler   []string
+	ValOverride    []string
+	ZeroReturn     []string
+	Methods        map[string]ImplOptionDirective
+}
+
+type TypeReference struct {
+	Expr       ast.Expr
+	StringExpr string
+	Type       types.Type
+	Imports    []ImportPackage
+}
+
+func evalTypeReference(pk *packages.Package, exp ast.Expr) TypeReference {
+	t, imp := evalFuncLit(pk, exp, exp.Pos())
+
+	return TypeReference{
+		Expr:       exp,
+		StringExpr: types.ExprString(exp),
+		Type:       t,
+		Imports:    imp,
+	}
+}
+func extractTypeParam(pk *packages.Package, exp ast.Expr) ([]TypeReference, error) {
+	switch e := exp.(type) {
+	case *ast.IndexExpr:
+		return []TypeReference{evalTypeReference(pk, e.Index)}, nil
+	case *ast.IndexListExpr:
+
+		var ret []TypeReference
+		for _, v := range e.Indices {
+			ret = append(ret, evalTypeReference(pk, v))
+		}
+		return ret, nil
+
+	default:
+		return nil, fmt.Errorf("not expected expression : %s", types.ExprString(exp))
+	}
+}
+
+func evalTypeOf(pk *packages.Package) func(exp ast.Expr) (TypeReference, error) {
+	var zero TypeReference
+	return func(exp ast.Expr) (TypeReference, error) {
+		switch v := exp.(type) {
+		case *ast.CallExpr:
+			arr, err := extractTypeParam(pk, v.Fun)
+			if err != nil {
+				return zero, err
+			}
+			if len(arr) != 1 {
+				return zero, fmt.Errorf("not allowed expression. use genfp.TypeOf[T]")
+			}
+			return arr[0], nil
+
+		default:
+			return zero, fmt.Errorf("not allowed expression. use genfp.TypeOf[T]")
+
+		}
+	}
+
 }
 
 func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
@@ -342,7 +433,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret.Interface = argType
 	intfname := argType.Obj().Name()
 
-	names := []string{"File", "Name", "Extends", "Self", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
+	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "Embedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -375,6 +466,24 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				return ret, err
 			}
 			ret.Self = v
+		case "ImplementsWith":
+			v, err := evalArray(value, evalTypeOf(lit.Package))
+			if err != nil {
+				return ret, err
+			}
+			ret.ImplementsWith = v
+		case "Embedding":
+			v, err := evalArray(value, evalTypeOf(lit.Package))
+			if err != nil {
+				return ret, err
+			}
+			ret.Embedding = v
+		case "Delegate":
+			v, err := evalArray(value, evalTypeOf(lit.Package))
+			if err != nil {
+				return ret, err
+			}
+			ret.Delegate = v
 		case "Getter":
 			v, err := evalArray(value, evalMethodRef(intfname))
 			if err != nil {
@@ -409,49 +518,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 			}
 		}
 	}
-	intf := ret.Interface.Underlying().(*types.Interface)
-	for i := 0; i < intf.NumMethods(); i++ {
-		m := intf.Method(i)
 
-		opt := ret.Methods[m.Name()]
-		opt.Type = m
-
-		sig, ok := m.Type().(*types.Signature)
-		if !ok {
-			return ret, fmt.Errorf("type is not signature")
-		}
-		opt.Signature = sig
-		if opt.Prefix == "" {
-			if slices.Contains(ret.Getter, m.Name()) {
-				opt.Prefix = "Get"
-
-				if sig.Results().Len() == 1 {
-					res := sig.Results().At(0)
-					if res.Type().String() == "bool" && !strings.HasPrefix(m.Name(), "Is") {
-						opt.Prefix = "Is"
-					}
-				}
-
-			} else if slices.Contains(ret.EventHandler, m.Name()) {
-				opt.Prefix = "On"
-			} else {
-				opt.Prefix = "Do"
-			}
-		}
-
-		if opt.ValOverride == false {
-			opt.ValOverride = slices.Contains(ret.ValOverride, m.Name())
-			if opt.ValOverride && !slices.Contains(ret.Getter, m.Name()) {
-				opt.OmitGetterIfValOverride = true
-			}
-		}
-
-		if opt.DefaultImplExpr == nil && slices.Contains(ret.ZeroReturn, m.Name()) {
-			opt.DefaultImplExpr = &ast.SelectorExpr{X: ast.NewIdent("genfp"), Sel: ast.NewIdent("ZeroReturn")}
-		}
-
-		ret.Methods[m.Name()] = opt
-	}
 	return ret, nil
 }
 

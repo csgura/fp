@@ -8,6 +8,9 @@ import (
 	"go/token"
 	"go/types"
 	"os"
+	"strings"
+
+	"slices"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
@@ -19,6 +22,52 @@ import (
 	"github.com/csgura/fp/try"
 	"golang.org/x/tools/go/packages"
 )
+
+func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genfp.GenerateAdaptorDirective, error) {
+	for i := 0; i < intf.NumMethods(); i++ {
+		m := intf.Method(i)
+
+		opt := ret.Methods[m.Name()]
+		opt.Type = m
+
+		sig, ok := m.Type().(*types.Signature)
+		if !ok {
+			return ret, fmt.Errorf("type is not signature")
+		}
+		opt.Signature = sig
+		if opt.Prefix == "" {
+			if slices.Contains(ret.Getter, m.Name()) {
+				opt.Prefix = "Get"
+
+				if sig.Results().Len() == 1 {
+					res := sig.Results().At(0)
+					if res.Type().String() == "bool" && !strings.HasPrefix(m.Name(), "Is") {
+						opt.Prefix = "Is"
+					}
+				}
+
+			} else if slices.Contains(ret.EventHandler, m.Name()) {
+				opt.Prefix = "On"
+			} else {
+				opt.Prefix = "Do"
+			}
+		}
+
+		if opt.ValOverride == false {
+			opt.ValOverride = slices.Contains(ret.ValOverride, m.Name())
+			if opt.ValOverride && !slices.Contains(ret.Getter, m.Name()) {
+				opt.OmitGetterIfValOverride = true
+			}
+		}
+
+		if opt.DefaultImplExpr == nil && slices.Contains(ret.ZeroReturn, m.Name()) {
+			opt.DefaultImplExpr = &ast.SelectorExpr{X: ast.NewIdent("genfp"), Sel: ast.NewIdent("ZeroReturn")}
+		}
+
+		ret.Methods[m.Name()] = opt
+	}
+	return ret, nil
+}
 
 func genGenerate() {
 	pack := os.Getenv("GOPACKAGE")
@@ -56,321 +105,384 @@ func genGenerate() {
 					adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
 				}
 
+				superField := ""
+				if gad.Extends {
+					superField = "Extends"
+				}
 				intf := gad.Interface.Underlying().(*types.Interface)
 
-				fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
-					opt := gad.Methods[t.Name()]
-					sig := opt.Signature
-					valName := fmt.Sprintf("Default%s", t.Name())
-					cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
-					if opt.Name != "" {
-						cbName = fmt.Sprintf("%s%s", opt.Prefix, opt.Name)
-						valName = fmt.Sprintf("Default%s", opt.Name)
+				gad, _ = fillOption(gad, intf)
+				fields := fieldAndImplOfInterfaceImpl(w, gad, gad.Interface, adaptorTypeName, superField)
+
+				for _, i := range gad.ImplementsWith {
+					if i.Type != nil {
+						if intf, ok := i.Type.Underlying().(*types.Interface); ok {
+							gad, _ = fillOption(gad, intf)
+							fields = fields.Concat(fieldAndImplOfInterfaceImpl(w, gad, i.Type, adaptorTypeName, ""))
+						}
 					}
-
-					selfarg := ""
-					if gad.Self {
-						selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
-					}
-
-					argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
-						return as.Tuple2(t.Name(), t.Type())
-					})
-
-					argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-						if sig.Variadic() && i == sig.Params().Len()-1 {
-							return fmt.Sprintf("%s...", t.Name())
-						} else {
-							return fmt.Sprintf("%s", t.Name())
-						}
-					}).MakeString(",")
-
-					argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-						if sig.Variadic() && i == sig.Params().Len()-1 {
-							st := t.Type().(*types.Slice)
-							return fmt.Sprintf("%s ...%s", t.Name(), w.TypeName(gad.Package.Types, st.Elem()))
-						}
-						return fmt.Sprintf("%s %s", t.Name(), w.TypeName(gad.Package.Types, t.Type()))
-					}).MakeString(",")
-
-					resstr := ""
-					if sig.Results().Len() > 0 {
-						resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-							return w.TypeName(gad.Package.Types, t.Type())
-						}).MakeString(",") + ")"
-					}
-
-					withReturn := func(lastPos bool, fmtstr string, args ...any) string {
-						e := fmt.Sprintf(fmtstr, args...)
-						if sig.Results().Len() == 0 {
-							if lastPos {
-								return e
-							}
-							return fmt.Sprintf("%s\nreturn", e)
-						}
-						return "return " + e
-					}
-
-					callcb := func() string {
-						if gad.Self {
-							return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
-						}
-						return withReturn(false, `r.%s(%s)`, cbName, argStr)
-
-					}()
-
-					valoverride := opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
-					defaultValExpr := ""
-					cbExpr := fmt.Sprintf(`if r.%s != nil {
-								%s
-							}`, cbName,
-						callcb)
-
-					cbfield := fmt.Sprintf("%s func(%s%s) %s", cbName, selfarg, argTypeStr, resstr)
-
-					valOverrideOnly := false
-					if valoverride {
-
-						zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
-						if zeroVal == "nil" {
-							defaultValExpr = fmt.Sprintf(`if r.%s != %s {
-									return r.%s
-								}
-						
-						`, valName, zeroVal,
-								valName)
-						} else if zeroVal == "0" || zeroVal == `""` && (opt.OmitGetterIfValOverride == false || gad.Extends == true) {
-							defaultValExpr = fmt.Sprintf(`if r.%s != %s {
-									return r.%s
-								}
-						
-						`, valName, zeroVal,
-								valName)
-						} else if types.Comparable(sig.Results().At(0).Type()) && (opt.OmitGetterIfValOverride == false || gad.Extends == true) {
-							defaultValExpr = fmt.Sprintf(`
-							var _zero %s
-							if r.%s != _zero {
-								return r.%s
-							}
-						
-						`, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()),
-								valName,
-								valName)
-						} else {
-							defaultValExpr = fmt.Sprintf("return r.%s", valName)
-							opt.OmitGetterIfValOverride = true
-							valOverrideOnly = true
-						}
-
-						if opt.OmitGetterIfValOverride {
-							cbfield = fmt.Sprintf("%s %s", valName, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
-							cbExpr = ""
-
-						} else {
-							cbfield = fmt.Sprintf("%s %s\n%s", valName, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()), cbfield)
-						}
-
-					}
-
-					if opt.Private {
-						cbfield = ""
-					}
-
-					implName := func() string {
-						if gad.Self {
-							return t.Name() + "Impl"
-						}
-						return t.Name()
-					}()
-
-					implArgs := argTypeStr
-					if gad.Self {
-						implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
-					}
-
-					extendscb := func() string {
-						if gad.Extends {
-							superexpr := ""
-							if gad.Self {
-								superexpr = fmt.Sprintf(`type impl interface {
-										%s(%s) %s
-									}
-
-									if super, ok := r.Extends.(impl); ok {
-										%s 
-									}
-									`, implName, implArgs, resstr,
-									withReturn(false, "super.%s(self, %s)", implName, argStr),
-								)
-							}
-							return fmt.Sprintf(`
-								if r.Extends != nil {
-									%s%s 
-								}
-							`,
-								superexpr,
-								withReturn(false, "r.Extends.%s(%s)", t.Name(), argStr),
-							)
-						}
-						return ""
-
-					}()
-
-					defaultcb := func() string {
-						if matchSelExpr(opt.DefaultImplExpr, "genfp", "ZeroReturn") {
-							if sig.Results().Len() == 0 {
-								return ""
-							}
-							zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-								return w.ZeroExpr(gad.Package.Types, t.Type())
-							}).MakeString(",")
-							if zeroval != "" {
-								return fmt.Sprintf(`return %s`, zeroval)
-							}
-							return "return"
-						} else if opt.DefaultImplExpr != nil {
-
-							for _, i := range opt.DefaultImplImports {
-								w.AddImport(types.NewPackage(i.Package, i.Name))
-							}
-
-							if opt.DefaultImplSignature != nil {
-								os := opt.DefaultImplSignature
-
-								defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
-									return t.Type()
-								})
-
-								availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-									if gad.Self {
-										return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
-									}
-									return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
-								}()
-
-								type CallArgs struct {
-									avail fp.Seq[fp.Tuple2[string, types.Type]]
-									args  fp.Seq[string]
-								}
-
-								args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
-									init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
-										return t.I2.String() != tp.String()
-									})
-
-									arg := tail.NextOption()
-									if arg.IsDefined() {
-										return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
-									}
-									return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
-								})
-
-								if args.IsSuccess() {
-									if fl, ok := opt.DefaultImplExpr.(*ast.FuncLit); ok {
-										fs := token.NewFileSet()
-
-										buf := &bytes.Buffer{}
-
-										printer.Fprint(buf, fs, fl)
-										return withReturn(true, "%s(%s)", buf.String(), args.Get().args.MakeString(","))
-									} else {
-
-										return withReturn(true, `%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
-
-									}
-								} else {
-									fmt.Printf("err : %s\n", args.Failed().Get())
-								}
-								if gad.Self {
-									e := types.ExprString(opt.DefaultImplExpr)
-									return withReturn(true, `%s(self, %s)`, e, argStr)
-								} else {
-									e := types.ExprString(opt.DefaultImplExpr)
-									return withReturn(true, `%s(r, %s)`, e, argStr)
-								}
-							}
-
-							fs := token.NewFileSet()
-
-							buf := &bytes.Buffer{}
-
-							printer.Fprint(buf, fs, opt.DefaultImplExpr)
-							if sig.Results().Len() > 1 {
-								zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-									return w.ZeroExpr(gad.Package.Types, t.Type())
-								}).Drop(1).MakeString(",")
-								return "return " + buf.String() + "," + zeroval
-							} else {
-								return "return " + buf.String()
-							}
-
-						}
-
-						return fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name())
-					}()
-
-					impl := fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-							%s
-							%s
-							%s
-						}
-						`, adaptorTypeName, implName, implArgs, resstr,
-						defaultValExpr,
-						cbExpr,
-						extendscb,
-						defaultcb,
-					)
-
-					if opt.Private {
-						impl = fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-						}
-						`, adaptorTypeName, implName, implArgs, resstr,
-							defaultcb)
-					} else if valOverrideOnly {
-						impl = fmt.Sprintf(`
-							func (r *%s) %s(%s) %s {
-								%s
-							}
-						`, adaptorTypeName, implName, implArgs, resstr,
-							defaultValExpr,
-						)
-					}
-
-					if gad.Self {
-						impl = fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-						}
-					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-							withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
-						) + impl
-
-					}
-
-					return as.Tuple(cbfield, impl)
-
-				})
+				}
 
 				extends := ""
 				if gad.Extends {
 					extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
 				}
 
+				fieldDecl := seq.Of(extends)
+
+				fieldDecl = fieldDecl.Concat(seq.Map(gad.Embedding, func(v genfp.TypeReference) string {
+					if v.Type != nil {
+						return w.TypeName(gad.Package.Types, v.Type)
+					}
+					return v.StringExpr
+				}))
+
+				fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")))
+
 				fmt.Fprintf(w, `type %s struct {
 					%s
-					%s
 				}
-				`, adaptorTypeName, extends, seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")).MakeString("\n"))
+				`, adaptorTypeName, fieldDecl.MakeString("\n"))
 
 				fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
 			}
 		})
 	}
 
+}
+
+func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string) fp.Seq[fp.Tuple2[string, string]] {
+	intf := namedInterface.Underlying().(*types.Interface)
+
+	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
+		opt := gad.Methods[t.Name()]
+		sig := opt.Signature
+		valName := fmt.Sprintf("Default%s", t.Name())
+		cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
+		if opt.Name != "" {
+			cbName = fmt.Sprintf("%s%s", opt.Prefix, opt.Name)
+			valName = fmt.Sprintf("Default%s", opt.Name)
+		}
+
+		selfarg := ""
+		if gad.Self {
+			selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
+		}
+
+		argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
+			return as.Tuple2(t.Name(), t.Type())
+		})
+
+		argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+			if sig.Variadic() && i == sig.Params().Len()-1 {
+				return fmt.Sprintf("%s...", t.Name())
+			} else {
+				return fmt.Sprintf("%s", t.Name())
+			}
+		}).MakeString(",")
+
+		argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+			if sig.Variadic() && i == sig.Params().Len()-1 {
+				st := t.Type().(*types.Slice)
+				return fmt.Sprintf("%s ...%s", t.Name(), w.TypeName(gad.Package.Types, st.Elem()))
+			}
+			return fmt.Sprintf("%s %s", t.Name(), w.TypeName(gad.Package.Types, t.Type()))
+		}).MakeString(",")
+
+		resstr := ""
+		if sig.Results().Len() > 0 {
+			resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+				return w.TypeName(gad.Package.Types, t.Type())
+			}).MakeString(",") + ")"
+		}
+
+		withReturn := func(lastPos bool, fmtstr string, args ...any) string {
+			e := fmt.Sprintf(fmtstr, args...)
+			if sig.Results().Len() == 0 {
+				if lastPos {
+					return e
+				}
+				return fmt.Sprintf("%s\nreturn", e)
+			}
+			return "return " + e
+		}
+
+		callcb := func() string {
+			if gad.Self {
+				return withReturn(false, `r.%s(self,%s)`, cbName, argStr)
+			}
+			return withReturn(false, `r.%s(%s)`, cbName, argStr)
+
+		}()
+
+		valoverride := opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
+		defaultValExpr := ""
+		cbExpr := fmt.Sprintf(`if r.%s != nil {
+								%s
+							}`, cbName,
+			callcb)
+
+		cbfield := fmt.Sprintf("%s func(%s%s) %s", cbName, selfarg, argTypeStr, resstr)
+
+		implName := func() string {
+			if gad.Self {
+				return t.Name() + "Impl"
+			}
+			return t.Name()
+		}()
+
+		implArgs := argTypeStr
+		if gad.Self {
+
+			implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
+
+		}
+
+		extendscb := func() string {
+
+			if superField != "" {
+				superexpr := ""
+
+				if gad.Self {
+					superexpr = fmt.Sprintf(`type impl interface {
+										%s(%s) %s
+									}
+
+									if super, ok := r.%s.(impl); ok {
+										%s 
+									}
+									`, implName, implArgs, resstr,
+						superField,
+						withReturn(false, "super.%s(self, %s)", implName, argStr),
+					)
+				}
+
+				return fmt.Sprintf(`
+								if r.%s != nil {
+									%s%s 
+								}
+							`,
+					superField,
+					superexpr,
+					withReturn(false, "r.%s.%s(%s)", superField, t.Name(), argStr),
+				)
+			} else if gad.Extends {
+				superexpr := ""
+
+				if gad.Self {
+					superexpr = fmt.Sprintf(`type impl interface {
+										%s(%s) %s
+									}
+
+									if super, ok := r.%s.(impl); ok {
+										%s 
+									}
+									`, implName, implArgs, resstr,
+						"Extends",
+						withReturn(false, "super.%s(self, %s)", implName, argStr),
+					)
+				}
+
+				return fmt.Sprintf(`
+					%sif super , ok := r.Extends.(%s); ok {
+						super.%s(%s)
+					}
+				`, superexpr, w.TypeName(gad.Package.Types, namedInterface),
+					t.Name(), argStr,
+				)
+			}
+			return ""
+
+		}()
+
+		valOverrideOnly := false
+		if valoverride {
+
+			zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
+			if zeroVal == "nil" {
+				defaultValExpr = fmt.Sprintf(`if r.%s != %s {
+									return r.%s
+								}
+						
+						`, valName, zeroVal,
+					valName)
+			} else if zeroVal == "0" || zeroVal == `""` && (opt.OmitGetterIfValOverride == false || extendscb != "") {
+				defaultValExpr = fmt.Sprintf(`if r.%s != %s {
+									return r.%s
+								}
+						
+						`, valName, zeroVal,
+					valName)
+			} else if types.Comparable(sig.Results().At(0).Type()) && (opt.OmitGetterIfValOverride == false || extendscb != "") {
+				defaultValExpr = fmt.Sprintf(`
+							var _zero %s
+							if r.%s != _zero {
+								return r.%s
+							}
+						
+						`, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()),
+					valName,
+					valName)
+			} else {
+				defaultValExpr = fmt.Sprintf("return r.%s", valName)
+				opt.OmitGetterIfValOverride = true
+				valOverrideOnly = true
+			}
+
+			if opt.OmitGetterIfValOverride {
+				cbfield = fmt.Sprintf("%s %s", valName, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
+				cbExpr = ""
+
+			} else {
+				cbfield = fmt.Sprintf("%s %s\n%s", valName, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()), cbfield)
+			}
+
+		}
+
+		if opt.Private {
+			cbfield = ""
+		}
+
+		defaultcb := func() string {
+			if matchSelExpr(opt.DefaultImplExpr, "genfp", "ZeroReturn") {
+				if sig.Results().Len() == 0 {
+					return ""
+				}
+				zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+					return w.ZeroExpr(gad.Package.Types, t.Type())
+				}).MakeString(",")
+				if zeroval != "" {
+					return fmt.Sprintf(`return %s`, zeroval)
+				}
+				return "return"
+			} else if opt.DefaultImplExpr != nil {
+
+				for _, i := range opt.DefaultImplImports {
+					w.AddImport(types.NewPackage(i.Package, i.Name))
+				}
+
+				if opt.DefaultImplSignature != nil {
+					os := opt.DefaultImplSignature
+
+					defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
+						return t.Type()
+					})
+
+					availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
+						if gad.Self {
+							return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), argTypes)
+						}
+						return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), argTypes)
+					}()
+
+					type CallArgs struct {
+						avail fp.Seq[fp.Tuple2[string, types.Type]]
+						args  fp.Seq[string]
+					}
+
+					args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
+						init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
+							return t.I2.String() != tp.String()
+						})
+
+						arg := tail.NextOption()
+						if arg.IsDefined() {
+							return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
+						}
+						return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
+					})
+
+					if args.IsSuccess() {
+						if fl, ok := opt.DefaultImplExpr.(*ast.FuncLit); ok {
+							fs := token.NewFileSet()
+
+							buf := &bytes.Buffer{}
+
+							printer.Fprint(buf, fs, fl)
+							return withReturn(true, "%s(%s)", buf.String(), args.Get().args.MakeString(","))
+						} else {
+
+							return withReturn(true, `%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(","))
+
+						}
+					} else {
+						fmt.Printf("err : %s\n", args.Failed().Get())
+					}
+					if gad.Self {
+						e := types.ExprString(opt.DefaultImplExpr)
+						return withReturn(true, `%s(self, %s)`, e, argStr)
+					} else {
+						e := types.ExprString(opt.DefaultImplExpr)
+						return withReturn(true, `%s(r, %s)`, e, argStr)
+					}
+				}
+
+				fs := token.NewFileSet()
+
+				buf := &bytes.Buffer{}
+
+				printer.Fprint(buf, fs, opt.DefaultImplExpr)
+				if sig.Results().Len() > 1 {
+					zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+						return w.ZeroExpr(gad.Package.Types, t.Type())
+					}).Drop(1).MakeString(",")
+					return "return " + buf.String() + "," + zeroval
+				} else {
+					return "return " + buf.String()
+				}
+
+			}
+
+			return fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name())
+		}()
+
+		impl := fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+							%s
+							%s
+							%s
+						}
+						`, adaptorTypeName, implName, implArgs, resstr,
+			defaultValExpr,
+			cbExpr,
+			extendscb,
+			defaultcb,
+		)
+
+		if opt.Private {
+			impl = fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+						`, adaptorTypeName, implName, implArgs, resstr,
+				defaultcb)
+		} else if valOverrideOnly {
+			impl = fmt.Sprintf(`
+							func (r *%s) %s(%s) %s {
+								%s
+							}
+						`, adaptorTypeName, implName, implArgs, resstr,
+				defaultValExpr,
+			)
+		}
+
+		if gad.Self {
+			impl = fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
+				withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
+			) + impl
+
+		}
+
+		return as.Tuple(cbfield, impl)
+
+	})
+
+	return fields
 }
 
 func matchSelExpr(expr ast.Expr, exp ...string) bool {

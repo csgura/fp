@@ -1,6 +1,7 @@
 package testpk2
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -444,9 +445,35 @@ var _ = genfp.GenerateAdaptor[HTTP]{
 	Extends: true,
 }
 
-// HTTPAdaptor 를 embedding 하는 방법??
+// @fp.Generate
 var _ = genfp.GenerateAdaptor[HTTP2]{
-	File:    "adaptor_generated.go",
-	Self:    true,
-	Extends: true,
+	File:           "adaptor_generated.go",
+	ImplementsWith: []genfp.TypeTag{genfp.TypeOf[io.Closer]()},
+	ExtendsWith: map[genfp.TypeTag]string{
+		genfp.TypeOf[io.Closer](): "Closer",
+	},
+	Embedding: []genfp.TypeTag{genfp.TypeOf[HTTPAdaptor]()},
+	Self:      true,
+	Extends:   true,
+}
+
+type SpanContext interface {
+	context.Context
+	Hello() string
+}
+
+// TODO: HTTPAdaptor 를 embedding 하는 방법??
+var _ = genfp.GenerateAdaptor[SpanContext]{
+	File:     "adaptor_generated.go",
+	Delegate: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
+	Options: []genfp.ImplOption{
+		{
+			Method:   SpanContext.Deadline,
+			Delegate: genfp.DelegateOf[context.Context](),
+		},
+	},
+}
+
+type SpanContextAdaptorToBe struct {
+	DefaultContext context.Context
 }
