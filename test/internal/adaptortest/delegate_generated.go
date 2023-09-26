@@ -126,3 +126,22 @@ func (r *SpanContextEmbedding) HelloImpl(self SpanContext) string {
 
 	panic("SpanContextEmbedding.Hello not implemented")
 }
+
+type SpanTrace struct {
+	context.Context
+	TracerImpl TracerImpl
+	DoHello    func(self SpanContext) string
+}
+
+func (r *SpanTrace) Hello() string {
+	return r.HelloImpl(r)
+}
+
+func (r *SpanTrace) HelloImpl(self SpanContext) string {
+
+	if r.DoHello != nil {
+		return r.DoHello(self)
+	}
+
+	panic("SpanTrace.Hello not implemented")
+}

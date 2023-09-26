@@ -1087,6 +1087,7 @@ func (r *HTTPAdaptor) SendImpl(self HTTP, msg string) (int, error) {
 
 type HTTP2Adaptor struct {
 	HTTPAdaptor
+	Closer      io.Closer
 	DoKeepAlive func(self HTTP2, v bool)
 	DoClose     func(self HTTP2) error
 }

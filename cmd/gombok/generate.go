@@ -102,6 +102,119 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 	return ret, nil
 }
 
+func typeDecl(pk *types.Package, w genfp.Writer, t genfp.TypeReference) string {
+	if t.Type != nil {
+		return w.TypeName(pk, t.Type)
+	}
+	return t.StringExpr
+}
+
+func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
+
+	fieldSet := fp.Set[string]{}
+	var fieldList []string
+
+	for _, i := range gad.EmbeddingInterface {
+		efield := seq.Last(strings.Split(i.StringExpr, "."))
+		if efield.IsDefined() {
+			if !fieldSet.Contains(efield.Get()) {
+				fieldList = append(fieldList, fmt.Sprintf("%s", typeDecl(gad.Package.Types, w, i)))
+			}
+			fieldSet = fieldSet.Incl(efield.Get())
+
+			contains := slices.ContainsFunc(gad.Delegate, func(d genfp.DelegateDirective) bool {
+				return d.Field == efield.Get()
+			})
+			if !contains {
+				gad.Delegate = append(gad.Delegate, genfp.DelegateDirective{
+					TypeOf: i,
+					Field:  efield.Get(),
+				})
+			}
+		}
+	}
+
+	for _, e := range gad.Embedding {
+		efield := seq.Last(strings.Split(e.StringExpr, "."))
+		if efield.IsDefined() {
+			if !fieldSet.Contains(efield.Get()) {
+				fieldList = append(fieldList, fmt.Sprintf("%s", typeDecl(gad.Package.Types, w, e)))
+			}
+
+			fieldSet = fieldSet.Incl(efield.Get())
+		}
+	}
+
+	for k, e := range gad.ExtendsWith {
+		if !fieldSet.Contains(k) {
+			fieldList = append(fieldList, fmt.Sprintf("%s %s", k, typeDecl(gad.Package.Types, w, e)))
+		}
+		fieldSet = fieldSet.Incl(k)
+	}
+
+	i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v genfp.DelegateDirective) string {
+		return v.Field
+	})
+
+	delegateFields := iterator.Sort(i1, ord.Given[string]()).FilterNot(fieldSet.Contains)
+
+	for _, fn := range delegateFields {
+
+		d := as.Seq(gad.Delegate).Find(func(v genfp.DelegateDirective) bool {
+			return v.Field == fn
+		}).Get()
+
+		fieldSet = fieldSet.Incl(fn)
+		fieldList = append(fieldList, fmt.Sprintf("%s %s", fn, typeDecl(gad.Package.Types, w, d.TypeOf)))
+
+	}
+
+	if gad.ExtendsByEmbedding {
+		gad.Extends = true
+	}
+
+	adaptorTypeName := gad.Name
+	if adaptorTypeName == "" {
+		adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
+	}
+
+	superField := ""
+	if gad.Extends {
+		superField = "Extends"
+	}
+	intf := gad.Interface.Underlying().(*types.Interface)
+
+	gad, _ = fillOption(gad, intf)
+	fields := fieldAndImplOfInterfaceImpl(w, gad, gad.Interface, adaptorTypeName, superField)
+
+	for _, i := range gad.ImplementsWith {
+		if i.Type != nil {
+			if intf, ok := i.Type.Underlying().(*types.Interface); ok {
+				gad, _ = fillOption(gad, intf)
+				fields = fields.Concat(fieldAndImplOfInterfaceImpl(w, gad, i.Type, adaptorTypeName, ""))
+			}
+		}
+	}
+
+	extends := ""
+	if gad.Extends && gad.ExtendsByEmbedding == false {
+		extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
+	}
+
+	fieldDecl := seq.Of(extends)
+
+	fieldDecl = fieldDecl.Concat(fieldList)
+
+	fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")))
+
+	fmt.Fprintf(w, `type %s struct {
+					%s
+				}
+				`, adaptorTypeName, fieldDecl.MakeString("\n"))
+
+	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
+}
+
 func genGenerate() {
 	pack := os.Getenv("GOPACKAGE")
 
@@ -133,93 +246,7 @@ func genGenerate() {
 			}
 
 			for _, gad := range genadaptor[file] {
-
-				for _, i := range gad.EmbeddingInterface {
-					efield := seq.Last(strings.Split(i.StringExpr, "."))
-					if efield.IsDefined() {
-						contains := slices.ContainsFunc(gad.Delegate, func(d genfp.DelegateDirective) bool {
-							return d.Field == efield.Get()
-						})
-						if !contains {
-							gad.Delegate = append(gad.Delegate, genfp.DelegateDirective{
-								TypeOf: i,
-								Field:  efield.Get(),
-							})
-						}
-					}
-				}
-
-				if gad.ExtendsByEmbedding {
-					gad.Extends = true
-				}
-
-				adaptorTypeName := gad.Name
-				if adaptorTypeName == "" {
-					adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
-				}
-
-				superField := ""
-				if gad.Extends {
-					superField = "Extends"
-				}
-				intf := gad.Interface.Underlying().(*types.Interface)
-
-				gad, _ = fillOption(gad, intf)
-				fields := fieldAndImplOfInterfaceImpl(w, gad, gad.Interface, adaptorTypeName, superField)
-
-				for _, i := range gad.ImplementsWith {
-					if i.Type != nil {
-						if intf, ok := i.Type.Underlying().(*types.Interface); ok {
-							gad, _ = fillOption(gad, intf)
-							fields = fields.Concat(fieldAndImplOfInterfaceImpl(w, gad, i.Type, adaptorTypeName, ""))
-						}
-					}
-				}
-
-				extends := ""
-				if gad.Extends && gad.ExtendsByEmbedding == false {
-					extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
-				}
-
-				fieldDecl := seq.Of(extends)
-
-				i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v genfp.DelegateDirective) string {
-					return v.Field
-				})
-				delegateFields := iterator.Sort(i1, ord.Given[string]()).FilterNot(func(v string) bool {
-					return isEmbeddingField(gad, v)
-				})
-
-				fieldDecl = fieldDecl.Concat(seq.Map(delegateFields, func(k string) string {
-
-					tpe := as.Seq(gad.Delegate).Find(func(v genfp.DelegateDirective) bool {
-						return v.Field == k
-					}).Get()
-					return fmt.Sprintf("%s %s", k, w.TypeName(gad.Package.Types, tpe.TypeOf.Type))
-				}))
-
-				fieldDecl = fieldDecl.Concat(seq.Map(gad.Embedding, func(v genfp.TypeReference) string {
-					if v.Type != nil {
-						return w.TypeName(gad.Package.Types, v.Type)
-					}
-					return v.StringExpr
-				}))
-
-				fieldDecl = fieldDecl.Concat(seq.Map(gad.EmbeddingInterface, func(v genfp.TypeReference) string {
-					if v.Type != nil {
-						return w.TypeName(gad.Package.Types, v.Type)
-					}
-					return v.StringExpr
-				}))
-
-				fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")))
-
-				fmt.Fprintf(w, `type %s struct {
-					%s
-				}
-				`, adaptorTypeName, fieldDecl.MakeString("\n"))
-
-				fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
+				generateAdaptor(w, gad)
 			}
 		})
 	}

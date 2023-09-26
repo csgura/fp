@@ -12,6 +12,10 @@ type SpanContext interface {
 	Hello() string
 }
 
+type Tracer interface {
+	Trace(message string)
+}
+
 // @fp.Generate
 var _ = genfp.GenerateAdaptor[SpanContext]{
 	File:     "delegate_generated.go",
@@ -25,4 +29,26 @@ var _ = genfp.GenerateAdaptor[SpanContext]{
 	Name:               "SpanContextEmbedding",
 	Self:               true,
 	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context](), genfp.TypeOf[io.Closer]()},
+}
+
+type TracerImpl struct {
+}
+
+// Trace implements Tracer.
+func (*TracerImpl) Trace(message string) {
+	panic("unimplemented")
+}
+
+var _ Tracer = &TracerImpl{}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[SpanContext]{
+	File: "delegate_generated.go",
+	Name: "SpanTrace",
+	Self: true,
+	ExtendsWith: map[string]genfp.TypeTag{
+		"TracerImpl": genfp.TypeOf[TracerImpl](),
+	},
+	Delegate:           []genfp.Delegate{genfp.DelegatedBy[Tracer]("TracerImpl")},
+	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
 }
