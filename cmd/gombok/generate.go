@@ -56,11 +56,10 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 		opt := ret.Methods[m.Name()]
 		opt.Type = m
 
-		for df, d := range ret.Delegate {
+		for _, d := range ret.Delegate {
 
-			if hasMethod(d.Type, m.Name()) {
-				opt.DelegateField = df
-
+			if hasMethod(d.TypeOf.Type, m.Name()) {
+				opt.DelegateField = d.Field
 			}
 		}
 
@@ -134,6 +133,22 @@ func genGenerate() {
 			}
 
 			for _, gad := range genadaptor[file] {
+
+				for _, i := range gad.EmbeddingInterface {
+					efield := seq.Last(strings.Split(i.StringExpr, "."))
+					if efield.IsDefined() {
+						contains := slices.ContainsFunc(gad.Delegate, func(d genfp.DelegateDirective) bool {
+							return d.Field == efield.Get()
+						})
+						if !contains {
+							gad.Delegate = append(gad.Delegate, genfp.DelegateDirective{
+								TypeOf: i,
+								Field:  efield.Get(),
+							})
+						}
+					}
+				}
+
 				if gad.ExtendsByEmbedding {
 					gad.Extends = true
 				}
@@ -168,16 +183,29 @@ func genGenerate() {
 
 				fieldDecl := seq.Of(extends)
 
-				delegateFields := iterator.Sort(iterator.FromMapKey(gad.Delegate), ord.Given[string]()).FilterNot(func(v string) bool {
+				i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v genfp.DelegateDirective) string {
+					return v.Field
+				})
+				delegateFields := iterator.Sort(i1, ord.Given[string]()).FilterNot(func(v string) bool {
 					return isEmbeddingField(gad, v)
 				})
 
 				fieldDecl = fieldDecl.Concat(seq.Map(delegateFields, func(k string) string {
-					tpe := gad.Delegate[k]
-					return fmt.Sprintf("%s %s", k, w.TypeName(gad.Package.Types, tpe.Type))
+
+					tpe := as.Seq(gad.Delegate).Find(func(v genfp.DelegateDirective) bool {
+						return v.Field == k
+					}).Get()
+					return fmt.Sprintf("%s %s", k, w.TypeName(gad.Package.Types, tpe.TypeOf.Type))
 				}))
 
 				fieldDecl = fieldDecl.Concat(seq.Map(gad.Embedding, func(v genfp.TypeReference) string {
+					if v.Type != nil {
+						return w.TypeName(gad.Package.Types, v.Type)
+					}
+					return v.StringExpr
+				}))
+
+				fieldDecl = fieldDecl.Concat(seq.Map(gad.EmbeddingInterface, func(v genfp.TypeReference) string {
 					if v.Type != nil {
 						return w.TypeName(gad.Package.Types, v.Type)
 					}
@@ -199,11 +227,18 @@ func genGenerate() {
 }
 
 func isEmbeddingField(gad genfp.GenerateAdaptorDirective, field string) bool {
-	for _, e := range gad.Embedding {
-		return seq.Last(strings.Split(e.StringExpr, ".")) == option.Some(field)
+	is := func(e []genfp.TypeReference) bool {
+		for _, e := range e {
+			if seq.Last(strings.Split(e.StringExpr, ".")) == option.Some(field) {
+				return true
+			}
+		}
+		return false
 	}
-	return false
+
+	return is(gad.Embedding) || is(gad.EmbeddingInterface)
 }
+
 func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string) fp.Seq[fp.Tuple2[string, string]] {
 	intf := namedInterface.Underlying().(*types.Interface)
 

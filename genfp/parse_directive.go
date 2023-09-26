@@ -33,10 +33,10 @@ type Delegate struct {
 	Field  string
 }
 
-func DelegateOf[T any]() Delegate {
+func DelegatedBy[T any](fieldName string) Delegate {
 	return Delegate{
 		TypeOf: TypeOf[T](),
-		Field:  "",
+		Field:  fieldName,
 	}
 }
 
@@ -56,8 +56,9 @@ type GenerateAdaptor[T any] struct {
 	ImplementsWith     []TypeTag
 	ExtendsWith        map[string]TypeTag
 	Embedding          []TypeTag
+	EmbeddingInterface []TypeTag
 	ExtendsByEmbedding bool
-	Delegate           map[string]TypeTag
+	Delegate           []Delegate
 	Getter             []any
 	EventHandler       []any
 	ValOverride        []any
@@ -351,8 +352,9 @@ type GenerateAdaptorDirective struct {
 	ImplementsWith     []TypeReference
 	ExtendsWith        map[string]TypeReference
 	Embedding          []TypeReference
+	EmbeddingInterface []TypeReference
 	ExtendsByEmbedding bool
-	Delegate           map[string]TypeReference
+	Delegate           []DelegateDirective
 	Getter             []string
 	EventHandler       []string
 	ValOverride        []string
@@ -394,11 +396,69 @@ func extractTypeParam(pk *packages.Package, exp ast.Expr) ([]TypeReference, erro
 	}
 }
 
+func extractFuncName(exp *ast.CallExpr) (string, error) {
+	switch v := exp.Fun.(type) {
+	case *ast.IndexExpr:
+		return types.ExprString(v.X), nil
+	case *ast.IndexListExpr:
+		return types.ExprString(v.X), nil
+	case *ast.Ident:
+		return v.Name, nil
+	case *ast.SelectorExpr:
+		return types.ExprString(v), nil
+	}
+	return "", fmt.Errorf("unexpeced func type %T", exp.Fun)
+}
+
+func matchFuncName(exp *ast.CallExpr, fnname string) bool {
+	n, err := extractFuncName(exp)
+	if err != nil {
+		return false
+	}
+	return n == fnname
+}
+
+func evalDelegatedBy(pk *packages.Package) func(exp ast.Expr) (DelegateDirective, error) {
+	var zero DelegateDirective
+	return func(exp ast.Expr) (DelegateDirective, error) {
+		switch v := exp.(type) {
+		case *ast.CallExpr:
+			if !matchFuncName(v, "genfp.DelegatedBy") {
+				return zero, fmt.Errorf("not allowed expression. use genfp.DelegatedBy[T](fieldName)")
+			}
+			arr, err := extractTypeParam(pk, v.Fun)
+			if err != nil {
+				return zero, err
+			}
+			if len(arr) != 1 {
+				return zero, fmt.Errorf("not allowed expression. use genfp.DelegatedBy[T](fieldName)")
+			}
+
+			fn, err := evalStringValue(v.Args[0])
+			if err != nil {
+				return zero, err
+			}
+			return DelegateDirective{
+				TypeOf: arr[0],
+				Field:  fn,
+			}, nil
+
+		default:
+			return zero, fmt.Errorf("not allowed expression. use genfp.DelegatedBy[T](fieldName)")
+
+		}
+	}
+
+}
+
 func evalTypeOf(pk *packages.Package) func(exp ast.Expr) (TypeReference, error) {
 	var zero TypeReference
 	return func(exp ast.Expr) (TypeReference, error) {
 		switch v := exp.(type) {
 		case *ast.CallExpr:
+			if !matchFuncName(v, "genfp.TypeOf") {
+				return zero, fmt.Errorf("not allowed expression. use genfp.TypeOf[T]")
+			}
 			arr, err := extractTypeParam(pk, v.Fun)
 			if err != nil {
 				return zero, err
@@ -438,7 +498,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret.Interface = argType
 	intfname := argType.Obj().Name()
 
-	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "ExtendsWith", "Embedding", "ExtendsByEmbedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
+	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "ExtendsWith", "Embedding", "EmbeddingInterface", "ExtendsByEmbedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -489,6 +549,12 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				return ret, err
 			}
 			ret.Embedding = v
+		case "EmbeddingInterface":
+			v, err := evalArray(value, evalTypeOf(lit.Package))
+			if err != nil {
+				return ret, err
+			}
+			ret.EmbeddingInterface = v
 		case "ExtendsByEmbedding":
 			v, err := evalBoolValue(value)
 			if err != nil {
@@ -496,7 +562,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 			}
 			ret.ExtendsByEmbedding = v
 		case "Delegate":
-			v, err := evalMap(value, evalStringValue, evalTypeOf(lit.Package))
+			v, err := evalArray(value, evalDelegate(lit.Package))
 			if err != nil {
 				return ret, err
 			}
@@ -657,6 +723,50 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 			return ret, nil
 		}
 		return ImplOptionDirective{}, fmt.Errorf("expr is not composite expr : %T", e)
+	}
+
+}
+
+type DelegateDirective struct {
+	TypeOf TypeReference
+	Field  string
+}
+
+func evalDelegate(pk *packages.Package) func(e ast.Expr) (DelegateDirective, error) {
+	return func(e ast.Expr) (DelegateDirective, error) {
+		var zero DelegateDirective
+		if lt, ok := e.(*ast.CompositeLit); ok {
+			ret := DelegateDirective{}
+			names := []string{"TypeOf", "Field"}
+			for idx, e := range lt.Elts {
+				if idx >= len(names) {
+					return ret, fmt.Errorf("invalid number of literals")
+				}
+
+				name := names[idx]
+				name, value := asKeyValue(e, name)
+
+				switch name {
+				case "TypeOf":
+					v, err := evalTypeOf(pk)(value)
+					if err != nil {
+						return ret, err
+					}
+					ret.TypeOf = v
+				case "Field":
+					v, err := evalStringValue(value)
+					if err != nil {
+						return ret, err
+					}
+					ret.Field = v
+
+				}
+			}
+			return ret, nil
+		} else if ct, ok := e.(*ast.CallExpr); ok {
+			return evalDelegatedBy(pk)(ct)
+		}
+		return zero, fmt.Errorf("expr is not composite expr : %T", e)
 	}
 
 }
