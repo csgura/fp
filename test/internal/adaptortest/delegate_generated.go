@@ -145,3 +145,14 @@ func (r *SpanTrace) HelloImpl(self SpanContext) string {
 
 	panic("SpanTrace.Hello not implemented")
 }
+
+func (r *SpanTrace) Trace(message string) {
+	r.TraceImpl(r, message)
+}
+
+func (r *SpanTrace) TraceImpl(self SpanContext, message string) {
+
+	r.TracerImpl.Trace(message)
+	return
+
+}

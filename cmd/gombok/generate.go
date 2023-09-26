@@ -59,7 +59,10 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 		for _, d := range ret.Delegate {
 
 			if hasMethod(d.TypeOf.Type, m.Name()) {
-				opt.DelegateField = d.Field
+				opt.Delegate = &genfp.DelegateDirective{
+					TypeOf: d.TypeOf,
+					Field:  d.Field,
+				}
 			}
 		}
 
@@ -111,8 +114,14 @@ func typeDecl(pk *types.Package, w genfp.Writer, t genfp.TypeReference) string {
 
 func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 
-	fieldSet := fp.Set[string]{}
+	adaptorTypeName := gad.Name
+	if adaptorTypeName == "" {
+		adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
+	}
+
+	fieldSet := fp.Map[string, genfp.TypeReference]{}
 	var fieldList []string
+	methodSet := fp.Set[string]{}
 
 	for _, i := range gad.EmbeddingInterface {
 		efield := seq.Last(strings.Split(i.StringExpr, "."))
@@ -120,7 +129,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 			if !fieldSet.Contains(efield.Get()) {
 				fieldList = append(fieldList, fmt.Sprintf("%s", typeDecl(gad.Package.Types, w, i)))
 			}
-			fieldSet = fieldSet.Incl(efield.Get())
+			fieldSet = fieldSet.Updated(efield.Get(), i)
 
 			contains := slices.ContainsFunc(gad.Delegate, func(d genfp.DelegateDirective) bool {
 				return d.Field == efield.Get()
@@ -141,7 +150,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 				fieldList = append(fieldList, fmt.Sprintf("%s", typeDecl(gad.Package.Types, w, e)))
 			}
 
-			fieldSet = fieldSet.Incl(efield.Get())
+			fieldSet = fieldSet.Updated(efield.Get(), e)
 		}
 	}
 
@@ -149,12 +158,21 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 		if !fieldSet.Contains(k) {
 			fieldList = append(fieldList, fmt.Sprintf("%s %s", k, typeDecl(gad.Package.Types, w, e)))
 		}
-		fieldSet = fieldSet.Incl(k)
+		fieldSet = fieldSet.Updated(k, e)
 	}
 
 	i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v genfp.DelegateDirective) string {
 		return v.Field
 	})
+
+	for _, d := range gad.Delegate {
+		exists := as.Seq(gad.ImplementsWith).Exists(func(v genfp.TypeReference) bool {
+			return v.StringExpr == d.TypeOf.StringExpr
+		})
+		if !exists {
+			gad.ImplementsWith = append(gad.ImplementsWith, d.TypeOf)
+		}
+	}
 
 	delegateFields := iterator.Sort(i1, ord.Given[string]()).FilterNot(fieldSet.Contains)
 
@@ -164,18 +182,13 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 			return v.Field == fn
 		}).Get()
 
-		fieldSet = fieldSet.Incl(fn)
+		fieldSet = fieldSet.Updated(fn, d.TypeOf)
 		fieldList = append(fieldList, fmt.Sprintf("%s %s", fn, typeDecl(gad.Package.Types, w, d.TypeOf)))
 
 	}
 
 	if gad.ExtendsByEmbedding {
 		gad.Extends = true
-	}
-
-	adaptorTypeName := gad.Name
-	if adaptorTypeName == "" {
-		adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
 	}
 
 	superField := ""
@@ -185,13 +198,15 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 	intf := gad.Interface.Underlying().(*types.Interface)
 
 	gad, _ = fillOption(gad, intf)
-	fields := fieldAndImplOfInterfaceImpl(w, gad, gad.Interface, adaptorTypeName, superField)
+	fields, methodSet := fieldAndImplOfInterfaceImpl(w, gad, gad.Interface, adaptorTypeName, superField, fieldSet, methodSet)
 
 	for _, i := range gad.ImplementsWith {
 		if i.Type != nil {
 			if intf, ok := i.Type.Underlying().(*types.Interface); ok {
 				gad, _ = fillOption(gad, intf)
-				fields = fields.Concat(fieldAndImplOfInterfaceImpl(w, gad, i.Type, adaptorTypeName, ""))
+				af, ms := fieldAndImplOfInterfaceImpl(w, gad, i.Type, adaptorTypeName, "", fieldSet, methodSet)
+				fields = fields.Concat(af)
+				methodSet = ms
 			}
 		}
 	}
@@ -266,14 +281,20 @@ func isEmbeddingField(gad genfp.GenerateAdaptorDirective, field string) bool {
 	return is(gad.Embedding) || is(gad.EmbeddingInterface)
 }
 
-func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string) fp.Seq[fp.Tuple2[string, string]] {
+func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
+	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
 
 	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
+		if methodSet.Contains(t.Name()) {
+			return as.Tuple("", "")
+		}
+
 		opt := gad.Methods[t.Name()]
 		sig := opt.Signature
 		valName := fmt.Sprintf("Default%s", t.Name())
 		cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
+		cbNilCheck := true
 		if opt.Name != "" {
 			cbName = fmt.Sprintf("%s%s", opt.Prefix, opt.Name)
 			valName = fmt.Sprintf("Default%s", opt.Name)
@@ -334,10 +355,11 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 			return "return " + e
 		}
 
-		if opt.DelegateField != "" {
-			cbName = opt.DelegateField
-			if isEmbeddingField(gad, opt.DelegateField) {
+		if opt.Delegate != nil {
+			cbName = opt.Delegate.Field
+			if isEmbeddingField(gad, opt.Delegate.Field) {
 				if gad.Self && gad.ExtendsByEmbedding {
+					methodSet = methodSet.Incl(t.Name())
 					return as.Tuple("", fmt.Sprintf(`
 						func (r *%s) %s(%s) %s {
 							%s
@@ -347,6 +369,15 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 					))
 				}
 				return as.Tuple("", "")
+			}
+
+			fieldTpe := fieldMap.Get(opt.Delegate.Field)
+			if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
+				zeroval := w.ZeroExpr(gad.Package.Types, fieldTpe.Get().Type)
+				if zeroval != "nil" {
+					cbNilCheck = false
+				}
+
 			}
 		}
 
@@ -380,9 +411,14 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 		}
 
 		callcb := func() string {
-			if opt.DelegateField != "" {
-
-				return fmt.Sprintf("%s%s", callSuperImpl(opt.DelegateField), withReturn(false, `r.%s.%s(%s)`, opt.DelegateField, t.Name(), argStr))
+			if opt.Delegate != nil {
+				fieldTpe := fieldMap.Get(opt.Delegate.Field)
+				if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
+					if types.IsInterface(fieldTpe.Get().Type) {
+						return fmt.Sprintf("%s%s", callSuperImpl(opt.Delegate.Field), withReturn(false, `r.%s.%s(%s)`, opt.Delegate.Field, t.Name(), argStr))
+					}
+				}
+				return withReturn(false, `r.%s.%s(%s)`, opt.Delegate.Field, t.Name(), argStr)
 			}
 
 			if gad.Self {
@@ -398,9 +434,12 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 								%s
 							}`, cbName,
 			callcb)
+		if cbNilCheck == false {
+			cbExpr = callcb
+		}
 
 		cbfield := fmt.Sprintf("%s func(%s%s) %s", cbName, selfarg, argTypeStr, resstr)
-		if opt.DelegateField != "" {
+		if opt.Delegate != nil {
 			cbfield = ""
 		}
 
@@ -472,6 +511,9 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 		}
 
 		defaultcb := func() string {
+			if cbNilCheck == false {
+				return ""
+			}
 			if matchSelExpr(opt.DefaultImplExpr, "genfp", "ZeroReturn") {
 				if sig.Results().Len() == 0 {
 					return ""
@@ -606,11 +648,12 @@ func fieldAndImplOfInterfaceImpl(w genfp.Writer, gad genfp.GenerateAdaptorDirect
 
 		}
 
+		methodSet = methodSet.Incl(t.Name())
 		return as.Tuple(cbfield, impl)
 
 	})
 
-	return fields
+	return fields, methodSet
 }
 
 func matchSelExpr(expr ast.Expr, exp ...string) bool {

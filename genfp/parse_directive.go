@@ -49,11 +49,14 @@ type GenerateFromUntil struct {
 }
 
 type GenerateAdaptor[T any] struct {
-	File               string
-	Name               string
-	Extends            bool
-	Self               bool
-	ImplementsWith     []TypeTag
+	File    string
+	Name    string
+	Extends bool
+	Self    bool
+	// T 이외에 추가로 구현할  interface 목록
+	ImplementsWith []TypeTag
+
+	// adaptor struct 에 추가로 포함시킬  field
 	ExtendsWith        map[string]TypeTag
 	Embedding          []TypeTag
 	EmbeddingInterface []TypeTag
@@ -615,7 +618,7 @@ type ImplOptionDirective struct {
 	DefaultImplExpr         ast.Expr
 	DefaultImplSignature    *types.Signature
 	DefaultImplImports      []ImportPackage
-	DelegateField           string
+	Delegate                *DelegateDirective
 
 	Type      *types.Func
 	Signature *types.Signature
