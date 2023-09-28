@@ -105,6 +105,7 @@ func (r *APIAdaptor) TTL() time.Duration {
 }
 
 func (r *APIAdaptor) Tell(target string) fp.Try[string] {
+
 	return func(self AdaptorAPI, target string) fp.Try[string] {
 		return self.Send(target)
 	}(r, target)
@@ -432,6 +433,18 @@ func (r *APIAdaptorExtends) Tell(target string) fp.Try[string] {
 }
 
 func (r *APIAdaptorExtends) TellImpl(self AdaptorAPI, target string) fp.Try[string] {
+
+	if r.Extends != nil {
+		type impl interface {
+			TellImpl(self AdaptorAPI, target string) fp.Try[string]
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.TellImpl(self, target)
+		}
+		return r.Extends.Tell(target)
+	}
+
 	return func(self AdaptorAPI, target string) fp.Try[string] {
 		return self.Send(target)
 	}(self, target)

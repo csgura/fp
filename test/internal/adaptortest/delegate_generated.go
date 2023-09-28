@@ -17,6 +17,18 @@ func (r *SpanContextAdaptor) Deadline() (time.Time, bool) {
 }
 
 func (r *SpanContextAdaptor) DeadlineImpl(self SpanContext) (time.Time, bool) {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			DeadlineImpl(self SpanContext) (time.Time, bool)
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.DeadlineImpl(self)
+		}
+		return r.DefaultContext.Deadline()
+	}
+
 	panic("SpanContextAdaptor.Deadline not implemented")
 }
 
@@ -27,6 +39,19 @@ func (r *SpanContextAdaptor) Done() <-chan struct {
 
 func (r *SpanContextAdaptor) DoneImpl(self SpanContext) <-chan struct {
 } {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			DoneImpl(self SpanContext) <-chan struct {
+			}
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.DoneImpl(self)
+		}
+		return r.DefaultContext.Done()
+	}
+
 	panic("SpanContextAdaptor.Done not implemented")
 }
 
@@ -35,6 +60,18 @@ func (r *SpanContextAdaptor) Err() error {
 }
 
 func (r *SpanContextAdaptor) ErrImpl(self SpanContext) error {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			ErrImpl(self SpanContext) error
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.ErrImpl(self)
+		}
+		return r.DefaultContext.Err()
+	}
+
 	panic("SpanContextAdaptor.Err not implemented")
 }
 
@@ -56,6 +93,18 @@ func (r *SpanContextAdaptor) Value(key any) any {
 }
 
 func (r *SpanContextAdaptor) ValueImpl(self SpanContext, key any) any {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			ValueImpl(self SpanContext, key any) any
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.ValueImpl(self, key)
+		}
+		return r.DefaultContext.Value(key)
+	}
+
 	panic("SpanContextAdaptor.Value not implemented")
 }
 
@@ -102,5 +151,8 @@ func (r *SpanTrace) Trace(message string) {
 }
 
 func (r *SpanTrace) TraceImpl(self SpanContext, message string) {
+
+	r.TracerImpl.Trace(message)
+	return
 
 }
