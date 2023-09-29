@@ -26,6 +26,7 @@ func (r *SpanContextAdaptor) DeadlineImpl(self SpanContext) (time.Time, bool) {
 		if super, ok := r.DefaultContext.(impl); ok {
 			return super.DeadlineImpl(self)
 		}
+
 		return r.DefaultContext.Deadline()
 	}
 
@@ -49,6 +50,7 @@ func (r *SpanContextAdaptor) DoneImpl(self SpanContext) <-chan struct {
 		if super, ok := r.DefaultContext.(impl); ok {
 			return super.DoneImpl(self)
 		}
+
 		return r.DefaultContext.Done()
 	}
 
@@ -69,6 +71,7 @@ func (r *SpanContextAdaptor) ErrImpl(self SpanContext) error {
 		if super, ok := r.DefaultContext.(impl); ok {
 			return super.ErrImpl(self)
 		}
+
 		return r.DefaultContext.Err()
 	}
 
@@ -102,6 +105,7 @@ func (r *SpanContextAdaptor) ValueImpl(self SpanContext, key any) any {
 		if super, ok := r.DefaultContext.(impl); ok {
 			return super.ValueImpl(self, key)
 		}
+
 		return r.DefaultContext.Value(key)
 	}
 

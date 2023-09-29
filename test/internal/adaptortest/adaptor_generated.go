@@ -200,6 +200,7 @@ func (r *APIAdaptorExtends) ActiveImpl(self AdaptorAPI) bool {
 		if super, ok := r.Extends.(impl); ok {
 			return super.ActiveImpl(self)
 		}
+
 		return r.Extends.Active()
 	}
 
@@ -224,6 +225,7 @@ func (r *APIAdaptorExtends) ContextImpl(self AdaptorAPI) ApiContext {
 		if super, ok := r.Extends.(impl); ok {
 			return super.ContextImpl(self)
 		}
+
 		return r.Extends.Context()
 	}
 
@@ -248,6 +250,7 @@ func (r *APIAdaptorExtends) CreateImpl(self AdaptorAPI, a string, b int) (int, e
 		if super, ok := r.Extends.(impl); ok {
 			return super.CreateImpl(self, a, b)
 		}
+
 		return r.Extends.Create(a, b)
 	}
 
@@ -275,6 +278,7 @@ func (r *APIAdaptorExtends) HelloImpl(self AdaptorAPI) string {
 		if super, ok := r.Extends.(impl); ok {
 			return super.HelloImpl(self)
 		}
+
 		return r.Extends.Hello()
 	}
 
@@ -299,6 +303,7 @@ func (r *APIAdaptorExtends) IsOkImpl(self AdaptorAPI) bool {
 		if super, ok := r.Extends.(impl); ok {
 			return super.IsOkImpl(self)
 		}
+
 		return r.Extends.IsOk()
 	}
 
@@ -323,6 +328,7 @@ func (r *APIAdaptorExtends) IsZeroImpl(self AdaptorAPI, ptr unsafe.Pointer) bool
 		if super, ok := r.Extends.(impl); ok {
 			return super.IsZeroImpl(self, ptr)
 		}
+
 		return r.Extends.IsZero(ptr)
 	}
 
@@ -347,6 +353,7 @@ func (r *APIAdaptorExtends) MaxConnImpl(self AdaptorAPI) int {
 		if super, ok := r.Extends.(impl); ok {
 			return super.MaxConnImpl(self)
 		}
+
 		return r.Extends.MaxConn()
 	}
 
@@ -373,6 +380,7 @@ func (r *APIAdaptorExtends) ReceiveImpl(self AdaptorAPI, msg string) {
 			super.ReceiveImpl(self, msg)
 			return
 		}
+
 		r.Extends.Receive(msg)
 		return
 	}
@@ -397,6 +405,7 @@ func (r *APIAdaptorExtends) SendImpl(self AdaptorAPI, target string) fp.Try[stri
 		if super, ok := r.Extends.(impl); ok {
 			return super.SendImpl(self, target)
 		}
+
 		return r.Extends.Send(target)
 	}
 
@@ -422,6 +431,7 @@ func (r *APIAdaptorExtends) TTLImpl(self AdaptorAPI) time.Duration {
 		if super, ok := r.Extends.(impl); ok {
 			return super.TTLImpl(self)
 		}
+
 		return r.Extends.TTL()
 	}
 
@@ -442,6 +452,7 @@ func (r *APIAdaptorExtends) TellImpl(self AdaptorAPI, target string) fp.Try[stri
 		if super, ok := r.Extends.(impl); ok {
 			return super.TellImpl(self, target)
 		}
+
 		return r.Extends.Tell(target)
 	}
 
@@ -468,6 +479,7 @@ func (r *APIAdaptorExtends) TestZeroImpl(self AdaptorAPI) (complex64, time.Time,
 		if super, ok := r.Extends.(impl); ok {
 			return super.TestZeroImpl(self)
 		}
+
 		return r.Extends.TestZero()
 	}
 
@@ -492,6 +504,7 @@ func (r *APIAdaptorExtends) TimeoutImpl(self AdaptorAPI) time.Duration {
 		if super, ok := r.Extends.(impl); ok {
 			return super.TimeoutImpl(self)
 		}
+
 		return r.Extends.Timeout()
 	}
 
@@ -516,6 +529,7 @@ func (r *APIAdaptorExtends) UpdateImpl(self AdaptorAPI, a string, b int) (int, e
 		if super, ok := r.Extends.(impl); ok {
 			return super.UpdateImpl(self, a, b)
 		}
+
 		return r.Extends.Update(a, b)
 	}
 
@@ -542,6 +556,7 @@ func (r *APIAdaptorExtends) VarArgsImpl(self AdaptorAPI, fmtstr string, args ...
 			super.VarArgsImpl(self, fmtstr, args...)
 			return
 		}
+
 		r.Extends.VarArgs(fmtstr, args...)
 		return
 	}
@@ -567,6 +582,7 @@ func (r *APIAdaptorExtends) WriteImpl(self AdaptorAPI, w io.Writer, b []byte) (i
 		if super, ok := r.Extends.(impl); ok {
 			return super.WriteImpl(self, w, b)
 		}
+
 		return r.Extends.Write(w, b)
 	}
 
@@ -831,6 +847,7 @@ func (r *AdTesterAdaptor) WriteImpl(self testpk1.AdTester, w io.Writer, b []byte
 		if super, ok := r.Extends.(impl); ok {
 			return super.WriteImpl(self, w, b)
 		}
+
 		return r.Extends.Write(w, b)
 	}
 
@@ -1092,6 +1109,7 @@ func (r *HTTPAdaptor) SendImpl(self HTTP, msg string) (int, error) {
 		if super, ok := r.Extends.(impl); ok {
 			return super.SendImpl(self, msg)
 		}
+
 		return r.Extends.Send(msg)
 	}
 
@@ -1117,7 +1135,6 @@ func (r *HTTP2Adaptor) KeepAliveImpl(self HTTP2, v bool) {
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			KeepAliveImpl(self HTTP2, v bool)
 		}
@@ -1126,6 +1143,7 @@ func (r *HTTP2Adaptor) KeepAliveImpl(self HTTP2, v bool) {
 			super.KeepAliveImpl(self, v)
 			return
 		}
+
 		if super, ok := r.Extends.(HTTP2); ok {
 			super.KeepAlive(v)
 			return
@@ -1151,7 +1169,6 @@ func (r *HTTP2Adaptor) CloseImpl(self HTTP2) error {
 	}
 
 	if r.Extends != nil {
-
 		type impl interface {
 			CloseImpl(self HTTP2) error
 		}
@@ -1159,6 +1176,7 @@ func (r *HTTP2Adaptor) CloseImpl(self HTTP2) error {
 		if super, ok := r.Extends.(impl); ok {
 			return super.CloseImpl(self)
 		}
+
 		if super, ok := r.Extends.(io.Closer); ok {
 			return super.Close()
 		}
