@@ -2,6 +2,7 @@ package adaptortest
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -249,4 +250,155 @@ type ConnHandlerAdaptor struct {
 // net.Conn 은 io.Reader 기 때문에 , ReaderMaker 호출 가능
 func (r *ConnHandlerAdaptor) NewReader(conn net.Conn) {
 	r.ReaderMaker(conn)
+}
+
+type Sender interface {
+	Send(msg string) (int, error)
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File: "example_adaptor.go",
+	Name: "SenderAdaptor", // 생성될 adaptor 의 이름. 지정하지 않으면 Sender + Adaptor
+}
+
+type Status interface {
+	Active() bool
+	DisplayName() string
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Status]{
+	File:       "example_adaptor.go",
+	Getter:     []any{Status.Active, Status.DisplayName},
+	ZeroReturn: []any{Status.Active},
+}
+
+type Handler interface {
+	ReceiveEvent(event string)
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Handler]{
+	File:         "example_adaptor.go",
+	EventHandler: []any{Handler.ReceiveEvent},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Status]{
+	File:       "example_adaptor.go",
+	Name:       "StatusAdaptorZero",
+	Getter:     []any{Status.Active, Status.DisplayName},
+	ZeroReturn: []any{Status.Active},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Status]{
+	File:        "example_adaptor.go",
+	Name:        "StatusAdaptorVal",
+	ValOverride: []any{Status.Active, Status.DisplayName},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Status]{
+	File:        "example_adaptor.go",
+	Name:        "StatusAdaptorCustom",
+	Getter:      []any{Status.Active},
+	ValOverride: []any{Status.DisplayName},
+	Options: []genfp.ImplOption{
+		{
+			Method: Status.DisplayName,
+			DefaultImpl: func() string {
+				return "Inactive"
+			},
+		},
+	},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Handler]{
+	File:         "example_adaptor.go",
+	Name:         "HandlerCustom",
+	EventHandler: []any{Handler.ReceiveEvent},
+	Options: []genfp.ImplOption{
+		{
+			Method: Handler.ReceiveEvent,
+			DefaultImpl: func(v string) {
+				fmt.Printf("receive event : %s\n", v)
+			},
+		},
+	},
+}
+
+func sendStdout(msg string) (int, error) {
+	fmt.Printf("msg = %s\n", msg)
+	return len(msg), nil
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File: "example_adaptor.go",
+	Name: "SenderCustom",
+	Options: []genfp.ImplOption{
+		{
+			Method:      Sender.Send,
+			DefaultImpl: sendStdout,
+		},
+	},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File: "example_adaptor.go",
+	Name: "Sender42",
+	Options: []genfp.ImplOption{
+		{
+			Method:      Sender.Send,
+			DefaultImpl: 42,
+		},
+	},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File:    "example_adaptor.go",
+	Name:    "SenderExtends",
+	Extends: true,
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File:    "example_adaptor.go",
+	Name:    "SenderExtendsSelf",
+	Extends: true,
+	Self:    true,
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File: "example_adaptor.go",
+	Name: "SenderSelfArg",
+	Options: []genfp.ImplOption{
+		{
+			Method: Sender.Send,
+			DefaultImpl: func(self Sender, msg string) (int, error) {
+				return 0, nil
+			},
+		},
+	},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	File: "example_adaptor.go",
+	Name: "SenderSelfSelfArg",
+	Self: true,
+	Options: []genfp.ImplOption{
+		{
+			Method: Sender.Send,
+			DefaultImpl: func(self Sender, msg string) (int, error) {
+				return 0, nil
+			},
+		},
+	},
 }
