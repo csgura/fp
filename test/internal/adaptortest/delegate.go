@@ -52,3 +52,12 @@ var _ = genfp.GenerateAdaptor[SpanContext]{
 	Delegate:           []genfp.Delegate{genfp.DelegatedBy[Tracer]("TracerImpl")},
 	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[SpanContext]{
+	File:     "delegate_generated.go",
+	Name:     "SpanContextExtends",
+	Extends:  true,
+	Self:     true,
+	Delegate: []genfp.Delegate{genfp.DelegatedBy[context.Context]("DefaultContext")},
+}

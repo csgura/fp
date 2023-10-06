@@ -160,3 +160,170 @@ func (r *SpanTrace) TraceImpl(self SpanContext, message string) {
 	return
 
 }
+
+type SpanContextExtends struct {
+	Extends        SpanContext
+	DefaultContext context.Context
+	DoHello        func(self SpanContext) string
+}
+
+func (r *SpanContextExtends) Deadline() (time.Time, bool) {
+	return r.DeadlineImpl(r)
+}
+
+func (r *SpanContextExtends) DeadlineImpl(self SpanContext) (time.Time, bool) {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			DeadlineImpl(self SpanContext) (time.Time, bool)
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.DeadlineImpl(self)
+		}
+
+		return r.DefaultContext.Deadline()
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			DeadlineImpl(self SpanContext) (time.Time, bool)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.DeadlineImpl(self)
+		}
+
+		return r.Extends.Deadline()
+	}
+
+	panic("SpanContextExtends.Deadline not implemented")
+}
+
+func (r *SpanContextExtends) Done() <-chan struct {
+} {
+	return r.DoneImpl(r)
+}
+
+func (r *SpanContextExtends) DoneImpl(self SpanContext) <-chan struct {
+} {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			DoneImpl(self SpanContext) <-chan struct {
+			}
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.DoneImpl(self)
+		}
+
+		return r.DefaultContext.Done()
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			DoneImpl(self SpanContext) <-chan struct {
+			}
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.DoneImpl(self)
+		}
+
+		return r.Extends.Done()
+	}
+
+	panic("SpanContextExtends.Done not implemented")
+}
+
+func (r *SpanContextExtends) Err() error {
+	return r.ErrImpl(r)
+}
+
+func (r *SpanContextExtends) ErrImpl(self SpanContext) error {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			ErrImpl(self SpanContext) error
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.ErrImpl(self)
+		}
+
+		return r.DefaultContext.Err()
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			ErrImpl(self SpanContext) error
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.ErrImpl(self)
+		}
+
+		return r.Extends.Err()
+	}
+
+	panic("SpanContextExtends.Err not implemented")
+}
+
+func (r *SpanContextExtends) Hello() string {
+	return r.HelloImpl(r)
+}
+
+func (r *SpanContextExtends) HelloImpl(self SpanContext) string {
+
+	if r.DoHello != nil {
+		return r.DoHello(self)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			HelloImpl(self SpanContext) string
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.HelloImpl(self)
+		}
+
+		return r.Extends.Hello()
+	}
+
+	panic("SpanContextExtends.Hello not implemented")
+}
+
+func (r *SpanContextExtends) Value(key any) any {
+	return r.ValueImpl(r, key)
+}
+
+func (r *SpanContextExtends) ValueImpl(self SpanContext, key any) any {
+
+	if r.DefaultContext != nil {
+		type impl interface {
+			ValueImpl(self SpanContext, key any) any
+		}
+
+		if super, ok := r.DefaultContext.(impl); ok {
+			return super.ValueImpl(self, key)
+		}
+
+		return r.DefaultContext.Value(key)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			ValueImpl(self SpanContext, key any) any
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.ValueImpl(self, key)
+		}
+
+		return r.Extends.Value(key)
+	}
+
+	panic("SpanContextExtends.Value not implemented")
+}

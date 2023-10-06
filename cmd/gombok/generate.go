@@ -349,7 +349,7 @@ func (r *implContext) callCb() fp.Option[string] {
 func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 	gad := r.gad
 
-	fieldTpe := r.fieldMap.Get(r.superField)
+	fieldTpe := r.fieldMap.Get(field)
 	if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
 		if !types.IsInterface(fieldTpe.Get().Type.Underlying()) {
 			return option.None[string]()
@@ -380,12 +380,33 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 
 }
 
-func (r *implContext) callExtends() (fp.Option[string], bool) {
+type GeneratedExpr struct {
+	expr             string
+	unreachableAfter bool
+}
+
+func (r GeneratedExpr) Expr() string {
+	return r.expr
+}
+
+func (r GeneratedExpr) UnreachableAfter() bool {
+	return r.unreachableAfter
+}
+
+func someExpr(expr string) fp.Option[GeneratedExpr] {
+	return option.Some(GeneratedExpr{expr: expr})
+}
+
+func finalExpr(expr string) fp.Option[GeneratedExpr] {
+	return option.Some(GeneratedExpr{expr: expr, unreachableAfter: true})
+}
+
+func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 	gad := r.gad
 
 	cbNilCheck := true
 
-	fieldTpe := r.fieldMap.Get(r.superField)
+	fieldTpe := r.fieldMap.Get(superField)
 	if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
 		zeroval := r.w.ZeroExpr(gad.Package.Types, fieldTpe.Get().Type)
 		if zeroval != "nil" {
@@ -412,33 +433,33 @@ func (r *implContext) callExtends() (fp.Option[string], bool) {
 		return option.Some(as.Seq(si.ToSeq()).Add(sc).MakeString("\n"))
 	}
 
-	if r.superField != "" && gad.ExtendsByEmbedding == false {
-		si := r.callSuperImpl(r.superField)
+	if superField != "" && gad.ExtendsByEmbedding == false {
+		si := r.callSuperImpl(superField)
 		if cbNilCheck {
 
-			sc := r.withReturn(false, "r.%s.%s(%s)", r.superField, r.t.Name(), r.argStr)
-			return option.Some(fmt.Sprintf(`
+			sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), r.argStr)
+			return someExpr(fmt.Sprintf(`
 					if r.%s != nil {
 						%s
 					}
-				`, r.superField, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
-			)), false
+				`, superField, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
+			))
 		}
-		sc := r.withReturn(false, "r.%s.%s(%s)", r.superField, r.t.Name(), r.argStr)
-		return option.Some(fmt.Sprintf(`
+		sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), r.argStr)
+		return finalExpr(fmt.Sprintf(`
 						%s
 				`, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
-		)), true
+		))
 	} else if gad.Extends {
-		return callSupercheck("Extends").Map(func(s string) string {
-			return fmt.Sprintf(`
+		return option.Map(callSupercheck("Extends"), func(s string) GeneratedExpr {
+			return GeneratedExpr{expr: fmt.Sprintf(`
 				if r.Extends != nil {
 					%s
 				}
-			`, s)
-		}), false
+			`, s)}
+		})
 	}
-	return option.None[string](), false
+	return option.None[GeneratedExpr]()
 }
 
 func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
@@ -705,17 +726,24 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 			fieldMap:        fieldMap,
 		}
 
-		if opt.Delegate != nil {
-			ctx.superField = opt.Delegate.Field
-		}
+		fmt.Printf("generate method %s (super:%s) impl %s of %s \n", t.Name(), ctx.superField, namedInterface.String(), adaptorTypeName)
 
 		defaultField, cbField := ctx.adaptorFields()
 		defaultExpr := ctx.defaultImpl()
-		callExtendsExpr, ceEnd := ctx.callExtends()
+
+		delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v genfp.DelegateDirective) fp.Option[GeneratedExpr] {
+			return ctx.callExtends(v.Field)
+		})
+
+		unreachable := delegateExpr.IsDefined() && delegateExpr.Get().UnreachableAfter()
+
+		callExtendsExpr := ctx.callExtends(ctx.superField).FilterNot(fp.Const[GeneratedExpr](unreachable))
+		unreachable = unreachable || callExtendsExpr.IsDefined() && callExtendsExpr.Get().unreachableAfter
+
 		cbExpr := option.FlatMap(cbField, func(v string) fp.Option[string] { return ctx.callCb() })
 		panicExpr := option.Some(fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name()))
 		valExpr, end := ctx.valOverride(defaultExpr.IsDefined() || callExtendsExpr.IsDefined() || cbExpr.IsDefined())
-		panicExpr = panicExpr.FilterNot(func(v string) bool { return end || ceEnd }).FilterNot(func(v string) bool {
+		panicExpr = panicExpr.FilterNot(func(v string) bool { return end || unreachable }).FilterNot(func(v string) bool {
 			return defaultExpr.IsDefined()
 		})
 
@@ -742,7 +770,8 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 			fp.Seq[string]{}.
 				Add(valExpr.OrElse("")).
 				Concat(cbExpr.ToSeq()).
-				Concat(callExtendsExpr.ToSeq()).
+				Concat(option.Map(delegateExpr, GeneratedExpr.Expr).ToSeq()).
+				Concat(option.Map(callExtendsExpr, GeneratedExpr.Expr).ToSeq()).
 				Concat(defaultExpr.ToSeq()).
 				Concat(panicExpr.ToSeq()).
 				MakeString("\n\n"),
