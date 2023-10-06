@@ -645,7 +645,7 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 }
 
 func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
-	fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
+	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
 
 	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
@@ -726,7 +726,7 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 			fieldMap:        fieldMap,
 		}
 
-		fmt.Printf("generate method %s (super:%s) impl %s of %s \n", t.Name(), ctx.superField, namedInterface.String(), adaptorTypeName)
+		//fmt.Printf("generate method %s (super:%s) impl %s of %s \n", t.Name(), ctx.superField, namedInterface.String(), adaptorTypeName)
 
 		defaultField, cbField := ctx.adaptorFields()
 		defaultExpr := ctx.defaultImpl()
