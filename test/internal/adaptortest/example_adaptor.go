@@ -91,6 +91,39 @@ func (r *StatusAdaptorVal) DisplayName() string {
 	return r.DefaultDisplayName
 }
 
+type StatusAdaptorValGetter struct {
+	DefaultActive      bool
+	IsActive           func() bool
+	DefaultDisplayName string
+	GetDisplayName     func() string
+}
+
+func (r *StatusAdaptorValGetter) Active() bool {
+
+	var _zero bool
+	if r.DefaultActive != _zero {
+		return r.DefaultActive
+	}
+
+	if r.IsActive != nil {
+		return r.IsActive()
+	}
+
+	panic("StatusAdaptorValGetter.Active not implemented")
+}
+
+func (r *StatusAdaptorValGetter) DisplayName() string {
+	if r.DefaultDisplayName != "" {
+		return r.DefaultDisplayName
+	}
+
+	if r.GetDisplayName != nil {
+		return r.GetDisplayName()
+	}
+
+	panic("StatusAdaptorValGetter.DisplayName not implemented")
+}
+
 type StatusAdaptorCustom struct {
 	IsActive           func() bool
 	DefaultDisplayName string
@@ -221,7 +254,8 @@ func (r *SenderSelfArg) Send(msg string) (int, error) {
 }
 
 type SenderSelfSelfArg struct {
-	DoSend func(self Sender, msg string) (int, error)
+	Extends Sender
+	DoSend  func(self Sender, msg string) (int, error)
 }
 
 func (r *SenderSelfSelfArg) Send(msg string) (int, error) {
@@ -232,6 +266,18 @@ func (r *SenderSelfSelfArg) SendImpl(self Sender, msg string) (int, error) {
 
 	if r.DoSend != nil {
 		return r.DoSend(self, msg)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			SendImpl(self Sender, msg string) (int, error)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.SendImpl(self, msg)
+		}
+
+		return r.Extends.Send(msg)
 	}
 
 	return func(self Sender, msg string) (int, error) {

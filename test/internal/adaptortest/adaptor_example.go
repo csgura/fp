@@ -302,6 +302,14 @@ var _ = genfp.GenerateAdaptor[Status]{
 // @fp.Generate
 var _ = genfp.GenerateAdaptor[Status]{
 	File:        "example_adaptor.go",
+	Name:        "StatusAdaptorValGetter",
+	Getter:      []any{Status.Active, Status.DisplayName},
+	ValOverride: []any{Status.Active, Status.DisplayName},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Status]{
+	File:        "example_adaptor.go",
 	Name:        "StatusAdaptorCustom",
 	Getter:      []any{Status.Active},
 	ValOverride: []any{Status.DisplayName},
@@ -390,9 +398,24 @@ var _ = genfp.GenerateAdaptor[Sender]{
 
 // @fp.Generate
 var _ = genfp.GenerateAdaptor[Sender]{
-	File: "example_adaptor.go",
-	Name: "SenderSelfSelfArg",
-	Self: true,
+	File:    "example_adaptor.go",
+	Name:    "SenderSelfSelfArg",
+	Extends: true,
+	Self:    true,
+	Options: []genfp.ImplOption{
+		{
+			Method: Sender.Send,
+			DefaultImpl: func(self Sender, msg string) (int, error) {
+				return 0, nil
+			},
+		},
+	},
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	Extends: true,
+	Self:    true,
 	Options: []genfp.ImplOption{
 		{
 			Method: Sender.Send,
