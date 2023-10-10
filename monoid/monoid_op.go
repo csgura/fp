@@ -235,7 +235,7 @@ var _ = genfp.GenerateFromUntil{
 	File: "tuple_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
-		{Package: "github.com/csgura/fp/product", Name: "hlist"},
+		{Package: "github.com/csgura/fp/product", Name: "product"},
 	},
 	From:  2,
 	Until: genfp.MaxProduct,

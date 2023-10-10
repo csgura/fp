@@ -99,10 +99,10 @@ func processDeref(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 
 			valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
-			rhsTypeName := w.TypeName(workingPackage, rhs.Type)
-
 			unwrapFunc := "Deref"
 			if ts.Info.Method.Get(unwrapFunc).IsEmpty() {
+
+				rhsTypeName := w.TypeName(workingPackage, rhs.Type)
 
 				fmt.Fprintf(w, `
 					func (r %s) %s() %s {
@@ -114,6 +114,8 @@ func processDeref(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 
 			castFunc := fmt.Sprintf("Into%s%s", ts.Name, typetp)
 			if workingPackage.Scope().Lookup(castFunc) == nil {
+				rhsTypeName := w.TypeName(workingPackage, rhs.Type)
+
 				fmt.Fprintf(w, `
 					func %s(v %s) %s {
 						return %s%s(v)
@@ -130,6 +132,8 @@ func processDeref(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 				if ts.Info.Method.Get(name).IsEmpty() && !genMethod.Contains(name) {
 
 					if sig, ok := f.Type().(*types.Signature); ok {
+
+						rhsTypeName := w.TypeName(workingPackage, rhs.Type)
 
 						isPtrReceiver := false
 						if sig.Recv() != nil && sig.Recv().Type() != nil {
@@ -304,9 +308,10 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 func genUnapply(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
 	valuereceiver := ts.Info.TypeStr(w, workingPackage)
 	if allFields.Size() < max.Product {
-		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 		if ts.Info.Method.Get("AsTuple").IsEmpty() && !genMethod.Contains("AsTuple") {
+			asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
 			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
 			arity := fp.Min(allFields.Size(), max.Product-1)
@@ -1037,39 +1042,39 @@ func genMutable(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 
 	mutableType := mutableTypeName + valuetpdec
 
-	mutableFields := iterator.Map(seq.Iterator(ts.Fields), func(v metafp.StructField) string {
+	if !isTypeDefined(workingPackage, mutableTypeName) {
+		mutableFields := iterator.Map(seq.Iterator(ts.Fields), func(v metafp.StructField) string {
 
-		tag := v.Tag
+			tag := v.Tag
 
-		if !strings.HasPrefix(v.Name, "_") {
-			if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
-				if !strings.Contains(tag, "json") {
-					if tag != "" {
-						tag = tag + " "
-					}
-					if v.Type.IsNilable() || v.Type.IsOption() {
-						tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
-					} else {
-						tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
+			if !strings.HasPrefix(v.Name, "_") {
+				if ts.Tags.Contains("@fp.JsonTag") || ts.Tags.Contains("@fp.Json") {
+					if !strings.Contains(tag, "json") {
+						if tag != "" {
+							tag = tag + " "
+						}
+						if v.Type.IsNilable() || v.Type.IsOption() {
+							tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
+						} else {
+							tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
+						}
 					}
 				}
 			}
-		}
 
-		name := fp.Seq[string]{}
-		if !v.Embedded {
-			name = name.Append(publicName(v.Name))
-		}
+			name := fp.Seq[string]{}
+			if !v.Embedded {
+				name = name.Append(publicName(v.Name))
+			}
 
-		name = name.Append(w.TypeName(workingPackage, v.Type.Type))
+			name = name.Append(w.TypeName(workingPackage, v.Type.Type))
 
-		if tag != "" {
-			name = name.Append(fmt.Sprintf("`%s`", tag))
-		}
-		return name.MakeString(" ")
-	}).MakeString("\n")
+			if tag != "" {
+				name = name.Append(fmt.Sprintf("`%s`", tag))
+			}
+			return name.MakeString(" ")
+		}).MakeString("\n")
 
-	if !isTypeDefined(workingPackage, mutableTypeName) {
 		fmt.Fprintf(w, `
 				type %s struct {
 					%s
@@ -1129,8 +1134,6 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 			return genMethod, keyTags
 		}
 
-		asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
-
 		valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
 		//valueType := fmt.Sprintf("%s%s", v.Name, valuetpdec)
@@ -1175,17 +1178,19 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 
 			if allFields.Size() < max.Product {
 
+				asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+
 				arity := fp.Min(allFields.Size(), max.Product-1)
 
-				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), w.TypeName(workingPackage, v.Type.Type))
-				}).MakeString(",")
-
-				fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-					return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
-				}).Take(arity).MakeString(",")
-
 				if ts.Info.Method.Get("AsLabelled").IsEmpty() {
+					tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
+						return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), w.TypeName(workingPackage, v.Type.Type))
+					}).MakeString(",")
+
+					fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+						return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
+					}).Take(arity).MakeString(",")
+
 					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
 
 					fmt.Fprintf(w, `
