@@ -425,3 +425,19 @@ var _ = genfp.GenerateAdaptor[Sender]{
 		},
 	},
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+
+	Extends: true,
+	Self:    true,
+	Name:    "SenderError",
+	Options: []genfp.ImplOption{
+		{
+			Method: Sender.Send,
+			DefaultImpl: func(msg int) (int, error) {
+				return 0, nil
+			},
+		},
+	},
+}

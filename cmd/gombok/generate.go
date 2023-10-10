@@ -545,6 +545,15 @@ func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 
 }
 
+func exprString(expr ast.Expr) string {
+	fs := token.NewFileSet()
+
+	buf := &bytes.Buffer{}
+
+	printer.Fprint(buf, fs, expr)
+	return buf.String()
+}
+
 func (r *implContext) defaultImpl() fp.Option[string] {
 	opt := r.opt
 	sig := opt.Signature
@@ -609,17 +618,17 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 					return option.Some(r.withReturn(true, "%s(%s)", buf.String(), args.Get().args.MakeString(",")))
 				} else {
 
-					return option.Some(r.withReturn(true, `%s(%s)`, types.ExprString(opt.DefaultImplExpr), args.Get().args.MakeString(",")))
+					return option.Some(r.withReturn(true, `%s(%s)`, exprString(opt.DefaultImplExpr), args.Get().args.MakeString(",")))
 
 				}
 			} else {
 				fmt.Printf("err : %s\n", args.Failed().Get())
 			}
 			if gad.Self {
-				e := types.ExprString(opt.DefaultImplExpr)
+				e := exprString(opt.DefaultImplExpr)
 				return option.Some(r.withReturn(true, `%s(self, %s)`, e, r.argStr))
 			} else {
-				e := types.ExprString(opt.DefaultImplExpr)
+				e := exprString(opt.DefaultImplExpr)
 				return option.Some(r.withReturn(true, `%s(r, %s)`, e, r.argStr))
 			}
 		}
