@@ -198,11 +198,15 @@ func (r Args) Dot(start, until int, expr string) string {
 	return f.String()
 }
 
-type writer struct {
-	Package    string
-	Buffer     *bytes.Buffer
+type importSet struct {
 	PathToName map[string]importAlias
 	NameToPath map[string]importAlias
+}
+
+type writer struct {
+	Package string
+	Buffer  *bytes.Buffer
+	importSet
 }
 
 func (r *writer) Write(b []byte) (int, error) {
@@ -219,7 +223,7 @@ type importAlias struct {
 	isalias bool
 }
 
-func (r *writer) AddImport(p *types.Package) bool {
+func (r *importSet) AddImport(p *types.Package) bool {
 	alias := p.Name()
 
 	_, ok := r.NameToPath[alias]
@@ -242,7 +246,7 @@ func (r *writer) AddImport(p *types.Package) bool {
 	return true
 }
 
-func (r *writer) GetImportedName(p *types.Package) string {
+func (r *importSet) GetImportedName(p *types.Package) string {
 	ret, ok := r.PathToName[p.Path()]
 	if ok {
 		return ret.alias
@@ -261,6 +265,10 @@ func (r *writer) GetImportedName(p *types.Package) string {
 		p = types.NewPackage(p.Path(), alias)
 		i++
 	}
+}
+
+func NewImportSet() ImportSet {
+	return &importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}
 }
 
 func (r *writer) ImportList() []string {
@@ -285,7 +293,7 @@ func iterate[T any](len int, getter func(idx int) T, fn func(int, T) string) []s
 	}
 	return ret
 }
-func (r *writer) ZeroExpr(pk *types.Package, tpe types.Type) string {
+func (r *importSet) ZeroExpr(pk *types.Package, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:
 		if _, ok := realtp.Underlying().(*types.Interface); ok {
@@ -329,7 +337,7 @@ func (r *writer) ZeroExpr(pk *types.Package, tpe types.Type) string {
 	return tpe.String()
 }
 
-func (r *writer) TypeName(pk *types.Package, tpe types.Type) string {
+func (r *importSet) TypeName(pk *types.Package, tpe types.Type) string {
 	//fmt.Printf("type %s %T\n", tpe.String(), tpe)
 	switch realtp := tpe.(type) {
 	case *types.Basic:
@@ -459,7 +467,7 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 		os.Remove(filename)
 	}
 
-	f := &writer{packname, &bytes.Buffer{}, map[string]importAlias{}, map[string]importAlias{}}
+	f := &writer{packname, &bytes.Buffer{}, importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}}
 
 	writeFunc(f)
 

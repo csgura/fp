@@ -2526,6 +2526,10 @@ func (r UseExplicitShowVarMutable) AsImmutable() UseExplicitShowVar {
 	}
 }
 
+func (r ShowHasTypeParam[T]) String() string {
+	return fmt.Sprintf("testpk1.ShowHasTypeParam{hello:%v, world:%v, message:%v}", r.hello, r.world, r.message)
+}
+
 type PubNamedPub[T any] fp.Tuple1[T]
 
 func (r PubNamedPub[T]) Name() string {

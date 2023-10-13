@@ -295,6 +295,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 
 		if useShow {
 
+			// ctx.summCtx.summon(ctx CurrentContext, req metafp.RequiredInstance)
 			scope := tccache.GetLocal(workingPackage, metafp.TypeClass{
 				Name:    "Show",
 				Package: types.NewPackage("github.com/csgura/fp", "fp"),
@@ -877,17 +878,18 @@ type TaggedStructContext struct {
 	w              genfp.Writer
 	workingPackage *types.Package
 	ts             metafp.TaggedStruct
+	summCtx        *TypeClassSummonContext
 	derives        fp.Seq[metafp.TypeClassDerive]
 	tccache        metafp.TypeClassInstanceCache
 }
 
-func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], derives fp.Seq[metafp.TypeClassDerive]) {
+func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext) {
 	keyTags := mutable.EmptySet[string]()
 
 	tccache := metafp.TypeClassInstanceCache{}
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := fp.Set[string]{}
-		stDerives := derives.Filter(func(v metafp.TypeClassDerive) bool {
+		stDerives := summonCtx.recursiveGen.Filter(func(v metafp.TypeClassDerive) bool {
 			return v.DeriveFor.Name == ts.Name
 		})
 
@@ -897,6 +899,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 			ts:             ts,
 			derives:        stDerives,
 			tccache:        tccache,
+			summCtx:        summonCtx,
 		}
 		genMethod = processAllArgsCons(ctx, genMethod)
 
@@ -1425,9 +1428,9 @@ func genValueAndGetter() {
 			return
 		}
 
-		derives := metafp.FindTypeClassDerive(pkgs)
+		deriveCtx := NewTypeClassSummonContext(pkgs, genfp.NewImportSet())
 
-		genTaggedStruct(w, workingPackage, st, derives)
+		genTaggedStruct(w, workingPackage, st, deriveCtx)
 
 	})
 }

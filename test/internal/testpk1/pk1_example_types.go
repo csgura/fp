@@ -391,3 +391,23 @@ type UseExplicitShowVar struct {
 var ShowUseExplicitShowVar = show.New(func(v UseExplicitShowVar) string {
 	return fmt.Sprintf("Hello(%s,%d)", v.hello, v.world)
 })
+
+type Container[T any] struct {
+	t T
+}
+
+// @fp.String(useShow=true)
+type ShowHasTypeParam[T any] struct {
+	hello   string
+	world   int
+	message Container[int]
+}
+
+func ShowContainer[T any](tshow fp.Show[T]) fp.Show[Container[T]] {
+	return show.New(func(c Container[T]) string {
+		return fmt.Sprintf("Container(%s)", tshow.Show(c.t))
+	})
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[ShowHasTypeParam[any]]]

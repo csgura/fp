@@ -28,7 +28,7 @@ type TypeClassInstanceGenerated struct {
 }
 
 type TypeClassSummonContext struct {
-	w                     genfp.Writer
+	w                     genfp.ImportSet
 	tcCache               *metafp.TypeClassInstanceCache
 	summoned              fp.Map[string, TypeClassInstanceGenerated]
 	loopCheck             fp.Set[string]
@@ -105,7 +105,7 @@ type ArgumentInstance struct {
 	typeParam  fp.Option[metafp.TypeClass]
 }
 
-func (r ArgumentInstance) instanceExpr(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+func (r ArgumentInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
 	param := option.Map(r.typeParam, func(v metafp.TypeClass) ParamInstance {
 		return ParamInstance{
 			ArgName:   r.name,
@@ -132,7 +132,7 @@ type DefinedInstance struct {
 	required   fp.Seq[metafp.RequiredInstance]
 }
 
-func (r DefinedInstance) instanceExpr(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+func (r DefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
 	if r.pk == nil || r.pk.Path() == workingPkg.Path() {
 		return SummonExpr{
 			expr: r.name,
@@ -160,7 +160,7 @@ type NotDefinedInstance struct {
 	required   fp.Seq[metafp.RequiredInstance]
 }
 
-func (r NotDefinedInstance) instanceExpr(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+func (r NotDefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
 	return SummonExpr{
 		expr: r.name,
 	}
@@ -170,10 +170,10 @@ func (r NotDefinedInstance) Required() fp.Seq[metafp.RequiredInstance] {
 }
 
 type SummonExprInstance struct {
-	expr func(w genfp.Writer, workingPkg *types.Package) SummonExpr
+	expr func(w genfp.ImportSet, workingPkg *types.Package) SummonExpr
 }
 
-func (r SummonExprInstance) instanceExpr(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+func (r SummonExprInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
 	return r.expr(w, workingPkg)
 }
 
@@ -222,7 +222,7 @@ func (r lookupTarget) isFunc() bool {
 	return false
 }
 
-func (r lookupTarget) instanceExpr(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+func (r lookupTarget) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
 
 	return either.Fold(
 		r.target,
@@ -819,7 +819,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx CurrentContext, req
 		fields := f.Fields()
 
 		if fields.ForAll(metafp.StructField.Public) || req.FieldOf.Exists(fp.Test(metafp.TypeInfo.IsSamePkg, ctx.working)) {
-			ret := func(w genfp.Writer, workingPkg *types.Package) SummonExpr {
+			ret := func(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
 				return r.summonUntypedStruct(ctx, req.TypeClass, f, fields)
 			}
 			return lookupTarget{
@@ -910,7 +910,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx CurrentContext, named fp.Op
 	return fmt.Sprintf(`%s{%s}`, valuereceiver, argslist)
 }
 
-func namedOrRuntime(w genfp.Writer, working *types.Package, typePkg *types.Package, name string, labelledGen bool) string {
+func namedOrRuntime(w genfp.ImportSet, working *types.Package, typePkg *types.Package, name string, labelledGen bool) string {
 
 	if labelledGen {
 		ret := publicName(name)
@@ -2014,6 +2014,41 @@ func (r *TypeClassSummonContext) summonVar(tc metafp.TypeClassDerive) fp.Option[
 	return option.Some(ret)
 }
 
+// func (r *TypeClassSummonContext) summonRequired(working *types.Package, tc metafp.RequiredInstance) fp.Option[SummonExpr] {
+// 	ctx := CurrentContext{
+// 		workingScope: r.tcCache.GetLocal(working, tc.TypeClass),
+// 		tc:           tc.TypeClass,
+// 	}
+// }
+
+func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportSet) *TypeClassSummonContext {
+	derives := metafp.FindTypeClassDerive(pkgs)
+	tccache := metafp.TypeClassInstanceCache{}
+
+	metafp.FindTypeClassImport(pkgs).Foreach(func(v metafp.TypeClassDirective) {
+		//fmt.Printf("Import %s from %s into %s\n", v.TypeClass.Name, v.PrimitiveInstancePkg.Path(), v.Package.Path())
+		tccache.Load(v.PrimitiveInstancePkg, v.TypeClass)
+	})
+
+	seq.Iterator(derives).Foreach(func(v metafp.TypeClassDerive) {
+		tccache.WillGenerated(v)
+	})
+
+	moduleInf := option.FlatMap(seq.Head(pkgs),
+		option.Compose3(
+			func(p *packages.Package) fp.Option[packages.Module] { return option.Ptr(p.Module) },
+			option.Pure1(func(m packages.Module) string { return m.GoVersion }),
+			option.Pure1(func(v string) bool { return v >= "1.21" }),
+		),
+	).OrElse(true)
+
+	return &TypeClassSummonContext{
+		w:                     importSet,
+		tcCache:               &tccache,
+		recursiveGen:          derives,
+		implicitTypeInference: implicitTypeInference && moduleInf,
+	}
+}
 func genDerive() {
 
 	pack := os.Getenv("GOPACKAGE")
@@ -2041,31 +2076,7 @@ func genDerive() {
 		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
-		tccache := metafp.TypeClassInstanceCache{}
-
-		metafp.FindTypeClassImport(pkgs).Foreach(func(v metafp.TypeClassDirective) {
-			fmt.Printf("Import %s from %s into %s\n", v.TypeClass.Name, v.PrimitiveInstancePkg.Path(), v.Package.Path())
-			tccache.Load(v.PrimitiveInstancePkg, v.TypeClass)
-		})
-
-		seq.Iterator(derives).Foreach(func(v metafp.TypeClassDerive) {
-			tccache.WillGenerated(v)
-		})
-
-		moduleInf := option.FlatMap(seq.Head(pkgs),
-			option.Compose3(
-				func(p *packages.Package) fp.Option[packages.Module] { return option.Ptr(p.Module) },
-				option.Pure1(func(m packages.Module) string { return m.GoVersion }),
-				option.Pure1(func(v string) bool { return v >= "1.21" }),
-			),
-		).OrElse(true)
-
-		summonCtx := TypeClassSummonContext{
-			w:                     w,
-			tcCache:               &tccache,
-			recursiveGen:          derives,
-			implicitTypeInference: implicitTypeInference && moduleInf,
-		}
+		summonCtx := NewTypeClassSummonContext(pkgs, w)
 
 		for len(summonCtx.recursiveGen) > 0 {
 			d := summonCtx.recursiveGen

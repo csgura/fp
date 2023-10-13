@@ -1285,3 +1285,39 @@ func ShowUseShow() fp.Show[UseShow] {
 		),
 	)
 }
+
+func ShowShowHasTypeParam[T any]() fp.Show[ShowHasTypeParam[T]] {
+	return show.Generic(
+		as.Generic(
+			"testpk1.ShowHasTypeParam",
+			"Struct",
+			fp.Compose(
+				func(v ShowHasTypeParam[T]) fp.Tuple3[string, int, Container[int]] {
+					return as.Tuple3(v.hello, v.world, v.message)
+				},
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				func(t fp.Tuple3[string, int, Container[int]]) ShowHasTypeParam[T] {
+					return ShowHasTypeParam[T]{
+						hello:   t.I1,
+						world:   t.I2,
+						message: t.I3,
+					}
+				},
+			),
+		),
+		show.StructHCons(
+			show.String,
+			show.StructHCons(
+				show.Int[int](),
+				show.StructHCons(
+					ShowContainer(show.Int[int]()),
+					show.HNil,
+				),
+			),
+		),
+	)
+}
