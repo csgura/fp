@@ -2401,6 +2401,131 @@ func NewRequiredArgs(hello string) RequiredArgs {
 	}
 }
 
+func (r UseShow) Hello() string {
+	return r.hello
+}
+
+func (r UseShow) World() int {
+	return r.world
+}
+
+func (r UseShow) String() string {
+	return ShowUseShow().Show(r)
+}
+
+func (r UseExplicitShow) Hello() string {
+	return r.hello
+}
+
+func (r UseExplicitShow) World() int {
+	return r.world
+}
+
+func (r UseExplicitShow) String() string {
+	return ShowUseExplicitShow().Show(r)
+}
+
+func (r UseExplicitShowVar) Hello() string {
+	return r.hello
+}
+
+func (r UseExplicitShowVar) World() int {
+	return r.world
+}
+
+func (r UseExplicitShowVar) WithHello(v string) UseExplicitShowVar {
+	r.hello = v
+	return r
+}
+
+func (r UseExplicitShowVar) WithWorld(v int) UseExplicitShowVar {
+	r.world = v
+	return r
+}
+
+func (r UseExplicitShowVar) String() string {
+	return ShowUseExplicitShowVar.Show(r)
+}
+
+func (r UseExplicitShowVar) AsTuple() fp.Tuple2[string, int] {
+	return as.Tuple2(r.hello, r.world)
+}
+
+func (r UseExplicitShowVar) Unapply() (string, int) {
+	return r.hello, r.world
+}
+
+func (r UseExplicitShowVar) AsMap() map[string]any {
+	m := map[string]any{}
+	m["hello"] = r.hello
+	m["world"] = r.world
+	return m
+}
+
+type UseExplicitShowVarBuilder UseExplicitShowVar
+
+func (r UseExplicitShowVarBuilder) Build() UseExplicitShowVar {
+	return UseExplicitShowVar(r)
+}
+
+func (r UseExplicitShowVar) Builder() UseExplicitShowVarBuilder {
+	return UseExplicitShowVarBuilder(r)
+}
+
+func (r UseExplicitShowVarBuilder) Hello(v string) UseExplicitShowVarBuilder {
+	r.hello = v
+	return r
+}
+
+func (r UseExplicitShowVarBuilder) World(v int) UseExplicitShowVarBuilder {
+	r.world = v
+	return r
+}
+
+func (r UseExplicitShowVarBuilder) FromTuple(t fp.Tuple2[string, int]) UseExplicitShowVarBuilder {
+	r.hello = t.I1
+	r.world = t.I2
+	return r
+}
+
+func (r UseExplicitShowVarBuilder) Apply(hello string, world int) UseExplicitShowVarBuilder {
+	r.hello = hello
+	r.world = world
+	return r
+}
+
+func (r UseExplicitShowVarBuilder) FromMap(m map[string]any) UseExplicitShowVarBuilder {
+
+	if v, ok := m["hello"].(string); ok {
+		r.hello = v
+	}
+
+	if v, ok := m["world"].(int); ok {
+		r.world = v
+	}
+
+	return r
+}
+
+type UseExplicitShowVarMutable struct {
+	Hello string
+	World int
+}
+
+func (r UseExplicitShowVar) AsMutable() UseExplicitShowVarMutable {
+	return UseExplicitShowVarMutable{
+		Hello: r.hello,
+		World: r.world,
+	}
+}
+
+func (r UseExplicitShowVarMutable) AsImmutable() UseExplicitShowVar {
+	return UseExplicitShowVar{
+		hello: r.Hello,
+		world: r.World,
+	}
+}
+
 type PubNamedPub[T any] fp.Tuple1[T]
 
 func (r PubNamedPub[T]) Name() string {

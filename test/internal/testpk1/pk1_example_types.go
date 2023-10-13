@@ -2,6 +2,7 @@ package testpk1
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -356,3 +357,37 @@ type AdTester interface {
 func DefaultWrite(b []byte) (int, error) {
 	return 0, nil
 }
+
+// @fp.Getter
+// @fp.String(useShow=true)
+type UseShow struct {
+	hello string
+	world int
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[UseShow]]
+
+// @fp.Getter
+// @fp.String(useShow=true)
+type UseExplicitShow struct {
+	hello string
+	world int
+}
+
+func ShowUseExplicitShow() fp.Show[UseExplicitShow] {
+	return show.New(func(v UseExplicitShow) string {
+		return fmt.Sprintf("Hello(%s,%d)", v.hello, v.world)
+	})
+}
+
+// @fp.Value
+// @fp.String(useShow=true)
+type UseExplicitShowVar struct {
+	hello string
+	world int
+}
+
+var ShowUseExplicitShowVar = show.New(func(v UseExplicitShowVar) string {
+	return fmt.Sprintf("Hello(%s,%d)", v.hello, v.world)
+})

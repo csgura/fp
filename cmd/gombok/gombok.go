@@ -15,6 +15,7 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 
@@ -86,7 +87,11 @@ func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) fp.Se
 	return ret
 }
 
-func processDeref(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func processDeref(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	if _, ok := ts.Tags.Get("@fp.Deref").Unapply(); ok {
 		//fmt.Printf("rhs type = %s\n", ts.RhsType)
@@ -194,12 +199,14 @@ func processDeref(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 	return genMethod
 }
 
-func processGetter(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
-
+func processGetter(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 	if _, ok := ts.Tags.Get("@fp.Getter").Unapply(); ok {
 		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 
-		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
+		genMethod = genPrivateGetters(ctx, privateFields, genMethod)
 	}
 
 	if anno, ok := ts.Tags.Get("@fp.GetterPubField").Unapply(); ok {
@@ -270,10 +277,81 @@ func parseGombokTag(tags reflect.StructTag) ParsedTag {
 	return ret
 }
 
-func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
+	tccache := ctx.tccache
+	derives := ctx.derives
+
 	if ts.Info.Method.Get("String").IsEmpty() && !genMethod.Contains("String") {
 
 		valuereceiver := ts.Info.TypeStr(w, workingPackage)
+
+		useShow := option.Map(ts.Tags.Get("@fp.String"), func(v metafp.Annotation) bool {
+			return v.Params().Get("useShow").OrElse("false") == "true"
+		}).OrElse(false)
+
+		if useShow {
+
+			scope := tccache.GetLocal(workingPackage, metafp.TypeClass{
+				Name:    "Show",
+				Package: types.NewPackage("github.com/csgura/fp", "fp"),
+			})
+
+			insOpt := scope.Find(ts.Info).Head()
+			if insOpt.IsDefined() {
+				ins := insOpt.Get()
+				if !ins.IsFunc() {
+					fmt.Fprintf(w, `
+						func(r %s) String() string {
+							return %s.Show(r)
+						}
+					`, valuereceiver,
+						ins.Name,
+					)
+
+					genMethod = genMethod.Incl("String")
+
+					return genMethod
+				} else if ins.RequiredInstance.Size() == 0 {
+					fmt.Fprintf(w, `
+						func(r %s) String() string {
+							return %s().Show(r)
+						}
+					`, valuereceiver,
+						ins.Name,
+					)
+
+					genMethod = genMethod.Incl("String")
+
+					return genMethod
+				}
+			}
+
+			showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
+			})
+
+			valuetp := ts.Info.TypeParamIns(w, workingPackage)
+
+			if showDerive.IsDefined() && valuetp == "" {
+
+				fmt.Fprintf(w, `
+						func(r %s) String() string {
+							return %s().Show(r)
+						}
+					`, valuereceiver,
+					showDerive.Get().GeneratedInstanceName(),
+				)
+
+				genMethod = genMethod.Incl("String")
+
+				return genMethod
+			}
+		}
+
 		fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 
 		printable := allFields.Filter(func(v metafp.StructField) bool {
@@ -305,7 +383,11 @@ func genStringMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 	return genMethod
 }
 
-func genUnapply(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+func genUnapply(ctx TaggedStructContext, allFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
+
 	valuereceiver := ts.Info.TypeStr(w, workingPackage)
 	if allFields.Size() < max.Product {
 
@@ -359,12 +441,13 @@ func genUnapply(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 	}
 	return genMethod
 }
-func processString(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func processString(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
 
 	if _, ok := ts.Tags.Get("@fp.String").Unapply(); ok {
 		allFields := applyFields(ts)
 
-		genMethod = genStringMethod(w, workingPackage, ts, allFields, genMethod)
+		genMethod = genStringMethod(ctx, allFields, genMethod)
 	}
 
 	return genMethod
@@ -377,7 +460,10 @@ func applyFields(ts metafp.TaggedStruct) fp.Seq[metafp.StructField] {
 	})
 }
 
-func genBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	valuetpdec := ts.Info.TypeParamDecl(w, workingPackage)
 	valuetp := ts.Info.TypeParamIns(w, workingPackage)
@@ -576,17 +662,21 @@ func genBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 	return genMethod
 }
 
-func processBuilder(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func processBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
 
 	if _, ok := ts.Tags.Get("@fp.Builder").Unapply(); ok {
 
-		genMethod = genBuilder(w, workingPackage, ts, genMethod)
+		genMethod = genBuilder(ctx, genMethod)
 	}
 
 	return genMethod
 }
 
-func genPrivateWiths(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+func genPrivateWiths(ctx TaggedStructContext, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	valuereceiver := ts.Info.TypeStr(w, workingPackage)
 
@@ -644,12 +734,15 @@ func genPrivateWiths(w genfp.Writer, workingPackage *types.Package, ts metafp.Ta
 	return genMethod
 }
 
-func processWith(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func processWith(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	if _, ok := ts.Tags.Get("@fp.With").Unapply(); ok {
 		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 
-		genMethod = genPrivateWiths(w, workingPackage, ts, privateFields, genMethod)
+		genMethod = genPrivateWiths(ctx, privateFields, genMethod)
 	}
 
 	if anno, ok := ts.Tags.Get("@fp.WithPubField").Unapply(); ok {
@@ -696,7 +789,11 @@ func processWith(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagged
 	return genMethod
 }
 
-func genAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	fnName := fmt.Sprintf("New%s", ts.Name)
 
@@ -728,7 +825,10 @@ func genAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.Tag
 	return genMethod
 }
 
-func genRequiredArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	fnName := fmt.Sprintf("New%s", ts.Name)
 
@@ -762,32 +862,52 @@ func genRequiredArgsCons(w genfp.Writer, workingPackage *types.Package, ts metaf
 	return genMethod
 }
 
-func processAllArgsCons(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func processAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+
 	if _, ok := ts.Tags.Get("@fp.AllArgsConstructor").Unapply(); ok {
-		genMethod = genAllArgsCons(w, workingPackage, ts, genMethod)
+		genMethod = genAllArgsCons(ctx, genMethod)
 	} else if _, ok := ts.Tags.Get("@fp.RequiredArgsConstructor").Unapply(); ok {
-		genMethod = genRequiredArgsCons(w, workingPackage, ts, genMethod)
+		genMethod = genRequiredArgsCons(ctx, genMethod)
 	}
 	return genMethod
 }
+
+type TaggedStructContext struct {
+	w              genfp.Writer
+	workingPackage *types.Package
+	ts             metafp.TaggedStruct
+	derives        fp.Seq[metafp.TypeClassDerive]
+	tccache        metafp.TypeClassInstanceCache
+}
+
 func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], derives fp.Seq[metafp.TypeClassDerive]) {
 	keyTags := mutable.EmptySet[string]()
 
+	tccache := metafp.TypeClassInstanceCache{}
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := fp.Set[string]{}
 		stDerives := derives.Filter(func(v metafp.TypeClassDerive) bool {
 			return v.DeriveFor.Name == ts.Name
 		})
-		genMethod = processAllArgsCons(w, workingPackage, ts, genMethod)
 
-		genMethod, keyTags = processValue(w, workingPackage, ts, stDerives, genMethod, keyTags)
+		ctx := TaggedStructContext{
+			w:              w,
+			workingPackage: workingPackage,
+			ts:             ts,
+			derives:        stDerives,
+			tccache:        tccache,
+		}
+		genMethod = processAllArgsCons(ctx, genMethod)
 
-		genMethod = processGetter(w, workingPackage, ts, genMethod)
-		genMethod = processWith(w, workingPackage, ts, genMethod)
-		genMethod = processDeref(w, workingPackage, ts, genMethod)
-		genMethod = processString(w, workingPackage, ts, genMethod)
+		genMethod, keyTags = processValue(ctx, genMethod, keyTags)
 
-		genMethod = processBuilder(w, workingPackage, ts, genMethod)
+		genMethod = processGetter(ctx, genMethod)
+		genMethod = processWith(ctx, genMethod)
+		genMethod = processDeref(ctx, genMethod)
+		genMethod = processString(ctx, genMethod)
+
+		genMethod = processBuilder(ctx, genMethod)
 
 	})
 
@@ -814,7 +934,10 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 	})
 }
 
-func genPrivateGetters(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+func genPrivateGetters(ctx TaggedStructContext, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
@@ -839,7 +962,10 @@ func genPrivateGetters(w genfp.Writer, workingPackage *types.Package, ts metafp.
 	return genMethod
 }
 
-func genTypeClassMethod(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string]) fp.Set[string] {
+func genTypeClassMethod(ctx TaggedStructContext, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
@@ -1028,7 +1154,10 @@ func genTypeClassMethod(w genfp.Writer, workingPackage *types.Package, ts metafp
 	return genMethod
 }
 
-func genMutable(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, genMethod fp.Set[string]) fp.Set[string] {
+func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	allFields := applyFields(ts)
 
@@ -1123,7 +1252,11 @@ func genMutable(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedS
 	return genMethod
 }
 
-func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.TaggedStruct, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
+func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
+
+	ts := ctx.ts
+	w := ctx.w
+	workingPackage := ctx.workingPackage
 
 	if _, ok := ts.Tags.Get("@fp.Value").Unapply(); ok {
 
@@ -1140,10 +1273,10 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 
 		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
-		genMethod = genPrivateGetters(w, workingPackage, ts, privateFields, genMethod)
-		genMethod = genPrivateWiths(w, workingPackage, ts, privateFields, genMethod)
-		genMethod = genStringMethod(w, workingPackage, ts, allFields, genMethod)
-		genMethod = genUnapply(w, workingPackage, ts, allFields, genMethod)
+		genMethod = genPrivateGetters(ctx, privateFields, genMethod)
+		genMethod = genPrivateWiths(ctx, privateFields, genMethod)
+		genMethod = genStringMethod(ctx, allFields, genMethod)
+		genMethod = genUnapply(ctx, allFields, genMethod)
 
 		if ts.Info.Method.Get("AsMap").IsEmpty() {
 
@@ -1249,8 +1382,8 @@ func processValue(w genfp.Writer, workingPackage *types.Package, ts metafp.Tagge
 			}
 		}
 
-		genMethod = genBuilder(w, workingPackage, ts, genMethod)
-		genMethod = genMutable(w, workingPackage, ts, genMethod)
+		genMethod = genBuilder(ctx, genMethod)
+		genMethod = genMutable(ctx, genMethod)
 
 	}
 	return genMethod, keyTags

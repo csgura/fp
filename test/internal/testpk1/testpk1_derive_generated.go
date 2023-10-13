@@ -1253,3 +1253,35 @@ func EqLocalEmbedPrivate() fp.Eq[LocalEmbedPrivate] {
 		},
 	)
 }
+
+func ShowUseShow() fp.Show[UseShow] {
+	return show.Generic(
+		as.Generic(
+			"testpk1.UseShow",
+			"Struct",
+			fp.Compose(
+				func(v UseShow) fp.Tuple2[string, int] {
+					return as.Tuple2(v.hello, v.world)
+				},
+				as.HList2,
+			),
+
+			fp.Compose(
+				product.TupleFromHList2,
+				func(t fp.Tuple2[string, int]) UseShow {
+					return UseShow{
+						hello: t.I1,
+						world: t.I2,
+					}
+				},
+			),
+		),
+		show.StructHCons(
+			show.String,
+			show.StructHCons(
+				show.Int[int](),
+				show.HNil,
+			),
+		),
+	)
+}

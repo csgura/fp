@@ -18,38 +18,14 @@ import (
 )
 
 type TypeClass struct {
-	Name      string
-	Package   *types.Package
-	Type      TypeInfo
-	TypeParam fp.Seq[TypeParam]
+	Name    string
+	Package *types.Package
 }
 
 func (r TypeClass) IsLazy() bool {
 	return r.Name == "Eval" && r.Package.Path() == "github.com/csgura/fp/lazy"
 }
 
-// int  =>  Eq[int]
-// Option[T any] =>   (T) -> Eq[Option[T]]
-func (r TypeClass) InstantiatedType(t TypeInfo) TypeInfo {
-
-	ret := r.Type
-
-	ret.TypeParam = t.TypeParam
-
-	t.TypeParam = seq.Empty[TypeParam]()
-	t.TypeArgs = seq.Map(ret.TypeParam, func(v TypeParam) TypeInfo {
-		p := types.NewTypeParam(v.TypeName, v.Constraint)
-		return typeInfo(p)
-	})
-	ret.TypeArgs = seq.Of(t)
-
-	ctx := types.NewContext()
-	ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
-	ret.Type = ins
-
-	return ret
-
-}
 func (r TypeClass) Id() string {
 	if r.Package != nil {
 		return fmt.Sprintf("%s.%s", r.Package.Path(), r.Name)
@@ -69,9 +45,32 @@ type TypeClassDerive struct {
 	Package              *types.Package
 	PrimitiveInstancePkg *types.Package
 	TypeClass            TypeClass
+	TypeClassType        TypeInfo
 	DeriveFor            NamedTypeInfo
 	StructInfo           fp.Option[TaggedStruct]
 	Tags                 fp.Map[string, Annotation]
+}
+
+// int  =>  Eq[int]
+// Option[T any] =>   (T) -> Eq[Option[T]]
+func (r TypeClassDerive) InstantiatedType(t TypeInfo) TypeInfo {
+
+	ret := r.TypeClassType
+
+	ret.TypeParam = t.TypeParam
+
+	t.TypeParam = seq.Empty[TypeParam]()
+	t.TypeArgs = seq.Map(ret.TypeParam, func(v TypeParam) TypeInfo {
+		p := types.NewTypeParam(v.TypeName, v.Constraint)
+		return typeInfo(p)
+	})
+	ret.TypeArgs = seq.Of(t)
+
+	ctx := types.NewContext()
+	ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
+	ret.Type = ins
+
+	return ret
 }
 
 func (r TypeClassDerive) IsRecursive() bool {
@@ -92,6 +91,7 @@ type TypeClassDirective struct {
 	Package              *types.Package
 	PrimitiveInstancePkg *types.Package
 	TypeClass            TypeClass
+	TypeClassType        TypeInfo
 	TypeArgs             fp.Seq[TypeInfo]
 	Tags                 fp.Map[string, Annotation]
 }
@@ -137,13 +137,12 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 										Package:              pk.Types,
 										PrimitiveInstancePkg: nt.Obj().Pkg(),
 										TypeClass: TypeClass{
-											Name:      tt.Obj().Name(),
-											Package:   tt.Obj().Pkg(),
-											Type:      tcType,
-											TypeParam: tcType.TypeParam,
+											Name:    tt.Obj().Name(),
+											Package: tt.Obj().Pkg(),
 										},
-										TypeArgs: typeArgs(tt.TypeArgs()),
-										Tags:     option.Map(doc, extractTag).OrZero(),
+										TypeClassType: tcType,
+										TypeArgs:      typeArgs(tt.TypeArgs()),
+										Tags:          option.Map(doc, extractTag).OrZero(),
 									})
 								}
 							}
@@ -168,6 +167,7 @@ func FindTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
 				Package:              v.Package,
 				PrimitiveInstancePkg: v.PrimitiveInstancePkg,
 				TypeClass:            v.TypeClass,
+				TypeClassType:        v.TypeClassType,
 				DeriveFor:            typeInfo(obj.Type()).AsNamed().Get(),
 				StructInfo:           vt,
 				Tags:                 v.Tags,
@@ -523,7 +523,7 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 		return LoadTypeClassInstance(tc.Package, tc.TypeClass)
 	})
 
-	t := tc.TypeClass.InstantiatedType(tc.DeriveFor.Info)
+	t := tc.InstantiatedType(tc.DeriveFor.Info)
 	//fmt.Printf("will generate %s, %v, %v\n", tc.GeneratedInstanceName(), tc.DeriveFor.Info.TypeParam, tc.DeriveFor.Info.TypeArgs)
 
 	// if t.TypeArgs.Head().IsDefined() {
@@ -632,10 +632,8 @@ func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassS
 
 func asRequired(v TypeInfo) RequiredInstance {
 	tc := TypeClass{
-		Name:      v.Name().Get(),
-		Package:   v.Pkg,
-		Type:      v,
-		TypeParam: v.TypeParam,
+		Name:    v.Name().Get(),
+		Package: v.Pkg,
 	}
 
 	if tc.IsLazy() {
