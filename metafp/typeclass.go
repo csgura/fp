@@ -409,8 +409,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	//fmt.Printf("check %s.%s : %t, %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType.TypeArgs.Size())
-
+	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
 	if argType.IsTypeParam() {
 
 		// func[T any]() Eq[T] 인 경우

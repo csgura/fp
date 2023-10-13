@@ -2,6 +2,7 @@
 package testpk1
 
 import (
+	"fmt"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
@@ -86,7 +87,7 @@ func ShowWorld() fp.Show[World] {
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
-				show.Time,
+				ShowStringer[time.Time](),
 				show.StructHCons(
 					show.String,
 					show.HNil,
@@ -1286,13 +1287,13 @@ func ShowUseShow() fp.Show[UseShow] {
 	)
 }
 
-func ShowShowHasTypeParam[T any]() fp.Show[ShowHasTypeParam[T]] {
+func ShowShowHasTypeParam() fp.Show[ShowHasTypeParam] {
 	return show.Generic(
 		as.Generic(
 			"testpk1.ShowHasTypeParam",
 			"Struct",
 			fp.Compose(
-				func(v ShowHasTypeParam[T]) fp.Tuple3[string, int, Container[int]] {
+				func(v ShowHasTypeParam) fp.Tuple3[string, int, Container[int]] {
 					return as.Tuple3(v.hello, v.world, v.message)
 				},
 				as.HList3,
@@ -1300,8 +1301,8 @@ func ShowShowHasTypeParam[T any]() fp.Show[ShowHasTypeParam[T]] {
 
 			fp.Compose(
 				product.TupleFromHList3,
-				func(t fp.Tuple3[string, int, Container[int]]) ShowHasTypeParam[T] {
-					return ShowHasTypeParam[T]{
+				func(t fp.Tuple3[string, int, Container[int]]) ShowHasTypeParam {
+					return ShowHasTypeParam{
 						hello:   t.I1,
 						world:   t.I2,
 						message: t.I3,
@@ -1315,6 +1316,42 @@ func ShowShowHasTypeParam[T any]() fp.Show[ShowHasTypeParam[T]] {
 				show.Int[int](),
 				show.StructHCons(
 					ShowContainer(show.Int[int]()),
+					show.HNil,
+				),
+			),
+		),
+	)
+}
+
+func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint[T]] {
+	return show.Generic(
+		as.Generic(
+			"testpk1.ShowConstraint",
+			"Struct",
+			fp.Compose(
+				func(v ShowConstraint[T]) fp.Tuple3[string, int, T] {
+					return as.Tuple3(v.hello, v.world, v.message)
+				},
+				as.HList3,
+			),
+
+			fp.Compose(
+				product.TupleFromHList3,
+				func(t fp.Tuple3[string, int, T]) ShowConstraint[T] {
+					return ShowConstraint[T]{
+						hello:   t.I1,
+						world:   t.I2,
+						message: t.I3,
+					}
+				},
+			),
+		),
+		show.StructHCons(
+			show.String,
+			show.StructHCons(
+				show.Int[int](),
+				show.StructHCons(
+					showT,
 					show.HNil,
 				),
 			),

@@ -961,6 +961,13 @@ func typeInfo(tpe types.Type) TypeInfo {
 			return as.Tuple2(m.Name(), m)
 		})
 
+		// TODO : type param 추가하면 난리남..
+		// if params.Size() > 0 && args.Size() == 0 {
+		// 	args = seq.Map(params, func(v TypeParam) TypeInfo {
+		// 		p := types.NewTypeParam(v.TypeName, v.Constraint)
+		// 		return typeInfo(p)
+		// 	})
+		// }
 		return TypeInfo{
 			ID:        id,
 			Pkg:       realtp.Obj().Pkg(),

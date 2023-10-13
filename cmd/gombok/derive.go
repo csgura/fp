@@ -672,7 +672,7 @@ func MergeSeqDistinct[T any](eqt fp.Eq[T]) fp.Monoid[fp.Seq[T]] {
 func (r *TypeClassSummonContext) summonArgs(ctx CurrentContext, args fp.Seq[metafp.RequiredInstance]) SummonExpr {
 	list := seq.Map(args, func(t metafp.RequiredInstance) SummonExpr {
 		// TODO: checkRequired 에서  lookup 하는 코드 있음. checkRequired 에서 한번 했으면 안하게 할 필요 있음.
-		ret := r.summon(ctx, t)
+		ret := r.summonRequired(ctx, t)
 		if t.Lazy {
 			lazypk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/lazy", "lazy"))
 			expr := fmt.Sprintf(`%s.Call( func() %s[%s] {
@@ -1630,7 +1630,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 				arity := typeArgs.Size()
 				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfo) SummonExpr {
-					instance := r.summon(ctx, metafp.RequiredInstance{
+					instance := r.summonRequired(ctx, metafp.RequiredInstance{
 						TypeClass: ctx.tc.TypeClass,
 						Type:      ti,
 						FieldOf:   option.Some(sf.tpe),
@@ -1720,7 +1720,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			hnil := r.lookupTypeClassFunc(ctx, tc, "TupleHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 
 			hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfo) SummonExpr {
-				instance := r.summon(ctx, metafp.RequiredInstance{
+				instance := r.summonRequired(ctx, metafp.RequiredInstance{
 					TypeClass: ctx.tc.TypeClass,
 					Type:      ti,
 					FieldOf:   fieldOf,
@@ -1752,7 +1752,7 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 
 	instance := r.lookupTypeClassFuncMust(ctx, tc, "Named")
 
-	expr := r.summon(ctx, metafp.RequiredInstance{
+	expr := r.summonRequired(ctx, metafp.RequiredInstance{
 		TypeClass: tc,
 		Type:      t,
 	})
@@ -1764,7 +1764,7 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 	// return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
 }
 
-func (r *TypeClassSummonContext) summon(ctx CurrentContext, req metafp.RequiredInstance) SummonExpr {
+func (r *TypeClassSummonContext) summonRequired(ctx CurrentContext, req metafp.RequiredInstance) SummonExpr {
 
 	t := req.Type
 
@@ -1907,7 +1907,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx CurrentContext, tc metafp.TypeC
 	summonExpr := GenericRepr{
 		Kind: fp.GenericKindNewType,
 		ReprExpr: func() SummonExpr {
-			return r.summon(ctx, metafp.RequiredInstance{
+			return r.summonRequired(ctx, metafp.RequiredInstance{
 				TypeClass: tc,
 				Type:      named.Underlying,
 			})

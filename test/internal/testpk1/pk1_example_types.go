@@ -397,7 +397,7 @@ type Container[T any] struct {
 }
 
 // @fp.String(useShow=true)
-type ShowHasTypeParam[T any] struct {
+type ShowHasTypeParam struct {
 	hello   string
 	world   int
 	message Container[int]
@@ -410,4 +410,33 @@ func ShowContainer[T any](tshow fp.Show[T]) fp.Show[Container[T]] {
 }
 
 // @fp.Derive
-var _ show.Derives[fp.Show[ShowHasTypeParam[any]]]
+var _ show.Derives[fp.Show[ShowHasTypeParam]]
+
+// @fp.String(useShow=true)
+type ShowConstraint[T fmt.Stringer] struct {
+	hello   string
+	world   int
+	message T
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[ShowConstraint[fmt.Stringer]]]
+
+func ShowStringer[T fmt.Stringer]() fp.Show[T] {
+	return show.New[T](func(t T) string {
+		return t.String()
+	})
+}
+
+// @fp.String(useShow=true)
+type ShowConstraintExplicit[T fmt.Stringer] struct {
+	hello   string
+	world   int
+	message T
+}
+
+func ShowShowConstraintExplicit[T fmt.Stringer]() fp.Show[T] {
+	return show.New[T](func(t T) string {
+		return t.String()
+	})
+}
