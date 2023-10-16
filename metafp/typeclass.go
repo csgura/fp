@@ -409,7 +409,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
+	//	fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
 	if argType.IsTypeParam() {
 
 		// func[T any]() Eq[T] 인 경우
@@ -424,6 +424,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 				return v
 			})
 			r.ParamMapping = check.ParamMapping
+			//fmt.Printf("typeparam check.Ok\n")
 			return option.Some(r)
 		}
 		return option.None[TypeClassInstance]()
@@ -444,6 +445,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 			r.ParamMapping = check.ParamMapping
 			//fmt.Printf("check %s.%s : %v\n", r.Package.Name(), r.Name, check.ParamMapping)
 
+			//fmt.Printf("typeargs check.Ok\n")
 			return option.Some(r)
 		}
 		return option.None[TypeClassInstance]()
@@ -451,6 +453,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 	}
 
 	if argType.Type.String() == t.Type.String() {
+		//fmt.Printf("type check.Ok\n")
 		return option.Some(r)
 	}
 	return option.None[TypeClassInstance]()
@@ -652,6 +655,10 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 	rType := insType.ResultType()
 	name := ins.Name()
 
+	if _, ok := ins.(*types.TypeName); ok {
+		return option.None[TypeClassInstance]()
+	}
+
 	if rType.IsInstanceOf(tc) && rType.TypeArgs.Size() > 0 {
 		under := rType.TypeArgs.Head().Get()
 
@@ -751,6 +758,7 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 	for _, name := range pk.Scope().Names() {
 		ins := pk.Scope().Lookup(name)
 		AsTypeClassInstance(tc, ins).Foreach(func(tins TypeClassInstance) {
+			//fmt.Printf("tc found %s, type = %T, underlying = %T\n", tins.Name, tins.Type.Type, tins.Type.Type.Underlying())
 			if tins.HasExplictArg {
 				ret.OtherFuncs = ret.OtherFuncs.Updated(name, tins)
 			} else {
