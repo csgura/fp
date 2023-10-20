@@ -61,3 +61,16 @@ var _ = genfp.GenerateAdaptor[SpanContext]{
 	Self:     true,
 	Delegate: []genfp.Delegate{genfp.DelegatedBy[context.Context]("DefaultContext")},
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[context.Context]{
+	File:               "delegate_generated.go",
+	Name:               "ContextWrapper",
+	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
+	Options: []genfp.ImplOption{
+		{
+			Prefix: "Get",
+			Method: context.Context.Value,
+		},
+	},
+}

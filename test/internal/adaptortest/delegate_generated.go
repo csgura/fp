@@ -327,3 +327,21 @@ func (r *SpanContextExtends) ValueImpl(self SpanContext, key any) any {
 
 	panic("SpanContextExtends.Value not implemented")
 }
+
+type ContextWrapper struct {
+	context.Context
+	GetValue func(key any) any
+}
+
+func (r *ContextWrapper) Value(key any) any {
+
+	if r.GetValue != nil {
+		return r.GetValue(key)
+	}
+
+	if r.Context != nil {
+		return r.Context.Value(key)
+	}
+
+	panic("ContextWrapper.Value not implemented")
+}

@@ -65,7 +65,10 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 				}
 
 				if opt.Method == "" {
+
 					opt.Private = true
+				} else {
+
 				}
 			}
 		}
@@ -470,7 +473,7 @@ func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
 
 	cbfield := option.Some(fmt.Sprintf("%s func(%s%s) %s", r.cbName, r.selfarg, r.argTypeStr, r.resstr))
 
-	cbfield = cbfield.FilterNot(func(v string) bool { return opt.Delegate != nil })
+	cbfield = cbfield.FilterNot(func(v string) bool { return opt.Delegate != nil && opt.Private })
 
 	cbfield = cbfield.FilterNot(func(v string) bool {
 		return r.isValOverride() && opt.OmitGetterIfValOverride
@@ -664,6 +667,15 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 
 		opt := gad.Methods[t.Name()]
 
+		if opt.Delegate != nil && opt.Private {
+			if isEmbeddingField(gad, opt.Delegate.Field) {
+				if !gad.Self || !gad.ExtendsByEmbedding {
+					// 아무것도 리턴 안할 때는   TypeName 호출하면 안됨.
+					return as.Tuple("", "")
+				}
+			}
+		}
+
 		sig := opt.Signature
 		valName := fmt.Sprintf("Default%s", t.Name())
 		cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
@@ -735,6 +747,24 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 			fieldMap:        fieldMap,
 		}
 
+		if opt.Delegate != nil && opt.Private {
+			if isEmbeddingField(gad, opt.Delegate.Field) {
+				if gad.Self && gad.ExtendsByEmbedding {
+					methodSet = methodSet.Incl(t.Name())
+					return as.Tuple("", fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+						`, adaptorTypeName, t.Name(), argTypeStr, resstr,
+						ctx.withReturn(true, `r.%sImpl(r, %s)`, t.Name(), argStr),
+					))
+				}
+				// 아무것도 안하는 리턴이기 때문에 ,  위에 중간에 리턴하는 코드에서 이미 처리함.
+				// 여긴 절대로 실행안됨.
+				return as.Tuple("", "")
+			}
+		}
+
 		//fmt.Printf("generate method %s (super:%s) impl %s of %s \n", t.Name(), ctx.superField, namedInterface.String(), adaptorTypeName)
 
 		defaultField, cbField := ctx.adaptorFields()
@@ -756,21 +786,6 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 			return defaultExpr.IsDefined()
 		})
 
-		if opt.Delegate != nil {
-			if isEmbeddingField(gad, opt.Delegate.Field) {
-				if gad.Self && gad.ExtendsByEmbedding {
-					methodSet = methodSet.Incl(t.Name())
-					return as.Tuple("", fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-						}
-						`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-						ctx.withReturn(true, `r.%sImpl(r, %s)`, t.Name(), argStr),
-					))
-				}
-				return as.Tuple("", "")
-			}
-		}
 		impl := fmt.Sprintf(`
 						func (r *%s) %s(%s) %s {
 							%s
