@@ -623,12 +623,12 @@ func (r TypeInfo) String() string {
 	name := r.Name().OrZero()
 	if r.Pkg != nil {
 		if r.TypeParam.Size() > 0 {
-			return fmt.Sprintf("%s.%s[%s]", r.PkgName(), name, r.TypeArgs.MakeString(","))
+			return fmt.Sprintf("%s.%s[%s](%s)", r.PkgName(), name, r.TypeParam.MakeString(","), r.TypeArgs.MakeString(","))
 		}
 		return fmt.Sprintf("%s.%s", r.PkgName(), name)
 	}
 	if r.TypeParam.Size() > 0 {
-		return fmt.Sprintf("%s[%s]", name, r.TypeArgs.MakeString(","))
+		return fmt.Sprintf("%s[%s](%s)", name, r.TypeParam.MakeString(","), r.TypeArgs.MakeString(","))
 	}
 	if name == "" {
 		return r.Type.String()
@@ -897,6 +897,14 @@ func (r TypeInfo) TypeStr(w genfp.ImportSet, cwd *types.Package) string {
 	return w.TypeName(cwd, r.Type)
 }
 
+func (r TypeInfo) GenericType() TypeInfo {
+	switch nt := r.Type.(type) {
+	case *types.Named:
+		return typeInfo(nt.Obj().Type())
+	}
+	return r
+}
+
 type StructField struct {
 	Name     string
 	Type     TypeInfo
@@ -956,6 +964,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 		args := typeArgs(realtp.TypeArgs())
 		params := typeParam(realtp.TypeParams())
 
+		//fmt.Printf("name %s, args = %s\n", realtp.Obj().Name(), args.MakeString(","))
 		method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
 			m := realtp.Method(v)
 			return as.Tuple2(m.Name(), m)

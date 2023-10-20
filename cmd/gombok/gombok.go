@@ -282,7 +282,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 	ts := ctx.ts
 	w := ctx.w
 	workingPackage := ctx.workingPackage
-	tccache := ctx.tccache
+	tccache := ctx.summCtx.tcCache
 	derives := ctx.derives
 
 	if ts.Info.Method.Get("String").IsEmpty() && !genMethod.Contains("String") {
@@ -295,16 +295,29 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 
 		if useShow {
 
-			// ctx.summCtx.summon(ctx CurrentContext, req metafp.RequiredInstance)
-			scope := tccache.GetLocal(workingPackage, metafp.TypeClass{
+			tc := metafp.TypeClass{
 				Name:    "Show",
 				Package: types.NewPackage("github.com/csgura/fp", "fp"),
+			}
+
+			// ctx.summCtx.summon(ctx CurrentContext, req metafp.RequiredInstance)
+			scope := tccache.GetLocal(workingPackage, tc)
+
+			showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
+				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
 			})
 
-			insOpt := scope.Find(ts.Info).Head()
+			insOpt := option.FlatMap(showDerive, func(v metafp.TypeClassDerive) fp.Option[metafp.TypeClassInstance] {
+				fmt.Printf("find by name %s\n", v.GeneratedInstanceName())
+				return scope.FindByName(v.GeneratedInstanceName(), ts.Info)
+			}).Or(func() fp.Option[metafp.TypeClassInstance] {
+				return scope.Find(ts.Info).Head()
+			})
 			if insOpt.IsDefined() {
 				ins := insOpt.Get()
-				if !ins.IsFunc() {
+				//fmt.Printf("insOpt isDefined, tc= %s, static %t, required %d\n", ins.TypeClassType, ins.Static, ins.RequiredInstance.Size())
+
+				if ins.Static {
 					fmt.Fprintf(w, `
 						func(r %s) String() string {
 							return %s.Show(r)
@@ -317,12 +330,22 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 
 					return genMethod
 				} else if ins.RequiredInstance.Size() == 0 {
+
+					valuetp := ""
+					if !ins.TypeParam.IsEmpty() {
+						valuetp = "[" + seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
+							return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+								return w.TypeName(workingPackage, v.Type)
+							}).OrElse(v.Name)
+						}).MakeString(",") + "]"
+					}
+
 					fmt.Fprintf(w, `
 						func(r %s) String() string {
-							return %s().Show(r)
+							return %s%s().Show(r)
 						}
 					`, valuereceiver,
-						ins.Name,
+						ins.Name, valuetp,
 					)
 
 					genMethod = genMethod.Incl("String")
@@ -330,10 +353,6 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 					return genMethod
 				}
 			}
-
-			showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
-				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
-			})
 
 			valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
@@ -880,13 +899,11 @@ type TaggedStructContext struct {
 	ts             metafp.TaggedStruct
 	summCtx        *TypeClassSummonContext
 	derives        fp.Seq[metafp.TypeClassDerive]
-	tccache        metafp.TypeClassInstanceCache
 }
 
 func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext) {
 	keyTags := mutable.EmptySet[string]()
 
-	tccache := metafp.TypeClassInstanceCache{}
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := fp.Set[string]{}
 		stDerives := summonCtx.recursiveGen.Filter(func(v metafp.TypeClassDerive) bool {
@@ -898,7 +915,6 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 			workingPackage: workingPackage,
 			ts:             ts,
 			derives:        stDerives,
-			tccache:        tccache,
 			summCtx:        summonCtx,
 		}
 		genMethod = processAllArgsCons(ctx, genMethod)

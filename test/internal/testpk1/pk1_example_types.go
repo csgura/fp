@@ -422,12 +422,6 @@ type ShowConstraint[T fmt.Stringer] struct {
 // @fp.Derive
 var _ show.Derives[fp.Show[ShowConstraint[fmt.Stringer]]]
 
-func ShowStringer[T fmt.Stringer]() fp.Show[T] {
-	return show.New[T](func(t T) string {
-		return t.String()
-	})
-}
-
 // @fp.String(useShow=true)
 type ShowConstraintExplicit[T fmt.Stringer] struct {
 	hello   string
@@ -435,8 +429,8 @@ type ShowConstraintExplicit[T fmt.Stringer] struct {
 	message T
 }
 
-func ShowShowConstraintExplicit[T fmt.Stringer]() fp.Show[T] {
-	return show.New[T](func(t T) string {
-		return t.String()
+func ShowShowConstraintExplicit[T fmt.Stringer]() fp.Show[ShowConstraintExplicit[T]] {
+	return show.New(func(t ShowConstraintExplicit[T]) string {
+		return "t"
 	})
 }

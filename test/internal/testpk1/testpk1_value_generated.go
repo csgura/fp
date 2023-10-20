@@ -2535,7 +2535,7 @@ func (r ShowConstraint[T]) String() string {
 }
 
 func (r ShowConstraintExplicit[T]) String() string {
-	return fmt.Sprintf("testpk1.ShowConstraintExplicit{hello:%v, world:%v, message:%v}", r.hello, r.world, r.message)
+	return ShowShowConstraintExplicit[T]().Show(r)
 }
 
 type PubNamedPub[T any] fp.Tuple1[T]

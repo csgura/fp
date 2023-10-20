@@ -87,7 +87,7 @@ func ShowWorld() fp.Show[World] {
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
-				ShowStringer[time.Time](),
+				show.Time,
 				show.StructHCons(
 					show.String,
 					show.HNil,

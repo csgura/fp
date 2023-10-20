@@ -1255,7 +1255,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		}
 
 		unapplyFunc = func(structIns string) string {
-			return fmt.Sprintf(`%s`, seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", structIns, v) }).MakeString(","))
+			return seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", structIns, v) }).MakeString(",")
 
 		}
 
@@ -1764,6 +1764,23 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 	// return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
 }
 
+func (r *TypeClassSummonContext) SummonExpression(tc metafp.TypeClassDerive) SummonExpr {
+
+	ctx := CurrentContext{
+		workingScope: r.tcCache.GetLocal(tc.Package, tc.TypeClass),
+		primScope:    r.tcCache.Get(tc.PrimitiveInstancePkg, tc.TypeClass),
+		tc:           tc,
+		working:      tc.Package,
+		recursiveGen: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("recursive"))).Exists(eq.GivenValue("true")),
+	}
+
+	return r.summonRequired(ctx, metafp.RequiredInstance{
+		TypeClass: tc.TypeClass,
+		Type:      tc.DeriveFor.Info,
+	})
+
+}
 func (r *TypeClassSummonContext) summonRequired(ctx CurrentContext, req metafp.RequiredInstance) SummonExpr {
 
 	t := req.Type
@@ -2067,16 +2084,13 @@ func genDerive() {
 			return
 		}
 
-		derives := metafp.FindTypeClassDerive(pkgs)
-
-		if derives.Size() == 0 {
-			return
-		}
-
 		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
 		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
 
 		summonCtx := NewTypeClassSummonContext(pkgs, w)
+		if summonCtx.recursiveGen.Size() == 0 {
+			return
+		}
 
 		for len(summonCtx.recursiveGen) > 0 {
 			d := summonCtx.recursiveGen

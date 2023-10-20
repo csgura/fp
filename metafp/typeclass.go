@@ -126,12 +126,16 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 							info := &types.Info{
 								Types: make(map[ast.Expr]types.TypeAndValue),
 							}
+							//fmt.Printf("check expr = %s\n", types.ExprString(vs.Type))
 							types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
 							ti := info.Types[vs.Type]
 
 							if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
 								if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() > 0 {
+
+									// types.Named.Obj() 는  generic type 을 리턴해 준다.
 									tcType := typeInfo(tt.Obj().Type())
+									//fmt.Printf("tcType = %s\n", tcType)
 
 									return seq.Of(TypeClassDirective{
 										Package:              pk.Types,
@@ -214,6 +218,9 @@ type TypeClassInstance struct {
 	// instance 의 타입
 	Type TypeInfo
 
+	// 타입 클래스 타입
+	TypeClassType TypeInfo
+
 	// func 인 경우에 return 타입,  var 인 경우는 Type과 동일
 	Result TypeInfo
 
@@ -278,7 +285,7 @@ func (r TypeClassInstancesOfPackage) FindFunc(name string) fp.Option[TypeClassIn
 }
 
 func (r TypeClassInstancesOfPackage) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
-	//	fmt.Printf("find %s\n", name)
+	//fmt.Printf("find %s, from [%s]\n", name, r.ByName.Keys().MakeString(","))
 	ret := option.FlatMap(r.ByName.Get(name), as.Func2(TypeClassInstance.Check).ApplyLast(t))
 	return ret
 }
@@ -515,6 +522,7 @@ func (r *TypeClassInstanceCache) IsWillGenerated(tc TypeClassDerive) bool {
 }
 
 func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInstancesOfPackage {
+	//fmt.Printf("%s will generated\n", tc.GeneratedInstanceName())
 	list := r.tcMap.Get(tc.TypeClass.Id()).OrZero()
 
 	pkPred := func(v TypeClassInstancesOfPackage) bool {
@@ -537,6 +545,7 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 		Static:          false,
 		Implicit:        false,
 		Type:            t,
+		TypeClassType:   tc.TypeClassType,
 		Result:          t,
 		WillGeneratedBy: option.Some(tc),
 	}
@@ -660,21 +669,23 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 	}
 
 	if rType.IsInstanceOf(tc) && rType.TypeArgs.Size() > 0 {
+
 		under := rType.TypeArgs.Head().Get()
 
 		if insType.IsFunc() {
 
 			if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 				return option.Some(TypeClassInstance{
-					Package:   ins.Pkg(),
-					Name:      name,
-					Static:    false,
-					Implicit:  true,
-					Type:      insType,
-					Result:    rType,
-					Under:     under,
-					Instance:  ins,
-					TypeParam: insType.TypeParam,
+					Package:       ins.Pkg(),
+					Name:          name,
+					Static:        false,
+					Implicit:      true,
+					Type:          insType,
+					Result:        rType,
+					TypeClassType: rType.GenericType(),
+					Under:         under,
+					Instance:      ins,
+					TypeParam:     insType.TypeParam,
 				})
 				// ret.ByName = ret.ByName.Updated(name, tins)
 				// ret.All = ret.All.Append(tins)
@@ -703,6 +714,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						Implicit:         false,
 						Type:             insType,
 						Result:           rType,
+						TypeClassType:    rType.GenericType(),
 						TypeParam:        insType.TypeParam,
 						RequiredInstance: required,
 						Under:            under,
@@ -719,6 +731,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						HasExplictArg: true,
 						Type:          insType,
 						Result:        rType,
+						TypeClassType: rType.GenericType(),
 						TypeParam:     insType.TypeParam,
 						Under:         under,
 						Instance:      ins,
@@ -728,14 +741,15 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 			}
 		} else {
 			return option.Some(TypeClassInstance{
-				Package:  ins.Pkg(),
-				Name:     name,
-				Static:   true,
-				Implicit: false,
-				Type:     insType,
-				Result:   insType,
-				Under:    under,
-				Instance: ins,
+				Package:       ins.Pkg(),
+				Name:          name,
+				Static:        true,
+				Implicit:      false,
+				Type:          insType,
+				Result:        insType,
+				TypeClassType: insType.GenericType(),
+				Under:         under,
+				Instance:      ins,
 			})
 			// ret.ByName = ret.ByName.Updated(name, tins)
 			// ret.FixedByType = ret.FixedByType.Updated(under.Type.String(), tins)
@@ -743,6 +757,22 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 	}
 	return option.None[TypeClassInstance]()
 
+}
+
+func loadPackage(path string) *types.Package {
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, "github.com/csgura/fp/show")
+	if err != nil {
+		return nil
+	}
+	if len(pkgs) == 0 {
+		return nil
+	}
+
+	return pkgs[0].Types
 }
 
 func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOfPackage {
@@ -755,6 +785,15 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		All:         seq.Empty[TypeClassInstance](),
 	}
 	// fmt.Printf("Searching instances of %s from %s\n", tc.Name, pk.Path())
+	names := pk.Scope().Names()
+	if len(names) == 0 {
+		pk = loadPackage(pk.Path())
+		if pk == nil {
+			return ret
+		}
+		ret.Package = pk
+	}
+
 	for _, name := range pk.Scope().Names() {
 		ins := pk.Scope().Lookup(name)
 		AsTypeClassInstance(tc, ins).Foreach(func(tins TypeClassInstance) {
