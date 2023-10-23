@@ -1,8 +1,6 @@
 package gendebug
 
 import (
-	"context"
-
 	"github.com/csgura/fp/genfp"
 )
 
@@ -31,14 +29,23 @@ import (
 // }
 
 // @fp.Generate
-var _ = genfp.GenerateAdaptor[context.Context]{
-	File:               "gendebug_delegate.go",
-	Name:               "ContextWrapper",
-	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
-	Options: []genfp.ImplOption{
-		{
-			Prefix: "Get",
-			Method: context.Context.Value,
-		},
-	},
+// var _ = genfp.GenerateAdaptor[context.Context]{
+// 	File:               "gendebug_delegate.go",
+// 	Name:               "ContextWrapper",
+// 	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
+// 	Options: []genfp.ImplOption{
+// 		{
+// 			Prefix: "Get",
+// 			Method: context.Context.Value,
+// 		},
+// 	},
+// }
+
+type Invoker interface {
+	Invoke(interface{})
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Invoker]{
+	File: "gendebug_generated.go",
 }

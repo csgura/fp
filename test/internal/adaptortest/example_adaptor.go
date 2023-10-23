@@ -284,3 +284,17 @@ func (r *SenderSelfSelfArg) SendImpl(self Sender, msg string) (int, error) {
 		return 0, nil
 	}(self, msg)
 }
+
+type InvokerAdaptor struct {
+	DoInvoke func(a1 any)
+}
+
+func (r *InvokerAdaptor) Invoke(a1 any) {
+
+	if r.DoInvoke != nil {
+		r.DoInvoke(a1)
+		return
+	}
+
+	panic("InvokerAdaptor.Invoke not implemented")
+}

@@ -441,3 +441,12 @@ var _ = genfp.GenerateAdaptor[Sender]{
 		},
 	},
 }
+
+type Invoker interface {
+	Invoke(interface{})
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Invoker]{
+	File: "example_adaptor.go",
+}

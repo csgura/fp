@@ -656,6 +656,14 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 	//return fmt.Sprintf(`panic("%s.%s not implemented")`, r.adaptorTypeName, t.Name())
 }
 
+func argName(i int, t *types.Var) string {
+	var name = t.Name()
+	if name == "" {
+		name = fmt.Sprintf("a%d", i+1)
+	}
+	return name
+}
+
 func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
 	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
@@ -690,23 +698,25 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 		}
 
 		argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
-			return as.Tuple2(t.Name(), t.Type())
+
+			return as.Tuple2(argName(i, t), t.Type())
 		})
 
 		argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 			if sig.Variadic() && i == sig.Params().Len()-1 {
-				return fmt.Sprintf("%s...", t.Name())
+				return fmt.Sprintf("%s...", argName(i, t))
 			} else {
-				return t.Name()
+
+				return argName(i, t)
 			}
 		}).MakeString(",")
 
 		argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 			if sig.Variadic() && i == sig.Params().Len()-1 {
 				st := t.Type().(*types.Slice)
-				return fmt.Sprintf("%s ...%s", t.Name(), w.TypeName(gad.Package.Types, st.Elem()))
+				return fmt.Sprintf("%s ...%s", argName(i, t), w.TypeName(gad.Package.Types, st.Elem()))
 			}
-			return fmt.Sprintf("%s %s", t.Name(), w.TypeName(gad.Package.Types, t.Type()))
+			return fmt.Sprintf("%s %s", argName(i, t), w.TypeName(gad.Package.Types, t.Type()))
 		}).MakeString(",")
 
 		resstr := ""
