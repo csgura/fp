@@ -1,8 +1,6 @@
 package gendebug
 
-import (
-	"github.com/csgura/fp/genfp"
-)
+import "github.com/csgura/fp/genfp"
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
@@ -41,11 +39,27 @@ import (
 // 	},
 // }
 
-type Invoker interface {
-	Invoke(interface{})
+// type Invoker interface {
+// 	Invoke(interface{})
+// }
+
+// @fp.Generate
+// var _ = genfp.GenerateAdaptor[Invoker]{
+// 	File: "gendebug_generated.go",
+// }
+
+type StringSet map[string]bool
+
+type Peer interface {
+	Allowed() StringSet
 }
 
 // @fp.Generate
-var _ = genfp.GenerateAdaptor[Invoker]{
-	File: "gendebug_generated.go",
+var _ = genfp.GenerateAdaptor[Peer]{
+	File:        "gendebug_generated.go",
+	Extends:     true,
+	Self:        true,
+	ValOverride: []any{Peer.Allowed},
+	Getter:      []any{Peer.Allowed},
+	ZeroReturn:  []any{Peer.Allowed},
 }

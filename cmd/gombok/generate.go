@@ -493,6 +493,19 @@ func (r *implContext) isValOverride() bool {
 	sig := r.opt.Signature
 	return opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
 }
+
+func hasNil(t types.Type) bool {
+	switch u := t.Underlying().(type) {
+	case *types.Basic:
+		return u.Kind() == types.UnsafePointer
+	case *types.Slice, *types.Pointer, *types.Signature, *types.Map, *types.Chan:
+		return true
+	case *types.Interface:
+		return true
+	}
+	return false
+}
+
 func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 	sig := r.opt.Signature
 	w := r.w
@@ -500,13 +513,14 @@ func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 	valName := r.valName
 	valoverride := r.isValOverride()
 	if valoverride {
+
 		zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
-		if zeroVal == "nil" {
-			ret := fmt.Sprintf(`if r.%s != %s {
+		if hasNil(sig.Results().At(0).Type()) {
+			ret := fmt.Sprintf(`if r.%s != nil {
 								return r.%s
 							}
 					
-					`, valName, zeroVal,
+					`, valName,
 				valName)
 			return option.Some(ret), false
 		} else if (zeroVal == "0" || zeroVal == `""`) && defaultImpl {
@@ -792,6 +806,10 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 		cbExpr := option.FlatMap(cbField, func(v string) fp.Option[string] { return ctx.callCb() })
 		panicExpr := option.Some(fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name()))
 		valExpr, end := ctx.valOverride(defaultExpr.IsDefined() || callExtendsExpr.IsDefined() || cbExpr.IsDefined())
+		cbExpr = cbExpr.FilterNot(func(v string) bool { return end })
+		callExtendsExpr = callExtendsExpr.FilterNot(func(v GeneratedExpr) bool { return end })
+		defaultExpr = defaultExpr.FilterNot(func(v string) bool { return end })
+
 		panicExpr = panicExpr.FilterNot(func(v string) bool { return end || unreachable }).FilterNot(func(v string) bool {
 			return defaultExpr.IsDefined()
 		})
