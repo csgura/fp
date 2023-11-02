@@ -57,16 +57,17 @@ type GenerateAdaptor[T any] struct {
 	ImplementsWith []TypeTag
 
 	// adaptor struct 에 추가로 포함시킬  field
-	ExtendsWith        map[string]TypeTag
-	Embedding          []TypeTag
-	EmbeddingInterface []TypeTag
-	ExtendsByEmbedding bool
-	Delegate           []Delegate
-	Getter             []any
-	EventHandler       []any
-	ValOverride        []any
-	ZeroReturn         []any
-	Options            []ImplOption
+	ExtendsWith         map[string]TypeTag
+	Embedding           []TypeTag
+	EmbeddingInterface  []TypeTag
+	ExtendsByEmbedding  bool
+	Delegate            []Delegate
+	Getter              []any
+	EventHandler        []any
+	ValOverride         []any
+	ValOverrideUsingPtr []any
+	ZeroReturn          []any
+	Options             []ImplOption
 }
 
 type AdaptorMethods []ImplOption
@@ -77,6 +78,7 @@ type ImplOption struct {
 	Name                    string
 	Private                 bool
 	ValOverride             bool
+	ValOverrideUsingPtr     bool
 	OmitGetterIfValOverride bool
 	Delegate                Delegate
 	DefaultImpl             any
@@ -346,23 +348,24 @@ func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
 }
 
 type GenerateAdaptorDirective struct {
-	Package            *packages.Package
-	Interface          *types.Named
-	File               string
-	Name               string
-	Extends            bool
-	Self               bool
-	ImplementsWith     []TypeReference
-	ExtendsWith        map[string]TypeReference
-	Embedding          []TypeReference
-	EmbeddingInterface []TypeReference
-	ExtendsByEmbedding bool
-	Delegate           []DelegateDirective
-	Getter             []string
-	EventHandler       []string
-	ValOverride        []string
-	ZeroReturn         []string
-	Methods            map[string]ImplOptionDirective
+	Package             *packages.Package
+	Interface           *types.Named
+	File                string
+	Name                string
+	Extends             bool
+	Self                bool
+	ImplementsWith      []TypeReference
+	ExtendsWith         map[string]TypeReference
+	Embedding           []TypeReference
+	EmbeddingInterface  []TypeReference
+	ExtendsByEmbedding  bool
+	Delegate            []DelegateDirective
+	Getter              []string
+	EventHandler        []string
+	ValOverride         []string
+	ValOverrideUsingPtr []string
+	ZeroReturn          []string
+	Methods             map[string]ImplOptionDirective
 }
 
 type TypeReference struct {
@@ -588,6 +591,12 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				return ret, err
 			}
 			ret.ValOverride = v
+		case "ValOverrideUsingPtr":
+			v, err := evalArray(value, evalMethodRef(intfname))
+			if err != nil {
+				return ret, err
+			}
+			ret.ValOverrideUsingPtr = v
 		case "ZeroReturn":
 			v, err := evalArray(value, evalMethodRef(intfname))
 			if err != nil {
@@ -614,6 +623,7 @@ type ImplOptionDirective struct {
 	Name                    string
 	Private                 bool
 	ValOverride             bool
+	ValOverrideUsingPtr     bool
 	OmitGetterIfValOverride bool
 	DefaultImplExpr         ast.Expr
 	DefaultImplSignature    *types.Signature
@@ -705,6 +715,12 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 						return ret, err
 					}
 					ret.ValOverride = v
+				case "ValOverrideUsingPtr":
+					v, err := evalBoolValue(value)
+					if err != nil {
+						return ret, err
+					}
+					ret.ValOverrideUsingPtr = v
 				case "OmitGetterIfValOverride":
 					v, err := evalBoolValue(value)
 					if err != nil {

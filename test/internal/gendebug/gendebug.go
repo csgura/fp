@@ -50,16 +50,23 @@ import "github.com/csgura/fp/genfp"
 
 type StringSet map[string]bool
 
+type Address struct {
+	ip string
+}
+
 type Peer interface {
 	Allowed() StringSet
+	Address() Address
 }
 
 // @fp.Generate
 var _ = genfp.GenerateAdaptor[Peer]{
-	File:        "gendebug_generated.go",
-	Extends:     true,
-	Self:        true,
-	ValOverride: []any{Peer.Allowed},
-	Getter:      []any{Peer.Allowed},
-	ZeroReturn:  []any{Peer.Allowed},
+	File:                "gendebug_generated.go",
+	Extends:             true,
+	Self:                true,
+	ValOverride:         []any{Peer.Allowed},
+	ValOverrideUsingPtr: []any{Peer.Address},
+
+	Getter:     []any{Peer.Allowed},
+	ZeroReturn: []any{Peer.Allowed},
 }

@@ -103,6 +103,13 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 			}
 		}
 
+		if opt.ValOverrideUsingPtr == false {
+			opt.ValOverrideUsingPtr = slices.Contains(ret.ValOverrideUsingPtr, m.Name())
+			if opt.ValOverrideUsingPtr && !slices.Contains(ret.Getter, m.Name()) {
+				opt.OmitGetterIfValOverride = true
+			}
+		}
+
 		if opt.DefaultImplExpr == nil && slices.Contains(ret.ZeroReturn, m.Name()) {
 			opt.DefaultImplExpr = &ast.SelectorExpr{X: ast.NewIdent("genfp"), Sel: ast.NewIdent("ZeroReturn")}
 		}
@@ -482,6 +489,9 @@ func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
 	cbfield = cbfield.FilterNot(fp.Const[string](opt.Private))
 
 	defaultField := option.Map(option.Of(r.isValOverride()).Filter(fp.Id), func(v bool) string {
+		if opt.ValOverrideUsingPtr {
+			return fmt.Sprintf("%s *%s", r.valName, r.w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
+		}
 		return fmt.Sprintf("%s %s", r.valName, r.w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
 	})
 
@@ -491,7 +501,7 @@ func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
 func (r *implContext) isValOverride() bool {
 	opt := r.opt
 	sig := r.opt.Signature
-	return opt.ValOverride && sig.Params().Len() == 0 && sig.Results().Len() == 1
+	return (opt.ValOverride || opt.ValOverrideUsingPtr) && sig.Params().Len() == 0 && sig.Results().Len() == 1
 }
 
 func hasNil(t types.Type) bool {
@@ -513,6 +523,15 @@ func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 	valName := r.valName
 	valoverride := r.isValOverride()
 	if valoverride {
+		if r.opt.ValOverrideUsingPtr {
+			ret := fmt.Sprintf(`if r.%s != nil {
+								return *r.%s
+							}
+					
+					`, valName,
+				valName)
+			return option.Some(ret), false
+		}
 
 		zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
 		if hasNil(sig.Results().At(0).Type()) {

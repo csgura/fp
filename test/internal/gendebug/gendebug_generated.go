@@ -3,8 +3,33 @@ package gendebug
 
 type PeerAdaptor struct {
 	Extends        Peer
+	DefaultAddress *Address
 	DefaultAllowed StringSet
 	GetAllowed     func(self Peer) StringSet
+}
+
+func (r *PeerAdaptor) Address() Address {
+	return r.AddressImpl(r)
+}
+
+func (r *PeerAdaptor) AddressImpl(self Peer) Address {
+	if r.DefaultAddress != nil {
+		return *r.DefaultAddress
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			AddressImpl(self Peer) Address
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.AddressImpl(self)
+		}
+
+		return r.Extends.Address()
+	}
+
+	panic("PeerAdaptor.Address not implemented")
 }
 
 func (r *PeerAdaptor) Allowed() StringSet {
