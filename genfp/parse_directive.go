@@ -125,7 +125,7 @@ func evalSelectorExpr(e ast.Expr) (string, error) {
 			return fmt.Sprintf("%s.%s", x.Name, t.Sel.Name), nil
 		}
 	}
-	return "", fmt.Errorf("can't eval %T as method reference", e)
+	return "", fmt.Errorf("can't eval %T as selector expr", e)
 }
 
 func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
@@ -135,14 +135,16 @@ func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
 			switch t.X.(type) {
 			case *ast.SelectorExpr:
 				return t.Sel.Name, nil
-				// p, err := evalSelectorExpr(x)
-				// if err != nil {
-				// 	return "", err
-				// }
-				// if strings.HasSuffix(p, tname) {
-				// 	return t.Sel.Name, nil
-				// }
-				// return "", fmt.Errorf("invalid method reference : %s", p)
+			// p, err := evalSelectorExpr(x)
+			// if err != nil {
+			// 	return "", err
+			// }
+			// if strings.HasSuffix(p, tname) {
+			// 	return t.Sel.Name, nil
+			// }
+			// return "", fmt.Errorf("invalid method reference : %s", p)
+			case *ast.IndexExpr:
+				return t.Sel.Name, nil
 			case *ast.Ident:
 				return t.Sel.Name, nil
 				// if x.Name == tname {
@@ -150,6 +152,7 @@ func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
 				// }
 				// return "", fmt.Errorf("invalid method reference : %s", x.Name)
 			}
+			return "", fmt.Errorf("can't eval %T as method reference", t.X)
 		}
 		return "", fmt.Errorf("can't eval %T as method reference", e)
 	}

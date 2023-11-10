@@ -30,7 +30,11 @@ func (r *ExecBuilderAdaptor[T]) Build(id string) func() T {
 		return r.DoBuild(id)
 	}
 
-	panic("ExecBuilderAdaptor[T].Build not implemented")
+	return func(self ExecBuilder[T], id string) func() T {
+		return func() T {
+			return self.Make(id)
+		}
+	}(r, id)
 }
 
 func (r *ExecBuilderAdaptor[T]) Make(id string) T {

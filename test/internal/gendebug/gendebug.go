@@ -34,5 +34,15 @@ type ExecBuilder[T preparable[T]] interface {
 func _[T preparable[T]]() genfp.GenerateAdaptor[ExecBuilder[T]] {
 	return genfp.GenerateAdaptor[ExecBuilder[T]]{
 		File: "gendebug_generated.go",
+		Options: []genfp.ImplOption{
+			{
+				Method: ExecBuilder[T].Build,
+				DefaultImpl: func(self ExecBuilder[T], id string) func() T {
+					return func() T {
+						return self.Make(id)
+					}
+				},
+			},
+		},
 	}
 }
