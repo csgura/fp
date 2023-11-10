@@ -17,3 +17,36 @@ func (r *ContainerAdaptor[T]) Get() T {
 
 	panic("ContainerAdaptor[T].Get not implemented")
 }
+
+type ExecBuilderAdaptor[T preparable[T]] struct {
+	DoBuild          func(id string) func() T
+	DoMake           func(id string) T
+	DoWithoutPublish func() ExecBuilder[T]
+}
+
+func (r *ExecBuilderAdaptor[T]) Build(id string) func() T {
+
+	if r.DoBuild != nil {
+		return r.DoBuild(id)
+	}
+
+	panic("ExecBuilderAdaptor[T].Build not implemented")
+}
+
+func (r *ExecBuilderAdaptor[T]) Make(id string) T {
+
+	if r.DoMake != nil {
+		return r.DoMake(id)
+	}
+
+	panic("ExecBuilderAdaptor[T].Make not implemented")
+}
+
+func (r *ExecBuilderAdaptor[T]) WithoutPublish() ExecBuilder[T] {
+
+	if r.DoWithoutPublish != nil {
+		return r.DoWithoutPublish()
+	}
+
+	panic("ExecBuilderAdaptor[T].WithoutPublish not implemented")
+}

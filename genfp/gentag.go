@@ -211,33 +211,62 @@ type TaggedLit struct {
 	Lit     *ast.CompositeLit
 }
 
-func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []TaggedLit {
-	tagSeq := tags
-	return seqFlatMap(p, func(pk *packages.Package) []TaggedLit {
-		s2 := seqFlatMap(pk.Syntax, func(v *ast.File) []ast.Decl {
+type FuncOrGen struct {
+	fn *ast.FuncDecl
+	gn *ast.GenDecl
+}
 
-			return v.Decls
-		})
+func taggedFromFuncDecl(pk *packages.Package, typeName string, gd *ast.FuncDecl, tagSeq []string) []TaggedLit {
+	gdDoc := gd.Doc
+	comment := func() string {
+		if gdDoc != nil {
+			return gdDoc.Text()
+		}
 
-		s3 := seqFlatMap(s2, func(v ast.Decl) []*ast.GenDecl {
-			switch r := v.(type) {
-			case *ast.GenDecl:
-				return []*ast.GenDecl{r}
+		return ""
+	}()
+
+	if comment != "" && seqExists(tagSeq, func(tag string) bool { return strings.Contains(comment, tag) }) {
+		tags := extractTag(comment)
+
+		if !seqExists(tagSeq, tags.Contains) {
+			return nil
+		}
+
+		if gd.Type.Results.NumFields() == 1 {
+
+			sig := checkFuncType(pk, gd.Type, gd.Pos())
+			if sig != nil {
+				if sig.Results().Len() == 1 {
+					if named, ok := sig.Results().At(0).Type().(*types.Named); ok {
+						if named.Obj().Name() == typeName {
+							if lastStmt, ok := seqLast(gd.Body.List); ok {
+								if retStmt, ok := lastStmt.(*ast.ReturnStmt); ok && len(retStmt.Results) == 1 {
+									if cl, ok := retStmt.Results[0].(*ast.CompositeLit); ok {
+										return []TaggedLit{{pk, named, cl}}
+									}
+								}
+							}
+
+						}
+					}
+				}
 			}
-			return []*ast.GenDecl{}
-		})
+		}
+	}
 
-		s4 := seqFlatMap(s2, func(v ast.Decl) []*ast.FuncDecl {
-			switch r := v.(type) {
-			case *ast.FuncDecl:
-				return []*ast.FuncDecl{r}
-			}
-			return []*ast.FuncDecl{}
-		})
+	return nil
+}
 
-		fnLit := seqFlatMap(s4, func(gd *ast.FuncDecl) []TaggedLit {
-			gdDoc := gd.Doc
+func taggedFromGenDecl(pk *packages.Package, typeName string, gd *ast.GenDecl, tagSeq []string) []TaggedLit {
+	gdDoc := gd.Doc
+
+	return seqFlatMap(gd.Specs, func(v ast.Spec) []TaggedLit {
+		if ts, ok := v.(*ast.ValueSpec); ok {
 			comment := func() string {
+				if ts.Doc != nil {
+					return ts.Doc.Text()
+				}
 				if gdDoc != nil {
 					return gdDoc.Text()
 				}
@@ -246,77 +275,56 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 			}()
 
 			if comment != "" && seqExists(tagSeq, func(tag string) bool { return strings.Contains(comment, tag) }) {
-				tags := extractTag(comment)
+				return seqFlatMap(seqZip(ts.Names, ts.Values), func(v tuple2[*ast.Ident, ast.Expr]) []TaggedLit {
 
-				if !seqExists(tagSeq, tags.Contains) {
-					return nil
-				}
+					tags := extractTag(comment)
 
-				if gd.Type.Results.NumFields() == 1 {
+					if !seqExists(tagSeq, tags.Contains) {
+						return nil
+					}
 
-					sig := checkFuncType(pk, gd.Type, gd.Pos())
-					if sig != nil {
-						if sig.Results().Len() == 1 {
-							if named, ok := sig.Results().At(0).Type().(*types.Named); ok {
-								if named.Obj().Name() == typeName {
-									if lastStmt, ok := seqLast(gd.Body.List); ok {
-										if retStmt, ok := lastStmt.(*ast.ReturnStmt); ok && len(retStmt.Results) == 1 {
-											if cl, ok := retStmt.Results[0].(*ast.CompositeLit); ok {
-												return []TaggedLit{{pk, named, cl}}
-											}
-										}
-									}
-
-								}
+					if cl, ok := v.I2.(*ast.CompositeLit); ok {
+						named := checkType(pk, cl.Type, v.I2.Pos())
+						if named != nil {
+							if named.Obj().Name() == typeName {
+								return []TaggedLit{{pk, named, cl}}
 							}
 						}
 					}
-				}
+					return nil
+				})
 			}
+		}
+		return nil
+	})
+}
 
+func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ...string) []TaggedLit {
+	tagSeq := tags
+	return seqFlatMap(p, func(pk *packages.Package) []TaggedLit {
+		s2 := seqFlatMap(pk.Syntax, func(v *ast.File) []ast.Decl {
+
+			return v.Decls
+		})
+
+		s3 := seqFlatMap(s2, func(v ast.Decl) []FuncOrGen {
+			switch r := v.(type) {
+			case *ast.GenDecl:
+				return []FuncOrGen{{gn: r}}
+			case *ast.FuncDecl:
+				return []FuncOrGen{{fn: r}}
+			}
+			return []FuncOrGen{}
+		})
+
+		return seqFlatMap(s3, func(gd FuncOrGen) []TaggedLit {
+			if gd.fn != nil {
+				return taggedFromFuncDecl(pk, typeName, gd.fn, tagSeq)
+			} else if gd.gn != nil {
+				return taggedFromGenDecl(pk, typeName, gd.gn, tagSeq)
+			}
 			return nil
 		})
 
-		varLit := seqFlatMap(s3, func(gd *ast.GenDecl) []TaggedLit {
-			gdDoc := gd.Doc
-
-			return seqFlatMap(gd.Specs, func(v ast.Spec) []TaggedLit {
-				if ts, ok := v.(*ast.ValueSpec); ok {
-					comment := func() string {
-						if ts.Doc != nil {
-							return ts.Doc.Text()
-						}
-						if gdDoc != nil {
-							return gdDoc.Text()
-						}
-
-						return ""
-					}()
-
-					if comment != "" && seqExists(tagSeq, func(tag string) bool { return strings.Contains(comment, tag) }) {
-						return seqFlatMap(seqZip(ts.Names, ts.Values), func(v tuple2[*ast.Ident, ast.Expr]) []TaggedLit {
-
-							tags := extractTag(comment)
-
-							if !seqExists(tagSeq, tags.Contains) {
-								return nil
-							}
-
-							if cl, ok := v.I2.(*ast.CompositeLit); ok {
-								named := checkType(pk, cl.Type, v.I2.Pos())
-								if named != nil {
-									if named.Obj().Name() == typeName {
-										return []TaggedLit{{pk, named, cl}}
-									}
-								}
-							}
-							return nil
-						})
-					}
-				}
-				return nil
-			})
-		})
-		return append(fnLit, varLit...)
 	})
 }

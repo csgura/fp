@@ -18,3 +18,21 @@ func _[T fmt.Stringer]() genfp.GenerateAdaptor[Container[T]] {
 		File: "gendebug_generated.go",
 	}
 }
+
+type preparable[T any] interface {
+	StmtFor(tx string) T
+	Close() error
+}
+
+type ExecBuilder[T preparable[T]] interface {
+	Build(id string) func() T
+	Make(id string) T
+	WithoutPublish() ExecBuilder[T]
+}
+
+// @fp.Generate
+func _[T preparable[T]]() genfp.GenerateAdaptor[ExecBuilder[T]] {
+	return genfp.GenerateAdaptor[ExecBuilder[T]]{
+		File: "gendebug_generated.go",
+	}
+}
