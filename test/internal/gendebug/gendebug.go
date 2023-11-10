@@ -1,72 +1,20 @@
 package gendebug
 
-import "github.com/csgura/fp/genfp"
+import (
+	"fmt"
+
+	"github.com/csgura/fp/genfp"
+)
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-// @fp.String(useShow=true)
-// type ShowConstraintExplicit[T fmt.Stringer] struct {
-// 	hello   string
-// 	world   int
-// 	message T
-// }
-
-// func ShowStringer[T fmt.Stringer]() fp.Show[T] {
-// 	return show.New[T](func(t T) string {
-// 		return t.String()
-// 	})
-// }
-
-// @fp.Derive
-//var _ show.Derives[fp.Show[ShowConstraintExplicit[fmt.Stringer]]]
-
-// func ShowShowConstraintExplicit[T fmt.Stringer]() fp.Show[ShowConstraintExplicit[T]] {
-// 	return show.New(func(t ShowConstraintExplicit[T]) string {
-// 		return fmt.Sprintf("ShowConstraintExplicit(message=%s)", t.message)
-// 	})
-// }
-
-// @fp.Generate
-// var _ = genfp.GenerateAdaptor[context.Context]{
-// 	File:               "gendebug_delegate.go",
-// 	Name:               "ContextWrapper",
-// 	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context]()},
-// 	Options: []genfp.ImplOption{
-// 		{
-// 			Prefix: "Get",
-// 			Method: context.Context.Value,
-// 		},
-// 	},
-// }
-
-// type Invoker interface {
-// 	Invoke(interface{})
-// }
-
-// @fp.Generate
-// var _ = genfp.GenerateAdaptor[Invoker]{
-// 	File: "gendebug_generated.go",
-// }
-
-type StringSet map[string]bool
-
-type Address struct {
-	ip string
-}
-
-type Peer interface {
-	Allowed() StringSet
-	Address() Address
+type Container[T fmt.Stringer] interface {
+	Get() T
 }
 
 // @fp.Generate
-var _ = genfp.GenerateAdaptor[Peer]{
-	File:                "gendebug_generated.go",
-	Extends:             true,
-	Self:                true,
-	ValOverride:         []any{Peer.Allowed},
-	ValOverrideUsingPtr: []any{Peer.Address},
-
-	Getter:     []any{Peer.Allowed},
-	ZeroReturn: []any{Peer.Allowed},
+func _[T fmt.Stringer]() genfp.GenerateAdaptor[Container[T]] {
+	return genfp.GenerateAdaptor[Container[T]]{
+		File: "gendebug_generated.go",
+	}
 }

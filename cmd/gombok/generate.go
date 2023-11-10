@@ -17,6 +17,7 @@ import (
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
@@ -212,14 +213,18 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 
 	intf := gad.Interface.Underlying().(*types.Interface)
 
+	ti := metafp.GetTypeInfo(gad.Interface)
+	decltp := ti.TypeParamDecl(w, gad.Package.Types)
+	valuetp := ti.TypeParamIns(w, gad.Package.Types)
+
 	gad, _ = fillOption(gad, intf)
-	fields, methodSet := fieldAndImplOfInterfaceImpl2(w, gad, gad.Interface, adaptorTypeName, superField, fieldSet, methodSet)
+	fields, methodSet := fieldAndImplOfInterfaceImpl2(w, gad, gad.Interface, adaptorTypeName+valuetp, superField, fieldSet, methodSet)
 
 	for _, i := range gad.ImplementsWith {
 		if i.Type != nil {
 			if intf, ok := i.Type.Underlying().(*types.Interface); ok {
 				gad, _ = fillOption(gad, intf)
-				af, ms := fieldAndImplOfInterfaceImpl2(w, gad, i.Type, adaptorTypeName, "", fieldSet, methodSet)
+				af, ms := fieldAndImplOfInterfaceImpl2(w, gad, i.Type, adaptorTypeName+valuetp, "", fieldSet, methodSet)
 				fields = fields.Concat(af)
 				methodSet = ms
 			}
@@ -237,10 +242,10 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 
 	fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")))
 
-	fmt.Fprintf(w, `type %s struct {
+	fmt.Fprintf(w, `type %s%s struct {
 					%s
 				}
-				`, adaptorTypeName, fieldDecl.MakeString("\n"))
+				`, adaptorTypeName, decltp, fieldDecl.MakeString("\n"))
 
 	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
 }

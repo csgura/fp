@@ -40,6 +40,15 @@ func seqFilter[T any](r []T, p func(v T) bool) []T {
 	return ret
 }
 
+func seqLast[T any](r []T) (T, bool) {
+	if len(r) > 0 {
+		return r[len(r)-1], true
+	} else {
+		var zero T
+		return zero, false
+	}
+}
+
 type tuple2[A, B any] struct {
 	I1 A
 	I2 B
@@ -183,6 +192,19 @@ func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Na
 	return nil
 }
 
+func checkFuncType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Signature {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
+	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+
+	ti := info.Types[typeExpr]
+	if named, ok := ti.Type.(*types.Signature); ok {
+		return named
+	}
+	return nil
+}
+
 type TaggedLit struct {
 	Package *packages.Package
 	Type    *types.Named
@@ -205,7 +227,57 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 			return []*ast.GenDecl{}
 		})
 
-		return seqFlatMap(s3, func(gd *ast.GenDecl) []TaggedLit {
+		s4 := seqFlatMap(s2, func(v ast.Decl) []*ast.FuncDecl {
+			switch r := v.(type) {
+			case *ast.FuncDecl:
+				return []*ast.FuncDecl{r}
+			}
+			return []*ast.FuncDecl{}
+		})
+
+		fnLit := seqFlatMap(s4, func(gd *ast.FuncDecl) []TaggedLit {
+			gdDoc := gd.Doc
+			comment := func() string {
+				if gdDoc != nil {
+					return gdDoc.Text()
+				}
+
+				return ""
+			}()
+
+			if comment != "" && seqExists(tagSeq, func(tag string) bool { return strings.Contains(comment, tag) }) {
+				tags := extractTag(comment)
+
+				if !seqExists(tagSeq, tags.Contains) {
+					return nil
+				}
+
+				if gd.Type.Results.NumFields() == 1 {
+
+					sig := checkFuncType(pk, gd.Type, gd.Pos())
+					if sig != nil {
+						if sig.Results().Len() == 1 {
+							if named, ok := sig.Results().At(0).Type().(*types.Named); ok {
+								if named.Obj().Name() == typeName {
+									if lastStmt, ok := seqLast(gd.Body.List); ok {
+										if retStmt, ok := lastStmt.(*ast.ReturnStmt); ok && len(retStmt.Results) == 1 {
+											if cl, ok := retStmt.Results[0].(*ast.CompositeLit); ok {
+												return []TaggedLit{{pk, named, cl}}
+											}
+										}
+									}
+
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return nil
+		})
+
+		varLit := seqFlatMap(s3, func(gd *ast.GenDecl) []TaggedLit {
 			gdDoc := gd.Doc
 
 			return seqFlatMap(gd.Specs, func(v ast.Spec) []TaggedLit {
@@ -245,5 +317,6 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 				return nil
 			})
 		})
+		return append(fnLit, varLit...)
 	})
 }
