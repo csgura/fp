@@ -73,6 +73,17 @@ func Of[T any](f func() T) (ret fp.Try[T]) {
 	return
 }
 
+func Call[T any](f func() (T, error)) (ret fp.Try[T]) {
+	defer func() {
+		if p := recover(); p != nil {
+			ret = Failure[T](&panicError{p, debug.Stack()})
+		}
+	}()
+
+	ret = Apply(f())
+	return
+}
+
 func Apply[T any](v T, err error) fp.Try[T] {
 	if err != nil {
 		return Failure[T](err)
