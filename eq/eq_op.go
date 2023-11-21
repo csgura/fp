@@ -179,11 +179,10 @@ func NilOr[A any](pf fp.Predicate[A]) fp.Predicate[*A] {
 	}
 }
 
-func NotZero[A comparable]() fp.Predicate[A] {
+func NotZero[A comparable](v A) bool {
 	var zero A
-	return func(a A) bool {
-		return a != zero
-	}
+
+	return v != zero
 }
 
 func NotZeroAnd[A comparable](pf fp.Predicate[A]) fp.Predicate[A] {
