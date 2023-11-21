@@ -179,6 +179,34 @@ func NilOr[A any](pf fp.Predicate[A]) fp.Predicate[*A] {
 	}
 }
 
+func NotZero[A comparable]() fp.Predicate[A] {
+	var zero A
+	return func(a A) bool {
+		return a != zero
+	}
+}
+
+func NotZeroAnd[A comparable](pf fp.Predicate[A]) fp.Predicate[A] {
+	var zero A
+	return func(a A) bool {
+		if a == zero {
+			return false
+		}
+		return pf(a)
+	}
+}
+
+func ZeroOr[A comparable](pf fp.Predicate[A]) fp.Predicate[A] {
+	var zero A
+
+	return func(a A) bool {
+		if a == zero {
+			return true
+		}
+		return pf(a)
+	}
+}
+
 // as.Func2(fp.Option[A].Exists).ApplyLast 와 같은 함수
 func SomeAnd[A any](pf fp.Predicate[A]) fp.Predicate[fp.Option[A]] {
 	//return as.Func2(fp.Option[A].Exists).ApplyLast(pf)
