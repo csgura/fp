@@ -84,6 +84,18 @@ func Call[T any](f func() (T, error)) (ret fp.Try[T]) {
 	return
 }
 
+func CallUnit[T any](f func() error) (ret fp.Try[fp.Unit]) {
+	defer func() {
+		if p := recover(); p != nil {
+			ret = Failure[fp.Unit](&panicError{p, debug.Stack()})
+		}
+	}()
+
+	err := f()
+	ret = Apply(fp.Unit{}, err)
+	return
+}
+
 func Apply[T any](v T, err error) fp.Try[T] {
 	if err != nil {
 		return Failure[T](err)
@@ -470,6 +482,13 @@ func Func0[R any](f func() (R, error)) fp.Func1[fp.Unit, fp.Try[R]] {
 	return func(fp.Unit) fp.Try[R] {
 		ret, err := f()
 		return Apply(ret, err)
+	}
+}
+
+func Unit0[R any](f func() error) fp.Func1[fp.Unit, fp.Try[fp.Unit]] {
+	return func(fp.Unit) fp.Try[fp.Unit] {
+		err := f()
+		return Apply(fp.Unit{}, err)
 	}
 }
 
