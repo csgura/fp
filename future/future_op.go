@@ -477,6 +477,10 @@ func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
 }
 
 func Await[T any](future fp.Future[T], timeout time.Duration) fp.Try[T] {
+
+	if future.IsCompleted() {
+		return future.Value()
+	}
 	// value := future.Value()
 	// if value.IsDefined() {
 	// 	return value.Get()
