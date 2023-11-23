@@ -485,7 +485,7 @@ func Func0[R any](f func() (R, error)) fp.Func1[fp.Unit, fp.Try[R]] {
 	}
 }
 
-func Unit0[R any](f func() error) fp.Func1[fp.Unit, fp.Try[fp.Unit]] {
+func Unit0(f func() error) fp.Func1[fp.Unit, fp.Try[fp.Unit]] {
 	return func(fp.Unit) fp.Try[fp.Unit] {
 		err := f()
 		return Apply(fp.Unit{}, err)
