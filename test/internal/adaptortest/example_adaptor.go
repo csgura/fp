@@ -298,3 +298,36 @@ func (r *InvokerAdaptor) Invoke(a1 any) {
 
 	panic("InvokerAdaptor.Invoke not implemented")
 }
+
+type InvokerCheckSelf struct {
+	Extends  Invoker
+	DoInvoke func(a1 any)
+}
+
+func (r *InvokerCheckSelf) Invoke(a1 any) {
+	r.InvokeImpl(r, a1)
+}
+
+func (r *InvokerCheckSelf) InvokeImpl(self Invoker, a1 any) {
+
+	if r.DoInvoke != nil {
+		r.DoInvoke(a1)
+		return
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			InvokeImpl(self Invoker, a1 any)
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			super.InvokeImpl(self, a1)
+			return
+		}
+
+		r.Extends.Invoke(a1)
+		return
+	}
+
+	panic("InvokerCheckSelf.Invoke not implemented")
+}

@@ -450,3 +450,11 @@ type Invoker interface {
 var _ = genfp.GenerateAdaptor[Invoker]{
 	File: "example_adaptor.go",
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Invoker]{
+	File:             "example_adaptor.go",
+	Name:             "InvokerCheckSelf",
+	Extends:          true,
+	ExtendsSelfCheck: true,
+}

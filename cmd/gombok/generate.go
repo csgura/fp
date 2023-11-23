@@ -372,13 +372,13 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 	}
 
 	implName := func() string {
-		if gad.Self {
+		if gad.ExtendsSelfCheck {
 			return r.t.Name() + "Impl"
 		}
 		return r.t.Name()
 	}()
 
-	if gad.Self {
+	if gad.ExtendsSelfCheck {
 		return option.Some(fmt.Sprintf(`type impl interface {
 										%s(%s) %s
 									}
@@ -626,7 +626,7 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 			})
 
 			availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-				if gad.Self {
+				if gad.ExtendsSelfCheck {
 					return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), r.argTypes)
 				}
 				return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), r.argTypes)
@@ -765,12 +765,12 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 		}
 
 		implArgs := argTypeStr
-		if gad.Self {
+		if gad.ExtendsSelfCheck {
 			implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
 		}
 
 		implName := func() string {
-			if gad.Self {
+			if gad.ExtendsSelfCheck {
 				return t.Name() + "Impl"
 			}
 			return t.Name()
@@ -852,7 +852,7 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 				Concat(panicExpr.ToSeq()).
 				MakeString("\n\n"),
 		)
-		if gad.Self {
+		if gad.ExtendsSelfCheck {
 			impl = fmt.Sprintf(`
 						func (r *%s) %s(%s) %s {
 							%s

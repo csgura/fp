@@ -49,10 +49,20 @@ type GenerateFromUntil struct {
 }
 
 type GenerateAdaptor[T any] struct {
-	File    string
-	Name    string
+	// 생성될 file 이름
+	File string
+	// adaptor type 이름
+	Name string
+
+	// Extends field 추가 여부
 	Extends bool
-	Self    bool
+
+	// callback 함수에 self 변수 추가 여부
+	Self bool
+
+	// Extends 호출 할때 , Self아규먼트 있는지 체크 여부
+	ExtendsSelfCheck bool
+
 	// T 이외에 추가로 구현할  interface 목록
 	ImplementsWith []TypeTag
 
@@ -357,6 +367,7 @@ type GenerateAdaptorDirective struct {
 	Name                string
 	Extends             bool
 	Self                bool
+	ExtendsSelfCheck    bool
 	ImplementsWith      []TypeReference
 	ExtendsWith         map[string]TypeReference
 	Embedding           []TypeReference
@@ -507,7 +518,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret.Interface = argType
 	intfname := argType.Obj().Name()
 
-	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "ExtendsWith", "Embedding", "EmbeddingInterface", "ExtendsByEmbedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ZeroReturn", "Options"}
+	names := []string{"File", "Name", "Extends", "Self", "ImplementsWith", "ExtendsWith", "Embedding", "EmbeddingInterface", "ExtendsByEmbedding", "Delegate", "Getter", "EventHandler", "ValOverride", "ValOverrideUsingPtr", "ZeroReturn", "Options"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -540,6 +551,12 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				return ret, err
 			}
 			ret.Self = v
+		case "ExtendsSelfCheck":
+			v, err := evalBoolValue(value)
+			if err != nil {
+				return ret, err
+			}
+			ret.ExtendsSelfCheck = v
 		case "ImplementsWith":
 			v, err := evalArray(value, evalTypeOf(lit.Package))
 			if err != nil {
@@ -615,6 +632,10 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 				ret.Methods[impl.Method] = impl
 			}
 		}
+	}
+
+	if ret.Self {
+		ret.ExtendsSelfCheck = true
 	}
 
 	return ret, nil
