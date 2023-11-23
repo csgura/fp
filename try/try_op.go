@@ -84,7 +84,7 @@ func Call[T any](f func() (T, error)) (ret fp.Try[T]) {
 	return
 }
 
-func CallUnit[T any](f func() error) (ret fp.Try[fp.Unit]) {
+func CallUnit(f func() error) (ret fp.Try[fp.Unit]) {
 	defer func() {
 		if p := recover(); p != nil {
 			ret = Failure[fp.Unit](&panicError{p, debug.Stack()})
