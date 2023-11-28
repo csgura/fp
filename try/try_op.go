@@ -145,6 +145,18 @@ func Map[A, B any](ta fp.Try[A], f func(v A) B) fp.Try[B] {
 	})
 }
 
+func MapSeqMap[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) B) fp.Try[fp.Seq[B]] {
+	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
+		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+	})
+}
+
+func MapSliceMap[A, B any](ta fp.Try[[]A], f func(v A) B) fp.Try[[]B] {
+	return Map(ta, func(a []A) []B {
+		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+	})
+}
+
 func Map2[A, B, R any](ta fp.Try[A], tb fp.Try[B], fab func(A, B) R) fp.Try[R] {
 	return FlatMap(ta, func(a A) fp.Try[R] {
 		return Map(tb, func(b B) R {
@@ -204,6 +216,18 @@ func FlatMap[A, B any](ta fp.Try[A], fn func(v A) fp.Try[B]) fp.Try[B] {
 		return fn(ta.Get())
 	}
 	return Failure[B](ta.Failed().Get())
+}
+
+func FlatMapTraverseSeq[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) fp.Try[B]) fp.Try[fp.Seq[B]] {
+	return FlatMap(ta, func(a fp.Seq[A]) fp.Try[fp.Seq[B]] {
+		return Map(TraverseSeq(a, f), as.Seq)
+	})
+}
+
+func FlatMapTraverseSlice[A, B any](ta fp.Try[[]A], f func(v A) fp.Try[B]) fp.Try[[]B] {
+	return FlatMap(ta, func(a []A) fp.Try[[]B] {
+		return TraverseSeq(a, f)
+	})
 }
 
 func Flatten[A any](tta fp.Try[fp.Try[A]]) fp.Try[A] {
