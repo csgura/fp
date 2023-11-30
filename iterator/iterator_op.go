@@ -52,7 +52,7 @@ func Of[T any](list ...T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(list)
 }
 
-func FromSeq[T any](seq []T) fp.Iterator[T] {
+func FromSeq[T any](seq fp.Seq[T]) fp.Iterator[T] {
 	return fp.IteratorOfSeq(seq)
 }
 
@@ -60,7 +60,7 @@ func FromSlice[T any](seq []T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(seq)
 }
 
-func ReverseSeq[T any](seq []T) fp.Iterator[T] {
+func ReverseSeq[T any](seq fp.Seq[T]) fp.Iterator[T] {
 	idx := len(seq)
 
 	return fp.MakeIterator(
@@ -76,6 +76,10 @@ func ReverseSeq[T any](seq []T) fp.Iterator[T] {
 			panic("next on empty iterator")
 		},
 	)
+}
+
+func ReverseSlice[T any](seq []T) fp.Iterator[T] {
+	return ReverseSeq(seq)
 }
 
 func FromPtr[T any](ptr *T) fp.Iterator[T] {

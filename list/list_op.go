@@ -167,9 +167,7 @@ func (r Seq[T]) Foreach(f func(v T)) {
 func (r Seq[T]) ToSeq() []T {
 	if len(r) > 0 {
 		ret := make([]T, len(r))
-		for i, v := range r {
-			ret[i] = v
-		}
+		copy(ret, r)
 		return ret
 	}
 	return nil
@@ -241,11 +239,14 @@ func Of[T any](e ...T) fp.List[T] {
 	return Seq[T](e)
 }
 
-func FromSeq[T any](seq []T) fp.List[T] {
+func FromSeq[T any](seq fp.Seq[T]) fp.List[T] {
 	return Seq[T](seq)
 }
 
-func ReverseSeq[T any](seq []T) fp.List[T] {
+func FromSlice[T any](seq []T) fp.List[T] {
+	return Seq[T](seq)
+}
+func ReverseSeq[T any](seq fp.Seq[T]) fp.List[T] {
 	return fp.MakeList(
 		func() fp.Option[T] {
 			return fp.Seq[T](seq).Last()
@@ -254,6 +255,9 @@ func ReverseSeq[T any](seq []T) fp.List[T] {
 			return ReverseSeq(fp.Seq[T](seq).Init())
 		},
 	)
+}
+func ReverseSlice[T any](seq []T) fp.List[T] {
+	return ReverseSeq(seq)
 }
 
 func FromPtr[T any](ptr *T) fp.List[T] {
