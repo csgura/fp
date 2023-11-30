@@ -96,13 +96,15 @@ func Map[T, U any](opt fp.Option[T], f func(v T) U) fp.Option[U] {
 	})
 }
 
-func MapSeqMap[A, B any](ta fp.Option[fp.Seq[A]], f func(v A) B) fp.Option[fp.Seq[B]] {
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSeqLift[A, B any](ta fp.Option[fp.Seq[A]], f func(v A) B) fp.Option[fp.Seq[B]] {
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 	})
 }
 
-func MapSliceMap[A, B any](ta fp.Option[[]A], f func(v A) B) fp.Option[[]B] {
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSliceLift[A, B any](ta fp.Option[[]A], f func(v A) B) fp.Option[[]B] {
 	return Map(ta, func(a []A) []B {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 	})

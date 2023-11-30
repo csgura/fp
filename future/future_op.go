@@ -113,13 +113,15 @@ func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.Executor) fp.Futur
 	}, ctx...)
 }
 
-func MapSeqMap[A, B any](ta fp.Future[fp.Seq[A]], f func(v A) B, ctx ...fp.Executor) fp.Future[fp.Seq[B]] {
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSeqLift[A, B any](ta fp.Future[fp.Seq[A]], f func(v A) B, ctx ...fp.Executor) fp.Future[fp.Seq[B]] {
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 	}, ctx...)
 }
 
-func MapSliceMap[A, B any](ta fp.Future[[]A], f func(v A) B, ctx ...fp.Executor) fp.Future[[]B] {
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSliceLift[A, B any](ta fp.Future[[]A], f func(v A) B, ctx ...fp.Executor) fp.Future[[]B] {
 	return Map(ta, func(a []A) []B {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 	}, ctx...)

@@ -56,6 +56,10 @@ func FromSeq[T any](seq []T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(seq)
 }
 
+func FromSlice[T any](seq []T) fp.Iterator[T] {
+	return fp.IteratorOfSeq(seq)
+}
+
 func ReverseSeq[T any](seq []T) fp.Iterator[T] {
 	idx := len(seq)
 

@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
 
@@ -150,5 +151,22 @@ func TestTraverse(t *testing.T) {
 
 	assert.True(res.IsFailure())
 	assert.Equal(cnt, 1)
+
+}
+
+func FunctorCompose(t *testing.T) {
+
+	s := seq.Of(1)
+
+	ts := try.Success(s)
+
+	tm := try.Map(ts, seq.Lift(fp.Id[int]))
+	assert.True(tm.IsSuccess())
+
+	tm = try.Map(ts, seq.LiftM(func(v int) fp.Seq[int] {
+		return seq.Of(v, v)
+	}))
+
+	assert.True(tm.IsSuccess())
 
 }

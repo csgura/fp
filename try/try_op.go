@@ -145,13 +145,17 @@ func Map[A, B any](ta fp.Try[A], f func(v A) B) fp.Try[B] {
 	})
 }
 
-func MapSeqMap[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) B) fp.Try[fp.Seq[B]] {
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSeqLift[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) B) fp.Try[fp.Seq[B]] {
+
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 	})
 }
 
-func MapSliceMap[A, B any](ta fp.Try[[]A], f func(v A) B) fp.Try[[]B] {
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSliceLift[A, B any](ta fp.Try[[]A], f func(v A) B) fp.Try[[]B] {
+
 	return Map(ta, func(a []A) []B {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 	})
