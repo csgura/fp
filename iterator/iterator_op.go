@@ -52,7 +52,7 @@ func Of[T any](list ...T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(list)
 }
 
-func FromSeq[T any](seq fp.Seq[T]) fp.Iterator[T] {
+func FromSeq[T any](seq []T) fp.Iterator[T] {
 	return fp.IteratorOfSeq(seq)
 }
 
