@@ -219,15 +219,11 @@ func FlatMap[A, B any](ta fp.Try[A], fn func(v A) fp.Try[B]) fp.Try[B] {
 }
 
 func FlatMapTraverseSeq[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) fp.Try[B]) fp.Try[fp.Seq[B]] {
-	return FlatMap(ta, func(a fp.Seq[A]) fp.Try[fp.Seq[B]] {
-		return Map(TraverseSeq(a, f), as.Seq)
-	})
+	return FlatMap(ta, TraverseSeqFunc(f))
 }
 
 func FlatMapTraverseSlice[A, B any](ta fp.Try[[]A], f func(v A) fp.Try[B]) fp.Try[[]B] {
-	return FlatMap(ta, func(a []A) fp.Try[[]B] {
-		return TraverseSeq(a, f)
-	})
+	return FlatMap(ta, TraverseSliceFunc(f))
 }
 
 func Flatten[A any](tta fp.Try[fp.Try[A]]) fp.Try[A] {
@@ -340,7 +336,11 @@ func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.Try[fp
 	return Map(Traverse(fp.IteratorOfOption(opta), fa), fp.Iterator[R].NextOption)
 }
 
-func TraverseSeq[A, R any](sa []A, fa func(A) fp.Try[R]) fp.Try[[]R] {
+func TraverseSeq[A, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
+	return Map(TraverseSlice(sa, fa), as.Seq)
+}
+
+func TraverseSlice[A, R any](sa []A, fa func(A) fp.Try[R]) fp.Try[[]R] {
 	return Map(Traverse(fp.IteratorOfSeq(sa), fa), fp.Iterator[R].ToSeq)
 }
 
@@ -350,12 +350,17 @@ func TraverseFunc[A, R any](far func(A) fp.Try[R]) func(fp.Iterator[A]) fp.Try[f
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Try[R]) func([]A) fp.Try[[]R] {
-	return func(seqA []A) fp.Try[[]R] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Try[R]) func(fp.Seq[A]) fp.Try[fp.Seq[R]] {
+	return func(seqA fp.Seq[A]) fp.Try[fp.Seq[R]] {
 		return TraverseSeq(seqA, far)
 	}
 }
 
+func TraverseSliceFunc[A, R any](far func(A) fp.Try[R]) func([]A) fp.Try[[]R] {
+	return func(seqA []A) fp.Try[[]R] {
+		return TraverseSlice(seqA, far)
+	}
+}
 func Sequence[A any](tsa []fp.Try[A]) fp.Try[[]A] {
 	return Map(SequenceIterator(fp.IteratorOfSeq(tsa)), fp.Iterator[A].ToSeq)
 }

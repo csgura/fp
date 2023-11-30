@@ -182,15 +182,11 @@ func FlatMap[T, U any](opt fp.Option[T], fn func(v T) fp.Option[U]) fp.Option[U]
 }
 
 func FlatMapTraverseSeq[A, B any](ta fp.Option[fp.Seq[A]], f func(v A) fp.Option[B]) fp.Option[fp.Seq[B]] {
-	return FlatMap(ta, func(a fp.Seq[A]) fp.Option[fp.Seq[B]] {
-		return Map(TraverseSeq(a, f), as.Seq)
-	})
+	return FlatMap(ta, TraverseSeqFunc(f))
 }
 
 func FlatMapTraverseSlice[A, B any](ta fp.Option[[]A], f func(v A) fp.Option[B]) fp.Option[[]B] {
-	return FlatMap(ta, func(a []A) fp.Option[[]B] {
-		return TraverseSeq(a, f)
-	})
+	return FlatMap(ta, TraverseSliceFunc(f))
 }
 
 func Flatten[T any](opt fp.Option[fp.Option[T]]) fp.Option[T] {
@@ -294,7 +290,11 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[f
 	})
 }
 
-func TraverseSeq[T, U any](seq []T, fn func(T) fp.Option[U]) fp.Option[[]U] {
+func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
+	return Map(TraverseSlice(seq, fn), as.Seq)
+}
+
+func TraverseSlice[T, U any](seq []T, fn func(T) fp.Option[U]) fp.Option[[]U] {
 	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Iterator[U].ToSeq)
 }
 
@@ -304,9 +304,15 @@ func TraverseFunc[A, R any](far func(A) fp.Option[R]) func(fp.Iterator[A]) fp.Op
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) func([]A) fp.Option[[]R] {
-	return func(seqA []A) fp.Option[[]R] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Option[R]) func(fp.Seq[A]) fp.Option[fp.Seq[R]] {
+	return func(seqA fp.Seq[A]) fp.Option[fp.Seq[R]] {
 		return TraverseSeq(seqA, far)
+	}
+}
+
+func TraverseSliceFunc[A, R any](far func(A) fp.Option[R]) func([]A) fp.Option[[]R] {
+	return func(seqA []A) fp.Option[[]R] {
+		return TraverseSlice(seqA, far)
 	}
 }
 

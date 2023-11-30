@@ -88,7 +88,7 @@ func DecoderSlice[T any](decT Decoder[T]) Decoder[[]T] {
 			return try.Failure[[]T](err)
 		}
 
-		return try.TraverseSeq(as.Seq(l), func(v json.RawMessage) fp.Try[T] {
+		return try.TraverseSlice(as.Seq(l), func(v json.RawMessage) fp.Try[T] {
 			return decT.Decode(ctx, string(v))
 		})
 	})

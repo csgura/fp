@@ -113,6 +113,18 @@ func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.Executor) fp.Futur
 	}, ctx...)
 }
 
+func MapSeqMap[A, B any](ta fp.Future[fp.Seq[A]], f func(v A) B, ctx ...fp.Executor) fp.Future[fp.Seq[B]] {
+	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
+		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+	}, ctx...)
+}
+
+func MapSliceMap[A, B any](ta fp.Future[[]A], f func(v A) B, ctx ...fp.Executor) fp.Future[[]B] {
+	return Map(ta, func(a []A) []B {
+		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+	}, ctx...)
+}
+
 func Map2[A, B, U any](a fp.Future[A], b fp.Future[B], f func(A, B) U, ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(a, func(v1 A) fp.Future[U] {
 		return Map(b, func(v2 B) U {
@@ -205,6 +217,14 @@ func FlatMap[T, U any](opt fp.Future[T], fn func(v T) fp.Future[U], ctx ...fp.Ex
 	}, ctx...)
 
 	return np.Future()
+}
+
+func FlatMapTraverseSeq[A, B any](ta fp.Future[fp.Seq[A]], f func(v A) fp.Future[B], ctx ...fp.Executor) fp.Future[fp.Seq[B]] {
+	return FlatMap(ta, TraverseSeqFunc(f, ctx...), ctx...)
+}
+
+func FlatMapTraverseSlice[A, B any](ta fp.Future[[]A], f func(v A) fp.Future[B], ctx ...fp.Executor) fp.Future[[]B] {
+	return FlatMap(ta, TraverseSliceFunc(f, ctx...), ctx...)
 }
 
 func Transform[T, U any](opt fp.Future[T], fn func(v fp.Try[T]) fp.Try[U], ctx ...fp.Executor) fp.Future[U] {
@@ -331,7 +351,11 @@ func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.E
 	})
 }
 
-func TraverseSeq[T, U any](seq []T, fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[[]U] {
+func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Seq[U]] {
+	return Map(TraverseSlice(seq, fn, ctx...), as.Seq, ctx...)
+}
+
+func TraverseSlice[T, U any](seq []T, fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[[]U] {
 	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Iterator[U].ToSeq, ctx...)
 }
 
@@ -341,9 +365,15 @@ func TraverseFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(f
 	}
 }
 
-func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func([]A) fp.Future[[]R] {
-	return func(seqA []A) fp.Future[[]R] {
+func TraverseSeqFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func(fp.Seq[A]) fp.Future[fp.Seq[R]] {
+	return func(seqA fp.Seq[A]) fp.Future[fp.Seq[R]] {
 		return TraverseSeq(seqA, far, ctx...)
+	}
+}
+
+func TraverseSliceFunc[A, R any](far func(A) fp.Future[R], ctx ...fp.Executor) func([]A) fp.Future[[]R] {
+	return func(seqA []A) fp.Future[[]R] {
+		return TraverseSlice(seqA, far, ctx...)
 	}
 }
 
