@@ -145,6 +145,12 @@ func Map[A, B any](ta fp.Try[A], f func(v A) B) fp.Try[B] {
 	})
 }
 
+// haskell 의 <$
+// map . const 와 같은 함수
+func Replace[A, B any](ta fp.Try[A], b B) fp.Try[B] {
+	return Map(ta, fp.Const[A](b))
+}
+
 // Map(ta , seq.Lift(f)) 와 동일
 func MapSeqLift[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) B) fp.Try[fp.Seq[B]] {
 

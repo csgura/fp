@@ -97,13 +97,13 @@ func FromTry[T any](v fp.Try[T]) fp.Future[T] {
 
 func Ap[T, U any](t fp.Future[fp.Func1[T, U]], a fp.Future[T], ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Future[U] {
-		return Map(a, f)
+		return Map(a, f, ctx...)
 	}, ctx...)
 }
 
 func ApFunc[T, U any](t fp.Future[fp.Func1[T, U]], a func() fp.Future[T], ctx ...fp.Executor) fp.Future[U] {
 	return FlatMap(t, func(f fp.Func1[T, U]) fp.Future[U] {
-		return Map(a(), f)
+		return Map(a(), f, ctx...)
 	}, ctx...)
 }
 
@@ -111,6 +111,12 @@ func Map[T, U any](opt fp.Future[T], f func(v T) U, ctx ...fp.Executor) fp.Futur
 	return FlatMap(opt, func(v T) fp.Future[U] {
 		return Successful(f(v))
 	}, ctx...)
+}
+
+// haskell 의 <$
+// map . const 와 같은 함수
+func Replace[A, B any](ta fp.Future[A], b B) fp.Future[B] {
+	return Map(ta, fp.Const[A](b))
 }
 
 // Map(ta , seq.Lift(f)) 와 동일

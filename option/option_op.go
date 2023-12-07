@@ -96,6 +96,12 @@ func Map[T, U any](opt fp.Option[T], f func(v T) U) fp.Option[U] {
 	})
 }
 
+// haskell 의 <$
+// map . const 와 같은 함수
+func Replace[A, B any](ta fp.Option[A], b B) fp.Option[B] {
+	return Map(ta, fp.Const[A](b))
+}
+
 // Map(ta , seq.Lift(f)) 와 동일
 func MapSeqLift[A, B any](ta fp.Option[fp.Seq[A]], f func(v A) B) fp.Option[fp.Seq[B]] {
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
