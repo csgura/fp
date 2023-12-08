@@ -18,7 +18,7 @@ func TestMatch(t *testing.T) {
 		match.Case(match.SomeAnd(match.Equal(10)), func(v int) string {
 			return "10"
 		}),
-		match.Case(match.Some[int], func(v int) string {
+		match.Case(match.Some, func(v int) string {
 			return "some"
 		}),
 		match.Case(match.None[int], func(t fp.Unit) string {
@@ -31,14 +31,14 @@ func TestMatch(t *testing.T) {
 	t2 := as.Tuple2(option.Some("hello"), option.None[int]())
 
 	r = match.Of(t2,
-		match.Case(match.Tuple2(match.Some[string], match.Some[int]), func(t fp.Tuple2[string, int]) string {
+		match.Case(match.Tuple2(match.Some[string], match.Some[int]), as.Tupled2(func(v1 string, v2 int) string {
 			return "some,some"
-		}),
+		})),
 		match.Case(match.Tuple2(match.Some[string], match.None[int]), func(t fp.Tuple2[string, fp.Unit]) string {
 			return "some,none"
 
 		}),
-		match.Case(match.Tuple2(match.None[string], match.Some[int]), func(t fp.Tuple2[fp.Unit, int]) string {
+		match.CaseTuple2(match.None[string], match.Some, func(u fp.Unit, v int) string {
 			return "none,some"
 		}),
 	)

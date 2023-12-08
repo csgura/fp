@@ -34,6 +34,10 @@ func Case[V, T, R any](guard Matcher[V, T], then func(T) R) CaseBlock[V, R] {
 	})
 }
 
+func CaseTuple2[V1, V2, T1, T2, R any](g1 Matcher[V1, T1], g2 Matcher[V2, T2], then func(T1, T2) R) CaseBlock[fp.Tuple2[V1, V2], R] {
+	return Case(Tuple2(g1, g2), as.Tupled2(then))
+}
+
 func Any[T any](v T) fp.Option[T] {
 	return option.Some(v)
 }
