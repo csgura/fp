@@ -68,8 +68,6 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 				if opt.Method == "" {
 
 					opt.Private = true
-				} else {
-
 				}
 			}
 		}
@@ -97,14 +95,14 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 			}
 		}
 
-		if opt.ValOverride == false {
+		if !opt.ValOverride {
 			opt.ValOverride = slices.Contains(ret.ValOverride, m.Name())
 			if opt.ValOverride && !slices.Contains(ret.Getter, m.Name()) {
 				opt.OmitGetterIfValOverride = true
 			}
 		}
 
-		if opt.ValOverrideUsingPtr == false {
+		if !opt.ValOverrideUsingPtr {
 			opt.ValOverrideUsingPtr = slices.Contains(ret.ValOverrideUsingPtr, m.Name())
 			if opt.ValOverrideUsingPtr && !slices.Contains(ret.Getter, m.Name()) {
 				opt.OmitGetterIfValOverride = true
@@ -162,7 +160,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 		efield := seq.Last(strings.Split(e.StringExpr, "."))
 		if efield.IsDefined() {
 			if !fieldSet.Contains(efield.Get()) {
-				fieldList = append(fieldList, fmt.Sprintf("%s", typeDecl(gad.Package.Types, w, e)))
+				fieldList = append(fieldList, typeDecl(gad.Package.Types, w, e))
 			}
 
 			fieldSet = fieldSet.Updated(efield.Get(), e)
@@ -232,7 +230,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 	}
 
 	extends := ""
-	if gad.Extends && gad.ExtendsByEmbedding == false {
+	if gad.Extends && !gad.ExtendsByEmbedding {
 		extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
 	}
 
@@ -448,7 +446,7 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 		return option.Some(as.Seq(si.ToSeq()).Add(sc).MakeString("\n"))
 	}
 
-	if superField != "" && gad.ExtendsByEmbedding == false {
+	if superField != "" && !gad.ExtendsByEmbedding {
 		si := r.callSuperImpl(superField)
 		if cbNilCheck {
 

@@ -1,5 +1,7 @@
 package adaptortest
 
+//lint:file-ignore ST1019 test code
+
 import (
 	"context"
 	"fmt"

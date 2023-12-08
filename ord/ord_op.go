@@ -26,10 +26,7 @@ func Tuple1[A any](a fp.Ord[A]) fp.Ord[fp.Tuple1[A]] {
 			return a.Eqv(t1.I1, t2.I1)
 		}),
 		fp.LessFunc[fp.Tuple1[A]](func(t1 fp.Tuple1[A], t2 fp.Tuple1[A]) bool {
-			if a.Less(t1.I1, t2.I1) {
-				return true
-			}
-			return false
+			return a.Less(t1.I1, t2.I1)
 		}),
 	)
 }

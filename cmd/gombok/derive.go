@@ -619,12 +619,12 @@ func (r *TypeClassSummonContext) namedLookup(ctx CurrentContext, req metafp.Requ
 
 }
 
-func (r *TypeClassSummonContext) lookupPrimitiveTypeClassInstance(ctx CurrentContext, req metafp.RequiredInstance, name ...string) lookupTarget {
-	ret := r.lookupTypeClassInstanceLocalDeclared(ctx, req, name...).Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, name...))
+// func (r *TypeClassSummonContext) lookupPrimitiveTypeClassInstance(ctx CurrentContext, req metafp.RequiredInstance, name ...string) lookupTarget {
+// 	ret := r.lookupTypeClassInstanceLocalDeclared(ctx, req, name...).Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, name...))
 
-	return ret.OrElse(r.typeclassInstanceMust(ctx, req, name[0]))
+// 	return ret.OrElse(r.typeclassInstanceMust(ctx, req, name[0]))
 
-}
+// }
 
 // 타입 추론이 가능한지 따지는 함수
 func (r *TypeClassSummonContext) typeParamString(ctx CurrentContext, lt lookupTarget) fp.Option[string] {
@@ -855,7 +855,7 @@ func (r *TypeClassSummonContext) structUnapplyExpr(ctx CurrentContext, named fp.
 		return v.Name
 	})
 
-	return fmt.Sprintf(`%s`, seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", varexpr, v) }).MakeString(","))
+	return seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", varexpr, v) }).MakeString(",")
 }
 
 // struct{ A : x , B : y }
@@ -896,9 +896,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx CurrentContext, named fp.Op
 	}).OrElseGet(func() string {
 		return "struct { " + seq.Map(fields, func(v metafp.StructField) string {
 			if v.Embedded {
-				return fmt.Sprintf("%s",
-					r.w.TypeName(ctx.working, v.Type.Type),
-				)
+				return r.w.TypeName(ctx.working, v.Type.Type)
 			}
 			return fmt.Sprintf("%s %s",
 				v.Name,
@@ -1342,9 +1340,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	typeStr := func(pk *types.Package) string {
 		valuereceiver := "struct { " + seq.Map(fields, func(v metafp.StructField) string {
 			if v.Embedded {
-				return fmt.Sprintf("%s",
-					r.w.TypeName(ctx.working, v.Type.Type),
-				)
+				return r.w.TypeName(ctx.working, v.Type.Type)
+
 			}
 			return fmt.Sprintf("%s %s",
 				v.Name,
@@ -1458,7 +1455,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 		fromLabelled: fromLabelledFuncExpr,
 		typeStr:      typeStr,
 		unapply: func(structIns string) string {
-			return fmt.Sprintf(`%s`, seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", structIns, v) }).MakeString(","))
+			return seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", structIns, v) }).MakeString(",")
 		},
 		apply: func(fieldValues []string) string {
 			argslist := seq.Map(seq.Zip(names, fieldValues), func(v fp.Tuple2[string, string]) string {
@@ -1648,10 +1645,10 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 
 }
 
-func (r *TypeClassSummonContext) summonNamedGenericRepr(ctx CurrentContext, tc metafp.TypeClass, named metafp.NamedTypeInfo, fields fp.Seq[metafp.StructField]) GenericRepr {
-	sf := r.namedStructFuncs(ctx, named, fields)
-	return r.summonStructGenericRepr(ctx, tc, sf)
-}
+// func (r *TypeClassSummonContext) summonNamedGenericRepr(ctx CurrentContext, tc metafp.TypeClass, named metafp.NamedTypeInfo, fields fp.Seq[metafp.StructField]) GenericRepr {
+// 	sf := r.namedStructFuncs(ctx, named, fields)
+// 	return r.summonStructGenericRepr(ctx, tc, sf)
+// }
 
 func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo], explicit bool) GenericRepr {
 	return GenericRepr{
@@ -1690,7 +1687,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			}).Take(arity).MakeString(",")
 
 			hlistToTuple := func() string {
-				if r.implicitTypeInference && explicit == false {
+				if r.implicitTypeInference && !explicit {
 					return fmt.Sprintf(`%s.TupleFromHList%d`,
 						productpk, arity,
 					)

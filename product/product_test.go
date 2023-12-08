@@ -14,21 +14,6 @@ import (
 	"github.com/csgura/fp/unit"
 )
 
-type clImpl struct {
-}
-
-func (r clImpl) isNil() bool {
-	return true
-}
-
-func (r clImpl) String() string {
-	return "Nil"
-}
-
-func (r clImpl) HasTail() bool {
-	return false
-}
-
 type IceCream struct {
 	Name  string
 	price int16
@@ -48,9 +33,7 @@ func returnError(a string, b int) (string, error) {
 }
 func TestGeneric(t *testing.T) {
 
-	tp := product.Tuple3(10, "hello", map[string]any{})
-
-	tp = as.Tuple3(10, "hello", map[string]any{})
+	tp := as.Tuple3(10, "hello", map[string]any{})
 
 	age, name, attr := tp.Unapply()
 	fmt.Printf("age = %d, name = %s, attr = %v", age, name, attr)

@@ -7,6 +7,8 @@ import (
 	"github.com/csgura/fp/seq"
 )
 
+//lint:file-ignore U1000 test code
+
 // @fp.ImportGiven
 var _ eq.Derives[fp.Eq[any]]
 

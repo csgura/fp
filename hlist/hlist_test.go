@@ -121,9 +121,6 @@ func TestTable(t *testing.T) {
 	tbl.Insert(hlist.Of2("hello", 10))
 
 	tbl.Find(hlist.Lift2(func(a string, b int) bool {
-		if a == "hello" {
-			return true
-		}
-		return false
+		return a == "hello"
 	}))
 }

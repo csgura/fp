@@ -119,24 +119,24 @@ func evalStringValue(e ast.Expr) (string, error) {
 	return "", fmt.Errorf("can't eval %T as string", e)
 }
 
-func evalSelectorExpr(e ast.Expr) (string, error) {
-	switch t := e.(type) {
-	case *ast.Ident:
-		return t.Name, nil
-	case *ast.SelectorExpr:
-		switch x := t.X.(type) {
-		case *ast.SelectorExpr:
-			p, err := evalSelectorExpr(x)
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("%s.%s", p, t.Sel.Name), nil
-		case *ast.Ident:
-			return fmt.Sprintf("%s.%s", x.Name, t.Sel.Name), nil
-		}
-	}
-	return "", fmt.Errorf("can't eval %T as selector expr", e)
-}
+// func evalSelectorExpr(e ast.Expr) (string, error) {
+// 	switch t := e.(type) {
+// 	case *ast.Ident:
+// 		return t.Name, nil
+// 	case *ast.SelectorExpr:
+// 		switch x := t.X.(type) {
+// 		case *ast.SelectorExpr:
+// 			p, err := evalSelectorExpr(x)
+// 			if err != nil {
+// 				return "", err
+// 			}
+// 			return fmt.Sprintf("%s.%s", p, t.Sel.Name), nil
+// 		case *ast.Ident:
+// 			return fmt.Sprintf("%s.%s", x.Name, t.Sel.Name), nil
+// 		}
+// 	}
+// 	return "", fmt.Errorf("can't eval %T as selector expr", e)
+// }
 
 func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
 	return func(e ast.Expr) (string, error) {
@@ -658,20 +658,20 @@ type ImplOptionDirective struct {
 	Signature *types.Signature
 }
 
-func lookupIdent(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) types.Type {
-	info := &types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-		Uses:  map[*ast.Ident]types.Object{},
-	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+// func lookupIdent(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) types.Type {
+// 	info := &types.Info{
+// 		Types: make(map[ast.Expr]types.TypeAndValue),
+// 		Uses:  map[*ast.Ident]types.Object{},
+// 	}
+// 	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
 
-	// for k, v := range info.Uses {
-	// 	fmt.Printf("use = %s, %s\n", k.Name, v.Name())
-	// }
+// 	// for k, v := range info.Uses {
+// 	// 	fmt.Printf("use = %s, %s\n", k.Name, v.Name())
+// 	// }
 
-	ti := info.Types[typeExpr]
-	return ti.Type
-}
+// 	ti := info.Types[typeExpr]
+// 	return ti.Type
+// }
 
 func evalFuncLit(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) (types.Type, []ImportPackage) {
 	info := &types.Info{

@@ -154,9 +154,7 @@ func (r Seq[T]) Append(items ...T) Seq[T] {
 	tail := Seq[T](items)
 	ret := make(Seq[T], r.Size()+tail.Size())
 
-	for i := range r {
-		ret[i] = r[i]
-	}
+	copy(ret, r)
 
 	for i := range tail {
 		ret[i+r.Size()] = tail[i]
@@ -168,9 +166,7 @@ func (r Seq[T]) Append(items ...T) Seq[T] {
 func (r Seq[T]) Concat(tail Seq[T]) Seq[T] {
 	ret := make(Seq[T], r.Size()+tail.Size())
 
-	for i := range r {
-		ret[i] = r[i]
-	}
+	copy(ret, r)
 
 	for i := range tail {
 		ret[i+r.Size()] = tail[i]

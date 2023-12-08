@@ -17,5 +17,6 @@ func TestEither(t *testing.T) {
 	s.Foreach(fp.Println[int])
 
 	l = either.Right[int](10.2)
+	l.Foreach(fp.Println)
 
 }

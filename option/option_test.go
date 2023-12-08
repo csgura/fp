@@ -206,4 +206,5 @@ func TestFilter(t *testing.T) {
 	res = opt.Exists(fp.TestWith(Hello.World)(func(w World) bool {
 		return true
 	}))
+	assert.True(res)
 }

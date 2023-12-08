@@ -158,15 +158,15 @@ func nullForNil(opt fp.ShowOption) string {
 	return "nil"
 }
 
-func spaceBeforeBrace(opt fp.ShowOption) string {
-	if opt.SpaceBeforeBrace {
-		return " "
-	}
-	return ""
-}
+// func spaceBeforeBrace(opt fp.ShowOption) string {
+// 	if opt.SpaceBeforeBrace {
+// 		return " "
+// 	}
+// 	return ""
+// }
 
 func spaceBetweenTypeAndBrace(opt fp.ShowOption) string {
-	if opt.SpaceBeforeBrace && opt.OmitTypeName == false {
+	if opt.SpaceBeforeBrace && !opt.OmitTypeName {
 		return " "
 	}
 	return ""

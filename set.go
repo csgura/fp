@@ -84,7 +84,7 @@ func (r Set[V]) Diff(other Set[V]) Set[V] {
 	itr := r.Iterator()
 	for itr.HasNext() {
 		e := itr.Next()
-		if other.Contains(e) == false {
+		if !other.Contains(e) {
 			ret = ret.Incl(e)
 		}
 	}

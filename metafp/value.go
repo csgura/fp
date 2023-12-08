@@ -309,9 +309,10 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 
 								}
 
-							} else {
-								//fmt.Printf("name %s , epxr = %T\n", ret.Name, ts.Type)
 							}
+							// else {
+							// 	//fmt.Printf("name %s , epxr = %T\n", ret.Name, ts.Type)
+							// }
 
 							return option.Some(ret)
 						}).ToSeq()

@@ -19,6 +19,8 @@ import (
 	"github.com/csgura/fp/test/internal/testpk1"
 )
 
+//lint:file-ignore U1000 test code
+
 //go:generate go run github.com/csgura/fp/cmd/gombok
 type (
 	// Hello is hello

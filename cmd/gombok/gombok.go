@@ -926,6 +926,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[me
 		genMethod = processDeref(ctx, genMethod)
 		genMethod = processString(ctx, genMethod)
 
+		//lint:ignore SA4006 for future
 		genMethod = processBuilder(ctx, genMethod)
 
 	})
@@ -981,6 +982,7 @@ func genPrivateGetters(ctx TaggedStructContext, privateFields fp.Seq[metafp.Stru
 	return genMethod
 }
 
+//lint:ignore U1000 for future
 func genTypeClassMethod(ctx TaggedStructContext, derives fp.Seq[metafp.TypeClassDerive], genMethod fp.Set[string]) fp.Set[string] {
 	ts := ctx.ts
 	w := ctx.w

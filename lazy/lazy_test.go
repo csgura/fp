@@ -9,6 +9,8 @@ import (
 	"github.com/csgura/fp/monoid"
 )
 
+//lint:file-ignore U1000 test code
+
 func fibo(n int, prev int, curr int) int {
 	if n == 0 {
 		return prev

@@ -94,15 +94,6 @@ func (r Iterator[T]) NextOption() Option[T] {
 	return None[T]()
 }
 
-func iteratorToSeq[T any](r Iterator[T], capa int) []T {
-	ret := make([]T, 0, capa)
-
-	for r.HasNext() {
-		ret = append(ret, r.Next())
-	}
-	return ret
-}
-
 func (r Iterator[T]) Take(n int) Iterator[T] {
 
 	i := 0

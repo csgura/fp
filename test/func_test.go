@@ -68,6 +68,7 @@ func TestFunc(t *testing.T) {
 		strconv.Itoa,
 		strings.NewReader,
 	))
+	fmt.Println(oreader)
 
 	tstr := try.Success("25380")
 	tint := try.FlatMap(tstr, try.Func1(strconv.Atoi))
@@ -80,6 +81,7 @@ func TestFunc(t *testing.T) {
 		try.Func1(os.FindProcess),
 		try.Unit1((*os.Process).Kill),
 	))
+	fmt.Println(killResult)
 
 	o1 := option.Some(1)
 	o2 := option.Some(2)

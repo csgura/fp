@@ -8,6 +8,8 @@ import (
 	"github.com/csgura/fp/as"
 )
 
+//lint:file-ignore U1000 source copy from github.com/benbjohnson/immutable/blob/master/immutable.go
+
 // https://github.com/benbjohnson/immutable/blob/master/immutable.go
 
 // hashUint64 returns a 32-bit hash for a 64-bit value.

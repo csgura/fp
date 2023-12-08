@@ -703,7 +703,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 					return false
 				})
 
-				if allArgTypeClass == true {
+				if allArgTypeClass {
 
 					required := seq.Map(fargs, asRequired)
 

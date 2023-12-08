@@ -16,6 +16,8 @@ import (
 	"github.com/csgura/fp/test/internal/show"
 )
 
+//lint:file-ignore U1000 test code
+
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Value
