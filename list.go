@@ -1,5 +1,10 @@
 package fp
 
+type Cons[H, T any] interface {
+	Head() H
+	Tail() T
+}
+
 type List[T any] interface {
 	IsEmpty() bool
 	NonEmpty() bool

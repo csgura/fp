@@ -38,6 +38,17 @@ func CaseTuple2[V1, V2, T1, T2, R any](g1 Matcher[V1, T1], g2 Matcher[V2, T2], t
 	return Case(Tuple2(g1, g2), as.Tupled2(then))
 }
 
+func CaseCons[C fp.Cons[H1, T1], H1, H2, T1, T2, R any](hguard Matcher[H1, H2], tguard Matcher[T1, T2], then func(H2, T2) R) CaseBlock[C, R] {
+	return MatcherFunc[C, R](func(c C) fp.Option[R] {
+		return option.Map2(hguard(c.Head()), tguard(c.Tail()), then)
+	})
+}
+
+func CaseNone[T, R any](then func() R) CaseBlock[fp.Option[T], R] {
+	return MatcherFunc[fp.Option[T], R](func(v fp.Option[T]) fp.Option[R] {
+		return option.Map(None[T](v), as.Func0(then))
+	})
+}
 func Any[T any](v T) fp.Option[T] {
 	return option.Some(v)
 }
@@ -107,5 +118,17 @@ func None[T any](v fp.Option[T]) fp.Option[fp.Unit] {
 func Tuple2[A1, A2, B1, B2 any](adown Matcher[A1, A2], bdown Matcher[B1, B2]) Matcher[fp.Tuple2[A1, B1], fp.Tuple2[A2, B2]] {
 	return func(t fp.Tuple2[A1, B1]) fp.Option[fp.Tuple2[A2, B2]] {
 		return option.Map2(adown(t.I1), bdown(t.I2), as.Tuple)
+	}
+}
+
+func Cons[C fp.Cons[H1, T1], H1, H2, T1, T2 any](adown Matcher[H1, H2], bdown Matcher[T1, T2]) Matcher[C, fp.Tuple2[H2, T2]] {
+	return func(t C) fp.Option[fp.Tuple2[H2, T2]] {
+		return option.Map2(adown(t.Head()), bdown(t.Tail()), as.Tuple)
+	}
+}
+
+func Head[C fp.Cons[H1, T1], H1, H2, T1 any](hdown Matcher[H1, H2]) Matcher[C, H2] {
+	return func(c C) fp.Option[H2] {
+		return hdown(c.Head())
 	}
 }

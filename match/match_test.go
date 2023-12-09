@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/match"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/seq"
 )
 
 func TestMatch(t *testing.T) {
@@ -21,7 +22,7 @@ func TestMatch(t *testing.T) {
 		match.Case(match.Some, func(v int) string {
 			return "some"
 		}),
-		match.Case(match.None[int], func(t fp.Unit) string {
+		match.CaseNone[int](func() string {
 			return "none"
 		}),
 	)
@@ -40,6 +41,22 @@ func TestMatch(t *testing.T) {
 		}),
 		match.CaseTuple2(match.None[string], match.Some, func(u fp.Unit, v int) string {
 			return "none,some"
+		}),
+	)
+
+	fmt.Printf("r = %s\n", r)
+
+	s := seq.Of(1, 2)
+
+	r = match.Of(s,
+		match.CaseCons[fp.Seq[int]](match.Some[int], match.Head[fp.Seq[int]](match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
+			return "int,2"
+		}),
+		match.CaseCons[fp.Seq[int]](match.Some[int], match.Any[fp.Seq[int]], func(h int, tail fp.Seq[int]) string {
+			return "head"
+		}),
+		match.Case(match.Any, func(v fp.Seq[int]) string {
+			return "list"
 		}),
 	)
 
