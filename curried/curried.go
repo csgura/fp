@@ -18,6 +18,12 @@ func Flip[A, B, R any](f fp.Func1[A, fp.Func1[B, R]]) fp.Func1[B, fp.Func1[A, R]
 	}
 }
 
+func FlipApply[A, B, R any](f fp.Func1[A, fp.Func1[B, R]], b B) fp.Func1[A, R] {
+	return func(a A) R {
+		return f(a)(b)
+	}
+}
+
 func Compose2[A, B, GA, GR any](f fp.Func1[A, fp.Func1[B, GA]], g fp.Func1[GA, GR]) fp.Func1[A, fp.Func1[B, GR]] {
 
 	return func(a A) fp.Func1[B, GR] {
@@ -74,5 +80,23 @@ func Compose{{.N}}[{{TypeArgs 1 .N}}, GA, GR any](f {{CurriedFunc 1 .N "GA"}}, g
 	}
 }
 
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "curried_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+func FlipApply{{dec .N}}[{{TypeArgs 1 .N}}, R any](f {{CurriedFunc 1 .N "R"}}, {{DeclArgs 2 .N}} ) fp.Func1[A1, R] {
+		return func(a1 A1) R {
+			return f{{CurriedCallArgs 1 .N}}
+		}
+	
+}
 	`,
 }

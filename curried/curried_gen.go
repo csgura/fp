@@ -206,3 +206,52 @@ func Compose9[A1, A2, A3, A4, A5, A6, A7, A8, A9, GA, GR any](f fp.Func1[A1, fp.
 		return Compose8(f(a1), g)
 	}
 }
+
+func FlipApply2[A1, A2, A3, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]], a2 A2, a3 A3) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)
+	}
+
+}
+
+func FlipApply3[A1, A2, A3, A4, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]], a2 A2, a3 A3, a4 A4) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)(a4)
+	}
+
+}
+
+func FlipApply4[A1, A2, A3, A4, A5, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]], a2 A2, a3 A3, a4 A4, a5 A5) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)(a4)(a5)
+	}
+
+}
+
+func FlipApply5[A1, A2, A3, A4, A5, A6, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)
+	}
+
+}
+
+func FlipApply6[A1, A2, A3, A4, A5, A6, A7, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)
+	}
+
+}
+
+func FlipApply7[A1, A2, A3, A4, A5, A6, A7, A8, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)
+	}
+
+}
+
+func FlipApply8[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Func1[A1, R] {
+	return func(a1 A1) R {
+		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)(a9)
+	}
+
+}
