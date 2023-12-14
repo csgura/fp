@@ -49,14 +49,30 @@ func TestMatch(t *testing.T) {
 	s := seq.Of(1, 2)
 
 	r = match.Of(s,
-		match.CaseCons[fp.Seq[int]](match.Some[int], match.Head[fp.Seq[int]](match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
+		match.CaseSeqConsAnd(match.Any, match.SeqHead(match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
 			return "int,2"
 		}),
-		match.CaseCons[fp.Seq[int]](match.Some[int], match.Any[fp.Seq[int]], func(h int, tail fp.Seq[int]) string {
+		match.CaseSeqCons(func(h int, tail fp.Seq[int]) string {
 			return "head"
 		}),
-		match.Case(match.Any, func(v fp.Seq[int]) string {
+		match.CaseAny(func(v fp.Seq[int]) string {
 			return "list"
+		}),
+	)
+
+	fmt.Printf("r = %s\n", r)
+
+	s = seq.Of[int]()
+
+	r = match.Of(s,
+		match.CaseSeqConsAnd(match.Any, match.SeqHead(match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
+			return "int,2"
+		}),
+		match.CaseSeqCons(func(h int, tail fp.Seq[int]) string {
+			return "head"
+		}),
+		match.CaseSeqEmpty[int](func() string {
+			return "empty"
 		}),
 	)
 
