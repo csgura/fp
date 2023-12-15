@@ -16,15 +16,9 @@ func TestMatch(t *testing.T) {
 	v := option.Some(11)
 
 	r := match.Of(v,
-		match.Case(match.SomeAnd(match.Equal(10)), func(v int) string {
-			return "10"
-		}),
-		match.Case(match.Some, func(v int) string {
-			return "some"
-		}),
-		match.CaseNone[int](func() string {
-			return "none"
-		}),
+		match.Case(match.SomeAnd(match.Equal(10)), fp.Const[int]("10")),
+		match.Case(match.Some, fp.Const[int]("some")),
+		match.CaseNone[int](as.Supplier("none")),
 	)
 
 	fmt.Printf("r = %s\n", r)

@@ -17,8 +17,20 @@ func Any[T any](v T) fp.Option[T] {
 func Equal[T comparable](v T) PartialFunction[T, T] {
 	return func(t T) fp.Option[T] {
 		if v == t {
-			return option.Some(v)
+			return option.Some(t)
 		}
+		return option.None[T]()
+	}
+}
+
+func IsIn[T comparable](v ...T) PartialFunction[T, T] {
+	return func(t T) fp.Option[T] {
+		for _, i := range v {
+			if t == i {
+				return option.Some(t)
+			}
+		}
+
 		return option.None[T]()
 	}
 }
