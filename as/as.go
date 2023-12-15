@@ -59,6 +59,12 @@ func Endo[T any](f func(T) T) fp.Endo[T] {
 	return fp.Endo[T](f)
 }
 
+func MapEntry[K, V any](xtrKey func(V) K) func(V) fp.Tuple2[K, V] {
+	return func(v V) fp.Tuple2[K, V] {
+		return Tuple2(xtrKey(v), v)
+	}
+}
+
 func Generic[T, Repr any](tpe string, kind string, to func(T) Repr, from func(Repr) T) fp.Generic[T, Repr] {
 	return fp.Generic[T, Repr]{
 		Type: tpe,
