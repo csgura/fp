@@ -49,6 +49,12 @@ func LiftValue[K, V, R any](mapf func(K, V) R) fp.Func1[fp.Tuple2[K, V], fp.Tupl
 	}
 }
 
+func Split[T, K, V any](kext func(T) K, vext func(T) V) func(T) fp.Tuple2[K, V] {
+	return func(t T) fp.Tuple2[K, V] {
+		return Tuple2(kext(t), vext(t))
+	}
+}
+
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "tuple_gen.go",
