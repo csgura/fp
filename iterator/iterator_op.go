@@ -234,6 +234,10 @@ func ToGoMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]]) map[K]V {
 	return ret
 }
 
+func ToSeq[V any](itr fp.Iterator[V]) fp.Seq[V] {
+	return itr.ToSeq()
+}
+
 func ToSet[V any](itr fp.Iterator[V], hasher fp.Hashable[V]) fp.Set[V] {
 	ret := immutable.SetBuilder(hasher)
 
