@@ -234,6 +234,10 @@ func ToGoMap[K comparable, V any](itr fp.Iterator[fp.Tuple2[K, V]]) map[K]V {
 	return ret
 }
 
+func ToSlice[V any](itr fp.Iterator[V]) []V {
+	return itr.ToSeq()
+}
+
 func ToSeq[V any](itr fp.Iterator[V]) fp.Seq[V] {
 	return itr.ToSeq()
 }
