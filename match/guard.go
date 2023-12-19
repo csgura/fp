@@ -14,7 +14,7 @@ func Any[T any](v T) fp.Option[T] {
 	return option.Some(v)
 }
 
-func Equal[T comparable](v T) PartialFunction[T, T] {
+func Equal[T comparable](v T) fp.PartialFunc[T, T] {
 	return func(t T) fp.Option[T] {
 		if v == t {
 			return option.Some(t)
@@ -23,7 +23,7 @@ func Equal[T comparable](v T) PartialFunction[T, T] {
 	}
 }
 
-func IsIn[T comparable](v ...T) PartialFunction[T, T] {
+func IsIn[T comparable](v ...T) fp.PartialFunc[T, T] {
 	return func(t T) fp.Option[T] {
 		for _, i := range v {
 			if t == i {
@@ -57,19 +57,19 @@ func Right[L, R any](v fp.Either[L, R]) fp.Option[R] {
 	return option.None[R]()
 }
 
-func LeftAnd[L, R, T2 any](down PartialFunction[L, T2]) PartialFunction[fp.Either[L, R], T2] {
+func LeftAnd[L, R, T2 any](down fp.PartialFunc[L, T2]) fp.PartialFunc[fp.Either[L, R], T2] {
 	return fp.Compose(Left[L, R], option.LiftM(down))
 }
 
-func RightAnd[L, R, T2 any](down PartialFunction[R, T2]) PartialFunction[fp.Either[L, R], T2] {
+func RightAnd[L, R, T2 any](down fp.PartialFunc[R, T2]) fp.PartialFunc[fp.Either[L, R], T2] {
 	return fp.Compose(Right[L], option.LiftM(down))
 }
 
-func SuccessAnd[T, T2 any](down PartialFunction[T, T2]) PartialFunction[fp.Try[T], T2] {
+func SuccessAnd[T, T2 any](down fp.PartialFunc[T, T2]) fp.PartialFunc[fp.Try[T], T2] {
 	return fp.Compose(Success, option.LiftM(down))
 }
 
-func FailureAnd[T, T2 any](down PartialFunction[error, T2]) PartialFunction[fp.Try[T], T2] {
+func FailureAnd[T, T2 any](down fp.PartialFunc[error, T2]) fp.PartialFunc[fp.Try[T], T2] {
 	return fp.Compose(Failure[T], option.LiftM(down))
 }
 
@@ -77,7 +77,7 @@ func Failure[T any](v fp.Try[T]) fp.Option[error] {
 	return option.FromTry(v.Failed())
 }
 
-func SomeAnd[T, T2 any](down PartialFunction[T, T2]) PartialFunction[fp.Option[T], T2] {
+func SomeAnd[T, T2 any](down fp.PartialFunc[T, T2]) fp.PartialFunc[fp.Option[T], T2] {
 	return fp.Compose(Some, option.LiftM(down))
 }
 
@@ -88,25 +88,25 @@ func None[T any](v fp.Option[T]) fp.Option[fp.Unit] {
 	return option.None[fp.Unit]()
 }
 
-func Tuple2[A1, A2, B1, B2 any](adown PartialFunction[A1, A2], bdown PartialFunction[B1, B2]) PartialFunction[fp.Tuple2[A1, B1], fp.Tuple2[A2, B2]] {
+func Tuple2[A1, A2, B1, B2 any](adown fp.PartialFunc[A1, A2], bdown fp.PartialFunc[B1, B2]) fp.PartialFunc[fp.Tuple2[A1, B1], fp.Tuple2[A2, B2]] {
 	return func(t fp.Tuple2[A1, B1]) fp.Option[fp.Tuple2[A2, B2]] {
 		return option.Map2(adown(t.I1), bdown(t.I2), as.Tuple)
 	}
 }
 
-func Cons[C fp.Cons[H1, T1], H1, H2, T1, T2 any](adown PartialFunction[H1, H2], bdown PartialFunction[T1, T2]) PartialFunction[C, fp.Tuple2[H2, T2]] {
+func Cons[C fp.Cons[H1, T1], H1, H2, T1, T2 any](adown fp.PartialFunc[H1, H2], bdown fp.PartialFunc[T1, T2]) fp.PartialFunc[C, fp.Tuple2[H2, T2]] {
 	return func(t C) fp.Option[fp.Tuple2[H2, T2]] {
 		return option.Map2(adown(t.Head()), bdown(t.Tail()), as.Tuple)
 	}
 }
 
-func Head[C fp.Cons[H1, T1], H1, H2, T1 any](hdown PartialFunction[H1, H2]) PartialFunction[C, H2] {
+func Head[C fp.Cons[H1, T1], H1, H2, T1 any](hdown fp.PartialFunc[H1, H2]) fp.PartialFunc[C, H2] {
 	return func(c C) fp.Option[H2] {
 		return hdown(c.Head())
 	}
 }
 
-func SeqHead[T, T2 any](hdown PartialFunction[fp.Option[T], T2]) PartialFunction[fp.Seq[T], T2] {
+func SeqHead[T, T2 any](hdown fp.PartialFunc[fp.Option[T], T2]) fp.PartialFunc[fp.Seq[T], T2] {
 	return func(c fp.Seq[T]) fp.Option[T2] {
 		return hdown(c.Head())
 	}

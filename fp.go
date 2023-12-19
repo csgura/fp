@@ -123,6 +123,8 @@ func Or[T any](flist ...func(v T) bool) Predicate[T] {
 	}
 }
 
+type PartialFunc[T, R any] func(T) Option[R]
+
 type Func0[R any] Func1[Unit, R]
 
 func (r Func0[R]) Apply() R {

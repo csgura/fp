@@ -118,6 +118,7 @@ func (r Try[T]) Recover(f func(err error) T) Try[T] {
 	return Success(f(r.Failed().Get()))
 
 }
+
 func (r Try[T]) RecoverWith(f func(err error) Try[T]) Try[T] {
 	if r.IsSuccess() {
 		return r
