@@ -2,7 +2,6 @@ package mutable
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 )
 
 type Set[V comparable] map[V]bool
@@ -43,14 +42,17 @@ func (r Set[V]) Excl(v V) fp.SetMinimal[V] {
 	return r
 }
 
+func AsFpSet[V comparable](s Set[V]) fp.Set[V] {
+	return fp.MakeSet[V](func() fp.SetMinimal[V] {
+		return Set[V]{}
+	}, s)
+}
 func SetOf[V comparable](v ...V) fp.Set[V] {
 	ret := Set[V]{}
 	for _, e := range v {
 		ret[e] = true
 	}
-	return fp.MakeSet[V](func() fp.SetMinimal[V] {
-		return Set[V]{}
-	}, ret)
+	return AsFpSet(ret)
 }
 
 func EmptySet[V comparable]() fp.Set[V] {
@@ -97,7 +99,10 @@ func (r Map[K, V]) Updated(k K, v V) fp.MapBase[K, V] {
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	seq := []fp.Tuple2[K, V]{}
 	for k, v := range r {
-		seq = append(seq, as.Tuple2(k, v))
+		seq = append(seq, fp.Tuple2[K, V]{
+			I1: k,
+			I2: v,
+		})
 	}
 	return fp.IteratorOfSeq(seq)
 }
