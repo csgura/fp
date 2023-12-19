@@ -17,6 +17,14 @@ func (r Set[V]) Size() int {
 	return len(r)
 }
 
+func (r Set[V]) ToSeq() []V {
+	seq := []V{}
+	for k := range r {
+		seq = append(seq, k)
+	}
+	return seq
+}
+
 func (r Set[V]) Iterator() fp.Iterator[V] {
 	seq := []V{}
 	for k := range r {
