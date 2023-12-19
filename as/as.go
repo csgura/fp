@@ -6,6 +6,10 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
+func PartialFunc[T, R any](isDefined func(T) bool, apply func(T) R) fp.PartialFunc[T, R] {
+	return fp.PartialFunc[T, R]{IsDefined: isDefined, Apply: apply}
+}
+
 func Func0[R any](f func() R) fp.Func1[fp.Unit, R] {
 	return func(u fp.Unit) R {
 		return f()

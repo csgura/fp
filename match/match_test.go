@@ -17,7 +17,7 @@ func TestMatch(t *testing.T) {
 
 	r := match.Of(v,
 		match.Case(match.SomeAnd(match.Equal(10)), fp.Const[int]("10")),
-		match.Case(match.Some, fp.Const[int]("some")),
+		match.Case(match.Some[int](), fp.Const[int]("some")),
 		match.CaseNone[int](as.Supplier("none")),
 	)
 
@@ -26,14 +26,14 @@ func TestMatch(t *testing.T) {
 	t2 := as.Tuple2(option.Some("hello"), option.None[int]())
 
 	r = match.Of(t2,
-		match.Case(match.Tuple2(match.Some[string], match.Some[int]), as.Tupled2(func(v1 string, v2 int) string {
+		match.Case(match.Tuple2(match.Some[string](), match.Some[int]()), as.Tupled2(func(v1 string, v2 int) string {
 			return "some,some"
 		})),
-		match.Case(match.Tuple2(match.Some[string], match.None[int]), func(t fp.Tuple2[string, fp.Unit]) string {
+		match.Case(match.Tuple2(match.Some[string](), match.None[int]()), func(t fp.Tuple2[string, fp.Unit]) string {
 			return "some,none"
 
 		}),
-		match.CaseTuple2(match.None[string], match.Some, func(u fp.Unit, v int) string {
+		match.CaseTuple2(match.None[string](), match.Some[int](), func(u fp.Unit, v int) string {
 			return "none,some"
 		}),
 	)
@@ -43,7 +43,7 @@ func TestMatch(t *testing.T) {
 	s := seq.Of(1, 2)
 
 	r = match.Of(s,
-		match.CaseSeqConsAnd(match.Any, match.SeqHead(match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
+		match.CaseSeqConsAnd(match.Any[int](), match.SeqHead(match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
 			return "int,2"
 		}),
 		match.CaseSeqCons(func(h int, tail fp.Seq[int]) string {
@@ -59,7 +59,7 @@ func TestMatch(t *testing.T) {
 	s = seq.Of[int]()
 
 	r = match.Of(s,
-		match.CaseSeqConsAnd(match.Any, match.SeqHead(match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
+		match.CaseSeqConsAnd(match.Any[int](), match.SeqHead(match.SomeAnd(match.Equal(2))), func(h int, h2 int) string {
 			return "int,2"
 		}),
 		match.CaseSeqCons(func(h int, tail fp.Seq[int]) string {
