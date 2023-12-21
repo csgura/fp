@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/try"
 	"github.com/csgura/fp/tstate"
 )
 
@@ -12,6 +13,18 @@ type State[A any] tstate.State[context.Context, A]
 func (r State[A]) Run(ctx context.Context) fp.Try[A] {
 	_, result := r(ctx)
 	return result
+}
+
+func Ap[A, B any](s State[fp.Func1[A, B]], a A) State[B] {
+	return Narrow(tstate.Ap(Widen(s), a))
+}
+
+func ApTry[A, B any](s State[fp.Func1[A, B]], a fp.Try[A]) State[B] {
+	return Narrow(tstate.ApTry(Widen(s), a))
+}
+
+func ApOption[A, B any](s State[fp.Func1[A, B]], a fp.Option[A]) State[B] {
+	return Narrow(tstate.ApOption(Widen(s), a))
 }
 
 func Pure[T any](t T) State[T] {
@@ -38,12 +51,26 @@ func WithValue[A any](s State[A], k any, v any) State[A] {
 
 func Map[A, B any](s State[A], f func(A) B) State[B] {
 	return Narrow(tstate.MapValue(Widen(s), f))
+}
 
+func Inspect[A, B any](s State[A], f func(context.Context) B) State[B] {
+	return Narrow(tstate.Inspect(Widen(s), f))
+}
+
+func MapFunc2[A, B any](s State[A], f func(context.Context, A) B) State[B] {
+	return Narrow(tstate.MapWithState(Widen(s), f))
+}
+
+func MapLegacy2[A, B any](s State[A], f func(context.Context, A) (B, error)) State[B] {
+	return Narrow(tstate.FlatMapWithState(Widen(s), try.Func2(f)))
 }
 
 func FlatMap[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
 	return Narrow(tstate.FlatMapValue(Widen(s), f))
+}
 
+func FlatMap2[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {
+	return Narrow(tstate.FlatMapWithState(Widen(s), f))
 }
 
 func PeekContext[A any](s State[A], f func(ctx context.Context)) State[A] {

@@ -25,6 +25,34 @@ func MapState[S, A any](st State[S, A], f func(S) S) State[S, A] {
 	}
 }
 
+func Ap[S, A, B any](st State[S, fp.Func1[A, B]], a A) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, af := st(s)
+		return ns, try.Ap(af, try.Success(a))
+	}
+}
+
+func ApTry[S, A, B any](st State[S, fp.Func1[A, B]], a fp.Try[A]) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, af := st(s)
+		return ns, try.Ap(af, a)
+	}
+}
+
+func ApOption[S, A, B any](st State[S, fp.Func1[A, B]], a fp.Option[A]) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, af := st(s)
+		return ns, try.Ap(af, try.FromOption(a))
+	}
+}
+
+func Inspect[S, A, B any](st State[S, A], f func(S) B) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, _ := st(s)
+		return ns, try.Map(ns, f)
+	}
+}
+
 func MapValue[S, A, B any](st State[S, A], f func(A) B) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
@@ -57,5 +85,21 @@ func PeekState[S, A any](st State[S, A], f func(ctx S)) State[S, A] {
 		ns, r := st(s)
 		ns.Foreach(f)
 		return ns, r
+	}
+}
+
+func MapWithState[S, A, B any](st State[S, A], f func(S, A) B) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, a := st(s)
+		b := try.Map2(ns, a, f)
+		return ns, b
+	}
+}
+
+func FlatMapWithState[S, A, B any](st State[S, A], f func(S, A) fp.Try[B]) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, a := st(s)
+		b := try.Map2(ns, a, f)
+		return ns, try.Flatten(b)
 	}
 }
