@@ -1,6 +1,7 @@
 package try_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/tctx"
 	"github.com/csgura/fp/try"
 )
 
@@ -171,4 +173,23 @@ func FunctorCompose(t *testing.T) {
 
 	assert.Equal(tm, ts)
 
+}
+
+func parseString(v string) tctx.State[int] {
+	return tctx.Pure(10)
+}
+
+func TestState(t *testing.T) {
+	//s, a := parseString("10")(context.Background())
+
+	p := parseString("10")
+	p = tctx.WithValue(p, "hello", "world")
+	p = tctx.Peek(p, func(ctx context.Context) {
+		fmt.Println("hello = ", ctx.Value("hello"))
+	})
+	a := tctx.Map(p, func(a int) string {
+		return "hello"
+
+	}).Run(context.Background())
+	fmt.Println(a)
 }

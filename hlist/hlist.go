@@ -9,7 +9,6 @@ import (
 
 // Sealed is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
 // but go does not support existential type
-// since it has non public method sealed(),  nothing can implement this interface except Cons and Nil
 type HList interface {
 	IsNil() bool
 }
