@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/try"
 	"github.com/csgura/fp/tstate"
 )
@@ -57,6 +58,10 @@ func Inspect[A, B any](s State[A], f func(context.Context) B) State[B] {
 	return Narrow(tstate.Inspect(Widen(s), f))
 }
 
+func MapCurried2[A, B any](s State[A], f fp.Func1[context.Context, fp.Func1[A, B]]) State[B] {
+	return Narrow(tstate.MapWithState(Widen(s), curried.Revert2(f)))
+}
+
 func MapFunc2[A, B any](s State[A], f func(context.Context, A) B) State[B] {
 	return Narrow(tstate.MapWithState(Widen(s), f))
 }
@@ -65,11 +70,15 @@ func MapLegacy2[A, B any](s State[A], f func(context.Context, A) (B, error)) Sta
 	return Narrow(tstate.FlatMapWithState(Widen(s), try.Func2(f)))
 }
 
+func Flatten[A, B any](s State[fp.Try[A]]) State[A] {
+	return Narrow(tstate.FlatMapValue(Widen(s), fp.Id))
+}
+
 func FlatMap[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
 	return Narrow(tstate.FlatMapValue(Widen(s), f))
 }
 
-func FlatMap2[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {
+func FlatMapFunc2[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {
 	return Narrow(tstate.FlatMapWithState(Widen(s), f))
 }
 
