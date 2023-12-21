@@ -6,8 +6,8 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
-func PartialFunc[T, R any](isDefined func(T) bool, apply func(T) R) fp.PartialFunc[T, R] {
-	return fp.PartialFunc[T, R]{IsDefinedAt: isDefined, Apply: apply}
+func PartialFunc[T, R any](isDefinedAt func(T) bool, apply func(T) R) fp.PartialFunc[T, R] {
+	return fp.PartialFunc[T, R]{IsDefinedAt: isDefinedAt, Apply: apply}
 }
 
 func Func0[R any](f func() R) fp.Func1[fp.Unit, R] {

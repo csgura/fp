@@ -263,6 +263,16 @@ func (r Future[T]) Recover(f func(err error) T, ctx ...Executor) Future[T] {
 	return np.Future()
 }
 
+func (r Future[T]) RecoverCase(isDefinedAt func(error) bool, then func(err error) T, ctx ...Executor) Future[T] {
+	np := NewPromise[T]()
+
+	r.OnComplete(func(t Try[T]) {
+		np.Complete(t.RecoverCase(isDefinedAt, then))
+	}, ctx...)
+
+	return np.Future()
+}
+
 func (r Future[T]) RecoverWith(f func(err error) Future[T], ctx ...Executor) Future[T] {
 	np := NewPromise[T]()
 
@@ -273,6 +283,26 @@ func (r Future[T]) RecoverWith(f func(err error) Future[T], ctx ...Executor) Fut
 			f(t.Failed().Get()).OnComplete(func(t Try[T]) {
 				np.Complete(t)
 			}, ctx...)
+		}
+	}, ctx...)
+
+	return np.Future()
+}
+
+func (r Future[T]) RecoverCaseWith(isDefinedAt func(error) bool, then func(err error) Future[T], ctx ...Executor) Future[T] {
+	np := NewPromise[T]()
+
+	r.OnComplete(func(t Try[T]) {
+		if t.IsSuccess() {
+			np.Success(t.Get())
+		} else {
+			if isDefinedAt(t.Failed().Get()) {
+				then(t.Failed().Get()).OnComplete(func(t Try[T]) {
+					np.Complete(t)
+				}, ctx...)
+			} else {
+				np.Failure(t.Failed().Get())
+			}
 		}
 	}, ctx...)
 
