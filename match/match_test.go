@@ -2,6 +2,8 @@ package match_test
 
 import (
 	"fmt"
+	"io"
+	"net"
 	"testing"
 
 	"github.com/csgura/fp"
@@ -9,6 +11,7 @@ import (
 	"github.com/csgura/fp/match"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 )
 
 func TestMatch(t *testing.T) {
@@ -71,5 +74,54 @@ func TestMatch(t *testing.T) {
 	)
 
 	fmt.Printf("r = %s\n", r)
+
+	tt := try.Failure[int](fp.Error(404, "server error"))
+
+	tt = tt.RecoverCase(match.Error(
+		match.CaseErrorCode(500, fp.Const[error](10)),
+		match.CaseErrorCode(404, fp.Const[error](20)),
+	))
+
+	fmt.Printf("tt = %s\n", tt)
+
+	tt = try.Failure[int](&net.OpError{})
+
+	tt = tt.RecoverCase(match.Error(
+		match.CaseErrorType[*net.OpError](func(err *net.OpError) int {
+			return 100
+		}),
+		match.CaseErrorCode(404, fp.Const[error](20)),
+	))
+	fmt.Printf("tt = %s\n", tt)
+
+	tt = try.Failure[int](&net.OpError{})
+
+	tt = tt.RecoverCase(match.Error(
+		match.CaseErrorType[net.Error](func(err net.Error) int {
+			return 1000
+		}),
+		match.CaseErrorCode(404, fp.Const[error](20)),
+	))
+
+	fmt.Printf("tt = %s\n", tt)
+
+	tt = try.Failure[int](&net.OpError{
+		Err: io.ErrUnexpectedEOF,
+	})
+
+	tt = tt.RecoverCase(match.Error(
+		match.CaseErrorIs(io.ErrUnexpectedEOF, func(err error) int {
+			return 10000
+		}),
+		match.CaseErrorCode(404, fp.Const[error](20)),
+	))
+
+	fmt.Printf("tt = %s\n", tt)
+
+	tt.RecoverCaseWith(
+		match.Error(
+			match.CaseErrorCode(500, fp.Const[error](try.Success(10))),
+		),
+	)
 
 }

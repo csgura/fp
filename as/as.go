@@ -7,7 +7,7 @@ import (
 )
 
 func PartialFunc[T, R any](isDefined func(T) bool, apply func(T) R) fp.PartialFunc[T, R] {
-	return fp.PartialFunc[T, R]{IsDefined: isDefined, Apply: apply}
+	return fp.PartialFunc[T, R]{IsDefinedAt: isDefined, Apply: apply}
 }
 
 func Func0[R any](f func() R) fp.Func1[fp.Unit, R] {

@@ -124,8 +124,26 @@ func Or[T any](flist ...func(v T) bool) Predicate[T] {
 }
 
 type PartialFunc[T, R any] struct {
-	IsDefined func(T) bool
-	Apply     func(T) R
+	IsDefinedAt func(T) bool
+	Apply       func(T) R
+}
+
+func (r PartialFunc[T, R]) Unapply() (func(T) bool, func(T) R) {
+	return r.IsDefinedAt, r.Apply
+}
+
+func (r PartialFunc[T, R]) OrElse(other PartialFunc[T, R]) PartialFunc[T, R] {
+	return PartialFunc[T, R]{
+		IsDefinedAt: func(t T) bool {
+			return r.IsDefinedAt(t) || other.IsDefinedAt(t)
+		},
+		Apply: func(t T) R {
+			if r.IsDefinedAt(t) {
+				return r.Apply(t)
+			}
+			return other.Apply(t)
+		},
+	}
 }
 
 type Func0[R any] Func1[Unit, R]

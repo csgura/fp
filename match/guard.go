@@ -79,7 +79,7 @@ func None[T any]() fp.PartialFunc[fp.Option[T], fp.Unit] {
 
 func Tuple2[A1, A2, B1, B2 any](adown fp.PartialFunc[A1, A2], bdown fp.PartialFunc[B1, B2]) fp.PartialFunc[fp.Tuple2[A1, B1], fp.Tuple2[A2, B2]] {
 	return as.PartialFunc(func(t fp.Tuple2[A1, B1]) bool {
-		return adown.IsDefined(t.I1) && bdown.IsDefined(t.I2)
+		return adown.IsDefinedAt(t.I1) && bdown.IsDefinedAt(t.I2)
 	}, func(t fp.Tuple2[A1, B1]) fp.Tuple2[A2, B2] {
 		return as.Tuple(adown.Apply(t.I1), bdown.Apply(t.I2))
 	})
@@ -87,7 +87,7 @@ func Tuple2[A1, A2, B1, B2 any](adown fp.PartialFunc[A1, A2], bdown fp.PartialFu
 
 func Cons[C fp.Cons[H1, T1], H1, H2, T1, T2 any](adown fp.PartialFunc[H1, H2], bdown fp.PartialFunc[T1, T2]) fp.PartialFunc[C, fp.Tuple2[H2, T2]] {
 	return as.PartialFunc(func(t C) bool {
-		return adown.IsDefined(t.Head()) && bdown.IsDefined(t.Tail())
+		return adown.IsDefinedAt(t.Head()) && bdown.IsDefinedAt(t.Tail())
 	}, func(t C) fp.Tuple2[H2, T2] {
 		return as.Tuple(adown.Apply(t.Head()), bdown.Apply(t.Tail()))
 	})
@@ -95,7 +95,7 @@ func Cons[C fp.Cons[H1, T1], H1, H2, T1, T2 any](adown fp.PartialFunc[H1, H2], b
 
 func Head[C fp.Cons[H1, T1], H1, H2, T1 any](hdown fp.PartialFunc[H1, H2]) fp.PartialFunc[C, H2] {
 	return as.PartialFunc(func(c C) bool {
-		return hdown.IsDefined(c.Head())
+		return hdown.IsDefinedAt(c.Head())
 	}, func(c C) H2 {
 		return hdown.Apply(c.Head())
 	})
@@ -103,7 +103,7 @@ func Head[C fp.Cons[H1, T1], H1, H2, T1 any](hdown fp.PartialFunc[H1, H2]) fp.Pa
 
 func SeqHead[T, T2 any](hdown fp.PartialFunc[fp.Option[T], T2]) fp.PartialFunc[fp.Seq[T], T2] {
 	return as.PartialFunc(func(c fp.Seq[T]) bool {
-		return hdown.IsDefined(c.Head())
+		return hdown.IsDefinedAt(c.Head())
 	}, func(c fp.Seq[T]) T2 {
 		return hdown.Apply(c.Head())
 	})

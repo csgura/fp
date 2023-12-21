@@ -119,6 +119,30 @@ func (r Try[T]) Recover(f func(err error) T) Try[T] {
 
 }
 
+func (r Try[T]) RecoverCase(isDefinedAt func(error) bool, then func(error) T) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+
+	if isDefinedAt(r.Failed().Get()) {
+		return Success(then(r.Failed().Get()))
+	}
+
+	return r
+}
+
+func (r Try[T]) RecoverCaseWith(isDefinedAt func(error) bool, then func(error) Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+
+	if isDefinedAt(r.Failed().Get()) {
+		return then(r.Failed().Get())
+	}
+
+	return r
+}
+
 func (r Try[T]) RecoverWith(f func(err error) Try[T]) Try[T] {
 	if r.IsSuccess() {
 		return r
