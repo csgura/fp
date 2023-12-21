@@ -184,7 +184,7 @@ func TestState(t *testing.T) {
 
 	p := parseString("10")
 	p = tctx.WithValue(p, "hello", "world")
-	p = tctx.Peek(p, func(ctx context.Context) {
+	p = tctx.PeekContext(p, func(ctx context.Context) {
 		fmt.Println("hello = ", ctx.Value("hello"))
 	})
 	a := tctx.Map(p, func(a int) string {
