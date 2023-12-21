@@ -39,7 +39,7 @@ type Promise[T any] struct {
 }
 
 func (r Promise[T]) Future() Future[T] {
-	return Future[T]{r}
+	return Future[T](r)
 }
 
 func (r Promise[T]) Success(value T) bool {
@@ -133,13 +133,11 @@ func (r Promise[T]) dispatchOrAddCallback(cb onCompleteFunc[T]) {
 	}
 }
 
-type Future[T any] struct {
-	p Promise[T]
-}
+type Future[T any] Promise[T]
 
 func (r Future[T]) String() string {
-	if r.p.IsCompleted() {
-		v := r.p.Value()
+	if Promise[T](r).IsCompleted() {
+		v := Promise[T](r).Value()
 		return fmt.Sprintf("Future(%v)", v)
 	} else {
 		return fmt.Sprintf("Future[%s](not completed)", TypeName[T]())
@@ -181,7 +179,7 @@ func getExecutor(ctx ...Executor) Executor {
 }
 
 func (r Future[T]) OnComplete(cb func(try Try[T]), ctx ...Executor) {
-	r.p.dispatchOrAddCallback(func(t Try[T]) {
+	Promise[T](r).dispatchOrAddCallback(func(t Try[T]) {
 		getExecutor(ctx...).ExecuteUnsafe(RunnableFunc(func() {
 			cb(t)
 		}))
@@ -189,14 +187,14 @@ func (r Future[T]) OnComplete(cb func(try Try[T]), ctx ...Executor) {
 }
 
 func (r Future[T]) IsCompleted() bool {
-	return r.p.IsCompleted()
+	return Promise[T](r).IsCompleted()
 }
 
 func (r Future[T]) Value() Try[T] {
-	if r.p.status == nil {
+	if Promise[T](r).status == nil {
 		panic("Future not completed")
 	}
-	switch v := r.p.status.Load().(type) {
+	switch v := Promise[T](r).status.Load().(type) {
 	case Try[T]:
 		return v
 	}
