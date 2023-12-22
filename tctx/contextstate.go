@@ -11,9 +11,29 @@ import (
 
 type State[A any] tstate.State[context.Context, A]
 
-func (r State[A]) Run(ctx context.Context) fp.Try[A] {
+func (r State[A]) Run(ctx context.Context) (fp.Try[context.Context], fp.Try[A]) {
+	return r(ctx)
+}
+
+func (r State[A]) Exec(ctx context.Context) fp.Try[context.Context] {
+	state, _ := r(ctx)
+	return state
+}
+
+func (r State[A]) Eval(ctx context.Context) fp.Try[A] {
 	_, result := r(ctx)
 	return result
+}
+
+func Pure[T any](t T) State[T] {
+	return Narrow(tstate.Pure[context.Context](t))
+}
+
+func Of[T any](f func(ctx context.Context) fp.Try[T]) State[T] {
+	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[T]) {
+		rt := f(ctx)
+		return try.Success(ctx), rt
+	}
 }
 
 func Ap[A, B any](s State[fp.Func1[A, B]], a A) State[B] {
@@ -26,10 +46,6 @@ func ApTry[A, B any](s State[fp.Func1[A, B]], a fp.Try[A]) State[B] {
 
 func ApOption[A, B any](s State[fp.Func1[A, B]], a fp.Option[A]) State[B] {
 	return Narrow(tstate.ApOption(Widen(s), a))
-}
-
-func Pure[T any](t T) State[T] {
-	return Narrow(tstate.Pure[context.Context](t))
 }
 
 func Widen[A any](s State[A]) tstate.State[context.Context, A] {
@@ -68,6 +84,12 @@ func MapFunc2[A, B any](s State[A], f func(context.Context, A) B) State[B] {
 
 func MapLegacy2[A, B any](s State[A], f func(context.Context, A) (B, error)) State[B] {
 	return Narrow(tstate.FlatMapWithState(Widen(s), try.Func2(f)))
+}
+
+func MapNonContextLegacy3[A, A2, A3, R any](s State[A], f func(A, A2, A3) (R, error), a2 A2, a3 A3) State[R] {
+	return Narrow(tstate.FlatMapValue(Widen(s), func(a A) fp.Try[R] {
+		return try.Apply(f(a, a2, a3))
+	}))
 }
 
 func Flatten[A, B any](s State[fp.Try[A]]) State[A] {

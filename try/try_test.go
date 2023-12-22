@@ -190,6 +190,6 @@ func TestState(t *testing.T) {
 	a := tctx.Map(p, func(a int) string {
 		return "hello"
 
-	}).Run(context.Background())
+	}).Eval(context.Background())
 	fmt.Println(a)
 }

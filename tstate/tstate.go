@@ -7,8 +7,17 @@ import (
 
 type State[S, A any] func(S) (fp.Try[S], fp.Try[A])
 
-func (r State[S, A]) Run(ctx S) fp.Try[A] {
-	_, result := r(ctx)
+func (r State[S, A]) Run(s S) (fp.Try[S], fp.Try[A]) {
+	return r(s)
+}
+
+func (r State[S, A]) Exec(s S) fp.Try[S] {
+	state, _ := r(s)
+	return state
+}
+
+func (r State[S, A]) Eval(s S) fp.Try[A] {
+	_, result := r(s)
 	return result
 }
 
