@@ -56,18 +56,18 @@ func Narrow[A any](s tstate.State[context.Context, A]) State[A] {
 	return State[A](s)
 }
 
-func ModifyContext[A any](s State[A], f func(context.Context) context.Context) State[A] {
-	return Narrow(tstate.MapState(Widen(s), f))
+func WithContext[A any](s State[A], f func(context.Context) context.Context) State[A] {
+	return Narrow(tstate.WithState(Widen(s), f))
 }
 
 func WithValue[A any](s State[A], k any, v any) State[A] {
-	return ModifyContext(s, func(ctx context.Context) context.Context {
+	return WithContext(s, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, k, v)
 	})
 }
 
 func Map[A, B any](s State[A], f func(A) B) State[B] {
-	return Narrow(tstate.MapValue(Widen(s), f))
+	return Narrow(tstate.Map(Widen(s), f))
 }
 
 func Inspect[A, B any](s State[A], f func(context.Context) B) State[B] {
@@ -87,17 +87,17 @@ func MapLegacy2[A, B any](s State[A], f func(context.Context, A) (B, error)) Sta
 }
 
 func MapNonContextLegacy3[A, A2, A3, R any](s State[A], f func(A, A2, A3) (R, error), a2 A2, a3 A3) State[R] {
-	return Narrow(tstate.FlatMapValue(Widen(s), func(a A) fp.Try[R] {
+	return Narrow(tstate.FlatMap(Widen(s), func(a A) fp.Try[R] {
 		return try.Apply(f(a, a2, a3))
 	}))
 }
 
 func Flatten[A, B any](s State[fp.Try[A]]) State[A] {
-	return Narrow(tstate.FlatMapValue(Widen(s), fp.Id))
+	return Narrow(tstate.FlatMap(Widen(s), fp.Id))
 }
 
 func FlatMap[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
-	return Narrow(tstate.FlatMapValue(Widen(s), f))
+	return Narrow(tstate.FlatMap(Widen(s), f))
 }
 
 func FlatMapFunc2[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {

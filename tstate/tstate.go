@@ -2,7 +2,9 @@ package tstate
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/xtr"
 )
 
 type State[S, A any] func(S) (fp.Try[S], fp.Try[A])
@@ -27,10 +29,51 @@ func Pure[S, T any](t T) State[S, T] {
 	}
 }
 
-func MapState[S, A any](st State[S, A], f func(S) S) State[S, A] {
+func MapState[S, A, B any](st State[S, A], f func(S, A) (S, B)) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, a := st(s)
+		b := try.Map2(ns, a, func(s S, a A) fp.Tuple2[S, B] {
+			return as.Tuple2(f(s, a))
+		})
+		return try.Map(b, xtr.Head), try.Map(b, xtr.Tail)
+	}
+}
+
+func FlatMapState[S, A, B any](st State[S, A], f func(S, A) (fp.Try[S], fp.Try[B])) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, a := st(s)
+		b := try.LiftM2(func(s S, a A) fp.Try[fp.Tuple2[S, B]] {
+			ts, tb := f(s, a)
+			return try.Map2(ts, tb, as.Tuple2)
+		})(ns, a)
+		return try.Map(b, xtr.Head), try.Map(b, xtr.Tail)
+	}
+}
+
+// func FlatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
+// 	return func(s S) (fp.Try[S], fp.Try[B]) {
+// 		ns, a := st(s)
+// 		if ns.IsSuccess() && a.IsSuccess() {
+// 			return f(a.Get())(ns.Get())
+// 		}
+// 		if a.IsFailure() {
+// 			return ns, try.Failure[B](a.Failed().Get())
+// 		}
+// 		return ns, try.Failure[B](ns.Failed().Get())
+// 	}
+// }
+
+func WithState[S, A any](st State[S, A], f func(S) S) State[S, A] {
 	return func(s S) (fp.Try[S], fp.Try[A]) {
 		ns, a := st(s)
 		return try.Map(ns, f), a
+	}
+}
+
+func FlatWithState[S, A any](st State[S, A], f func(S) fp.Try[S]) State[S, A] {
+	return func(s S) (fp.Try[S], fp.Try[A]) {
+		ns, a := st(s)
+		return try.FlatMap(ns, f), a
 	}
 }
 
@@ -62,30 +105,31 @@ func Inspect[S, A, B any](st State[S, A], f func(S) B) State[S, B] {
 	}
 }
 
-func MapValue[S, A, B any](st State[S, A], f func(A) B) State[S, B] {
+func Map[S, A, B any](st State[S, A], f func(A) B) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
 		return ns, try.Map(a, f)
 	}
 }
 
-func FlatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
+func MapWithState[S, A, B any](st State[S, A], f func(S, A) B) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
-		if ns.IsSuccess() && a.IsSuccess() {
-			return f(a.Get())(ns.Get())
-		}
-		if a.IsFailure() {
-			return ns, try.Failure[B](a.Failed().Get())
-		}
-		return ns, try.Failure[B](ns.Failed().Get())
+		return ns, try.Map2(ns, a, f)
 	}
 }
 
-func FlatMapValue[S, A, B any](st State[S, A], f func(A) fp.Try[B]) State[S, B] {
+func FlatMap[S, A, B any](st State[S, A], f func(A) fp.Try[B]) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
 		return ns, try.FlatMap(a, f)
+	}
+}
+
+func FlatMapWithState[S, A, B any](st State[S, A], f func(S, A) fp.Try[B]) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, a := st(s)
+		return ns, try.LiftM2(f)(ns, a)
 	}
 }
 
@@ -94,21 +138,5 @@ func PeekState[S, A any](st State[S, A], f func(ctx S)) State[S, A] {
 		ns, r := st(s)
 		ns.Foreach(f)
 		return ns, r
-	}
-}
-
-func MapWithState[S, A, B any](st State[S, A], f func(S, A) B) State[S, B] {
-	return func(s S) (fp.Try[S], fp.Try[B]) {
-		ns, a := st(s)
-		b := try.Map2(ns, a, f)
-		return ns, b
-	}
-}
-
-func FlatMapWithState[S, A, B any](st State[S, A], f func(S, A) fp.Try[B]) State[S, B] {
-	return func(s S) (fp.Try[S], fp.Try[B]) {
-		ns, a := st(s)
-		b := try.Map2(ns, a, f)
-		return ns, try.Flatten(b)
 	}
 }
