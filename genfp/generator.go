@@ -72,6 +72,9 @@ var defaultFunc = map[string]any{
 	"dec": func(n int) int {
 		return n - 1
 	},
+	"inc": func(n int) int {
+		return n + 1
+	},
 }
 
 type ArgsRange struct {

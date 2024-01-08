@@ -13,6 +13,7 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
+	"github.com/csgura/fp/xtr"
 )
 
 func Success[T any](t T) fp.Try[T] {
@@ -315,6 +316,10 @@ func FlatMethod2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) fp.Try[R
 
 func Zip[A, B any](ta fp.Try[A], tb fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
 	return Map2(ta, tb, product.Tuple2)
+}
+
+func UnZip[A, B any](t fp.Try[fp.Tuple2[A, B]]) (fp.Try[A], fp.Try[B]) {
+	return Map(t, xtr.Head), Map(t, xtr.Tail)
 }
 
 func Zip3[A, B, C any](ta fp.Try[A], tb fp.Try[B], tc fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
@@ -781,4 +786,28 @@ func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N}}
 	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
 }
 	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "curried_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/as", Name: "as"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+func Curried{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (R,error)) {{CurriedFunc 1 .N "fp.Try[R]"}} {
+	return as.Curried{{.N}}(func({{DeclArgs 1 .N}}) fp.Try[R] {
+		return Apply(f({{CallArgs 1 .N}}))
+	})	
+}
+
+func CurriedPtr{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (*R,error)) {{CurriedFunc 1 .N "fp.Try[R]"}} {
+	return as.Curried{{.N}}(func({{DeclArgs 1 .N}}) fp.Try[R] {
+		return FlatMap(Apply(f({{CallArgs 1 .N}})),FromPtr)
+	})	
+}
+`,
 }

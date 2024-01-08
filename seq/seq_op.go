@@ -11,6 +11,10 @@ import (
 	"github.com/csgura/fp/product"
 )
 
+func Size[T any](s []T) int {
+	return len(s)
+}
+
 func Head[T any](s []T) fp.Option[T] {
 	return fp.Seq[T](s).Head()
 }
