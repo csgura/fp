@@ -804,6 +804,18 @@ func Curried{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (R,error)
 	})	
 }
 
+func CurriedPure{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) {{CurriedFunc 1 .N "fp.Try[R]"}} {
+	return as.Curried{{.N}}(func({{DeclArgs 1 .N}}) fp.Try[R] {
+		return Success(f({{CallArgs 1 .N}}))
+	})	
+}
+
+func CurriedUnit{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) error) {{CurriedFunc 1 .N "fp.Try[fp.Unit]"}} {
+	return as.Curried{{.N}}(func({{DeclArgs 1 .N}}) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f({{CallArgs 1 .N}}))
+	})	
+}
+
 func CurriedPtr{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (*R,error)) {{CurriedFunc 1 .N "fp.Try[R]"}} {
 	return as.Curried{{.N}}(func({{DeclArgs 1 .N}}) fp.Try[R] {
 		return FlatMap(Apply(f({{CallArgs 1 .N}})),FromPtr)

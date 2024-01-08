@@ -39,7 +39,7 @@ func MapState[S, A, B any](st State[S, A], f func(S, A) (S, B)) State[S, B] {
 	}
 }
 
-func FlatMapState[S, A, B any](st State[S, A], f func(S, A) (fp.Try[S], fp.Try[B])) State[S, B] {
+func MapStateT[S, A, B any](st State[S, A], f func(S, A) (fp.Try[S], fp.Try[B])) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
 		b := try.LiftM2(func(s S, a A) fp.Try[fp.Tuple2[S, B]] {
@@ -50,18 +50,18 @@ func FlatMapState[S, A, B any](st State[S, A], f func(S, A) (fp.Try[S], fp.Try[B
 	}
 }
 
-// func FlatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
-// 	return func(s S) (fp.Try[S], fp.Try[B]) {
-// 		ns, a := st(s)
-// 		if ns.IsSuccess() && a.IsSuccess() {
-// 			return f(a.Get())(ns.Get())
-// 		}
-// 		if a.IsFailure() {
-// 			return ns, try.Failure[B](a.Failed().Get())
-// 		}
-// 		return ns, try.Failure[B](ns.Failed().Get())
-// 	}
-// }
+func FlatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
+	return func(s S) (fp.Try[S], fp.Try[B]) {
+		ns, a := st(s)
+		if ns.IsSuccess() && a.IsSuccess() {
+			return f(a.Get())(ns.Get())
+		}
+		if a.IsFailure() {
+			return ns, try.Failure[B](a.Failed().Get())
+		}
+		return ns, try.Failure[B](ns.Failed().Get())
+	}
+}
 
 func WithState[S, A any](st State[S, A], f func(S) S) State[S, A] {
 	return func(s S) (fp.Try[S], fp.Try[A]) {
@@ -70,7 +70,7 @@ func WithState[S, A any](st State[S, A], f func(S) S) State[S, A] {
 	}
 }
 
-func FlatWithState[S, A any](st State[S, A], f func(S) fp.Try[S]) State[S, A] {
+func WithStateT[S, A any](st State[S, A], f func(S) fp.Try[S]) State[S, A] {
 	return func(s S) (fp.Try[S], fp.Try[A]) {
 		ns, a := st(s)
 		return try.FlatMap(ns, f), a
@@ -119,14 +119,14 @@ func MapWithState[S, A, B any](st State[S, A], f func(S, A) B) State[S, B] {
 	}
 }
 
-func FlatMap[S, A, B any](st State[S, A], f func(A) fp.Try[B]) State[S, B] {
+func MapT[S, A, B any](st State[S, A], f func(A) fp.Try[B]) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
 		return ns, try.FlatMap(a, f)
 	}
 }
 
-func FlatMapWithState[S, A, B any](st State[S, A], f func(S, A) fp.Try[B]) State[S, B] {
+func MapWithStateT[S, A, B any](st State[S, A], f func(S, A) fp.Try[B]) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
 		return ns, try.LiftM2(f)(ns, a)

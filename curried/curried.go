@@ -74,6 +74,14 @@ func Flip{{dec .N}}[{{TypeArgs 1 .N}}, R any](f {{CurriedFunc 1 .N "R"}}) {{Curr
 	)
 }
 
+func SlipL{{.N}}[{{TypeArgs 1 .N}}, R any](f {{CurriedFunc 1 .N "R"}}) fp.Func1[A{{.N}}, {{CurriedFunc 1 ( dec .N ) "R"}}] {
+	return Func{{.N}}(
+		func(a{{.N}} A{{.N}}, {{DeclArgs 1 (dec .N)}}) R {
+			return f{{CurriedCallArgs 1  .N}}
+		},
+	)
+}
+
 func Compose{{.N}}[{{TypeArgs 1 .N}}, GA, GR any](f {{CurriedFunc 1 .N "GA"}}, g fp.Func1[GA, GR]) {{CurriedFunc 1 .N "GR"}} {
 	return func(a1 A1) {{CurriedFunc 2 .N "GR"}} {
 		return Compose{{dec .N}}(f(a1), g)

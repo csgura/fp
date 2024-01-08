@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/try"
 	"github.com/csgura/fp/tstate"
@@ -100,68 +98,60 @@ func Inspect[A, B any](s State[A], f func(context.Context) B) State[B] {
 	return Narrow(tstate.Inspect(Widen(s), f))
 }
 
-func MapCurried2[A, B any](s State[A], f fp.Func1[context.Context, fp.Func1[A, B]]) State[B] {
-	return Narrow(tstate.MapWithState(Widen(s), curried.Revert2(f)))
-}
-
-func MapFunc2[A, B any](s State[A], f func(context.Context, A) B) State[B] {
-	return Narrow(tstate.MapWithState(Widen(s), f))
-}
-
-func MapLegacy2[A, B any](s State[A], f func(context.Context, A) (B, error)) State[B] {
-	return Narrow(tstate.FlatMapWithState(Widen(s), try.Func2(f)))
-}
-
 func MapNonContextLegacy3[A, A2, A3, R any](s State[A], f func(A, A2, A3) (R, error), a2 A2, a3 A3) State[R] {
-	return Narrow(tstate.FlatMap(Widen(s), func(a A) fp.Try[R] {
+	return Narrow(tstate.MapT(Widen(s), func(a A) fp.Try[R] {
 		return try.Apply(f(a, a2, a3))
 	}))
 }
 
 func Flatten[A, B any](s State[fp.Try[A]]) State[A] {
-	return Narrow(tstate.FlatMap(Widen(s), fp.Id))
+	return Narrow(tstate.MapT(Widen(s), fp.Id))
 }
 
 func FlatMap[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
-	return Narrow(tstate.FlatMap(Widen(s), f))
-}
-
-func FlatMapFunc2[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {
-	return Narrow(tstate.FlatMapWithState(Widen(s), f))
-}
-
-func FlatMapFunc3[A1, A2, R any](s State[A1], f func(context.Context, A1, A2) fp.Try[R], a2 A2) State[R] {
-	return Narrow(tstate.FlatMapWithState(Widen(s), func(s context.Context, a A1) fp.Try[R] {
-		return f(s, a, a2)
-	}))
+	return Narrow(tstate.MapT(Widen(s), f))
 }
 
 func PeekContext[A any](s State[A], f func(ctx context.Context)) State[A] {
 	return Narrow(tstate.PeekState(Widen(s), f))
 }
 
-func FromFunc3[A1, A2, R any](f func(context.Context, A1, A2) fp.Try[R], a1 A1, a2 A2) State[R] {
+// func Curried3[A1, A2, R any](f func(context.Context, A1, A2) R) State[fp.Func1[A1, fp.Func1[A2, R]]] {
+// 	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[fp.Func1[A1, fp.Func1[A2, R]]]) {
+// 		ret := as.Curried3(f)(ctx)
+// 		return try.Success(ctx), try.Success(ret)
+// 	}
+// }
+
+// func Curried4[A1, A2, A3, R any](f func(context.Context, A1, A2, A3) R) State[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]] {
+// 	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]) {
+// 		ret := as.Curried4(f)(ctx)
+// 		return try.Success(ctx), try.Success(ret)
+// 	}
+// }
+
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "from_func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/try", Name: "try"},
+
+		{Package: "context", Name: "context"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+func FromFunc{{.N}}[{{TypeArgs 1 (dec .N)}}, R any](f func(context.Context, {{TypeArgs 1 (dec .N)}}) fp.Try[R], {{DeclArgs 1 (dec .N)}}) State[R] {
 	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[R]) {
-		r := f(ctx, a1, a2)
+		r := f(ctx, {{CallArgs 1 (dec .N)}})
 		return try.Success(ctx), r
 	}
 }
-
-func Curried3[A1, A2, R any](f func(context.Context, A1, A2) R) State[fp.Func1[A1, fp.Func1[A2, R]]] {
-	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[fp.Func1[A1, fp.Func1[A2, R]]]) {
-		ret := as.Curried3(f)(ctx)
-		return try.Success(ctx), try.Success(ret)
-	}
+	`,
 }
-
-func Curried4[A1, A2, A3, R any](f func(context.Context, A1, A2, A3) R) State[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]] {
-	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]) {
-		ret := as.Curried4(f)(ctx)
-		return try.Success(ctx), try.Success(ret)
-	}
-}
-
-//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
@@ -194,8 +184,17 @@ var _ = genfp.GenerateFromUntil{
 	From:  2,
 	Until: genfp.MaxFunc,
 	Template: `
-func MapPureArg{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f fp.Func1[context.Context, {{CurriedFunc 1 .N "R"}}], {{DeclArgs 2 .N}}) State[R] {
-	return Narrow(tstate.MapWithState(Widen(s), func(s context.Context, a1 A1) R {
+
+
+func MapT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f {{CurriedFunc 1 .N "fp.Try[R]"}}, {{DeclArgs 2 .N}}) State[R] {
+	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+		return f{{CurriedCallArgs 1 .N}}
+	}))
+}
+
+
+func MapWithT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f fp.Func1[context.Context, {{CurriedFunc 1 .N "fp.Try[R]"}}], {{DeclArgs 2 .N}}) State[R] {
+	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s){{CurriedCallArgs 1 .N}}
 	}))
 }

@@ -12,6 +12,18 @@ func Curried2[A1, A2, R any](f func(A1, A2) (R, error)) fp.Func1[A1, fp.Func1[A2
 	})
 }
 
+func CurriedPure2[A1, A2, R any](f func(A1, A2) R) fp.Func1[A1, fp.Func1[A2, fp.Try[R]]] {
+	return as.Curried2(func(a1 A1, a2 A2) fp.Try[R] {
+		return Success(f(a1, a2))
+	})
+}
+
+func CurriedUnit2[A1, A2, R any](f func(A1, A2) error) fp.Func1[A1, fp.Func1[A2, fp.Try[fp.Unit]]] {
+	return as.Curried2(func(a1 A1, a2 A2) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2))
+	})
+}
+
 func CurriedPtr2[A1, A2, R any](f func(A1, A2) (*R, error)) fp.Func1[A1, fp.Func1[A2, fp.Try[R]]] {
 	return as.Curried2(func(a1 A1, a2 A2) fp.Try[R] {
 		return FlatMap(Apply(f(a1, a2)), FromPtr)
@@ -21,6 +33,18 @@ func CurriedPtr2[A1, A2, R any](f func(A1, A2) (*R, error)) fp.Func1[A1, fp.Func
 func Curried3[A1, A2, A3, R any](f func(A1, A2, A3) (R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Try[R]]]] {
 	return as.Curried3(func(a1 A1, a2 A2, a3 A3) fp.Try[R] {
 		return Apply(f(a1, a2, a3))
+	})
+}
+
+func CurriedPure3[A1, A2, A3, R any](f func(A1, A2, A3) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Try[R]]]] {
+	return as.Curried3(func(a1 A1, a2 A2, a3 A3) fp.Try[R] {
+		return Success(f(a1, a2, a3))
+	})
+}
+
+func CurriedUnit3[A1, A2, A3, R any](f func(A1, A2, A3) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Try[fp.Unit]]]] {
+	return as.Curried3(func(a1 A1, a2 A2, a3 A3) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3))
 	})
 }
 
@@ -36,6 +60,18 @@ func Curried4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) (R, error)) fp.Func1
 	})
 }
 
+func CurriedPure4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[R]]]]] {
+	return as.Curried4(func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4))
+	})
+}
+
+func CurriedUnit4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[fp.Unit]]]]] {
+	return as.Curried4(func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3, a4))
+	})
+}
+
 func CurriedPtr4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) (*R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[R]]]]] {
 	return as.Curried4(func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try[R] {
 		return FlatMap(Apply(f(a1, a2, a3, a4)), FromPtr)
@@ -45,6 +81,18 @@ func CurriedPtr4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) (*R, error)) fp.F
 func Curried5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) (R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[R]]]]]] {
 	return as.Curried5(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Try[R] {
 		return Apply(f(a1, a2, a3, a4, a5))
+	})
+}
+
+func CurriedPure5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[R]]]]]] {
+	return as.Curried5(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5))
+	})
+}
+
+func CurriedUnit5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[fp.Unit]]]]]] {
+	return as.Curried5(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3, a4, a5))
 	})
 }
 
@@ -60,6 +108,18 @@ func Curried6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) (R, 
 	})
 }
 
+func CurriedPure6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[R]]]]]]] {
+	return as.Curried6(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6))
+	})
+}
+
+func CurriedUnit6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[fp.Unit]]]]]]] {
+	return as.Curried6(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3, a4, a5, a6))
+	})
+}
+
 func CurriedPtr6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) (*R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[R]]]]]]] {
 	return as.Curried6(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[R] {
 		return FlatMap(Apply(f(a1, a2, a3, a4, a5, a6)), FromPtr)
@@ -69,6 +129,18 @@ func CurriedPtr6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) (
 func Curried7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) (R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[R]]]]]]]] {
 	return as.Curried7(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Try[R] {
 		return Apply(f(a1, a2, a3, a4, a5, a6, a7))
+	})
+}
+
+func CurriedPure7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[R]]]]]]]] {
+	return as.Curried7(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6, a7))
+	})
+}
+
+func CurriedUnit7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[fp.Unit]]]]]]]] {
+	return as.Curried7(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3, a4, a5, a6, a7))
 	})
 }
 
@@ -84,6 +156,18 @@ func Curried8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, 
 	})
 }
 
+func CurriedPure8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[R]]]]]]]]] {
+	return as.Curried8(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6, a7, a8))
+	})
+}
+
+func CurriedUnit8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[fp.Unit]]]]]]]]] {
+	return as.Curried8(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3, a4, a5, a6, a7, a8))
+	})
+}
+
 func CurriedPtr8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) (*R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[R]]]]]]]]] {
 	return as.Curried8(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Try[R] {
 		return FlatMap(Apply(f(a1, a2, a3, a4, a5, a6, a7, a8)), FromPtr)
@@ -93,6 +177,18 @@ func CurriedPtr8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A
 func Curried9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) (R, error)) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[R]]]]]]]]]] {
 	return as.Curried9(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Try[R] {
 		return Apply(f(a1, a2, a3, a4, a5, a6, a7, a8, a9))
+	})
+}
+
+func CurriedPure9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[R]]]]]]]]]] {
+	return as.Curried9(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Try[R] {
+		return Success(f(a1, a2, a3, a4, a5, a6, a7, a8, a9))
+	})
+}
+
+func CurriedUnit9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) error) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[fp.Unit]]]]]]]]]] {
+	return as.Curried9(func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Try[fp.Unit] {
+		return Apply(fp.Unit{}, f(a1, a2, a3, a4, a5, a6, a7, a8, a9))
 	})
 }
 
