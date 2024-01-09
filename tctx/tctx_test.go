@@ -213,3 +213,24 @@ func TestStack(t *testing.T) {
 	assert.Equal(v, option.Some(10))
 
 }
+
+func flatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
+	return func(s S) (S, B) {
+		s, a := st.Run(s)
+		return f(a).Run(s)
+	}
+}
+
+func flatMap2[S, A, B any](st State[S, A], f State[S, B]) State[S, B] {
+	return flatMap(st, fp.Const[A](f))
+}
+
+func TestStack2(t *testing.T) {
+
+	s := push(10)
+	s = flatMap2(s, push(20))
+	s2 := flatMap2(s, pop[int]())
+
+	_, v := s2.Run(nil)
+	assert.Equal(v, option.Some(20))
+}
