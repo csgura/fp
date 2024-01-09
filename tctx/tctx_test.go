@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/internal/assert"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/tctx"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/tstate"
 )
 
 func parseString(v string) tctx.State[int64] {
@@ -131,5 +135,81 @@ func TestCompose(t *testing.T) {
 		tctx.AsWithFunc2(tctx.Const(try.CurriedPure3(indeparg)), 10, 10),
 	)
 	tctx.MapWithT(start, ff)
+
+}
+
+type State[S, A any] func(S) (S, A)
+
+func (r State[S, A]) Run(s S) (S, A) {
+	return r(s)
+}
+
+var nextToken State[string, string] = func(s string) (string, string) {
+	s = strings.TrimSpace(s)
+	for i, c := range s {
+		if unicode.IsSpace(c) {
+			return s[i+1:], s[:i]
+		}
+	}
+	return "", s
+}
+
+func TestNextToken(t *testing.T) {
+	s, token := nextToken.Run("hello world hi there")
+	assert.Equal(token, "hello")
+
+	s, token = nextToken.Run(s)
+	assert.Equal(token, "world")
+
+	s, token = nextToken.Run(s)
+	assert.Equal(token, "hi")
+
+	_, token = nextToken.Run(s)
+	assert.Equal(token, "there")
+
+}
+
+func TestParseInt(t *testing.T) {
+	nextT := tstate.Of(func(s string) fp.Try[fp.Tuple2[string, string]] {
+		return try.Success(as.Tuple2(nextToken.Run(s)))
+	})
+
+	nextInt := tstate.MapT(nextT, func(a string) fp.Try[int] {
+		v, err := strconv.ParseInt(a, 10, 64)
+		return try.Apply(int(v), err)
+	})
+
+	s, i := nextInt.Run("1 2 3 4 5")
+	assert.Equal(i, try.Success(1))
+	assert.Equal(s, try.Success("2 3 4 5"))
+
+	s, i = nextInt.Run(s.Get())
+	assert.Equal(i, try.Success(2))
+	assert.Equal(s, try.Success("3 4 5"))
+
+}
+
+func push[T any](v T) State[[]T, T] {
+	return func(t []T) ([]T, T) {
+		return append(t, v), v
+	}
+}
+
+func pop[T any]() State[[]T, fp.Option[T]] {
+	return func(t []T) ([]T, fp.Option[T]) {
+		l := as.Seq(t).Last()
+		return as.Seq(t).Init(), l
+	}
+}
+
+func TestStack(t *testing.T) {
+	stack := []int{}
+	stack, _ = push(10).Run(stack)
+	stack, _ = push(20).Run(stack)
+
+	stack, v := pop[int]().Run(stack)
+	assert.Equal(v, option.Some(20))
+	_, v = pop[int]().Run(stack)
+	assert.Equal(v, option.Some(10))
 
 }

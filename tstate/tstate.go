@@ -35,6 +35,13 @@ func FromTry[S, T any](t fp.Try[T]) State[S, T] {
 	}
 }
 
+func Of[S, T any](f func(S) fp.Try[fp.Tuple2[S, T]]) State[S, T] {
+	return func(s S) (fp.Try[S], fp.Try[T]) {
+		res := f(s)
+		return try.UnZip(res)
+	}
+}
+
 func MapState[S, A, B any](st State[S, A], f func(S, A) (S, B)) State[S, B] {
 	return func(s S) (fp.Try[S], fp.Try[B]) {
 		ns, a := st(s)
