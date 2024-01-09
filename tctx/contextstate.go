@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/try"
 	"github.com/csgura/fp/tstate"
@@ -40,6 +41,10 @@ func Pure[T any](t T) State[T] {
 	return Narrow(tstate.Pure[context.Context](t))
 }
 
+func FromTry[T any](t fp.Try[T]) State[T] {
+	return Narrow(tstate.FromTry[context.Context](t))
+}
+
 func Of[T any](f func(ctx context.Context) fp.Try[T]) State[T] {
 	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[T]) {
 		rt := f(ctx)
@@ -47,17 +52,27 @@ func Of[T any](f func(ctx context.Context) fp.Try[T]) State[T] {
 	}
 }
 
-func Compose2[A, R any](a State[A], b State[fp.Func1[A, R]]) State[R] {
-	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[R]) {
-		nctx, ares := a.Run(ctx)
-		res := try.FlatMap(nctx, func(v context.Context) fp.Try[fp.Tuple2[context.Context, R]] {
-			bctx, far := b.Run(v)
+type WithFunc[A, R any] func(context.Context, A) R
 
-			bres := try.Ap(far, ares)
-			return try.Zip(bctx, bres)
-		})
-		return try.UnZip(res)
+func Compose2[A, B, R any](f1 WithFunc[A, fp.Try[B]], f2 WithFunc[B, fp.Try[R]]) WithFunc[A, fp.Try[R]] {
+	return func(ctx context.Context, a A) fp.Try[R] {
+		return try.FlatMap(f1(ctx, a), as.Func2(f2).ApplyFirst(ctx))
 	}
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxCompose,
+	Template: `
+func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N "WithFunc"}}) WithFunc[A1,fp.Try[R]] {
+	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+}
+	`,
 }
 
 func Ap[A, B any](s State[fp.Func1[A, B]], a A) State[B] {
@@ -72,10 +87,14 @@ func ApOption[A, B any](s State[fp.Func1[A, B]], a fp.Option[A]) State[B] {
 	return Narrow(tstate.ApOption(Widen(s), a))
 }
 
+// widen 의 의미는 B which extends A -> A ( super type )
+// 더 일반적인 타입으로 변환하는 것을 의미
 func Widen[A any](s State[A]) tstate.State[context.Context, A] {
 	return tstate.State[context.Context, A](s)
 }
 
+// narrow 의 의미는  A -> B which extends A  ( sub type )
+// 더 상세한 타입으로 변경하는 것을 의미
 func Narrow[A any](s tstate.State[context.Context, A]) State[A] {
 	return State[A](s)
 }
@@ -94,26 +113,52 @@ func Map[A, B any](s State[A], f func(A) B) State[B] {
 	return Narrow(tstate.Map(Widen(s), f))
 }
 
+func MapWith[A, B any](s State[A], f func(context.Context, A) B) State[B] {
+	return Narrow(tstate.MapWithState(Widen(s), f))
+}
+
+func MapMethodWith[A, B any](s State[A], f func(A, context.Context) B) State[B] {
+	return Narrow(tstate.MapWithState(Widen(s), func(s context.Context, a A) B {
+		return f(a, s)
+	}))
+}
+
+func MapMethodWithT[A, B any](s State[A], f func(A, context.Context) fp.Try[B]) State[B] {
+	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a A) fp.Try[B] {
+		return f(a, s)
+	}))
+}
+
 func Inspect[A, B any](s State[A], f func(context.Context) B) State[B] {
 	return Narrow(tstate.Inspect(Widen(s), f))
 }
 
-func MapNonContextLegacy3[A, A2, A3, R any](s State[A], f func(A, A2, A3) (R, error), a2 A2, a3 A3) State[R] {
-	return Narrow(tstate.MapT(Widen(s), func(a A) fp.Try[R] {
-		return try.Apply(f(a, a2, a3))
-	}))
-}
-
-func Flatten[A, B any](s State[fp.Try[A]]) State[A] {
+func JoinT[A, B any](s State[fp.Try[A]]) State[A] {
 	return Narrow(tstate.MapT(Widen(s), fp.Id))
 }
 
-func FlatMap[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
+func MapT[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
 	return Narrow(tstate.MapT(Widen(s), f))
+}
+
+func MapWithT[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {
+	return Narrow(tstate.MapWithStateT(Widen(s), f))
 }
 
 func PeekContext[A any](s State[A], f func(ctx context.Context)) State[A] {
 	return Narrow(tstate.PeekState(Widen(s), f))
+}
+
+func Const[A any](a A) fp.Func1[context.Context, A] {
+	return func(a1 context.Context) A {
+		return a
+	}
+}
+
+func AsWithFunc[A1, R any](f fp.Func1[context.Context, fp.Func1[A1, R]]) func(context.Context, A1) R {
+	return func(s context.Context, a1 A1) R {
+		return f(s)(a1)
+	}
 }
 
 // func Curried3[A1, A2, R any](f func(context.Context, A1, A2) R) State[fp.Func1[A1, fp.Func1[A2, R]]] {
@@ -164,7 +209,7 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxFunc,
 	Template: `
-func Fit{{.N}}[{{TypeArgs 1 (dec .N)}}, R any](f fp.Func1[context.Context,{{CurriedFunc 1 (dec .N) "R"}}]) fp.Func1[context.Context, fp.Func1[A{{dec .N}}, {{CurriedFunc 1 (dec ( dec .N )) "R"}}]] {
+func SlipL{{.N}}[{{TypeArgs 1 (dec .N)}}, R any](f fp.Func1[context.Context,{{CurriedFunc 1 (dec .N) "R"}}]) fp.Func1[context.Context, fp.Func1[A{{dec .N}}, {{CurriedFunc 1 (dec ( dec .N )) "R"}}]] {
 	return as.Curried{{.N}}(func(ctx context.Context, a{{dec .N}} A{{dec .N}}, {{DeclArgs 1 (dec (dec .N))}}) R {
 		return f(ctx){{CurriedCallArgs 1 (dec .N)}}
 
@@ -186,6 +231,7 @@ var _ = genfp.GenerateFromUntil{
 	Template: `
 
 
+
 func MapT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f {{CurriedFunc 1 .N "fp.Try[R]"}}, {{DeclArgs 2 .N}}) State[R] {
 	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
 		return f{{CurriedCallArgs 1 .N}}
@@ -193,9 +239,42 @@ func MapT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f {{CurriedFunc 1 .N 
 }
 
 
+func AsWithFunc{{dec .N}}[{{TypeArgs 1 .N}}, R any](f fp.Func1[context.Context, {{CurriedFunc 1 .N "R"}}], {{DeclArgs 2 .N}}) func(context.Context, A1) R {
+	return func(s context.Context, a1 A1) R {
+		return f(s){{CurriedCallArgs 1 .N}}
+	}
+}
+
 func MapWithT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f fp.Func1[context.Context, {{CurriedFunc 1 .N "fp.Try[R]"}}], {{DeclArgs 2 .N}}) State[R] {
 	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s){{CurriedCallArgs 1 .N}}
+	}))
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "method_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/tstate", Name: "tstate"},
+		{Package: "context", Name: "context"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+
+
+func MapMethodWith{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f func(a1 A1, ctx context.Context, {{DeclArgs 2 .N}}) R,  {{DeclArgs 2 .N}}) State[R] {
+	return Narrow(tstate.MapWithState(Widen(s), func(s context.Context, a1 A1) R {
+		return f(a1 , s , {{CallArgs 2 .N}})
+	}))
+}
+
+func MapMethodWithT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f func(a1 A1, ctx context.Context, {{DeclArgs 2 .N}}) fp.Try[R],  {{DeclArgs 2 .N}}) State[R] {
+	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+		return f(a1 , s , {{CallArgs 2 .N}})
 	}))
 }
 	`,

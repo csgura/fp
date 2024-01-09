@@ -162,16 +162,21 @@ func (r Monad) TypeDeclArgs(start, until int, prefixOpt ...string) string {
 	return f.String()
 }
 
-func (r Monad) FuncChain(start, until int) string {
+func (r Monad) FuncChain(start, until int, funcType ...string) string {
+	ft := "fp.Func1"
+	if len(funcType) > 0 {
+		ft = funcType[0]
+	}
+
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
 		if j != start {
 			fmt.Fprintf(f, ", ")
 		}
 		if j == until {
-			fmt.Fprintf(f, "f%d fp.Func1[A%d,%s[R]]", j, j, r)
+			fmt.Fprintf(f, "f%d %s[A%d,%s[R]]", j, ft, j, r)
 		} else {
-			fmt.Fprintf(f, "f%d fp.Func1[A%d,%s[A%d]]", j, j, r, j+1)
+			fmt.Fprintf(f, "f%d %s[A%d,%s[A%d]]", j, ft, j, r, j+1)
 		}
 	}
 	return f.String()

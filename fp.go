@@ -156,6 +156,10 @@ type Func1[A1, R any] func(a1 A1) R
 
 type Func2[A1, A2, R any] func(a1 A1, a2 A2) R
 
+func (r Func2[A1, A2, R]) Widen() func(a1 A1, a2 A2) R {
+	return r
+}
+
 // func (r Func2[A1, A2, R]) Curried() Func1[A1, Func1[A2, R]] {
 // 	return func(a1 A1) Func1[A2, R] {
 // 		return Func1[A2, R](func(a2 A2) R {
@@ -471,6 +475,10 @@ func (r Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplyLast{{dec .N}}({{DeclArgs 2 .N}})
 	return func(a1 A1) R {
 		return r({{CallArgs 1 .N}})
 	}
+}
+
+func (r Func{{.N}}[{{TypeArgs 1 .N}}, R]) Widen() func({{TypeArgs 1 .N}}) R{
+	return r
 }
 	`,
 }

@@ -2,6 +2,7 @@ package tctx_test
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -50,6 +51,25 @@ func TestTCtx(t *testing.T) {
 
 }
 
+type something struct {
+}
+
+func (r something) Do1(ctx context.Context) string {
+	return "10"
+}
+
+func (r something) DontCare1() string {
+	return "10"
+}
+
+func (r something) DontCare2(arg int) string {
+	return "10"
+}
+
+func (r something) Do2(ctx context.Context, arg string) string {
+	return "10"
+}
+
 func TestStart(t *testing.T) {
 	s1 := tctx.FromFunc3(firstFunc, "hello", 10)
 	tctx.MapWithT1(s1, as.Curried3(secondFunc), 10)
@@ -61,9 +81,55 @@ func TestStart(t *testing.T) {
 
 	s1 = tctx.MapWithT1(s1, as.Curried3(firstFunc), 10)
 
-	s1 = tctx.MapWithT2(s1, tctx.Fit3(as.Curried4(thirdFunc)), 10, 20)
+	s1 = tctx.MapWithT2(s1, tctx.SlipL3(as.Curried4(thirdFunc)), 10, 20)
 
-	s1 = tctx.MapWithT2(s1, tctx.Fit4(as.Curried4(forthFunc)), 10, 20)
+	s1 = tctx.MapWithT2(s1, tctx.SlipL4(as.Curried4(forthFunc)), 10, 20)
 	s1 = tctx.MapT2(s1, curried.SlipL3(as.Curried3(fifthFunc)), 10, 20)
+
+	p1 := tctx.Pure(something{})
+	s1 = tctx.MapMethodWith(p1, something.Do1)
+	s1 = tctx.MapMethodWith1(p1, something.Do2, "arg")
+
+	s1 = tctx.Map(p1, something.DontCare1)
+	s1 = tctx.MapT1(p1, try.CurriedPure2(something.DontCare2), 10)
+
+}
+
+func formatInt(ctx context.Context, fmtstr string, v int) string {
+	return fmt.Sprintf(fmtstr, v)
+}
+
+func joinPort(ctx context.Context, v string, port int) string {
+	return fmt.Sprintf("%s:%d", v, port)
+}
+
+func validate(ctx context.Context, v string) string {
+	return v
+}
+
+func indep(v string) string {
+	return v
+}
+
+func indeparg(v string, a1 int, a2 int) string {
+	return v
+}
+
+func TestCompose(t *testing.T) {
+	start := tctx.Pure(10)
+
+	second := tctx.MapWithT1(start, tctx.SlipL3(try.CurriedPure3(formatInt)), "hello%d")
+	tctx.MapWithT1(second, try.CurriedPure3(joinPort), 8080)
+
+	cf1 := tctx.SlipL3(try.CurriedPure3(formatInt))
+
+	ff := tctx.Compose5(
+		tctx.AsWithFunc1(cf1, "hello%d"),
+		tctx.AsWithFunc1(try.CurriedPure3(joinPort), 8080),
+		try.Pure2(validate).Widen(),
+		tctx.AsWithFunc(tctx.Const(try.Pure1(indep))),
+		tctx.AsWithFunc2(tctx.Const(try.CurriedPure3(indeparg)), 10, 10),
+	)
+	tctx.MapWithT(start, ff)
 
 }
