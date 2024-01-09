@@ -3,6 +3,7 @@ package genfp
 import (
 	"fmt"
 	"go/ast"
+	"go/constant"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -107,13 +108,23 @@ func asKeyValue(e ast.Expr, defName string) (string, ast.Expr) {
 	return defName, e
 }
 
-func evalStringValue(e ast.Expr) (string, error) {
+func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
 	switch t := e.(type) {
 	case *ast.BasicLit:
 		if strings.HasPrefix(t.Value, `"`) && strings.HasSuffix(t.Value, `"`) {
 			return t.Value[1 : len(t.Value)-1], nil
 		} else if strings.HasPrefix(t.Value, "`") && strings.HasSuffix(t.Value, "`") {
 			return t.Value[1 : len(t.Value)-1], nil
+		}
+	case *ast.Ident:
+		v, _ := evalConst(p, e, e.Pos())
+		if v.Kind() == constant.String {
+			return v.String(), nil
+		}
+	case *ast.SelectorExpr:
+		v, _ := evalConst(p, e, e.Pos())
+		if v.Kind() == constant.String {
+			return v.String(), nil
 		}
 	}
 	return "", fmt.Errorf("can't eval %T as string", e)
@@ -138,8 +149,8 @@ func evalStringValue(e ast.Expr) (string, error) {
 // 	return "", fmt.Errorf("can't eval %T as selector expr", e)
 // }
 
-func evalMethodRef(tname string) func(e ast.Expr) (string, error) {
-	return func(e ast.Expr) (string, error) {
+func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (string, error) {
+	return func(p *packages.Package, e ast.Expr) (string, error) {
 		switch t := e.(type) {
 		case *ast.SelectorExpr:
 			switch t.X.(type) {
@@ -181,7 +192,7 @@ func evalBoolValue(e ast.Expr) (bool, error) {
 	return false, fmt.Errorf("can't eval %T as bool", e)
 }
 
-func evalIntValue(e ast.Expr) (int, error) {
+func evalIntValue(p *packages.Package, e ast.Expr) (int, error) {
 	switch t := e.(type) {
 	case *ast.BasicLit:
 		i, err := strconv.ParseInt(t.Value, 10, 64)
@@ -189,30 +200,29 @@ func evalIntValue(e ast.Expr) (int, error) {
 			return 0, fmt.Errorf("can't parseInt %s", t.Value)
 		}
 		return int(i), nil
+	case *ast.Ident:
+		v, _ := evalConst(p, e, e.Pos())
+		if v.Kind() == constant.Int {
+			i, err := strconv.ParseInt(v.String(), 10, 64)
+			if err != nil {
+				return 0, fmt.Errorf("can't parseInt %s", v.String())
+			}
+			return int(i), nil
+		}
 	case *ast.SelectorExpr:
-		if matchSelExpr(t, []string{"genfp", "MaxProduct"}) {
-			return MaxProduct, nil
-		}
-		if matchSelExpr(t, []string{"genfp", "MaxFunc"}) {
-			return MaxFunc, nil
-		}
-
-		if matchSelExpr(t, []string{"genfp", "MaxCompose"}) {
-			return MaxCompose, nil
-		}
-
-		if matchSelExpr(t, []string{"genfp", "MaxShift"}) {
-			return MaxShift, nil
-		}
-
-		if matchSelExpr(t, []string{"genfp", "MaxFlip"}) {
-			return MaxFlip, nil
+		v, _ := evalConst(p, e, e.Pos())
+		if v.Kind() == constant.Int {
+			i, err := strconv.ParseInt(v.String(), 10, 64)
+			if err != nil {
+				return 0, fmt.Errorf("can't parseInt %s", v.String())
+			}
+			return int(i), nil
 		}
 	}
 	return 0, fmt.Errorf("can't eval %T as int", e)
 }
 
-func evalImport(e ast.Expr) (ImportPackage, error) {
+func evalImport(p *packages.Package, e ast.Expr) (ImportPackage, error) {
 	if lt, ok := e.(*ast.CompositeLit); ok {
 		ret := ImportPackage{}
 		names := []string{"Package", "Name"}
@@ -226,13 +236,13 @@ func evalImport(e ast.Expr) (ImportPackage, error) {
 
 			switch name {
 			case "Package":
-				v, err := evalStringValue(value)
+				v, err := evalStringValue(p, value)
 				if err != nil {
 					return ImportPackage{}, err
 				}
 				ret.Package = v
 			case "Name":
-				v, err := evalStringValue(value)
+				v, err := evalStringValue(p, value)
 				if err != nil {
 					return ImportPackage{}, err
 				}
@@ -264,13 +274,13 @@ func matchSelExpr(sel *ast.SelectorExpr, exp []string) bool {
 	return false
 }
 
-func evalArray[T any](e ast.Expr, f func(ast.Expr) (T, error)) ([]T, error) {
+func evalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Package, ast.Expr) (T, error)) ([]T, error) {
 
 	if lt, ok := e.(*ast.CompositeLit); ok {
 		var ret []T
 
 		for _, e := range lt.Elts {
-			v, err := f(e)
+			v, err := f(p, e)
 			if err != nil {
 				return nil, err
 			}
@@ -282,19 +292,19 @@ func evalArray[T any](e ast.Expr, f func(ast.Expr) (T, error)) ([]T, error) {
 	return nil, fmt.Errorf("expr is not array expr : %T", e)
 }
 
-func evalMap[K comparable, V any](e ast.Expr, kf func(ast.Expr) (K, error), vf func(ast.Expr) (V, error)) (map[K]V, error) {
+func evalMap[K comparable, V any](p *packages.Package, e ast.Expr, kf func(*packages.Package, ast.Expr) (K, error), vf func(*packages.Package, ast.Expr) (V, error)) (map[K]V, error) {
 
 	if lt, ok := e.(*ast.CompositeLit); ok {
 		ret := map[K]V{}
 
 		for _, e := range lt.Elts {
 			if kve, ok := e.(*ast.KeyValueExpr); ok {
-				kv, err := kf(kve.Key)
+				kv, err := kf(p, kve.Key)
 				if err != nil {
 					return nil, err
 				}
 
-				vv, err := vf(kve.Value)
+				vv, err := vf(p, kve.Value)
 				if err != nil {
 					return nil, err
 				}
@@ -310,8 +320,9 @@ func evalMap[K comparable, V any](e ast.Expr, kf func(ast.Expr) (K, error), vf f
 	return nil, fmt.Errorf("expr is not map expr : %T", e)
 }
 
-func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
+func ParseGenerateFromUntil(tagged TaggedLit) (GenerateFromUntil, error) {
 
+	lit := tagged.Lit
 	ret := GenerateFromUntil{}
 
 	names := []string{"File", "Imports", "From", "Until", "Template"}
@@ -324,31 +335,31 @@ func ParseGenerateFromUntil(lit *ast.CompositeLit) (GenerateFromUntil, error) {
 		name, value := asKeyValue(e, name)
 		switch name {
 		case "File":
-			v, err := evalStringValue(value)
+			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
 				return GenerateFromUntil{}, err
 			}
 			ret.File = v
 		case "Imports":
-			v, err := evalArray(value, evalImport)
+			v, err := evalArray(tagged.Package, value, evalImport)
 			if err != nil {
 				return GenerateFromUntil{}, err
 			}
 			ret.Imports = v
 		case "From":
-			v, err := evalIntValue(value)
+			v, err := evalIntValue(tagged.Package, value)
 			if err != nil {
 				return GenerateFromUntil{}, err
 			}
 			ret.From = v
 		case "Until":
-			v, err := evalIntValue(value)
+			v, err := evalIntValue(tagged.Package, value)
 			if err != nil {
 				return GenerateFromUntil{}, err
 			}
 			ret.Until = v
 		case "Template":
-			v, err := evalStringValue(value)
+			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
 				return GenerateFromUntil{}, err
 			}
@@ -454,7 +465,7 @@ func evalDelegatedBy(pk *packages.Package) func(exp ast.Expr) (DelegateDirective
 				return zero, fmt.Errorf("not allowed expression. use genfp.DelegatedBy[T](fieldName)")
 			}
 
-			fn, err := evalStringValue(v.Args[0])
+			fn, err := evalStringValue(pk, v.Args[0])
 			if err != nil {
 				return zero, err
 			}
@@ -471,9 +482,9 @@ func evalDelegatedBy(pk *packages.Package) func(exp ast.Expr) (DelegateDirective
 
 }
 
-func evalTypeOf(pk *packages.Package) func(exp ast.Expr) (TypeReference, error) {
+func evalTypeOf(pk *packages.Package) func(p *packages.Package, exp ast.Expr) (TypeReference, error) {
 	var zero TypeReference
-	return func(exp ast.Expr) (TypeReference, error) {
+	return func(p *packages.Package, exp ast.Expr) (TypeReference, error) {
 		switch v := exp.(type) {
 		case *ast.CallExpr:
 			if !matchFuncName(v, "genfp.TypeOf") {
@@ -528,13 +539,13 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 		name, value := asKeyValue(e, name)
 		switch name {
 		case "File":
-			v, err := evalStringValue(value)
+			v, err := evalStringValue(lit.Package, value)
 			if err != nil {
 				return ret, err
 			}
 			ret.File = v
 		case "Name":
-			v, err := evalStringValue(value)
+			v, err := evalStringValue(lit.Package, value)
 			if err != nil {
 				return ret, err
 			}
@@ -558,25 +569,25 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 			}
 			ret.ExtendsSelfCheck = v
 		case "ImplementsWith":
-			v, err := evalArray(value, evalTypeOf(lit.Package))
+			v, err := evalArray(lit.Package, value, evalTypeOf(lit.Package))
 			if err != nil {
 				return ret, err
 			}
 			ret.ImplementsWith = v
 		case "ExtendsWith":
-			v, err := evalMap(value, evalStringValue, evalTypeOf(lit.Package))
+			v, err := evalMap(lit.Package, value, evalStringValue, evalTypeOf(lit.Package))
 			if err != nil {
 				return ret, err
 			}
 			ret.ExtendsWith = v
 		case "Embedding":
-			v, err := evalArray(value, evalTypeOf(lit.Package))
+			v, err := evalArray(lit.Package, value, evalTypeOf(lit.Package))
 			if err != nil {
 				return ret, err
 			}
 			ret.Embedding = v
 		case "EmbeddingInterface":
-			v, err := evalArray(value, evalTypeOf(lit.Package))
+			v, err := evalArray(lit.Package, value, evalTypeOf(lit.Package))
 			if err != nil {
 				return ret, err
 			}
@@ -588,43 +599,43 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 			}
 			ret.ExtendsByEmbedding = v
 		case "Delegate":
-			v, err := evalArray(value, evalDelegate(lit.Package))
+			v, err := evalArray(lit.Package, value, evalDelegate(lit.Package))
 			if err != nil {
 				return ret, err
 			}
 			ret.Delegate = v
 		case "Getter":
-			v, err := evalArray(value, evalMethodRef(intfname))
+			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
 			ret.Getter = v
 		case "EventHandler":
-			v, err := evalArray(value, evalMethodRef(intfname))
+			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
 			ret.EventHandler = v
 		case "ValOverride":
-			v, err := evalArray(value, evalMethodRef(intfname))
+			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
 			ret.ValOverride = v
 		case "ValOverrideUsingPtr":
-			v, err := evalArray(value, evalMethodRef(intfname))
+			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
 			ret.ValOverrideUsingPtr = v
 		case "ZeroReturn":
-			v, err := evalArray(value, evalMethodRef(intfname))
+			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
 			ret.ZeroReturn = v
 		case "Options":
-			v, err := evalArray(value, evalImplOption(lit.Package, intfname))
+			v, err := evalArray(lit.Package, value, evalImplOption(lit.Package, intfname))
 			if err != nil {
 				return ret, err
 			}
@@ -673,6 +684,30 @@ type ImplOptionDirective struct {
 // 	return ti.Type
 // }
 
+func evalConst(pk *packages.Package, constExpr ast.Expr, pos token.Pos) (constant.Value, []ImportPackage) {
+	info := &types.Info{
+		Types:     make(map[ast.Expr]types.TypeAndValue),
+		Instances: map[*ast.Ident]types.Instance{},
+		Defs:      map[*ast.Ident]types.Object{},
+		Uses:      map[*ast.Ident]types.Object{},
+	}
+	types.CheckExpr(pk.Fset, pk.Types, pos, constExpr, info)
+
+	var imports []ImportPackage
+	for k, v := range info.Uses {
+		if pk, ok := v.(*types.PkgName); ok {
+			imports = append(imports, ImportPackage{
+				Package: pk.Imported().Path(),
+				Name:    k.Name,
+			})
+
+		}
+	}
+
+	ti := info.Types[constExpr]
+	return ti.Value, imports
+}
+
 func evalFuncLit(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) (types.Type, []ImportPackage) {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
@@ -695,8 +730,8 @@ func evalFuncLit(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) (types.
 	return ti.Type, imports
 }
 
-func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (ImplOptionDirective, error) {
-	return func(e ast.Expr) (ImplOptionDirective, error) {
+func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Package, e ast.Expr) (ImplOptionDirective, error) {
+	return func(p *packages.Package, e ast.Expr) (ImplOptionDirective, error) {
 		if lt, ok := e.(*ast.CompositeLit); ok {
 			ret := ImplOptionDirective{}
 			names := []string{"Method", "Prefix", "Name", "Private", "ValOverride", "OmitGetterIfValOverride", "DefaultImpl"}
@@ -710,19 +745,19 @@ func evalImplOption(pk *packages.Package, intfname string) func(e ast.Expr) (Imp
 
 				switch name {
 				case "Method":
-					v, err := evalMethodRef(intfname)(value)
+					v, err := evalMethodRef(intfname)(p, value)
 					if err != nil {
 						return ret, err
 					}
 					ret.Method = v
 				case "Prefix":
-					v, err := evalStringValue(value)
+					v, err := evalStringValue(p, value)
 					if err != nil {
 						return ret, err
 					}
 					ret.Prefix = v
 				case "Name":
-					v, err := evalStringValue(value)
+					v, err := evalStringValue(p, value)
 					if err != nil {
 						return ret, err
 					}
@@ -775,8 +810,8 @@ type DelegateDirective struct {
 	Field  string
 }
 
-func evalDelegate(pk *packages.Package) func(e ast.Expr) (DelegateDirective, error) {
-	return func(e ast.Expr) (DelegateDirective, error) {
+func evalDelegate(pk *packages.Package) func(p *packages.Package, e ast.Expr) (DelegateDirective, error) {
+	return func(p *packages.Package, e ast.Expr) (DelegateDirective, error) {
 		var zero DelegateDirective
 		if lt, ok := e.(*ast.CompositeLit); ok {
 			ret := DelegateDirective{}
@@ -791,13 +826,13 @@ func evalDelegate(pk *packages.Package) func(e ast.Expr) (DelegateDirective, err
 
 				switch name {
 				case "TypeOf":
-					v, err := evalTypeOf(pk)(value)
+					v, err := evalTypeOf(pk)(pk, value)
 					if err != nil {
 						return ret, err
 					}
 					ret.TypeOf = v
 				case "Field":
-					v, err := evalStringValue(value)
+					v, err := evalStringValue(pk, value)
 					if err != nil {
 						return ret, err
 					}

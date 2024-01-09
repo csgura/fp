@@ -149,7 +149,7 @@ func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]G
 	ret := map[string][]GenerateFromUntil{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateFromUntil", tags...)
 	for _, cl := range genseq {
-		gfu, err := ParseGenerateFromUntil(cl.Lit)
+		gfu, err := ParseGenerateFromUntil(cl)
 		if err != nil {
 			fmt.Printf("invalid generate directive : %s\n", err)
 		} else {

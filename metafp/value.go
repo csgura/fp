@@ -191,57 +191,11 @@ func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Na
 	return nil
 }
 
-func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags ...string) fp.Seq[*ast.CompositeLit] {
-	tagSeq := as.Seq(tags)
-	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[*ast.CompositeLit] {
-		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
-
-			return v.Decls
-		})
-
-		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
-			switch r := v.(type) {
-			case *ast.GenDecl:
-				return seq.Of(r)
-			}
-			return seq.Of[*ast.GenDecl]()
-		})
-
-		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[*ast.CompositeLit] {
-			gdDoc := option.Of(gd.Doc)
-
-			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[*ast.CompositeLit] {
-				if ts, ok := v.(*ast.ValueSpec); ok {
-					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
-					if doc.Exists(func(comment string) bool {
-						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
-					}) {
-						return seq.FilterMap(seq.Zip(ts.Names, ts.Values), func(v fp.Tuple2[*ast.Ident, ast.Expr]) fp.Option[*ast.CompositeLit] {
-
-							tags := option.Map(doc, extractTag).OrZero()
-							if !tagSeq.Exists(tags.Contains) {
-								return option.None[*ast.CompositeLit]()
-							}
-
-							if cl, ok := v.I2.(*ast.CompositeLit); ok {
-								named := checkType(pk, cl.Type, v.I2.Pos())
-								if named != nil {
-									tpe := typeInfo(named)
-									if tpe.PackagedName() == typ {
-										return option.Some(cl)
-
-									}
-								}
-
-							}
-							return option.None[*ast.CompositeLit]()
-						})
-					}
-				}
-				return nil
-			})
-		})
+func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags ...string) fp.Seq[genfp.TaggedLit] {
+	p = as.Seq(p).Filter(func(v *packages.Package) bool {
+		return v.PkgPath == typ.Package
 	})
+	return genfp.FindTaggedCompositeVariable(p, typ.Name, tags...)
 }
 
 func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct] {
