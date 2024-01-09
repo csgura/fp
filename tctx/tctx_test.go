@@ -167,6 +167,15 @@ func TestNextToken(t *testing.T) {
 	_, token = nextToken.Run(s)
 	assert.Equal(token, "there")
 
+	s, tokens := flatMap(nextToken, func(t1 string) State[string, []string] {
+		return Map(nextToken, func(t2 string) []string {
+			return []string{t1, t2}
+		})
+	}).Run("hello world hi there")
+	assert.Equal(tokens[0], "hello")
+	assert.Equal(tokens[1], "world")
+	assert.Equal(s, "hi there")
+
 }
 
 func TestParseInt(t *testing.T) {
@@ -212,6 +221,13 @@ func TestStack(t *testing.T) {
 	_, v = pop[int]().Run(stack)
 	assert.Equal(v, option.Some(10))
 
+}
+
+func Map[S, A, B any](st State[S, A], f func(A) B) State[S, B] {
+	return func(s S) (S, B) {
+		s, a := st.Run(s)
+		return s, f(a)
+	}
 }
 
 func flatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
