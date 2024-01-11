@@ -76,6 +76,7 @@ func MapState[S, A, B any](st fp.StateT[S, A], f func(A) fp.State[S, B]) fp.Stat
 	}
 }
 
+// FlatMap 과 동일
 func MapStateT[S, A, B any](st fp.StateT[S, A], f func(A) fp.StateT[S, B]) fp.StateT[S, B] {
 	return func(s S) fp.Try[fp.Tuple2[B, S]] {
 		ns := st(s)
@@ -86,12 +87,7 @@ func MapStateT[S, A, B any](st fp.StateT[S, A], f func(A) fp.StateT[S, B]) fp.St
 }
 
 func FlatMap[S, A, B any](st fp.StateT[S, A], f func(A) fp.StateT[S, B]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
-		ns := st(s)
-		return try.FlatMap(ns, func(v fp.Tuple2[A, S]) fp.Try[fp.Tuple2[B, S]] {
-			return f(v.I1)(v.I2)
-		})
-	}
+	return MapStateT(st, f)
 }
 
 func FlatMapConst[S, A, B any](st fp.StateT[S, A], next fp.StateT[S, B]) fp.StateT[S, B] {
@@ -166,4 +162,16 @@ func PeekState[S, A any](st fp.StateT[S, A], f func(ctx S)) fp.StateT[S, A] {
 		ns.Foreach(f)
 		return try.Zip(r, ns)
 	}
+}
+
+func Map2[S, A, B, R any](first fp.StateT[S, A], second fp.StateT[S, B], fab func(A, B) R) fp.StateT[S, R] {
+	return FlatMap(first, func(a A) fp.StateT[S, R] {
+		return Map(second, func(b B) R {
+			return fab(a, b)
+		})
+	})
+}
+
+func Zip[S, A, B any](first fp.StateT[S, A], second fp.StateT[S, B]) fp.StateT[S, fp.Tuple2[A, B]] {
+	return Map2(first, second, product.Tuple2)
 }

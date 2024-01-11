@@ -200,7 +200,15 @@ func push[T any](v T) fp.State[[]T, fp.Unit] {
 	})
 }
 
-func pop[T any]() fp.State[[]T, fp.Option[T]] {
+func pop[T any](s []T) (fp.Option[T], []T) {
+	l := len(s)
+	if l == 0 {
+		return option.None[T](), s
+	}
+	return option.Some(s[l-1]), s[:l-1]
+}
+
+func popState[T any]() fp.State[[]T, fp.Option[T]] {
 	return func(t []T) fp.Tuple2[fp.Option[T], []T] {
 		l := as.Seq(t).Last()
 		return as.Tuple(l, seq.Init(t).Widen())
@@ -212,9 +220,9 @@ func TestStack(t *testing.T) {
 	stack = push(10).Exec(stack)
 	stack = push(20).Exec(stack)
 
-	v, stack := pop[int]().Run(stack)
+	v, stack := popState[int]().Run(stack)
 	assert.Equal(v, option.Some(20))
-	v = pop[int]().Eval(stack)
+	v = popState[int]().Eval(stack)
 	assert.Equal(v, option.Some(10))
 
 }
@@ -223,8 +231,34 @@ func TestStack2(t *testing.T) {
 
 	s := push(10)
 	s = state.FlatMapConst(s, push(20))
-	s2 := state.FlatMapConst(s, pop[int]())
+	s2 := state.FlatMapConst(s, popState[int]())
 
 	v := s2.Eval(nil)
 	assert.Equal(v, option.Some(20))
+
+}
+
+func TestPop(t *testing.T) {
+
+	s := []int{10, 20, 30}
+	v1, s := pop(s)
+	v2, s := pop(s)
+	fmt.Printf("v1 = %s, v2 = %s\n", v1, v2)
+	fmt.Printf("remain = %v\n", s)
+
+	var doPop = state.New(pop[int])
+
+	popTwice := state.FlatMap(doPop, /* 첫번째 pop 실행 */
+		func(v1 fp.Option[int]) fp.State[[]int, fp.Option[fp.Tuple2[int, int]]] {
+			return state.Map(doPop, /* 두번째 pop 실행 */
+				func(v2 fp.Option[int]) fp.Option[fp.Tuple2[int, int]] {
+					return option.Zip(v1, v2)
+				})
+		})
+	res, remain := popTwice.Run([]int{10, 20, 30})
+	fmt.Printf("res= %s, remain = %v\n", res, remain)
+
+	popTwice2 := state.Zip(doPop, doPop)
+	res2, remain := popTwice2.Run([]int{10, 20, 30})
+	fmt.Printf("res= %s, remain = %v\n", res2, remain)
 }

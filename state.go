@@ -12,7 +12,10 @@ func (r State[S, A]) Exec(s S) S {
 
 func (r State[S, A]) Eval(s S) A {
 	return r(s).Head()
+}
 
+func (r State[S, A]) Widen() func(S) Tuple2[A, S] {
+	return r
 }
 
 type StateT[S, A any] func(S) Try[Tuple2[A, S]]
@@ -34,4 +37,8 @@ func (r StateT[S, A]) Exec(s S) Try[S] {
 func (r StateT[S, A]) Eval(s S) Try[A] {
 	result, _ := r.Run(s)
 	return result
+}
+
+func (r StateT[S, A]) Widen() func(S) Try[Tuple2[A, S]] {
+	return r
 }
