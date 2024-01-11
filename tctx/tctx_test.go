@@ -262,3 +262,34 @@ func TestPop(t *testing.T) {
 	res2, remain := popTwice2.Run([]int{10, 20, 30})
 	fmt.Printf("res= %s, remain = %v\n", res2, remain)
 }
+
+func getAddr(path string) tctx.State[string] {
+	return tctx.SetValue(func(ctx context.Context) string {
+		return "https://server/" + path
+	})
+}
+
+func addQuery(path, q string) tctx.State[string] {
+	return tctx.SetValueT(func(ctx context.Context) fp.Try[string] {
+		return try.Success(path + "?" + q)
+	})
+}
+
+type traceKey struct{}
+
+func addTrace(url string) tctx.State[string] {
+	return tctx.New(func(ctx context.Context) (context.Context, string) {
+		return context.WithValue(ctx, traceKey{}, url), url
+	})
+}
+
+func TestTctx(t *testing.T) {
+
+	tctx.FlatMap(
+		tctx.FlatMap(
+			getAddr("/some/path"),
+			as.Func2(addQuery).ApplyLast("aaa=b"),
+		),
+		addTrace,
+	)
+}

@@ -37,6 +37,42 @@ func (r State[A]) Eval(ctx context.Context) fp.Try[A] {
 	return result
 }
 
+func New[A any](f func(context.Context) (context.Context, A)) State[A] {
+	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
+		nc, a := f(ctx)
+		return try.Success(as.Tuple(a, nc))
+	}
+}
+
+func NewT[A any](f func(context.Context) (context.Context, fp.Try[A])) State[A] {
+	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
+		nc, ta := f(ctx)
+		return try.Zip(ta, try.Success(nc))
+	}
+}
+
+func SetValue[A any](f func(context.Context) A) State[A] {
+	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
+		return try.Success(as.Tuple(f(ctx), ctx))
+	}
+}
+
+func SetValueT[A any](f func(context.Context) fp.Try[A]) State[A] {
+	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
+		return try.Zip(f(ctx), try.Success(ctx))
+	}
+}
+
+func Modify(f func(context.Context) context.Context) State[fp.Unit] {
+	return func(ctx context.Context) fp.Try[fp.Tuple2[fp.Unit, context.Context]] {
+		return try.Success(as.Tuple(fp.Unit{}, f(ctx)))
+	}
+}
+
+func Replace[A, B any](s State[A], b B) State[B] {
+	return Map(s, fp.Const[A](b))
+}
+
 // narrow 의 의미는  A -> B which extends A  ( sub type )
 // 더 상세한 타입으로 변경하는 것을 의미
 func Narrow[A any](s fp.StateT[context.Context, A]) State[A] {
@@ -112,6 +148,10 @@ func WithValue[A any](s State[A], k any, v any) State[A] {
 
 func Map[A, B any](s State[A], f func(A) B) State[B] {
 	return Narrow(statet.Map(Widen(s), f))
+}
+
+func FlatMap[A, B any](s State[A], f func(A) State[B]) State[B] {
+	return Narrow(statet.FlatMap(Widen(s), fp.Compose2(f, Widen)))
 }
 
 func MapWith[A, B any](s State[A], f func(context.Context, A) B) State[B] {

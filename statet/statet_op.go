@@ -135,6 +135,10 @@ func Map[S, A, B any](st fp.StateT[S, A], f func(A) B) fp.StateT[S, B] {
 	}
 }
 
+func Replace[S, A, B any](s fp.StateT[S, A], b B) fp.StateT[S, B] {
+	return Map(s, fp.Const[A](b))
+}
+
 func MapWithState[S, A, B any](st fp.StateT[S, A], f func(S, A) B) fp.StateT[S, B] {
 	return func(s S) fp.Try[fp.Tuple2[B, S]] {
 		a, ns := st.Run(s)
