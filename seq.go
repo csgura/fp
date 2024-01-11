@@ -7,6 +7,10 @@ import (
 
 type Seq[T any] []T
 
+func (r Seq[T]) Widen() []T {
+	return r
+}
+
 func (r Seq[T]) Size() int {
 	return len(r)
 }

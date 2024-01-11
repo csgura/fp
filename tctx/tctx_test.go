@@ -13,9 +13,11 @@ import (
 	"github.com/csgura/fp/curried"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/state"
+	"github.com/csgura/fp/statet"
 	"github.com/csgura/fp/tctx"
 	"github.com/csgura/fp/try"
-	"github.com/csgura/fp/tstate"
 )
 
 func parseString(v string) tctx.State[int64] {
@@ -138,37 +140,31 @@ func TestCompose(t *testing.T) {
 
 }
 
-type State[S, A any] func(S) (S, A)
-
-func (r State[S, A]) Run(s S) (S, A) {
-	return r(s)
-}
-
-var nextToken State[string, string] = func(s string) (string, string) {
+var nextToken fp.State[string, string] = func(s string) fp.Tuple2[string, string] {
 	s = strings.TrimSpace(s)
 	for i, c := range s {
 		if unicode.IsSpace(c) {
-			return s[i+1:], s[:i]
+			return as.Tuple2(s[:i], s[i+1:])
 		}
 	}
-	return "", s
+	return as.Tuple(s, "")
 }
 
 func TestNextToken(t *testing.T) {
-	s, token := nextToken.Run("hello world hi there")
+	token, s := nextToken.Run("hello world hi there")
 	assert.Equal(token, "hello")
 
-	s, token = nextToken.Run(s)
+	token, s = nextToken.Run(s)
 	assert.Equal(token, "world")
 
-	s, token = nextToken.Run(s)
+	token, s = nextToken.Run(s)
 	assert.Equal(token, "hi")
 
-	_, token = nextToken.Run(s)
+	token = nextToken.Eval(s)
 	assert.Equal(token, "there")
 
-	s, tokens := flatMap(nextToken, func(t1 string) State[string, []string] {
-		return Map(nextToken, func(t2 string) []string {
+	tokens, s := state.FlatMap(nextToken, func(t1 string) fp.State[string, []string] {
+		return state.Map(nextToken, func(t2 string) []string {
 			return []string{t1, t2}
 		})
 	}).Run("hello world hi there")
@@ -179,74 +175,56 @@ func TestNextToken(t *testing.T) {
 }
 
 func TestParseInt(t *testing.T) {
-	nextT := tstate.Of(func(s string) fp.Try[fp.Tuple2[string, string]] {
+	nextT := as.StateT(func(s string) fp.Try[fp.Tuple2[string, string]] {
 		return try.Success(as.Tuple2(nextToken.Run(s)))
 	})
 
-	nextInt := tstate.MapT(nextT, func(a string) fp.Try[int] {
+	nextInt := statet.MapT(nextT, func(a string) fp.Try[int] {
 		v, err := strconv.ParseInt(a, 10, 64)
 		return try.Apply(int(v), err)
 	})
 
-	s, i := nextInt.Run("1 2 3 4 5")
+	i, s := nextInt.Run("1 2 3 4 5")
 	assert.Equal(i, try.Success(1))
 	assert.Equal(s, try.Success("2 3 4 5"))
 
-	s, i = nextInt.Run(s.Get())
+	i, s = nextInt.Run(s.Get())
 	assert.Equal(i, try.Success(2))
 	assert.Equal(s, try.Success("3 4 5"))
 
 }
 
-func push[T any](v T) State[[]T, T] {
-	return func(t []T) ([]T, T) {
-		return append(t, v), v
-	}
+func push[T any](v T) fp.State[[]T, fp.Unit] {
+	return state.Modify(func(s []T) []T {
+		return append(s, v)
+	})
 }
 
-func pop[T any]() State[[]T, fp.Option[T]] {
-	return func(t []T) ([]T, fp.Option[T]) {
+func pop[T any]() fp.State[[]T, fp.Option[T]] {
+	return func(t []T) fp.Tuple2[fp.Option[T], []T] {
 		l := as.Seq(t).Last()
-		return as.Seq(t).Init(), l
+		return as.Tuple(l, seq.Init(t).Widen())
 	}
 }
 
 func TestStack(t *testing.T) {
 	stack := []int{}
-	stack, _ = push(10).Run(stack)
-	stack, _ = push(20).Run(stack)
+	stack = push(10).Exec(stack)
+	stack = push(20).Exec(stack)
 
-	stack, v := pop[int]().Run(stack)
+	v, stack := pop[int]().Run(stack)
 	assert.Equal(v, option.Some(20))
-	_, v = pop[int]().Run(stack)
+	v = pop[int]().Eval(stack)
 	assert.Equal(v, option.Some(10))
 
-}
-
-func Map[S, A, B any](st State[S, A], f func(A) B) State[S, B] {
-	return func(s S) (S, B) {
-		s, a := st.Run(s)
-		return s, f(a)
-	}
-}
-
-func flatMap[S, A, B any](st State[S, A], f func(A) State[S, B]) State[S, B] {
-	return func(s S) (S, B) {
-		s, a := st.Run(s)
-		return f(a).Run(s)
-	}
-}
-
-func flatMap2[S, A, B any](st State[S, A], f State[S, B]) State[S, B] {
-	return flatMap(st, fp.Const[A](f))
 }
 
 func TestStack2(t *testing.T) {
 
 	s := push(10)
-	s = flatMap2(s, push(20))
-	s2 := flatMap2(s, pop[int]())
+	s = state.FlatMapConst(s, push(20))
+	s2 := state.FlatMapConst(s, pop[int]())
 
-	_, v := s2.Run(nil)
+	v := s2.Eval(nil)
 	assert.Equal(v, option.Some(20))
 }

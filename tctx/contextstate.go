@@ -6,8 +6,8 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/statet"
 	"github.com/csgura/fp/try"
-	"github.com/csgura/fp/tstate"
 )
 
 // State[A]
@@ -21,34 +21,41 @@ import (
 // Context 없는 첫번째 아규먼트  func Func( a A , b B , c C ) R  => easy
 // Context 없는 다른 위치 아규먼트  func Func( b B, a A , c C ) R
 
-type State[A any] tstate.State[context.Context, A]
+type State[A any] fp.StateT[context.Context, A]
 
-func (r State[A]) Run(ctx context.Context) (fp.Try[context.Context], fp.Try[A]) {
-	return r(ctx)
+func (r State[A]) Run(ctx context.Context) (fp.Try[A], fp.Try[context.Context]) {
+	return try.UnZip(r(ctx))
 }
 
 func (r State[A]) Exec(ctx context.Context) fp.Try[context.Context] {
-	state, _ := r(ctx)
+	_, state := r.Run(ctx)
 	return state
 }
 
 func (r State[A]) Eval(ctx context.Context) fp.Try[A] {
-	_, result := r(ctx)
+	result, _ := r.Run(ctx)
 	return result
 }
 
+// narrow 의 의미는  A -> B which extends A  ( sub type )
+// 더 상세한 타입으로 변경하는 것을 의미
+func Narrow[A any](s fp.StateT[context.Context, A]) State[A] {
+	return State[A](s)
+}
+
 func Pure[T any](t T) State[T] {
-	return Narrow(tstate.Pure[context.Context](t))
+	return Narrow(statet.Pure[context.Context](t))
 }
 
 func FromTry[T any](t fp.Try[T]) State[T] {
-	return Narrow(tstate.FromTry[context.Context](t))
+	return Narrow(statet.FromTry[context.Context](t))
 }
 
 func Of[T any](f func(ctx context.Context) fp.Try[T]) State[T] {
-	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[T]) {
+
+	return func(ctx context.Context) fp.Try[fp.Tuple2[T, context.Context]] {
 		rt := f(ctx)
-		return try.Success(ctx), rt
+		return try.Zip(rt, try.Success(ctx))
 	}
 }
 
@@ -76,31 +83,25 @@ func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N "
 }
 
 func Ap[A, B any](s State[fp.Func1[A, B]], a A) State[B] {
-	return Narrow(tstate.Ap(Widen(s), a))
+	return Narrow(statet.Ap(Widen(s), a))
 }
 
 func ApTry[A, B any](s State[fp.Func1[A, B]], a fp.Try[A]) State[B] {
-	return Narrow(tstate.ApTry(Widen(s), a))
+	return Narrow(statet.ApTry(Widen(s), a))
 }
 
 func ApOption[A, B any](s State[fp.Func1[A, B]], a fp.Option[A]) State[B] {
-	return Narrow(tstate.ApOption(Widen(s), a))
+	return Narrow(statet.ApOption(Widen(s), a))
 }
 
 // widen 의 의미는 B which extends A -> A ( super type )
 // 더 일반적인 타입으로 변환하는 것을 의미
-func Widen[A any](s State[A]) tstate.State[context.Context, A] {
-	return tstate.State[context.Context, A](s)
-}
-
-// narrow 의 의미는  A -> B which extends A  ( sub type )
-// 더 상세한 타입으로 변경하는 것을 의미
-func Narrow[A any](s tstate.State[context.Context, A]) State[A] {
-	return State[A](s)
+func Widen[A any](s State[A]) fp.StateT[context.Context, A] {
+	return fp.StateT[context.Context, A](s)
 }
 
 func WithContext[A any](s State[A], f func(context.Context) context.Context) State[A] {
-	return Narrow(tstate.WithState(Widen(s), f))
+	return Narrow(statet.WithState(Widen(s), f))
 }
 
 func WithValue[A any](s State[A], k any, v any) State[A] {
@@ -110,43 +111,39 @@ func WithValue[A any](s State[A], k any, v any) State[A] {
 }
 
 func Map[A, B any](s State[A], f func(A) B) State[B] {
-	return Narrow(tstate.Map(Widen(s), f))
+	return Narrow(statet.Map(Widen(s), f))
 }
 
 func MapWith[A, B any](s State[A], f func(context.Context, A) B) State[B] {
-	return Narrow(tstate.MapWithState(Widen(s), f))
+	return Narrow(statet.MapWithState(Widen(s), f))
 }
 
 func MapMethodWith[A, B any](s State[A], f func(A, context.Context) B) State[B] {
-	return Narrow(tstate.MapWithState(Widen(s), func(s context.Context, a A) B {
+	return Narrow(statet.MapWithState(Widen(s), func(s context.Context, a A) B {
 		return f(a, s)
 	}))
 }
 
 func MapMethodWithT[A, B any](s State[A], f func(A, context.Context) fp.Try[B]) State[B] {
-	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a A) fp.Try[B] {
+	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a A) fp.Try[B] {
 		return f(a, s)
 	}))
 }
 
-func Inspect[A, B any](s State[A], f func(context.Context) B) State[B] {
-	return Narrow(tstate.Inspect(Widen(s), f))
-}
-
 func JoinT[A, B any](s State[fp.Try[A]]) State[A] {
-	return Narrow(tstate.MapT(Widen(s), fp.Id))
+	return Narrow(statet.MapT(Widen(s), fp.Id))
 }
 
 func MapT[A, B any](s State[A], f func(A) fp.Try[B]) State[B] {
-	return Narrow(tstate.MapT(Widen(s), f))
+	return Narrow(statet.MapT(Widen(s), f))
 }
 
 func MapWithT[A, B any](s State[A], f func(context.Context, A) fp.Try[B]) State[B] {
-	return Narrow(tstate.MapWithStateT(Widen(s), f))
+	return Narrow(statet.MapWithStateT(Widen(s), f))
 }
 
 func PeekContext[A any](s State[A], f func(ctx context.Context)) State[A] {
-	return Narrow(tstate.PeekState(Widen(s), f))
+	return Narrow(statet.PeekState(Widen(s), f))
 }
 
 func Const[A any](a A) fp.Func1[context.Context, A] {
@@ -190,9 +187,9 @@ var _ = genfp.GenerateFromUntil{
 	Until: genfp.MaxFunc,
 	Template: `
 func FromFunc{{.N}}[{{TypeArgs 1 (dec .N)}}, R any](f func(context.Context, {{TypeArgs 1 (dec .N)}}) fp.Try[R], {{DeclArgs 1 (dec .N)}}) State[R] {
-	return func(ctx context.Context) (fp.Try[context.Context], fp.Try[R]) {
+	return func(ctx context.Context) fp.Try[fp.Tuple2[R,context.Context]] {
 		r := f(ctx, {{CallArgs 1 (dec .N)}})
-		return try.Success(ctx), r
+		return try.Zip(r,try.Success(ctx))
 	}
 }
 	`,
@@ -223,7 +220,7 @@ var _ = genfp.GenerateFromUntil{
 	File: "curried_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
-		{Package: "github.com/csgura/fp/tstate", Name: "tstate"},
+		{Package: "github.com/csgura/fp/statet", Name: "statet"},
 		{Package: "context", Name: "context"},
 	},
 	From:  2,
@@ -233,7 +230,7 @@ var _ = genfp.GenerateFromUntil{
 
 
 func MapT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f {{CurriedFunc 1 .N "fp.Try[R]"}}, {{DeclArgs 2 .N}}) State[R] {
-	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
 		return f{{CurriedCallArgs 1 .N}}
 	}))
 }
@@ -246,7 +243,7 @@ func AsWithFunc{{dec .N}}[{{TypeArgs 1 .N}}, R any](f fp.Func1[context.Context, 
 }
 
 func MapWithT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f fp.Func1[context.Context, {{CurriedFunc 1 .N "fp.Try[R]"}}], {{DeclArgs 2 .N}}) State[R] {
-	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s){{CurriedCallArgs 1 .N}}
 	}))
 }
@@ -258,7 +255,7 @@ var _ = genfp.GenerateFromUntil{
 	File: "method_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
-		{Package: "github.com/csgura/fp/tstate", Name: "tstate"},
+		{Package: "github.com/csgura/fp/statet", Name: "statet"},
 		{Package: "context", Name: "context"},
 	},
 	From:  2,
@@ -267,13 +264,13 @@ var _ = genfp.GenerateFromUntil{
 
 
 func MapMethodWith{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f func(a1 A1, ctx context.Context, {{DeclArgs 2 .N}}) R,  {{DeclArgs 2 .N}}) State[R] {
-	return Narrow(tstate.MapWithState(Widen(s), func(s context.Context, a1 A1) R {
+	return Narrow(statet.MapWithState(Widen(s), func(s context.Context, a1 A1) R {
 		return f(a1 , s , {{CallArgs 2 .N}})
 	}))
 }
 
 func MapMethodWithT{{dec .N}}[{{TypeArgs 1 .N}}, R any](s State[A1], f func(a1 A1, ctx context.Context, {{DeclArgs 2 .N}}) fp.Try[R],  {{DeclArgs 2 .N}}) State[R] {
-	return Narrow(tstate.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
 		return f(a1 , s , {{CallArgs 2 .N}})
 	}))
 }

@@ -98,6 +98,14 @@ func Tupled2[A1, A2, R any](fn fp.Func2[A1, A2, R]) func(fp.Tuple2[A1, A2]) R {
 	}
 }
 
+func State[S, A any](f func(S) fp.Tuple2[A, S]) fp.State[S, A] {
+	return f
+}
+
+func StateT[S, A any](f func(S) fp.Try[fp.Tuple2[A, S]]) fp.StateT[S, A] {
+	return f
+}
+
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "func_gen.go",
