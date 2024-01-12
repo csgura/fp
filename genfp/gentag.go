@@ -1,6 +1,7 @@
 package genfp
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/token"
@@ -47,6 +48,18 @@ func seqLast[T any](r []T) (T, bool) {
 		var zero T
 		return zero, false
 	}
+}
+
+func seqMakeString[T any](r []T, sep string) string {
+	buf := &bytes.Buffer{}
+
+	for i, v := range r {
+		if i != 0 {
+			buf.WriteString(sep)
+		}
+		buf.WriteString(fmt.Sprint(v))
+	}
+	return buf.String()
 }
 
 type tuple2[A, B any] struct {
@@ -167,6 +180,23 @@ func FindGenerateAdaptor(p []*packages.Package, tags ...string) map[string][]Gen
 	genseq := FindTaggedCompositeVariable(p, "GenerateAdaptor", tags...)
 	for _, cl := range genseq {
 		gfu, err := ParseGenerateAdaptor(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s\n", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
+}
+
+func FindGenerateMonadFunctions(p []*packages.Package, tags ...string) map[string][]GenerateMonadFunctionsDirective {
+	ret := map[string][]GenerateMonadFunctionsDirective{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateMonadFunctions", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateMonadFunctions(cl)
 		if err != nil {
 			fmt.Printf("invalid generate directive : %s\n", err)
 		} else {

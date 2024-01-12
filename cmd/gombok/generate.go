@@ -265,8 +265,13 @@ func genGenerate() {
 
 	gentemplate := genfp.FindGenerateFromUntil(pkgs, "@fp.Generate")
 	genadaptor := genfp.FindGenerateAdaptor(pkgs, "@fp.Generate")
+	monadf := genfp.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
 
-	filelist := iterator.ToGoSet(mutable.MapOf(gentemplate).Keys().Concat(mutable.MapOf(genadaptor).Keys()))
+	filelist := iterator.ToGoSet(
+		mutable.MapOf(gentemplate).Keys().
+			Concat(mutable.MapOf(genadaptor).Keys()).
+			Concat(mutable.MapOf(monadf).Keys()),
+	)
 
 	for file := range filelist {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
@@ -280,6 +285,10 @@ func genGenerate() {
 
 			for _, gad := range genadaptor[file] {
 				generateAdaptor(w, gad)
+			}
+
+			for _, md := range monadf[file] {
+				genfp.WriteMonadFunctions(w, md)
 			}
 		})
 	}
