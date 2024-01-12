@@ -51,21 +51,33 @@ func NameParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *type
 func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	fmt.Printf("generateo for %s\n", md.TargetType)
 
-	tp := md.TargetType.TypeParams()
-	tpargs := seqMakeString(iterate(tp.Len(), tp.At, func(i int, tp *types.TypeParam) string {
-		return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
-	}), ",")
-
-	srctype := w.TypeName(md.Package.Types, md.TargetType)
-	rettype := NameParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
-	rettp := seqMakeString(iterate(tp.Len(), tp.At, func(i int, tp *types.TypeParam) string {
-		if tp.Obj().Name() == md.TypeParm.Obj().Name() {
-			return "R"
-
-		} else {
-			return tp.Obj().Name()
+	tp := md.TargetType.TypeArgs()
+	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+		if tp, ok := t.(*types.TypeParam); ok {
+			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+				return fmt.Sprintf("A %s", w.TypeName(md.Package.Types, tp.Constraint()))
+			} else {
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
+			}
 		}
-	}), ",")
+		return ""
+
+	}), func(v string) bool { return v != "" }), ",")
+
+	rettype := NameParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
+
+	srctype := rettype("A")
+	rettp := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+		if tp, ok := t.(*types.TypeParam); ok {
+			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+				return "R"
+
+			} else {
+				return tp.Obj().Name()
+			}
+		}
+		return ""
+	}), func(v string) bool { return v != "" }), ",")
 
 	fmt.Printf("tpargs = %s\n", tpargs)
 	fmt.Fprintf(w, `
@@ -75,6 +87,8 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	`, tpargs, srctype, md.TypeParm, rettype("R"), rettp)
 
 	fmt.Fprintf(w, `
+		// haskell 의 <$
+		// map . const 와 같은 함수
 		func Replace[%s, R any](s %s, b R) %s {
 			return Map(s, fp.Const[%s](b))
 		}
