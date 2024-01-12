@@ -223,10 +223,10 @@ var _ = genfp.GenerateFromUntil{
 
 		{Package: "context", Name: "context"},
 	},
-	From:  3,
+	From:  2,
 	Until: genfp.MaxFunc,
 	Template: `
-func FromFunc{{.N}}[{{TypeArgs 1 (dec .N)}}, R any](f func(context.Context, {{TypeArgs 1 (dec .N)}}) fp.Try[R], {{DeclArgs 1 (dec .N)}}) State[R] {
+func EvalT{{.N}}[{{TypeArgs 1 (dec .N)}}, R any](f func(context.Context, {{TypeArgs 1 (dec .N)}}) fp.Try[R], {{DeclArgs 1 (dec .N)}}) State[R] {
 	return func(ctx context.Context) fp.Try[fp.Tuple2[R,context.Context]] {
 		r := f(ctx, {{CallArgs 1 (dec .N)}})
 		return try.Zip(r,try.Success(ctx))

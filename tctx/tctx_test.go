@@ -77,7 +77,7 @@ func (r something) Do2(ctx context.Context, arg string) string {
 }
 
 func TestStart(t *testing.T) {
-	s1 := tctx.FromFunc3(firstFunc, "hello", 10)
+	s1 := tctx.EvalT3(firstFunc, "hello", 10)
 	tctx.MapWithT1(s1, as.Curried3(secondFunc), 10)
 	//tctx.FlatMapFunc2(s1, curried.Ap, 10)
 
