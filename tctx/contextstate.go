@@ -37,27 +37,27 @@ func (r State[A]) Eval(ctx context.Context) fp.Try[A] {
 	return result
 }
 
-func New[A any](f func(context.Context) (context.Context, A)) State[A] {
+func Run[A any](f func(context.Context) (context.Context, A)) State[A] {
 	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
 		nc, a := f(ctx)
 		return try.Success(as.Tuple(a, nc))
 	}
 }
 
-func NewT[A any](f func(context.Context) (context.Context, fp.Try[A])) State[A] {
+func RunT[A any](f func(context.Context) (context.Context, fp.Try[A])) State[A] {
 	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
 		nc, ta := f(ctx)
 		return try.Zip(ta, try.Success(nc))
 	}
 }
 
-func SetValue[A any](f func(context.Context) A) State[A] {
+func Eval[A any](f func(context.Context) A) State[A] {
 	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
 		return try.Success(as.Tuple(f(ctx), ctx))
 	}
 }
 
-func SetValueT[A any](f func(context.Context) fp.Try[A]) State[A] {
+func EvalT[A any](f func(context.Context) fp.Try[A]) State[A] {
 	return func(ctx context.Context) fp.Try[fp.Tuple2[A, context.Context]] {
 		return try.Zip(f(ctx), try.Success(ctx))
 	}

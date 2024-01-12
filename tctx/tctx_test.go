@@ -246,7 +246,7 @@ func TestPop(t *testing.T) {
 	fmt.Printf("v1 = %s, v2 = %s\n", v1, v2)
 	fmt.Printf("remain = %v\n", s)
 
-	var doPop = state.New(pop[int])
+	var doPop = state.Run(pop[int])
 
 	popTwice := state.FlatMap(doPop, /* 첫번째 pop 실행 */
 		func(v1 fp.Option[int]) fp.State[[]int, fp.Option[fp.Tuple2[int, int]]] {
@@ -264,13 +264,13 @@ func TestPop(t *testing.T) {
 }
 
 func getAddr(path string) tctx.State[string] {
-	return tctx.SetValue(func(ctx context.Context) string {
+	return tctx.Eval(func(ctx context.Context) string {
 		return "https://server/" + path
 	})
 }
 
 func addQuery(path, q string) tctx.State[string] {
-	return tctx.SetValueT(func(ctx context.Context) fp.Try[string] {
+	return tctx.EvalT(func(ctx context.Context) fp.Try[string] {
 		return try.Success(path + "?" + q)
 	})
 }
@@ -278,7 +278,7 @@ func addQuery(path, q string) tctx.State[string] {
 type traceKey struct{}
 
 func addTrace(url string) tctx.State[string] {
-	return tctx.New(func(ctx context.Context) (context.Context, string) {
+	return tctx.Run(func(ctx context.Context) (context.Context, string) {
 		return context.WithValue(ctx, traceKey{}, url), url
 	})
 }

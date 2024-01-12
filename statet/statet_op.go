@@ -7,13 +7,13 @@ import (
 	"github.com/csgura/fp/try"
 )
 
-func New[S, A any](f func(S) (A, S)) fp.StateT[S, A] {
+func Run[S, A any](f func(S) (A, S)) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
 		return try.Success(as.Tuple(f(s)))
 	}
 }
 
-func NewT[S, A any](f func(S) (fp.Try[A], fp.Try[S])) fp.StateT[S, A] {
+func RunT[S, A any](f func(S) (fp.Try[A], fp.Try[S])) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
 		return try.Zip(f(s))
 	}
@@ -43,13 +43,13 @@ func ModifyT[S any](f func(S) fp.Try[S]) fp.StateT[S, fp.Unit] {
 	}
 }
 
-func Inspect[S, A any](f func(S) A) fp.StateT[S, A] {
+func Eval[S, A any](f func(S) A) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
 		return try.Success(as.Tuple(f(s), s))
 	}
 }
 
-func InspectT[S, A any](f func(S) fp.Try[A]) fp.StateT[S, A] {
+func EvalT[S, A any](f func(S) fp.Try[A]) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
 		return try.Zip(f(s), try.Success(s))
 	}
