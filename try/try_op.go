@@ -12,9 +12,12 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/xtr"
 )
+
+func Pure[T any](t T) fp.Try[T] {
+	return fp.Success(t)
+}
 
 func Success[T any](t T) fp.Try[T] {
 	return fp.Success(t)
@@ -128,28 +131,10 @@ func ComposePure[A, B any](fab func(A) B) func(A) fp.Try[B] {
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
-func Ap[A, B any](tfab fp.Try[fp.Func1[A, B]], ta fp.Try[A]) fp.Try[B] {
-	return FlatMap(tfab, func(fab fp.Func1[A, B]) fp.Try[B] {
-		return Map(ta, fab)
-	})
-}
-
 func ApFunc[A, B any](tfab fp.Try[fp.Func1[A, B]], ta func() fp.Try[A]) fp.Try[B] {
 	return FlatMap(tfab, func(fab fp.Func1[A, B]) fp.Try[B] {
 		return Map(ta(), fab)
 	})
-}
-
-func Map[A, B any](ta fp.Try[A], f func(v A) B) fp.Try[B] {
-	return FlatMap(ta, func(a A) fp.Try[B] {
-		return Success(f(a))
-	})
-}
-
-// haskell 의 <$
-// map . const 와 같은 함수
-func Replace[A, B any](ta fp.Try[A], b B) fp.Try[B] {
-	return Map(ta, fp.Const[A](b))
 }
 
 // Map(ta , seq.Lift(f)) 와 동일
@@ -165,14 +150,6 @@ func MapSliceLift[A, B any](ta fp.Try[[]A], f func(v A) B) fp.Try[[]B] {
 
 	return Map(ta, func(a []A) []B {
 		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
-	})
-}
-
-func Map2[A, B, R any](ta fp.Try[A], tb fp.Try[B], fab func(A, B) R) fp.Try[R] {
-	return FlatMap(ta, func(a A) fp.Try[R] {
-		return Map(tb, func(b B) R {
-			return fab(a, b)
-		})
 	})
 }
 
@@ -312,10 +289,6 @@ func FlatMethod2[A, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) fp.Try[R
 	// 		return cf(a, b, c)
 	// 	})
 	// }
-}
-
-func Zip[A, B any](ta fp.Try[A], tb fp.Try[B]) fp.Try[fp.Tuple2[A, B]] {
-	return Map2(ta, tb, product.Tuple2)
 }
 
 func UnZip[A, B any](t fp.Try[fp.Tuple2[A, B]]) (fp.Try[A], fp.Try[B]) {
@@ -533,6 +506,16 @@ func Unit0(f func() error) fp.Func1[fp.Unit, fp.Try[fp.Unit]] {
 	return func(fp.Unit) fp.Try[fp.Unit] {
 		err := f()
 		return Apply(fp.Unit{}, err)
+	}
+}
+
+//go:generate go run github.com/csgura/fp/internal/generator/monad_gen
+
+// @internal.Generate
+func _[A any]() genfp.GenerateMonadFunctions[fp.Try[A]] {
+	return genfp.GenerateMonadFunctions[fp.Try[A]]{
+		File:     "try_monad.go",
+		TypeParm: genfp.TypeOf[A](),
 	}
 }
 
