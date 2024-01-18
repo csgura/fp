@@ -169,7 +169,7 @@ func TestSpanAt0(t *testing.T) {
 }
 
 func TestConcat(t *testing.T) {
-	i := iterator.Range(0, 4000)
+	i := iterator.Range(0, 20000)
 
 	s := iterator.Fold(i, iterator.Empty[int](), func(s fp.Iterator[int], v int) fp.Iterator[int] {
 		return s.Appended(v)

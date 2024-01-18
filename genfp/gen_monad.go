@@ -78,6 +78,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 		return ""
 	}), func(v string) bool { return v != "" }), ",")
+	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
 
 	fmt.Printf("tpargs = %s\n", tpargs)
 	fmt.Fprintf(w, `

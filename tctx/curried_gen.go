@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/statet"
 )
 
 func SlipL3[A1, A2, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, R]]]) fp.Func1[context.Context, fp.Func1[A2, fp.Func1[A1, R]]] {
@@ -58,9 +57,9 @@ func SlipL9[A1, A2, A3, A4, A5, A6, A7, A8, R any](f fp.Func1[context.Context, f
 }
 
 func MapT1[A1, A2, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Try[R]]], a2 A2) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)
-	}))
+	})
 }
 
 func AsWithFunc1[A1, A2, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, R]]], a2 A2) func(context.Context, A1) R {
@@ -70,15 +69,15 @@ func AsWithFunc1[A1, A2, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func
 }
 
 func MapWithT1[A1, A2, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Try[R]]]], a2 A2) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)
-	}))
+	})
 }
 
 func MapT2[A1, A2, A3, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Try[R]]]], a2 A2, a3 A3) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)
-	}))
+	})
 }
 
 func AsWithFunc2[A1, A2, A3, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]], a2 A2, a3 A3) func(context.Context, A1) R {
@@ -88,15 +87,15 @@ func AsWithFunc2[A1, A2, A3, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.
 }
 
 func MapWithT2[A1, A2, A3, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Try[R]]]]], a2 A2, a3 A3) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)
-	}))
+	})
 }
 
 func MapT3[A1, A2, A3, A4, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[R]]]]], a2 A2, a3 A3, a4 A4) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)(a4)
-	}))
+	})
 }
 
 func AsWithFunc3[A1, A2, A3, A4, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]]], a2 A2, a3 A3, a4 A4) func(context.Context, A1) R {
@@ -106,15 +105,15 @@ func AsWithFunc3[A1, A2, A3, A4, R any](f fp.Func1[context.Context, fp.Func1[A1,
 }
 
 func MapWithT3[A1, A2, A3, A4, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[R]]]]]], a2 A2, a3 A3, a4 A4) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)(a4)
-	}))
+	})
 }
 
 func MapT4[A1, A2, A3, A4, A5, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[R]]]]]], a2 A2, a3 A3, a4 A4, a5 A5) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)(a4)(a5)
-	}))
+	})
 }
 
 func AsWithFunc4[A1, A2, A3, A4, A5, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]]], a2 A2, a3 A3, a4 A4, a5 A5) func(context.Context, A1) R {
@@ -124,15 +123,15 @@ func AsWithFunc4[A1, A2, A3, A4, A5, R any](f fp.Func1[context.Context, fp.Func1
 }
 
 func MapWithT4[A1, A2, A3, A4, A5, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[R]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)(a4)(a5)
-	}))
+	})
 }
 
 func MapT5[A1, A2, A3, A4, A5, A6, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[R]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)(a4)(a5)(a6)
-	}))
+	})
 }
 
 func AsWithFunc5[A1, A2, A3, A4, A5, A6, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) func(context.Context, A1) R {
@@ -142,15 +141,15 @@ func AsWithFunc5[A1, A2, A3, A4, A5, A6, R any](f fp.Func1[context.Context, fp.F
 }
 
 func MapWithT5[A1, A2, A3, A4, A5, A6, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[R]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)(a4)(a5)(a6)
-	}))
+	})
 }
 
 func MapT6[A1, A2, A3, A4, A5, A6, A7, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[R]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)
-	}))
+	})
 }
 
 func AsWithFunc6[A1, A2, A3, A4, A5, A6, A7, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) func(context.Context, A1) R {
@@ -160,15 +159,15 @@ func AsWithFunc6[A1, A2, A3, A4, A5, A6, A7, R any](f fp.Func1[context.Context, 
 }
 
 func MapWithT6[A1, A2, A3, A4, A5, A6, A7, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[R]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)(a4)(a5)(a6)(a7)
-	}))
+	})
 }
 
 func MapT7[A1, A2, A3, A4, A5, A6, A7, A8, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[R]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)
-	}))
+	})
 }
 
 func AsWithFunc7[A1, A2, A3, A4, A5, A6, A7, A8, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) func(context.Context, A1) R {
@@ -178,15 +177,15 @@ func AsWithFunc7[A1, A2, A3, A4, A5, A6, A7, A8, R any](f fp.Func1[context.Conte
 }
 
 func MapWithT7[A1, A2, A3, A4, A5, A6, A7, A8, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[R]]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)
-	}))
+	})
 }
 
 func MapT8[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](s State[A1], f fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[R]]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapT(s, func(a1 A1) fp.Try[R] {
 		return f(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)(a9)
-	}))
+	})
 }
 
 func AsWithFunc8[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) func(context.Context, A1) R {
@@ -196,7 +195,7 @@ func AsWithFunc8[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f fp.Func1[context.C
 }
 
 func MapWithT8[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](s State[A1], f fp.Func1[context.Context, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[R]]]]]]]]]]], a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) State[R] {
-	return Narrow(statet.MapWithStateT(Widen(s), func(s context.Context, a1 A1) fp.Try[R] {
+	return MapWithT(s, func(s context.Context, a1 A1) fp.Try[R] {
 		return f(s)(a1)(a2)(a3)(a4)(a5)(a6)(a7)(a8)(a9)
-	}))
+	})
 }

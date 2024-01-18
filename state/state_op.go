@@ -3,6 +3,7 @@ package state
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/try"
 )
@@ -79,24 +80,6 @@ func WithState[S, A any](st fp.State[S, A], f func(S) S) fp.State[S, A] {
 	}
 }
 
-func Ap[S, A, B any](st fp.State[S, fp.Func1[A, B]], a A) fp.State[S, B] {
-	return func(s S) fp.Tuple2[B, S] {
-		v, ns := st.Run(s)
-		return as.Tuple2(v(a), ns)
-	}
-}
-
-func Map[S, A, B any](st fp.State[S, A], f func(A) B) fp.State[S, B] {
-	return func(s S) fp.Tuple2[B, S] {
-		a, ns := st.Run(s)
-		return as.Tuple2(f(a), ns)
-	}
-}
-
-func Replace[S, A, B any](s fp.State[S, A], b B) fp.State[S, B] {
-	return Map(s, fp.Const[A](b))
-}
-
 func MapWithState[S, A, B any](st fp.State[S, A], f func(S, A) B) fp.State[S, B] {
 	return func(s S) fp.Tuple2[B, S] {
 		a, ns := st.Run(s)
@@ -104,14 +87,20 @@ func MapWithState[S, A, B any](st fp.State[S, A], f func(S, A) B) fp.State[S, B]
 	}
 }
 
-func Map2[S, A, B, R any](first fp.State[S, A], second fp.State[S, B], fab func(A, B) R) fp.State[S, R] {
-	return FlatMap(first, func(a A) fp.State[S, R] {
-		return Map(second, func(b B) R {
-			return fab(a, b)
-		})
-	})
+//go:generate go run github.com/csgura/fp/cmd/gombok
+
+// @fp.Generate
+func _[S, A any]() genfp.GenerateMonadFunctions[fp.State[S, A]] {
+	return genfp.GenerateMonadFunctions[fp.State[S, A]]{
+		File:     "state_monad.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
 }
 
-func Zip[S, A, B any](first fp.State[S, A], second fp.State[S, B]) fp.State[S, fp.Tuple2[A, B]] {
-	return Map2(first, second, product.Tuple2)
+func PeekState[S, A any](st fp.State[S, A], f func(ctx S)) fp.State[S, A] {
+	return func(s S) fp.Tuple2[A, S] {
+		r, ns := st.Run(s)
+		f(ns)
+		return as.Tuple(r, ns)
+	}
 }
