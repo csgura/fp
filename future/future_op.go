@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/promise"
+	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
 
@@ -350,13 +351,17 @@ func Sequence[T any](futureList []fp.Future[T], ctx ...fp.Executor) fp.Future[[]
 }
 
 func SequenceIterator[T any](futureList fp.Iterator[fp.Future[T]], ctx ...fp.Executor) fp.Future[fp.Iterator[T]] {
-	return iterator.Fold(futureList, Successful(iterator.Empty[T]()), LiftA2(fp.Iterator[T].Appended, ctx...))
+	ret := iterator.Fold(futureList, Successful(seq.Empty[T]()), LiftA2(fp.Seq[T].Add, ctx...))
+	return Map(ret, iterator.FromSeq, ctx...)
+
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Iterator[U]] {
-	return iterator.FoldFuture(itr, iterator.Empty[U](), func(acc fp.Iterator[U], v T) fp.Future[fp.Iterator[U]] {
-		return Map(fn(v), acc.Appended, ctx...)
+	ret := iterator.FoldFuture(itr, seq.Empty[U](), func(acc fp.Seq[U], v T) fp.Future[fp.Seq[U]] {
+		return Map(fn(v), acc.Add, ctx...)
 	})
+	return Map(ret, iterator.FromSeq, ctx...)
+
 }
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Future[U], ctx ...fp.Executor) fp.Future[fp.Seq[U]] {

@@ -12,6 +12,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/xtr"
 )
 
@@ -300,14 +301,17 @@ func Zip3[A, B, C any](ta fp.Try[A], tb fp.Try[B], tc fp.Try[C]) fp.Try[fp.Tuple
 }
 
 func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] {
-	return iterator.Fold(ita, Success(iterator.Empty[A]()), LiftA2(fp.Iterator[A].Appended))
+	ret := iterator.Fold(ita, Success(seq.Empty[A]()), LiftA2(fp.Seq[A].Add))
+	return Map(ret, iterator.FromSeq)
+
 }
 
 func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
-	return iterator.FoldTry(ia, iterator.Empty[R](), func(acc fp.Iterator[R], a A) fp.Try[fp.Iterator[R]] {
-		// return ApFunc(Ap(Success(as.Curried2(fp.Iterator[R].Appended)), tir), lazy.Func1(fn)(a))
-		return Map(fn(a), acc.Appended)
+	ret := iterator.FoldTry(ia, seq.Empty[R](), func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
+		return Map(fn(a), acc.Add)
 	})
+
+	return Map(ret, iterator.FromSeq)
 }
 
 // Traverse_ 가  Traverse 와 다른점은,  result 를 무시 한다는 것

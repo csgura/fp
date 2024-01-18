@@ -289,13 +289,16 @@ func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Opt
 }
 
 func SequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Iterator[T]] {
-	return iterator.Fold(optItr, Some(iterator.Empty[T]()), LiftA2(fp.Iterator[T].Appended))
+	ret := iterator.Fold(optItr, Some(fp.Seq[T]{}), LiftA2(fp.Seq[T].Add))
+	return Map(ret, iterator.FromSeq)
 }
 
 func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[fp.Iterator[U]] {
-	return iterator.FoldOption(itr, iterator.Empty[U](), func(acc fp.Iterator[U], v T) fp.Option[fp.Iterator[U]] {
-		return Map(fn(v), acc.Appended)
+	ret := iterator.FoldOption(itr, fp.Seq[U]{}, func(acc fp.Seq[U], a T) fp.Option[fp.Seq[U]] {
+		return Map(fn(a), acc.Add)
 	})
+
+	return Map(ret, iterator.FromSeq)
 }
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
