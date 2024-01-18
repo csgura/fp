@@ -280,12 +280,34 @@ func (r Iterator[T]) Appended(elem T) Iterator[T] {
 
 func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 
+	currentNextChecked := false
+	currentEnd := false
+
+	currentNext := func() bool {
+		if currentEnd {
+			return false
+		}
+		if currentNextChecked {
+			return true
+		}
+
+		if r.hasNext() {
+			currentNextChecked = true
+			return true
+		}
+
+		currentEnd = true
+		return false
+	}
+
 	return MakeIterator(
 		func() bool {
-			return r.HasNext() || tail.HasNext()
+
+			return currentNext() || tail.HasNext()
 		},
 		func() T {
-			if r.HasNext() {
+			if currentNext() {
+				currentNextChecked = false
 				return r.Next()
 			}
 			return tail.Next()

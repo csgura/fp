@@ -167,3 +167,13 @@ func TestSpanAt0(t *testing.T) {
 	assert.Equal(init.Concat(tail).Count(), 9)
 
 }
+
+func TestConcat(t *testing.T) {
+	i := iterator.Range(0, 4000)
+
+	s := iterator.Fold(i, iterator.Empty[int](), func(s fp.Iterator[int], v int) fp.Iterator[int] {
+		return s.Appended(v)
+	}).ToSeq()
+	fmt.Printf("len s = %d\n", len(s))
+
+}
