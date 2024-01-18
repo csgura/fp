@@ -306,11 +306,15 @@ func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] 
 
 }
 
-func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
-	ret := iterator.FoldTry(ia, seq.Empty[R](), func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
+func traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
+	return iterator.FoldTry(ia, seq.Empty[R](), func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
 		return Map(fn(a), acc.Add)
 	})
 
+}
+
+func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
+	ret := traverse(ia, fn)
 	return Map(ret, iterator.FromSeq)
 }
 
@@ -329,11 +333,11 @@ func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.Try[fp
 }
 
 func TraverseSeq[A, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
-	return Map(TraverseSlice(sa, fa), as.Seq)
+	return traverse(fp.IteratorOfSeq(sa), fa)
 }
 
 func TraverseSlice[A, R any](sa []A, fa func(A) fp.Try[R]) fp.Try[[]R] {
-	return Map(Traverse(fp.IteratorOfSeq(sa), fa), fp.Iterator[R].ToSeq)
+	return Map(traverse(fp.IteratorOfSeq(sa), fa), fp.Seq[R].Widen)
 }
 
 func TraverseFunc[A, R any](far func(A) fp.Try[R]) func(fp.Iterator[A]) fp.Try[fp.Iterator[R]] {
@@ -354,7 +358,8 @@ func TraverseSliceFunc[A, R any](far func(A) fp.Try[R]) func([]A) fp.Try[[]R] {
 	}
 }
 func Sequence[A any](tsa []fp.Try[A]) fp.Try[[]A] {
-	return Map(SequenceIterator(fp.IteratorOfSeq(tsa)), fp.Iterator[A].ToSeq)
+	ret := iterator.Fold(iterator.FromSeq(tsa), Success(seq.Empty[A]()), LiftA2(fp.Seq[A].Add))
+	return Map(ret, fp.Seq[A].Widen)
 }
 
 func Fold[A, B any](ta fp.Try[A], bzero B, fba func(B, A) B) B {

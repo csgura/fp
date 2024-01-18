@@ -288,25 +288,33 @@ func Zip3[A, B, C any](c1 fp.Option[A], c2 fp.Option[B], c3 fp.Option[C]) fp.Opt
 	return LiftA3(as.Tuple3[A, B, C])(c1, c2, c3)
 }
 
+func sequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Seq[T]] {
+	return iterator.Fold(optItr, Some(fp.Seq[T]{}), LiftA2(fp.Seq[T].Add))
+}
+
 func SequenceIterator[T any](optItr fp.Iterator[fp.Option[T]]) fp.Option[fp.Iterator[T]] {
-	ret := iterator.Fold(optItr, Some(fp.Seq[T]{}), LiftA2(fp.Seq[T].Add))
+	ret := sequenceIterator(optItr)
 	return Map(ret, iterator.FromSeq)
 }
 
-func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[fp.Iterator[U]] {
-	ret := iterator.FoldOption(itr, fp.Seq[U]{}, func(acc fp.Seq[U], a T) fp.Option[fp.Seq[U]] {
+func traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
+	return iterator.FoldOption(itr, fp.Seq[U]{}, func(acc fp.Seq[U], a T) fp.Option[fp.Seq[U]] {
 		return Map(fn(a), acc.Add)
 	})
+}
+
+func Traverse[T, U any](itr fp.Iterator[T], fn func(T) fp.Option[U]) fp.Option[fp.Iterator[U]] {
+	ret := traverse(itr, fn)
 
 	return Map(ret, iterator.FromSeq)
 }
 
 func TraverseSeq[T, U any](seq fp.Seq[T], fn func(T) fp.Option[U]) fp.Option[fp.Seq[U]] {
-	return Map(TraverseSlice(seq, fn), as.Seq)
+	return traverse(fp.IteratorOfSeq(seq), fn)
 }
 
 func TraverseSlice[T, U any](seq []T, fn func(T) fp.Option[U]) fp.Option[[]U] {
-	return Map(Traverse(fp.IteratorOfSeq(seq), fn), fp.Iterator[U].ToSeq)
+	return Map(traverse(fp.IteratorOfSeq(seq), fn), fp.Seq[U].Widen)
 }
 
 func TraverseFunc[A, R any](far func(A) fp.Option[R]) func(fp.Iterator[A]) fp.Option[fp.Iterator[R]] {
@@ -328,7 +336,7 @@ func TraverseSliceFunc[A, R any](far func(A) fp.Option[R]) func([]A) fp.Option[[
 }
 
 func Sequence[T any](optSeq []fp.Option[T]) fp.Option[[]T] {
-	return Map(SequenceIterator(fp.IteratorOfSeq(optSeq)), fp.Iterator[T].ToSeq)
+	return Map(sequenceIterator(fp.IteratorOfSeq(optSeq)), fp.Seq[T].Widen)
 }
 
 func Fold[A, B any](s fp.Option[A], zero B, f func(B, A) B) B {
