@@ -131,7 +131,7 @@ func Ptr[T any](tshow lazy.Eval[fp.Show[T]]) fp.Show[*T] {
 
 func Given[T fmt.Stringer]() fp.Show[T] {
 	return New(func(t T) string {
-		return t.String()
+		return fmt.Sprint(t)
 	})
 }
 
