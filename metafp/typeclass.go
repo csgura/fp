@@ -764,7 +764,7 @@ func loadPackage(path string) *types.Package {
 		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 	}
 
-	pkgs, err := packages.Load(cfg, "github.com/csgura/fp/show")
+	pkgs, err := packages.Load(cfg, path)
 	if err != nil {
 		return nil
 	}
