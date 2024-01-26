@@ -169,11 +169,13 @@ func TestSpanAt0(t *testing.T) {
 }
 
 func TestConcat(t *testing.T) {
-	i := iterator.Range(0, 20000)
+	i := iterator.Range(0, 200000)
 
-	s := iterator.Fold(i, iterator.Empty[int](), func(s fp.Iterator[int], v int) fp.Iterator[int] {
+	it := iterator.Fold(i, iterator.Empty[int](), func(s fp.Iterator[int], v int) fp.Iterator[int] {
 		return s.Appended(v)
-	}).ToSeq()
+	})
+	s := it.ToSeq()
 	fmt.Printf("len s = %d\n", len(s))
+	assert.Equal(len(s), 200000)
 
 }

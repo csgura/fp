@@ -12,6 +12,7 @@ type Iterable[T any] interface {
 type Iterator[T any] struct {
 	hasNext func() bool
 	next    func() T
+	concat  []Iterator[T]
 }
 
 // range over func
@@ -280,39 +281,68 @@ func (r Iterator[T]) Appended(elem T) Iterator[T] {
 
 func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 
+	alliter := r.concat
+	if len(alliter) == 0 {
+		alliter = make([]Iterator[T], 1, 2+len(tail.concat))
+		alliter[0] = r
+	}
+
+	if len(tail.concat) > 0 {
+		alliter = append(alliter, tail.concat...)
+	} else {
+		alliter = append(alliter, tail)
+	}
+
+	currentItr := Some(alliter[0])
+	remainItr := alliter[1:]
+
 	currentNextChecked := false
-	currentEnd := false
 
 	currentNext := func() bool {
-		if currentEnd {
-			return false
-		}
+
 		if currentNextChecked {
 			return true
 		}
 
-		if r.hasNext() {
+		if currentItr.IsEmpty() {
+			return false
+		}
+
+		if currentItr.Get().HasNext() {
 			currentNextChecked = true
 			return true
 		}
 
-		currentEnd = true
+		for i, itr := range remainItr {
+			if itr.HasNext() {
+				currentItr = Some(itr)
+				remainItr = remainItr[i+1:]
+				currentNextChecked = true
+				return true
+			}
+		}
+
+		currentItr = None[Iterator[T]]()
+
 		return false
 	}
 
-	return MakeIterator(
+	ret := MakeIterator(
 		func() bool {
 
-			return currentNext() || tail.HasNext()
+			return currentNext()
 		},
 		func() T {
 			if currentNext() {
 				currentNextChecked = false
-				return r.Next()
+				return currentItr.Get().Next()
 			}
-			return tail.Next()
+			panic("next on empty iterator")
 		},
 	)
+	ret.concat = alliter
+
+	return ret
 }
 
 func (r Iterator[T]) Map(mf func(T) T) Iterator[T] {

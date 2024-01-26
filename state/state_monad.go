@@ -10,6 +10,8 @@ func Map[S any, A any, R any](m fp.State[S, A], f func(A) R) fp.State[S, R] {
 	return FlatMap(m, fp.Compose2(f, Pure[S, R]))
 }
 
+// haskell 의 <$
+// map . const 와 같은 함수
 func Replace[S any, A any, R any](s fp.State[S, A], b R) fp.State[S, R] {
 	return Map(s, fp.Const[A](b))
 }
