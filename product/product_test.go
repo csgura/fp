@@ -41,19 +41,19 @@ func TestGeneric(t *testing.T) {
 	hl := hlist.Of3(tp.Unapply())
 	tp2 := hlist.Case2(hl, product.Tuple2[int, string])
 	fmt.Printf("%v\n", tp2)
-	fmt.Printf("%s\n", hl)
+	fmt.Printf("%v\n", hl)
 
-	fmt.Printf("hl hasTail = %t\n", hl.Tail().IsNil())
-	fmt.Printf("hl.Tail hasTail = %t\n", hl.Tail().Tail().IsNil())
-	fmt.Printf("hl.Tail.Tail hasTail = %t\n", hl.Tail().Tail().Tail().IsNil())
+	fmt.Printf("hl hasTail = %t\n", hlist.IsNil(hlist.Tail(hl)))
+	fmt.Printf("hl.Tail hasTail = %t\n", hlist.IsNil(hlist.Tail(hlist.Tail(hl))))
+	fmt.Printf("hl.Tail.Tail hasTail = %t\n", hlist.IsNil(hlist.Tail(hlist.Tail(hlist.Tail(hl)))))
 	//fmt.Printf("hl.Tail.Tail.Tail hasTail = %t", hl.Tail().Tail().T.HasTail())
 
 	hl = hlist.Of3(11, "hello", map[string]any{})
-	fmt.Printf("%s\n", hlist.Reverse3(hl))
+	fmt.Printf("%v\n", hlist.Reverse3(hl))
 
 	h10 := hlist.Concat(10, hlist.Empty())
 	hhello10 := hlist.Concat("hello", h10)
-	fmt.Printf("%s\n", hhello10)
+	fmt.Printf("%v\n", hhello10)
 
 	ice := IceCream{"hello", 100, "lotte"}
 	iceTup := *(*fp.Tuple3[string, int16, string])(unsafe.Pointer(&ice))

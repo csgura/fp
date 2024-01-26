@@ -68,7 +68,7 @@ func HCons[H any, T hlist.HList](heq fp.Ord[H], teq fp.Ord[T]) fp.Ord[hlist.Cons
 			return false
 		}
 
-		return teq.Less(a.Tail(), b.Tail())
+		return teq.Less(hlist.Tail(a), hlist.Tail(b))
 	})
 }
 

@@ -85,7 +85,7 @@ func (r ShowFunc[T]) Show(t T) string {
 
 func ShowCons[H any, T hlist.HList](headShow Show[H], tailShow Show[T]) Show[hlist.Cons[H, T]] {
 	return ShowFunc[hlist.Cons[H, T]](func(list hlist.Cons[H, T]) string {
-		return headShow.Show(list.Head()) + " :: " + tailShow.Show(list.Tail())
+		return headShow.Show(list.Head()) + " :: " + tailShow.Show(hlist.Tail(list))
 	})
 }
 

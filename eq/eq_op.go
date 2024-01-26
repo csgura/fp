@@ -62,7 +62,7 @@ var HNil fp.Eq[hlist.Nil] = fp.EqGiven[hlist.Nil]()
 
 func HCons[H any, T hlist.HList](heq fp.Eq[H], teq fp.Eq[T]) fp.Eq[hlist.Cons[H, T]] {
 	return New(func(a, b hlist.Cons[H, T]) bool {
-		return heq.Eqv(a.Head(), b.Head()) && teq.Eqv(a.Tail(), b.Tail())
+		return heq.Eqv(hlist.Head(a), hlist.Head(b)) && teq.Eqv(hlist.Tail(a), hlist.Tail(b))
 	})
 }
 

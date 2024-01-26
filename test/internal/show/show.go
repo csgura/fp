@@ -50,8 +50,8 @@ func StructHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Sh
 	return New(func(list hlist.Cons[H, T]) string {
 
 		hstr := hshow.Show(list.Head())
-		tstr := tshow.Show(list.Tail())
-		if list.Tail().IsNil() {
+		tstr := tshow.Show(hlist.Tail(list))
+		if hlist.IsNil(hlist.Tail(list)) {
 			return hstr
 		}
 		return fmt.Sprintf("%s , %s", hstr, tstr)
@@ -62,8 +62,8 @@ func TupleHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Sho
 	return New(func(list hlist.Cons[H, T]) string {
 
 		hstr := hshow.Show(list.Head())
-		tstr := tshow.Show(list.Tail())
-		if list.Tail().IsNil() {
+		tstr := tshow.Show(hlist.Tail(list))
+		if hlist.IsNil(hlist.Tail(list)) {
 			return hstr
 		}
 		return fmt.Sprintf("%s,%s", hstr, tstr)
@@ -74,7 +74,7 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 	return New(func(list hlist.Cons[H, T]) string {
 
 		hstr := hshow.Show(list.Head())
-		tstr := tshow.Show(list.Tail())
+		tstr := tshow.Show(hlist.Tail(list))
 
 		return fmt.Sprintf("%s :: %s", hstr, tstr)
 	})

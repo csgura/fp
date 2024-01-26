@@ -98,7 +98,7 @@ func HCons[H any, T hlist.HList](hm fp.Monoid[H], tm fp.Monoid[T]) fp.Monoid[hli
 			return hlist.Concat(hm.Empty(), tm.Empty())
 		},
 		func(a, b hlist.Cons[H, T]) hlist.Cons[H, T] {
-			return hlist.Concat(hm.Combine(a.Head(), b.Head()), tm.Combine(a.Tail(), b.Tail()))
+			return hlist.Concat(hm.Combine(a.Head(), b.Head()), tm.Combine(hlist.Tail(a), hlist.Tail(b)))
 		},
 	)
 }

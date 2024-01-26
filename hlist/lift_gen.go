@@ -7,7 +7,7 @@ func Lift2[A1, A2, R any](f func(A1, A2) R) func(Cons[A1, Cons[A2, Nil]]) R {
 			return f(v.Head(), a2)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift2[A1, A2, R any](f func(A1, A2) R) func(Cons[A2, Cons[A1, Nil]]) R {
@@ -16,7 +16,7 @@ func Rift2[A1, A2, R any](f func(A1, A2) R) func(Cons[A2, Cons[A1, Nil]]) R {
 			return f(a1, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -26,7 +26,7 @@ func Lift3[A1, A2, A3, R any](f func(A1, A2, A3) R) func(Cons[A1, Cons[A2, Cons[
 			return f(v.Head(), a2, a3)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift3[A1, A2, A3, R any](f func(A1, A2, A3) R) func(Cons[A3, Cons[A2, Cons[A1, Nil]]]) R {
@@ -35,7 +35,7 @@ func Rift3[A1, A2, A3, R any](f func(A1, A2, A3) R) func(Cons[A3, Cons[A2, Cons[
 			return f(a1, a2, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -45,7 +45,7 @@ func Lift4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) func(Cons[A1, Cons[A
 			return f(v.Head(), a2, a3, a4)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) func(Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]) R {
@@ -54,7 +54,7 @@ func Rift4[A1, A2, A3, A4, R any](f func(A1, A2, A3, A4) R) func(Cons[A4, Cons[A
 			return f(a1, a2, a3, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -64,7 +64,7 @@ func Lift5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) func(Cons[A1
 			return f(v.Head(), a2, a3, a4, a5)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) func(Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]) R {
@@ -73,7 +73,7 @@ func Rift5[A1, A2, A3, A4, A5, R any](f func(A1, A2, A3, A4, A5) R) func(Cons[A5
 			return f(a1, a2, a3, a4, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -83,7 +83,7 @@ func Lift6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) func
 			return f(v.Head(), a2, a3, a4, a5, a6)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) func(Cons[A6, Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]]) R {
@@ -92,7 +92,7 @@ func Rift6[A1, A2, A3, A4, A5, A6, R any](f func(A1, A2, A3, A4, A5, A6) R) func
 			return f(a1, a2, a3, a4, a5, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -102,7 +102,7 @@ func Lift7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7)
 			return f(v.Head(), a2, a3, a4, a5, a6, a7)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7) R) func(Cons[A7, Cons[A6, Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]]]) R {
@@ -111,7 +111,7 @@ func Rift7[A1, A2, A3, A4, A5, A6, A7, R any](f func(A1, A2, A3, A4, A5, A6, A7)
 			return f(a1, a2, a3, a4, a5, a6, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -121,7 +121,7 @@ func Lift8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6,
 			return f(v.Head(), a2, a3, a4, a5, a6, a7, a8)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8) R) func(Cons[A8, Cons[A7, Cons[A6, Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]]]]) R {
@@ -130,7 +130,7 @@ func Rift8[A1, A2, A3, A4, A5, A6, A7, A8, R any](f func(A1, A2, A3, A4, A5, A6,
 			return f(a1, a2, a3, a4, a5, a6, a7, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 
@@ -140,7 +140,7 @@ func Lift9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5,
 			return f(v.Head(), a2, a3, a4, a5, a6, a7, a8, a9)
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, A6, A7, A8, A9) R) func(Cons[A9, Cons[A8, Cons[A7, Cons[A6, Cons[A5, Cons[A4, Cons[A3, Cons[A2, Cons[A1, Nil]]]]]]]]]) R {
@@ -149,6 +149,6 @@ func Rift9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5,
 			return f(a1, a2, a3, a4, a5, a6, a7, a8, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }

@@ -2,15 +2,12 @@
 package hlist
 
 import (
-	"fmt"
-
 	"github.com/csgura/fp/genfp"
 )
 
 // Sealed is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
 // but go does not support existential type
 type HList interface {
-	IsNil() bool
 }
 
 // Header is constrains interface type,  enforce Head type of Cons is HT
@@ -26,37 +23,29 @@ func (r Nil) Head() Nil {
 	return r
 }
 
-func (r Nil) Tail() Nil {
-	return r
-}
-
-func (r Nil) IsNil() bool {
-	return true
-}
-
-func (r Nil) String() string {
-	return "Nil"
-}
-
 type Cons[H any, T HList] struct {
 	head H
 	tail T
 }
 
-func (r Cons[H, T]) Head() H {
-	return r.head
-}
-
-func (r Cons[H, T]) Tail() T {
-	return r.tail
-}
-
-func (r Cons[H, T]) IsNil() bool {
+func IsNil[T HList](v T) bool {
+	switch any(v).(type) {
+	case Nil:
+		return true
+	}
 	return false
 }
 
-func (r Cons[H, T]) String() string {
-	return fmt.Sprintf("%v :: %v", r.head, r.tail)
+func Head[H any, T HList](r Cons[H, T]) H {
+	return r.head
+}
+
+func Tail[H any, T HList](r Cons[H, T]) T {
+	return r.tail
+}
+
+func (r Cons[H, T]) Head() H {
+	return r.head
 }
 
 func Concat[H any, T HList](h H, t T) Cons[H, T] {
@@ -102,7 +91,7 @@ func Case1[A1 any, T HList, R any](hl Cons[A1, T], f func(a1 A1) R) R {
 // }
 
 func Unapply[H any, T HList](list Cons[H, T]) (H, T) {
-	return list.Head(), list.Tail()
+	return list.Head(), Tail(list)
 }
 
 // @internal.Generate
@@ -118,7 +107,7 @@ func Lift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func({{Re
 			return f(v.Head(),{{CallArgs 2 .N}})
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 func Rift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func({{RecursiveType "Cons" .N 1 "Nil"}}) R {
@@ -127,7 +116,7 @@ func Rift{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) R) func({{Re
 			return f({{CallArgs 1 (dec .N)}}, v.Head())
 		})
 
-		return rf(v.Tail())
+		return rf(Tail(v))
 	}
 }
 	`,
@@ -141,7 +130,7 @@ var _ = genfp.GenerateFromUntil{
 	Until:   genfp.MaxProduct,
 	Template: `
 func Case{{.N}}[{{TypeArgs 1 .N}} any, T HList, R any](hl {{RecursiveType "Cons" 1 .N "T"}}, f func({{TypeArgs 1 .N}}) R) R {
-	return Case{{dec .N}}(hl.Tail(), func({{DeclArgs 2 .N}}) R {
+	return Case{{dec .N}}(Tail(hl), func({{DeclArgs 2 .N}}) R {
 		return f(hl.Head(), {{CallArgs 2 .N}})
 	})
 }

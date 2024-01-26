@@ -88,7 +88,7 @@ var _ = genfp.GenerateFromUntil{
 	Until: genfp.MaxProduct,
 	Template: `
 func TupleFromHList{{.N}}[{{TypeArgs 1 .N}} any](list {{ConsType 1 .N "hlist.Nil"}}) fp.{{TupleType .N}} {
-	tail := TupleFromHList{{dec .N}}(list.Tail())
+	tail := TupleFromHList{{dec .N}}(hlist.Tail(list))
 	return Tuple{{.N}}(list.Head(), {{CallArgs 1 (dec .N) "tail.I"}})
 }
 	`,
@@ -106,7 +106,7 @@ var _ = genfp.GenerateFromUntil{
 	Until: genfp.MaxProduct,
 	Template: `
 func LabelledFromHList{{.N}}[{{TypeArgs 1 .N}} fp.Named](list {{ConsType 1 .N "hlist.Nil"}}) fp.Labelled{{.N}}[{{TypeArgs 1 .N}}] {
-	tail := LabelledFromHList{{dec .N}}(list.Tail())
+	tail := LabelledFromHList{{dec .N}}(hlist.Tail(list))
 	return as.Labelled{{.N}}(list.Head(), {{CallArgs 1 (dec .N) "tail.I"}})
 }
 	`,

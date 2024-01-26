@@ -378,15 +378,15 @@ func HConsLabelled[H fp.Named, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]
 	return NewAppend(func(buf []string, list hlist.Cons[H, T], opt fp.ShowOption) []string {
 
 		hstr := hshow.Append(nil, list.Head(), opt)
-		tstr := tshow.Append(nil, list.Tail(), opt)
+		tstr := tshow.Append(nil, hlist.Tail(list), opt)
 
 		if isEmptyString(hstr) {
-			if list.Tail().IsNil() {
+			if hlist.IsNil(hlist.Tail(list)) {
 				return nil
 			}
 			return tstr
 		}
-		if !list.Tail().IsNil() && !isEmptyString(tstr) {
+		if !hlist.IsNil(hlist.Tail(list)) && !isEmptyString(tstr) {
 			if opt.Indent != "" {
 				return append(append(append(buf, hstr...), ",\n", opt.CurrentIndent()), tstr...)
 			}
@@ -400,9 +400,9 @@ func TupleHCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Sho
 	return NewAppend(func(buf []string, list hlist.Cons[H, T], opt fp.ShowOption) []string {
 
 		hstr := hshow.Append(buf, list.Head(), opt)
-		tstr := tshow.Append(nil, list.Tail(), opt)
+		tstr := tshow.Append(nil, hlist.Tail(list), opt)
 
-		if !list.Tail().IsNil() {
+		if !hlist.IsNil(hlist.Tail(list)) {
 			return append(append(hstr, spaceAfterComma(opt)), tstr...)
 		}
 		return hstr
@@ -417,17 +417,17 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 				buf = append(buf, "[", spaceWithinBrace(opt))
 			}
 
-			if !list.Tail().IsNil() {
+			if !hlist.IsNil(hlist.Tail(list)) {
 				hstr := hshow.Append(buf, list.Head(), opt)
 				hstr = append(hstr, spaceAfterComma(opt))
-				return tshow.Append(hstr, list.Tail(), opt)
+				return tshow.Append(hstr, hlist.Tail(list), opt)
 			}
 
 			hstr := hshow.Append(buf, list.Head(), opt)
 			return append(hstr, spaceWithinBrace(opt), "]")
 		} else {
 			hstr := hshow.Append(buf, list.Head(), opt)
-			tstr := tshow.Append(nil, list.Tail(), opt)
+			tstr := tshow.Append(nil, hlist.Tail(list), opt)
 
 			return append(append(hstr, spaceBeforeHCons(opt), "::", spaceAfterHCons(opt)), tstr...)
 		}

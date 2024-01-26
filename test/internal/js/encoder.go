@@ -114,7 +114,7 @@ func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder
 	return NewEncoder(func(a hlist.Cons[H, T]) fp.Option[string] {
 
 		head := heq.Encode(a.Head())
-		tail := teq.Encode(a.Tail())
+		tail := teq.Encode(hlist.Tail(a))
 
 		if head.IsDefined() && tail.IsDefined() {
 			tstr := tail.Get()

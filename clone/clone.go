@@ -71,8 +71,8 @@ func Option[T any](tclone fp.Clone[T]) fp.Clone[fp.Option[T]] {
 func HCons[H any, T hlist.HList](hclone fp.Clone[H], tclone fp.Clone[T]) fp.Clone[hlist.Cons[H, T]] {
 	return New(func(list hlist.Cons[H, T]) hlist.Cons[H, T] {
 
-		h := hclone.Clone(list.Head())
-		t := tclone.Clone(list.Tail())
+		h := hclone.Clone(hlist.Head(list))
+		t := tclone.Clone(hlist.Tail(list))
 
 		return hlist.Concat(h, t)
 

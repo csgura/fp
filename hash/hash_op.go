@@ -78,10 +78,10 @@ var HNil fp.Hashable[hlist.Nil] = New(eq.HNil, func(t hlist.Nil) uint32 {
 
 func HCons[H any, T hlist.HList](heq fp.Hashable[H], teq fp.Hashable[T]) fp.Hashable[hlist.Cons[H, T]] {
 	return New(eq.HCons[H, T](heq, teq), func(a hlist.Cons[H, T]) uint32 {
-		if a.Tail().IsNil() {
+		if hlist.IsNil(hlist.Tail(a)) {
 			return heq.Hash(a.Head())
 		}
-		return heq.Hash(a.Head())*31 + teq.Hash(a.Tail())
+		return heq.Hash(a.Head())*31 + teq.Hash(hlist.Tail(a))
 	})
 }
 
