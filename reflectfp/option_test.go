@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/either"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
@@ -66,4 +67,20 @@ func TestReflectLazyConvert(t *testing.T) {
 	assert.True(res.IsSuccess())
 	s := res.Get().Interface().(lazy.Eval[int]).Get()
 	assert.Equal(s, 20)
+}
+
+func TestEither(t *testing.T) {
+
+	l := either.Left[int, string](10)
+	res := reflectfp.MatchEither(reflect.TypeOf(l))
+
+	assert.True(res.IsDefined())
+	assert.True(res.Get().Left == reflectfp.TypeOf[int]())
+	assert.True(res.Get().Right == reflectfp.TypeOf[string]())
+
+	res = reflectfp.MatchEither(reflectfp.TypeOf[fp.Either[int, string]]())
+
+	assert.True(res.IsDefined())
+	assert.True(res.Get().Left == reflectfp.TypeOf[int]())
+	assert.True(res.Get().Right == reflectfp.TypeOf[string]())
 }

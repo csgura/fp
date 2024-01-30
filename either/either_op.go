@@ -1,6 +1,8 @@
 package either
 
 import (
+	"encoding/json"
+
 	"github.com/csgura/fp"
 )
 
@@ -102,6 +104,10 @@ func (r left[L, R]) ForAll(p func(v R) bool) bool {
 	return true
 }
 
+func (r left[L, R]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.v)
+}
+
 type right[L, R any] struct {
 	v R
 }
@@ -133,4 +139,8 @@ func (r right[L, R]) Exists(p func(v R) bool) bool {
 }
 func (r right[L, R]) ForAll(p func(v R) bool) bool {
 	return p(r.v)
+}
+
+func (r right[L, R]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.v)
 }
