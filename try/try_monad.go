@@ -3,8 +3,17 @@ package try
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/curried"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/product"
+	"github.com/csgura/fp/xtr"
 )
+
+func Flatten[A any](tta fp.Try[fp.Try[A]]) fp.Try[A] {
+	return FlatMap(tta, func(v fp.Try[A]) fp.Try[A] {
+		return v
+	})
+}
 
 func Map[A any, R any](m fp.Try[A], f func(A) R) fp.Try[R] {
 	return FlatMap(m, fp.Compose2(f, Pure[R]))
@@ -32,4 +41,159 @@ func Ap[A any, B any](tfab fp.Try[fp.Func1[A, B]], ta fp.Try[A]) fp.Try[B] {
 	return FlatMap(tfab, func(fab fp.Func1[A, B]) fp.Try[B] {
 		return Map(ta, fab)
 	})
+}
+
+func Compose[A any, B, C any](f1 func(A) fp.Try[B], f2 func(B) fp.Try[C]) func(A) fp.Try[C] {
+	return func(a A) fp.Try[C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
+func Compose2[A any, B, C any](f1 func(A) fp.Try[B], f2 func(B) fp.Try[C]) func(A) fp.Try[C] {
+	return func(a A) fp.Try[C] {
+		return FlatMap(f1(a), f2)
+	}
+}
+
+func ApFunc[A any, B any](tfab fp.Try[fp.Func1[A, B]], ta func() fp.Try[A]) fp.Try[B] {
+	return FlatMap(tfab, func(fab fp.Func1[A, B]) fp.Try[B] {
+		return Map(ta(), fab)
+	})
+}
+
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSeqLift[A any, B any](ta fp.Try[fp.Seq[A]], f func(v A) B) fp.Try[fp.Seq[B]] {
+
+	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
+		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+	})
+}
+
+// Map(ta , seq.Lift(f)) 와 동일
+func MapSliceLift[A any, B any](ta fp.Try[[]A], f func(v A) B) fp.Try[[]B] {
+
+	return Map(ta, func(a []A) []B {
+		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+	})
+}
+
+func Lift[A any, R any](fa func(v A) R) func(fp.Try[A]) fp.Try[R] {
+	return func(ta fp.Try[A]) fp.Try[R] {
+		return Map(ta, fa)
+	}
+}
+
+func LiftA2[A any, B, R any](fab func(A, B) R) func(fp.Try[A], fp.Try[B]) fp.Try[R] {
+	return func(a fp.Try[A], b fp.Try[B]) fp.Try[R] {
+		return Map2(a, b, fab)
+	}
+}
+
+func LiftM[A any, R any](fa func(v A) fp.Try[R]) func(fp.Try[A]) fp.Try[R] {
+	return func(ta fp.Try[A]) fp.Try[R] {
+		return Flatten(Map(ta, fa))
+	}
+}
+
+// (a -> b -> m r) -> m a -> m b -> m r
+// 하스켈에서는  liftM2 와 liftA2 는 같은 함수이고
+// 위와 같은 함수는 존재하지 않음.
+// hoogle 에서 검색해 보면 , liftJoin2 , bindM2 등의 이름으로 정의된 것이 있음.
+// 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
+// M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
+// LiftM2 를 다음과 같이 정의함.
+func LiftM2[A any, B, R any](fab func(A, B) fp.Try[R]) func(fp.Try[A], fp.Try[B]) fp.Try[R] {
+	return func(a fp.Try[A], b fp.Try[B]) fp.Try[R] {
+		return Flatten(Map2(a, b, fab))
+	}
+}
+
+// 하스켈 : m( a -> r ) -> a -> m r
+// 스칼라 : M[ A => r ] => A => M[R]
+// 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
+// hoogle 에서 검색해 보면
+// https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
+// ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
+func Flap[A any, R any](tfa fp.Try[fp.Func1[A, R]]) func(A) fp.Try[R] {
+	return func(a A) fp.Try[R] {
+		return Ap(tfa, Success(a))
+	}
+}
+
+// 하스켈 : m( a -> b -> r ) -> a -> b -> m r
+func Flap2[A any, B, R any](tfab fp.Try[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Try[R]]] {
+	return func(a A) fp.Func1[B, fp.Try[R]] {
+		return Flap(Ap(tfab, Success(a)))
+	}
+}
+
+// (a -> b -> r) -> m a -> b -> m r
+// Map 호출 후에 Flap 을 호출 한 것
+//
+// https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
+// liftOp 라는 이름으로 정의된 것이 있음
+func FlapMap[A any, B, R any](tfab func(A, B) R, a fp.Try[A]) func(B) fp.Try[R] {
+	return Flap(Map(a, curried.Func2(tfab)))
+}
+
+// ( a -> b -> m r) -> m a -> b -> m r
+//
+//	Flatten . FlapMap
+//
+// https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
+// om , ==<<  이름으로 정의된 것이 있음
+func FlatFlapMap[A any, B, R any](fab func(A, B) fp.Try[R], ta fp.Try[A]) func(B) fp.Try[R] {
+	return fp.Compose(FlapMap(fab, ta), Flatten)
+}
+
+// FlatMap 과는 아규먼트 순서가 다른 함수로
+// Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
+// Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
+// Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
+func Method1[A any, B, R any](ta fp.Try[A], fab func(a A, b B) R) func(B) fp.Try[R] {
+	return FlapMap(fab, ta)
+}
+
+func FlatMethod1[A any, B, R any](ta fp.Try[A], fab func(a A, b B) fp.Try[R]) func(B) fp.Try[R] {
+	return FlatFlapMap(fab, ta)
+}
+
+func Method2[A any, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) R) func(B, C) fp.Try[R] {
+
+	return curried.Revert2(Flap2(Map(ta, curried.Func3(fabc))))
+	// return func(b B, c C) fp.Try[R] {
+	// 	return Map(a, func(a A) R {
+	// 		return cf(a, b, c)
+	// 	})
+	// }
+}
+
+func FlatMethod2[A any, B, C, R any](ta fp.Try[A], fabc func(a A, b B, c C) fp.Try[R]) func(B, C) fp.Try[R] {
+
+	return curried.Revert2(curried.Compose2(Flap2(Map(ta, curried.Func3(fabc))), Flatten))
+
+	// return func(b B, c C) fp.Try[R] {
+	// 	return FlatMap(ta, func(a A) fp.Try[R] {
+	// 		return cf(a, b, c)
+	// 	})
+	// }
+}
+
+func UnZip[A any, B any](t fp.Try[fp.Tuple2[A, B]]) (fp.Try[A], fp.Try[B]) {
+	return Map(t, xtr.Head), Map(t, xtr.Tail)
+}
+
+func Zip3[A any, B, C any](ta fp.Try[A], tb fp.Try[B], tc fp.Try[C]) fp.Try[fp.Tuple3[A, B, C]] {
+	return LiftA3(product.Tuple3[A, B, C])(ta, tb, tc)
+}
+
+// fp.With 의 try 버젼
+// fp.With 가 Flip 과 사실상 같은 것처럼
+// FlapMap 의 Flip 버젼과 동일
+// var b fp.Try[B]
+// a := try.Sucesss(A{})
+// a.FlatMap( try.With(A.WithB, b))
+// 형태로 코딩 가능
+func With[A any, B any](withf func(A, B) A, v fp.Try[B]) func(A) fp.Try[A] {
+	return Flap(Map(v, fp.Flip2(withf)))
 }

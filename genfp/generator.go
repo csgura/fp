@@ -221,6 +221,26 @@ func (r *writer) Write(b []byte) (int, error) {
 	return r.Buffer.Write(b)
 }
 
+func (r *writer) Render(templateStr string, funcs map[string]any, param map[string]any) {
+	if param == nil {
+		param = map[string]any{}
+	}
+
+	tpl, err := template.New("write").Funcs(defaultFunc).Funcs(funcs).Parse(templateStr)
+	if err == nil {
+		param["N"] = 1
+		err := tpl.Execute(r, param)
+		if err != nil {
+			fmt.Printf("template = %s\n", templateStr)
+			panic(err)
+		}
+
+	} else {
+		fmt.Printf("template = %s\n", templateStr)
+		panic(err)
+	}
+}
+
 func (r *writer) Iteration(start, end int) Range {
 	return Range{r, start, end}
 }
@@ -464,6 +484,7 @@ type Writer interface {
 	io.Writer
 	ImportSet
 	Iteration(start, end int) Range
+	Render(template string, funcs map[string]any, param map[string]any)
 }
 
 func Generate(packname string, filename string, writeFunc func(w Writer)) {
