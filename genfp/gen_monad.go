@@ -398,5 +398,39 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 				})
 			}
 		}
+
+		func LiftM{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](f func({{DeclArgs 1 .N}}) {{monad "R"}}) func({{monadTypes 1 .N}}) {{monad "R"}} {
+			return func({{monadIns 1 .N}}) {{monad "R"}} {
+
+				return FlatMap(ins1, func(a1 A1) {{monad "R"}} {
+					return LiftM{{dec .N}}(func({{DeclArgs 2 .N}}) {{monad "R"}} {
+						return f({{CallArgs 1 .N}})
+					})({{CallArgs 2 .N "ins"}})
+				})
+			}
+		}
+
+		func Flap{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](tf {{monad (CurriedFunc 1 .N "R")}}) {{CurriedFunc 1 .N (monad "R")}} {
+			return func(a1 A1) {{CurriedFunc 2 .N (monad "R")}} {
+				return Flap{{dec .N}}(Ap(tf, Success(a1)))
+			}
+		}
+
+
+		func Method{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](ta1 {{monad "A1"}}, fa1 func({{DeclArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) {{monad "R"}} {
+			return func({{DeclArgs 2 .N}}) {{monad "R"}} {
+				return Map(ta1, func(a1 A1) R {
+					return fa1({{CallArgs 1 .N}})
+				})
+			}
+		}
+
+		func FlatMethod{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](ta1 {{monad "A1"}}, fa1 func({{DeclArgs 1 .N}}) {{monad "R"}}) func({{TypeArgs 2 .N}}) {{monad "R"}} {
+			return func({{DeclArgs 2 .N}}) {{monad "R"}} {
+				return FlatMap(ta1, func(a1 A1) {{monad "R"}} {
+					return fa1({{CallArgs 1 .N}})
+				})
+			}
+		}
 	`, funcs, param)
 }

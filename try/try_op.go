@@ -514,51 +514,6 @@ var _ = genfp.GenerateFromUntil{
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
 	},
-	From:  3,
-	Until: genfp.MaxFunc,
-	Template: `
-
-func LiftM{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
-	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
-			return LiftM{{dec .N}}(func({{DeclArgs 2 .N}}) fp.Try[R] {
-				return f({{CallArgs 1 .N}})
-			})({{CallArgs 2 .N "ins"}})
-		})
-	}
-}
-
-func Flap{{.N}}[{{TypeArgs 1 .N}}, R any](tf fp.Try[{{CurriedFunc 1 .N "R"}}]) {{CurriedFunc 1 .N "fp.Try[R]"}} {
-	return func(a1 A1) {{CurriedFunc 2 .N "fp.Try[R]"}} {
-		return Flap{{dec .N}}(Ap(tf, Success(a1)))
-	}
-}
-
-func Method{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Try[A1], fa1 func({{DeclArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) fp.Try[R] {
-	return func({{DeclArgs 2 .N}}) fp.Try[R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1({{CallArgs 1 .N}})
-		})
-	}
-}
-
-func FlatMethod{{.N}}[{{TypeArgs 1 .N}}, R any](ta1 fp.Try[A1], fa1 func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeArgs 2 .N}}) fp.Try[R] {
-	return func({{DeclArgs 2 .N}}) fp.Try[R] {
-		return FlatMap(ta1, func(a1 A1) fp.Try[R] {
-			return fa1({{CallArgs 1 .N}})
-		})
-	}
-}
-	`,
-}
-
-// @internal.Generate
-var _ = genfp.GenerateFromUntil{
-	File: "func_gen.go",
-	Imports: []genfp.ImportPackage{
-		{Package: "github.com/csgura/fp", Name: "fp"},
-	},
 	From:  1,
 	Until: genfp.MaxFunc,
 	Template: `
