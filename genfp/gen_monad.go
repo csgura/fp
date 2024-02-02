@@ -252,16 +252,16 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
 		func Flap[{{.tpargs}}, R any](tfa {{rettype "fp.Func1[%s,R]" .tp}}) func({{.tp}}) {{rettype "R"}} {
 			return func(a {{.tp}}) {{rettype "R"}} {
-				return Ap(tfa, Success(a))
+				return Ap(tfa, Pure(a))
 			}
 		}
 	`, funcs, param)
 
 	w.Render(`
 		// 하스켈 : m( a -> b -> r ) -> a -> b -> m r
-		func Flap2[{{.tpargs}}, B, R any](tfab {{rettype "fp.Func1[%s, fp.Func1[B, R]]" .tp}}) fp.Func1[{{.tp}}, fp.Func1[B, fp.Try[R]]] {
+		func Flap2[{{.tpargs}}, B, R any](tfab {{rettype "fp.Func1[%s, fp.Func1[B, R]]" .tp}}) fp.Func1[{{.tp}}, fp.Func1[B, {{rettype "R"}}]] {
 			return func(a {{.tp}}) fp.Func1[B, {{rettype "R"}}] {
-				return Flap(Ap(tfab, Success(a)))
+				return Flap(Ap(tfab, Pure(a)))
 			}
 		}
 	`, funcs, param)
