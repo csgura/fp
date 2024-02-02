@@ -14,9 +14,9 @@ func TestEither(t *testing.T) {
 	either.Fold(l, option.Some, option.ConstNone).Foreach(fp.Println[int])
 
 	s := either.Swap(l)
-	s.Foreach(fp.Println[int])
+	either.Foreach(s, fp.Println[int])
 
 	l = either.Right[int](10.2)
-	l.Foreach(fp.Println)
+	either.Foreach(l, fp.Println)
 
 }

@@ -3,6 +3,7 @@ package as
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/either"
 	"github.com/csgura/fp/genfp"
 )
 
@@ -67,6 +68,16 @@ func MapEntry[K, V any](xtrKey func(V) K) func(V) fp.Tuple2[K, V] {
 	return func(v V) fp.Tuple2[K, V] {
 		return Tuple2(xtrKey(v), v)
 	}
+}
+
+func Left[E fp.Either[L, R], L, R any](l L) fp.Either[L, R] {
+	ret := either.Left[L, R](l)
+	return ret
+}
+
+func Right[E fp.Either[L, R], L, R any](r R) fp.Either[L, R] {
+	ret := either.Right[L, R](r)
+	return ret
 }
 
 func Generic[T, Repr any](tpe string, kind string, to func(T) Repr, from func(Repr) T) fp.Generic[T, Repr] {

@@ -71,6 +71,39 @@ func Fold[L, R, V any](e fp.Either[L, R], fl func(L) V, fr func(R) V) V {
 	return fr(e.Get())
 }
 
+func Foreach[L, R any](e fp.Either[L, R], f func(R)) {
+	if e.IsRight() {
+		f(e.Get())
+	}
+}
+
+func OrElse[L, R any](e fp.Either[L, R], t R) R {
+	if e.IsLeft() {
+		return t
+	}
+	return e.Get()
+}
+
+func OrElseGet[L, R any](e fp.Either[L, R], f func() R) R {
+	if e.IsLeft() {
+		return f()
+	}
+	return e.Get()
+}
+
+func Exists[L, R any](e fp.Either[L, R], p func(v R) bool) bool {
+	if e.IsRight() {
+		return p(e.Get())
+	}
+	return false
+}
+func ForAll[L, R any](e fp.Either[L, R], p func(v R) bool) bool {
+	if e.IsRight() {
+		return p(e.Get())
+	}
+	return true
+}
+
 type left[L, R any] struct {
 	v L
 }
@@ -88,24 +121,13 @@ func (r left[L, R]) Left() L {
 func (r left[L, R]) Get() R {
 	panic("Either.left")
 }
-func (r left[L, R]) Foreach(f func(v R)) {
-
-}
-func (r left[L, R]) OrElse(t R) R {
-	return t
-}
-func (r left[L, R]) OrElseGet(f func() R) R {
-	return f()
-}
-func (r left[L, R]) Exists(p func(v R) bool) bool {
-	return false
-}
-func (r left[L, R]) ForAll(p func(v R) bool) bool {
-	return true
-}
 
 func (r left[L, R]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r.v)
+}
+
+func (r left[L, R]) Recover(f func() R) fp.Either[L, R] {
+	return Right[L, R](f())
 }
 
 type right[L, R any] struct {
@@ -125,22 +147,11 @@ func (r right[L, R]) Left() L {
 func (r right[L, R]) Get() R {
 	return r.v
 }
-func (r right[L, R]) Foreach(f func(v R)) {
-	f(r.v)
-}
-func (r right[L, R]) OrElse(t R) R {
-	return r.v
-}
-func (r right[L, R]) OrElseGet(f func() R) R {
-	return r.v
-}
-func (r right[L, R]) Exists(p func(v R) bool) bool {
-	return p(r.v)
-}
-func (r right[L, R]) ForAll(p func(v R) bool) bool {
-	return p(r.v)
-}
 
 func (r right[L, R]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r.v)
+}
+
+func (r right[L, R]) Recover(f func() R) fp.Either[L, R] {
+	return r
 }
