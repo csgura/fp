@@ -1,6 +1,7 @@
 package genfp
 
 import (
+	"bytes"
 	"fmt"
 	"go/types"
 	"strings"
@@ -64,6 +65,18 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 	}), func(v string) bool { return v != "" }), ",")
 
+	tpargs1 := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+		if tp, ok := t.(*types.TypeParam); ok {
+			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+				return fmt.Sprintf("A1 %s", w.TypeName(md.Package.Types, tp.Constraint()))
+			} else {
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
+			}
+		}
+		return ""
+
+	}), func(v string) bool { return v != "" }), ",")
+
 	rettype := NameParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
 
 	srctype := rettype("A")
@@ -81,16 +94,38 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
 
 	funcs := map[string]any{
-		"rettype": rettype,
+		"monad": rettype,
+		"monadIns": func(start, until int) string {
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				fmt.Fprintf(f, "ins%d %s", j, rettype("A%d", j))
+			}
+			return f.String()
+		},
+		"monadTypes": func(start, until int) string {
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				fmt.Fprintf(f, "%s", rettype("A%d", j))
+			}
+			return f.String()
+		},
 	}
 	param := map[string]any{
-		"tpargs": tpargs,
-		"tp":     md.TypeParm.String(),
+		"tpargs":  tpargs,
+		"tpargs1": tpargs1,
+
+		"tp": md.TypeParm.String(),
 	}
 
 	w.Render(`
-		func Flatten[{{.tpargs}}](tta {{rettype (rettype .tp)}}) {{rettype .tp}} {
-			return FlatMap(tta, func(v {{rettype .tp}}) {{rettype .tp}} {
+		func Flatten[{{.tpargs}}](tta {{monad (monad "A")}}) {{monad "A"}} {
+			return FlatMap(tta, func(v {{monad "A"}}) {{monad "A"}} {
 				return v
 			})
 		}
@@ -205,24 +240,24 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	)
 
 	w.Render(`
-	func Lift[{{.tpargs}}, R any](fa func(v {{.tp}}) R) func({{rettype .tp}}) {{rettype "R"}} {
-		return func(ta {{rettype .tp}}) {{rettype "R"}} {
+	func Lift[{{.tpargs}}, R any](fa func(v A) R) func({{monad "A"}}) {{monad "R"}} {
+		return func(ta {{monad "A"}}) {{monad "R"}} {
 			return Map(ta, fa)
 		}
 	}
 	`, funcs, param)
 
 	w.Render(`
-		func LiftA2[{{.tpargs}}, B, R any](fab func({{.tp}}, B) R) func({{rettype .tp}}, {{rettype "B"}}) {{rettype "R"}} {
-			return func(a {{rettype .tp}}, b {{rettype "B"}}) {{rettype "R"}} {
+		func LiftA2[{{.tpargs}}, B, R any](fab func(A, B) R) func({{monad "A"}}, {{monad "B"}}) {{monad "R"}} {
+			return func(a {{monad "A"}}, b {{monad "B"}}) {{monad "R"}} {
 				return Map2(a, b, fab)
 			}
 		}
 	`, funcs, param)
 
 	w.Render(`
-		func LiftM[{{.tpargs}}, R any](fa func(v {{.tp}}) {{rettype "R"}}) func({{rettype .tp}}) {{rettype "R"}} {
-			return func(ta {{rettype .tp}}) {{rettype "R"}} {
+		func LiftM[{{.tpargs}}, R any](fa func(v A) {{monad "R"}}) func({{monad "A"}}) {{monad "R"}} {
+			return func(ta {{monad "A"}}) {{monad "R"}} {
 				return Flatten(Map(ta, fa))
 			}
 		}
@@ -236,8 +271,8 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// 하지만 ,  fp 패키지에서도   LiftA2 와 LiftM2 를 동일하게 하는 것은 낭비이고
 		// M 은 Monad 라는 뜻인데, Monad는 Flatten, FlatMap 의 의미가 있으니까
 		// LiftM2 를 다음과 같이 정의함.
-		func LiftM2[{{.tpargs}}, B, R any](fab func({{.tp}}, B) {{rettype "R"}}) func({{rettype .tp}}, {{rettype "B"}}) {{rettype "R"}} {
-			return func(a {{rettype .tp}}, b {{rettype "B"}}) {{rettype "R"}} {
+		func LiftM2[{{.tpargs}}, B, R any](fab func(A, B) {{monad "R"}}) func({{monad "A"}}, {{monad "B"}}) {{monad "R"}} {
+			return func(a {{monad "A"}}, b {{monad "B"}}) {{monad "R"}} {
 				return Flatten(Map2(a, b, fab))
 			}
 		}
@@ -250,8 +285,8 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// hoogle 에서 검색해 보면
 		// https://hoogle.haskell.org/?hoogle=m%20(%20a%20-%3E%20b)%20-%3E%20a%20-%3E%20m%20b
 		// ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
-		func Flap[{{.tpargs}}, R any](tfa {{rettype "fp.Func1[%s,R]" .tp}}) func({{.tp}}) {{rettype "R"}} {
-			return func(a {{.tp}}) {{rettype "R"}} {
+		func Flap[{{.tpargs}}, R any](tfa {{monad "fp.Func1[A,R]"}}) func(A) {{monad "R"}} {
+			return func(a A) {{monad "R"}} {
 				return Ap(tfa, Pure(a))
 			}
 		}
@@ -259,8 +294,8 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 	w.Render(`
 		// 하스켈 : m( a -> b -> r ) -> a -> b -> m r
-		func Flap2[{{.tpargs}}, B, R any](tfab {{rettype "fp.Func1[%s, fp.Func1[B, R]]" .tp}}) fp.Func1[{{.tp}}, fp.Func1[B, {{rettype "R"}}]] {
-			return func(a {{.tp}}) fp.Func1[B, {{rettype "R"}}] {
+		func Flap2[{{.tpargs}}, B, R any](tfab {{monad "fp.Func1[A, fp.Func1[B, R]]"}}) fp.Func1[A, fp.Func1[B, {{monad "R"}}]] {
+			return func(a A) fp.Func1[B, {{monad "R"}}] {
 				return Flap(Ap(tfab, Pure(a)))
 			}
 		}
@@ -274,7 +309,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		//
 		// https://hoogle.haskell.org/?hoogle=%28+a+-%3E+b+-%3E++r+%29+-%3E+m+a+-%3E++b+-%3E+m+r+&scope=set%3Astackage
 		// liftOp 라는 이름으로 정의된 것이 있음
-		func FlapMap[{{.tpargs}}, B, R any](tfab func({{.tp}}, B) R, a {{rettype .tp}}) func(B) {{rettype "R"}} {
+		func FlapMap[{{.tpargs}}, B, R any](tfab func(A, B) R, a {{monad "A"}}) func(B) {{monad "R"}} {
 			return Flap(Map(a, curried.Func2(tfab)))
 		}
 	`, funcs, param)
@@ -286,7 +321,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		//
 		// https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 		// om , ==<<  이름으로 정의된 것이 있음
-		func FlatFlapMap[{{.tpargs}}, B, R any](fab func({{.tp}}, B) {{rettype "R"}}, ta {{rettype .tp}}) func(B) {{rettype "R"}} {
+		func FlatFlapMap[{{.tpargs}}, B, R any](fab func(A, B) {{monad "R"}}, ta {{monad "A"}}) func(B) {{monad "R"}} {
 			return fp.Compose(FlapMap(fab, ta), Flatten)
 		}
 	`, funcs, param)
@@ -296,30 +331,30 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
 		// Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
 		// Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
-		func Method1[{{.tpargs}}, B, R any](ta {{rettype .tp}}, fab func(a {{.tp}}, b B) R) func(B) {{rettype "R"}} {
+		func Method1[{{.tpargs}}, B, R any](ta {{monad "A"}}, fab func(a A, b B) R) func(B) {{monad "R"}} {
 			return FlapMap(fab, ta)
 		}
 
-		func FlatMethod1[{{.tpargs}}, B, R any](ta {{rettype .tp}}, fab func(a {{.tp}}, b B) {{rettype "R"}}) func(B) {{rettype "R"}} {
+		func FlatMethod1[{{.tpargs}}, B, R any](ta {{monad "A"}}, fab func(a A, b B) {{monad "R"}}) func(B) {{monad "R"}} {
 			return FlatFlapMap(fab, ta)
 		}
 
-		func Method2[{{.tpargs}}, B, C, R any](ta {{rettype .tp}}, fabc func(a {{.tp}}, b B, c C) R) func(B, C) {{rettype "R"}} {
+		func Method2[{{.tpargs}}, B, C, R any](ta {{monad "A"}}, fabc func(a A, b B, c C) R) func(B, C) {{monad "R"}} {
 
 			return curried.Revert2(Flap2(Map(ta, curried.Func3(fabc))))
-			// return func(b B, c C) {{rettype "R"}} {
-			// 	return Map(a, func(a {{.tp}}) R {
+			// return func(b B, c C) {{monad "R"}} {
+			// 	return Map(a, func(a A) R {
 			// 		return cf(a, b, c)
 			// 	})
 			// }
 		}
 
-		func FlatMethod2[{{.tpargs}}, B, C, R any](ta {{rettype .tp}}, fabc func(a {{.tp}}, b B, c C) {{rettype "R"}}) func(B, C) {{rettype "R"}} {
+		func FlatMethod2[{{.tpargs}}, B, C, R any](ta {{monad "A"}}, fabc func(a A, b B, c C) {{monad "R"}}) func(B, C) {{monad "R"}} {
 
 			return curried.Revert2(curried.Compose2(Flap2(Map(ta, curried.Func3(fabc))), Flatten))
 
-			// return func(b B, c C) {{rettype "R"}} {
-			// 	return FlatMap(ta, func(a A) {{rettype "R"}} {
+			// return func(b B, c C) {{monad "R"}} {
+			// 	return FlatMap(ta, func(a A) {{monad "R"}} {
 			// 		return cf(a, b, c)
 			// 	})
 			// }
@@ -331,23 +366,37 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	w.AddImport(types.NewPackage("github.com/csgura/fp/product", "product"))
 
 	w.Render(`
-	func UnZip[{{.tpargs}}, B any](t {{rettype "fp.Tuple2[%s, B]" .tp}}) ({{rettype .tp}}, {{rettype "B"}}) {
-		return Map(t, xtr.Head), Map(t, xtr.Tail)
-	}
+		func UnZip[{{.tpargs}}, B any](t {{monad "fp.Tuple2[A, B]"}}) ({{monad "A"}}, {{monad "B"}}) {
+			return Map(t, xtr.Head), Map(t, xtr.Tail)
+		}
 
-	func Zip3[{{.tpargs}}, B, C any](ta {{rettype .tp}}, tb {{rettype "B"}}, tc {{rettype "C"}}) {{rettype "fp.Tuple3[%s, B, C]" .tp}} {
-		return LiftA3(product.Tuple3[{{.tp}}, B, C])(ta, tb, tc)
-	}
+		func Zip3[{{.tpargs}}, B, C any](ta {{monad "A"}}, tb {{monad "B"}}, tc {{monad "C"}}) {{monad "fp.Tuple3[A, B, C]"}} {
+			return LiftA3(product.Tuple3[A, B, C])(ta, tb, tc)
+		}
 
-	// fp.With 의 try 버젼
-	// fp.With 가 Flip 과 사실상 같은 것처럼
-	// FlapMap 의 Flip 버젼과 동일
-	// var b fp.Try[B]
-	// a := try.Sucesss(A{})
-	// a.FlatMap( try.With(A.WithB, b))
-	// 형태로 코딩 가능
-	func With[{{.tpargs}}, B any](withf func({{.tp}}, B) {{.tp}}, v {{rettype "B"}}) func({{.tp}}) {{rettype .tp}} {
-		return Flap(Map(v, fp.Flip2(withf)))
-	}
+		// fp.With 의 try 버젼
+		// fp.With 가 Flip 과 사실상 같은 것처럼
+		// FlapMap 의 Flip 버젼과 동일
+		// var b fp.Try[B]
+		// a := try.Sucesss(A{})
+		// a.FlatMap( try.With(A.WithB, b))
+		// 형태로 코딩 가능
+		func With[{{.tpargs}}, B any](withf func(A, B) A, v {{monad "B"}}) func(A) {{monad "A"}} {
+			return Flap(Map(v, fp.Flip2(withf)))
+		}
+	`, funcs, param)
+
+	w.Iteration(3, MaxFunc).Render(`
+
+		func LiftA{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](f func({{DeclArgs 1 .N}}) R) func({{monadTypes 1 .N}}) {{monad "R"}} {
+			return func({{monadIns 1 .N}}) {{monad "R"}} {
+
+				return FlatMap(ins1, func(a1 A1) {{monad "R"}} {
+					return LiftA{{dec .N}}(func({{DeclArgs 2 .N}}) R {
+						return f({{CallArgs 1 .N}})
+					})({{CallArgs 2 .N "ins"}})
+				})
+			}
+		}
 	`, funcs, param)
 }

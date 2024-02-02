@@ -694,6 +694,28 @@ func (r Range) Write(txt string, param map[string]any) {
 	}
 }
 
+func (r Range) Render(txt string, funcs map[string]any, param map[string]any) {
+
+	if param == nil {
+		param = map[string]any{}
+	}
+
+	tpl, err := template.New("write").Funcs(defaultFunc).Funcs(funcs).Parse(txt)
+	if err == nil {
+		for i := r.start; i < r.end; i++ {
+			param["N"] = i
+			err := tpl.Execute(r.writer, param)
+			if err != nil {
+				fmt.Printf("template = %s\n", txt)
+				panic(err)
+			}
+		}
+	} else {
+		fmt.Printf("template = %s\n", txt)
+		panic(err)
+	}
+}
+
 type ImportPackage struct {
 	Package string
 	Name    string

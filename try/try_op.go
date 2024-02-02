@@ -517,16 +517,6 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxFunc,
 	Template: `
-func LiftA{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) R) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
-	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
-			return LiftA{{dec .N}}(func({{DeclArgs 2 .N}}) R {
-				return f({{CallArgs 1 .N}})
-			})({{CallArgs 2 .N "ins"}})
-		})
-	}
-}
 
 func LiftM{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{DeclArgs 1 .N}}) fp.Try[R]) func({{TypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
 	return func({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {

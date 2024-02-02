@@ -116,14 +116,14 @@ func LiftM2[A any, B, R any](fab func(A, B) fp.Try[R]) func(fp.Try[A], fp.Try[B]
 // ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
 func Flap[A any, R any](tfa fp.Try[fp.Func1[A, R]]) func(A) fp.Try[R] {
 	return func(a A) fp.Try[R] {
-		return Ap(tfa, Success(a))
+		return Ap(tfa, Pure(a))
 	}
 }
 
 // 하스켈 : m( a -> b -> r ) -> a -> b -> m r
 func Flap2[A any, B, R any](tfab fp.Try[fp.Func1[A, fp.Func1[B, R]]]) fp.Func1[A, fp.Func1[B, fp.Try[R]]] {
 	return func(a A) fp.Func1[B, fp.Try[R]] {
-		return Flap(Ap(tfab, Success(a)))
+		return Flap(Ap(tfab, Pure(a)))
 	}
 }
 
@@ -196,4 +196,81 @@ func Zip3[A any, B, C any](ta fp.Try[A], tb fp.Try[B], tc fp.Try[C]) fp.Try[fp.T
 // 형태로 코딩 가능
 func With[A any, B any](withf func(A, B) A, v fp.Try[B]) func(A) fp.Try[A] {
 	return Flap(Map(v, fp.Flip2(withf)))
+}
+
+func LiftA3[A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA2(func(a2 A2, a3 A3) R {
+				return f(a1, a2, a3)
+			})(ins2, ins3)
+		})
+	}
+}
+
+func LiftA4[A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3], fp.Try[A4]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA3(func(a2 A2, a3 A3, a4 A4) R {
+				return f(a1, a2, a3, a4)
+			})(ins2, ins3, ins4)
+		})
+	}
+}
+
+func LiftA5[A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3], fp.Try[A4], fp.Try[A5]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA4(func(a2 A2, a3 A3, a4 A4, a5 A5) R {
+				return f(a1, a2, a3, a4, a5)
+			})(ins2, ins3, ins4, ins5)
+		})
+	}
+}
+
+func LiftA6[A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3], fp.Try[A4], fp.Try[A5], fp.Try[A6]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
+				return f(a1, a2, a3, a4, a5, a6)
+			})(ins2, ins3, ins4, ins5, ins6)
+		})
+	}
+}
+
+func LiftA7[A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3], fp.Try[A4], fp.Try[A5], fp.Try[A6], fp.Try[A7]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA6(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R {
+				return f(a1, a2, a3, a4, a5, a6, a7)
+			})(ins2, ins3, ins4, ins5, ins6, ins7)
+		})
+	}
+}
+
+func LiftA8[A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3], fp.Try[A4], fp.Try[A5], fp.Try[A6], fp.Try[A7], fp.Try[A8]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7], ins8 fp.Try[A8]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA7(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
+				return f(a1, a2, a3, a4, a5, a6, a7, a8)
+			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
+		})
+	}
+}
+
+func LiftA9[A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) func(fp.Try[A1], fp.Try[A2], fp.Try[A3], fp.Try[A4], fp.Try[A5], fp.Try[A6], fp.Try[A7], fp.Try[A8], fp.Try[A9]) fp.Try[R] {
+	return func(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7], ins8 fp.Try[A8], ins9 fp.Try[A9]) fp.Try[R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Try[R] {
+			return LiftA8(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R {
+				return f(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
+		})
+	}
 }
