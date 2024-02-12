@@ -4,17 +4,16 @@ package try
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/iterator"
-	"github.com/csgura/fp/seq"
 )
 
 func Traverse[A any, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
-	return Map(FoldM(ia, seq.Empty[R](), func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
+	return Map(FoldM(ia, fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
 		return Map(fn(a), acc.Add)
 	}), iterator.FromSeq)
 }
 
 func TraverseSeq[A any, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
-	return FoldM(fp.IteratorOfSeq(sa), seq.Empty[R](), func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
+	return FoldM(fp.IteratorOfSeq(sa), fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
 		return Map(fa(a), acc.Add)
 	})
 }
@@ -50,7 +49,7 @@ func FlatMapTraverseSlice[A any, B any](ta fp.Try[[]A], f func(v A) fp.Try[B]) f
 }
 
 func Sequence[A any](tsa []fp.Try[A]) fp.Try[[]A] {
-	ret := FoldM(iterator.FromSeq(tsa), seq.Empty[A](), func(t1 fp.Seq[A], t2 fp.Try[A]) fp.Try[fp.Seq[A]] {
+	ret := FoldM(iterator.FromSeq(tsa), fp.Seq[A]{}, func(t1 fp.Seq[A], t2 fp.Try[A]) fp.Try[fp.Seq[A]] {
 		return Map(t2, t1.Add)
 	})
 
@@ -58,7 +57,7 @@ func Sequence[A any](tsa []fp.Try[A]) fp.Try[[]A] {
 }
 
 func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] {
-	ret := FoldM(ita, seq.Empty[A](), func(t1 fp.Seq[A], t2 fp.Try[A]) fp.Try[fp.Seq[A]] {
+	ret := FoldM(ita, fp.Seq[A]{}, func(t1 fp.Seq[A], t2 fp.Try[A]) fp.Try[fp.Seq[A]] {
 		return Map(t2, t1.Add)
 	})
 	return Map(ret, iterator.FromSeq)

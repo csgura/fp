@@ -222,7 +222,7 @@ func LiftM3[A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.Try[R]) func(f
 
 func Flap3[A1 any, A2, A3, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Try[R]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Try[R]]] {
-		return Flap2(Ap(tf, Success(a1)))
+		return Flap2(Ap(tf, Pure(a1)))
 	}
 }
 
@@ -266,7 +266,7 @@ func LiftM4[A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try
 
 func Flap4[A1 any, A2, A3, A4, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[R]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Try[R]]]] {
-		return Flap3(Ap(tf, Success(a1)))
+		return Flap3(Ap(tf, Pure(a1)))
 	}
 }
 
@@ -310,7 +310,7 @@ func LiftM5[A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5
 
 func Flap5[A1 any, A2, A3, A4, A5, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[R]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Try[R]]]]] {
-		return Flap4(Ap(tf, Success(a1)))
+		return Flap4(Ap(tf, Pure(a1)))
 	}
 }
 
@@ -354,7 +354,7 @@ func LiftM6[A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4
 
 func Flap6[A1 any, A2, A3, A4, A5, A6, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[R]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Try[R]]]]]] {
-		return Flap5(Ap(tf, Success(a1)))
+		return Flap5(Ap(tf, Pure(a1)))
 	}
 }
 
@@ -398,7 +398,7 @@ func LiftM7[A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a
 
 func Flap7[A1 any, A2, A3, A4, A5, A6, A7, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[R]]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Try[R]]]]]]] {
-		return Flap6(Ap(tf, Success(a1)))
+		return Flap6(Ap(tf, Pure(a1)))
 	}
 }
 
@@ -442,7 +442,7 @@ func LiftM8[A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A
 
 func Flap8[A1 any, A2, A3, A4, A5, A6, A7, A8, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[R]]]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Try[R]]]]]]]] {
-		return Flap7(Ap(tf, Success(a1)))
+		return Flap7(Ap(tf, Pure(a1)))
 	}
 }
 
@@ -486,7 +486,7 @@ func LiftM9[A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, 
 
 func Flap9[A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](tf fp.Try[fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[R]]]]]]]]]] {
 	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Try[R]]]]]]]]] {
-		return Flap8(Ap(tf, Success(a1)))
+		return Flap8(Ap(tf, Pure(a1)))
 	}
 }
 
