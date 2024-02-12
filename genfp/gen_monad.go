@@ -11,6 +11,54 @@ func asPtr[T any](v T) *T {
 	return &v
 }
 
+func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) string {
+	if realtp.TypeArgs() != nil {
+		args := []string{}
+		for i := 0; i < realtp.TypeArgs().Len(); i++ {
+			ta := realtp.TypeArgs().At(i)
+			if tp, ok := ta.(*types.TypeParam); ok {
+				if tp.Obj().Name() == p.Obj().Name() {
+				} else {
+					args = append(args, w.TypeName(pk, ta))
+				}
+			} else {
+				args = append(args, w.TypeName(pk, ta))
+			}
+		}
+
+		argsstr := strings.Join(args, ",")
+
+		return argsstr
+	}
+	return ""
+}
+
+func TypeParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
+	return func(newname string, fmtargs ...any) string {
+		if realtp.TypeArgs() != nil {
+			args := []string{}
+			for i := 0; i < realtp.TypeArgs().Len(); i++ {
+				ta := realtp.TypeArgs().At(i)
+				if tp, ok := ta.(*types.TypeParam); ok {
+					if tp.Obj().Name() == p.Obj().Name() {
+						args = append(args, fmt.Sprintf(newname, fmtargs...))
+					} else {
+						args = append(args, w.TypeName(pk, ta))
+					}
+
+				} else {
+					args = append(args, w.TypeName(pk, ta))
+				}
+			}
+
+			argsstr := strings.Join(args, ",")
+
+			return argsstr
+		}
+		return ""
+	}
+}
+
 func NameParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
 	return func(newname string, fmtargs ...any) string {
 		tpname := realtp.Origin().Obj().Name()
@@ -41,12 +89,9 @@ func NameParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *type
 
 			return fmt.Sprintf("%s[%s]", nameWithPkg, argsstr)
 		} else {
-
 			return nameWithPkg
-
 		}
 	}
-
 }
 
 func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
@@ -93,7 +138,24 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	}), func(v string) bool { return v != "" }), ",")
 	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
 
+	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
+	fixedParams := FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm)
+
 	funcs := map[string]any{
+		"pure": func(v string, tpe string) string {
+			if fixedParams != "" {
+				return fmt.Sprintf("Pure[%s](%s)", fixedParams, v)
+			}
+			return fmt.Sprintf("Pure(%s)", v)
+		},
+
+		"infer": func() string {
+			if fixedParams == "" {
+				return ""
+			}
+			return fmt.Sprintf("[%s]", fixedParams)
+		},
+
 		"monad": rettype,
 		"monadIns": func(start, until int) string {
 			f := &bytes.Buffer{}
@@ -306,7 +368,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// ?? 혹은 flap 이라는 이름으로 정의된 함수가 있음
 		func Flap[{{.tpargs}}, R any](tfa {{monad "fp.Func1[A,R]"}}) func(A) {{monad "R"}} {
 			return func(a A) {{monad "R"}} {
-				return Ap(tfa, Pure(a))
+				return Ap(tfa, {{pure "a" "A"}})
 			}
 		}
 	`, funcs, param)
@@ -315,7 +377,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// 하스켈 : m( a -> b -> r ) -> a -> b -> m r
 		func Flap2[{{.tpargs}}, B, R any](tfab {{monad "fp.Func1[A, fp.Func1[B, R]]"}}) fp.Func1[A, fp.Func1[B, {{monad "R"}}]] {
 			return func(a A) fp.Func1[B, {{monad "R"}}] {
-				return Flap(Ap(tfab, Pure(a)))
+				return Flap(Ap(tfab, {{pure "a" "A"}}))
 			}
 		}
 	`, funcs, param)
@@ -390,7 +452,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 
 		func Zip3[{{.tpargs}}, B, C any](ta {{monad "A"}}, tb {{monad "B"}}, tc {{monad "C"}}) {{monad "fp.Tuple3[A, B, C]"}} {
-			return LiftA3(product.Tuple3[A, B, C])(ta, tb, tc)
+			return LiftA3{{infer}}(product.Tuple3[A, B, C])(ta, tb, tc)
 		}
 
 		// fp.With 의 try 버젼
@@ -411,7 +473,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 			return func({{monadIns 1 .N}}) {{monad "R"}} {
 
 				return FlatMap(ins1, func(a1 A1) {{monad "R"}} {
-					return LiftA{{dec .N}}(func({{DeclArgs 2 .N}}) R {
+					return LiftA{{dec .N}}{{infer}}(func({{DeclArgs 2 .N}}) R {
 						return f({{CallArgs 1 .N}})
 					})({{CallArgs 2 .N "ins"}})
 				})
@@ -431,7 +493,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 		func Flap{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](tf {{monad (CurriedFunc 1 .N "R")}}) {{CurriedFunc 1 .N (monad "R")}} {
 			return func(a1 A1) {{CurriedFunc 2 .N (monad "R")}} {
-				return Flap{{dec .N}}(Ap(tf, Pure(a1)))
+				return Flap{{dec .N}}(Ap(tf, {{pure "a1" "A1"}}))
 			}
 		}
 

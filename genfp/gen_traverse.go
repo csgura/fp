@@ -136,7 +136,7 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	}
 
 
-	func SequenceIterator[A any](ita fp.Iterator[{{monad "A"}}]) {{monad "fp.Iterator[A]"}} {
+	func SequenceIterator[{{.tpargs}}](ita fp.Iterator[{{monad "A"}}]) {{monad "fp.Iterator[A]"}} {
 		ret := FoldM(ita, fp.Seq[A]{}, func(t1 fp.Seq[A], t2 {{monad "A"}}) {{monad "fp.Seq[A]"}} {
 			return Map(t2, t1.Add)
 		})

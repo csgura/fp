@@ -87,12 +87,32 @@ func MapWithState[S, A, B any](st fp.State[S, A], f func(S, A) B) fp.State[S, B]
 	}
 }
 
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldM[S, A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.State[S, B]) fp.State[S, B] {
+	sum := Pure[S](zero)
+	for s.HasNext() {
+		na := s.Next()
+		sum = FlatMap(sum, func(b B) fp.State[S, B] {
+			return f(b, na)
+		})
+	}
+	return sum
+}
+
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Generate
 func _[S, A any]() genfp.GenerateMonadFunctions[fp.State[S, A]] {
 	return genfp.GenerateMonadFunctions[fp.State[S, A]]{
 		File:     "state_monad.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}
+
+// @fp.Generate
+func _[S, A any]() genfp.GenerateTraverseFunctions[fp.State[S, A]] {
+	return genfp.GenerateTraverseFunctions[fp.State[S, A]]{
+		File:     "state_traverse.go",
 		TypeParm: genfp.TypeOf[A](),
 	}
 }
