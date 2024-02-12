@@ -209,6 +209,23 @@ func FindGenerateMonadFunctions(p []*packages.Package, tags ...string) map[strin
 	return ret
 }
 
+func FindGenerateTraverseFunctions(p []*packages.Package, tags ...string) map[string][]GenerateMonadFunctionsDirective {
+	ret := map[string][]GenerateMonadFunctionsDirective{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateTraverseFunctions", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateMonadFunctions(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s\n", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
+}
+
 func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Named {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),

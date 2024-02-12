@@ -32,4 +32,14 @@ func main() {
 			}
 		})
 	}
+
+	genseq = genfp.FindGenerateTraverseFunctions(pkgs, "@internal.Generate")
+	for file, list := range genseq {
+
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
+				genfp.WriteTraverseFunctions(w, gfu)
+			}
+		})
+	}
 }

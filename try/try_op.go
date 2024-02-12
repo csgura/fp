@@ -10,7 +10,6 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/seq"
 )
 
 func Pure[T any](t T) fp.Try[T] {
@@ -128,32 +127,6 @@ func FlatMap[A, B any](ta fp.Try[A], fn func(v A) fp.Try[B]) fp.Try[B] {
 	return Failure[B](ta.Failed().Get())
 }
 
-func FlatMapTraverseSeq[A, B any](ta fp.Try[fp.Seq[A]], f func(v A) fp.Try[B]) fp.Try[fp.Seq[B]] {
-	return FlatMap(ta, TraverseSeqFunc(f))
-}
-
-func FlatMapTraverseSlice[A, B any](ta fp.Try[[]A], f func(v A) fp.Try[B]) fp.Try[[]B] {
-	return FlatMap(ta, TraverseSliceFunc(f))
-}
-
-func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] {
-	ret := iterator.Fold(ita, Success(seq.Empty[A]()), LiftA2(fp.Seq[A].Add))
-	return Map(ret, iterator.FromSeq)
-
-}
-
-func traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
-	return iterator.FoldTry(ia, seq.Empty[R](), func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
-		return Map(fn(a), acc.Add)
-	})
-
-}
-
-func Traverse[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
-	ret := traverse(ia, fn)
-	return Map(ret, iterator.FromSeq)
-}
-
 // Traverse_ 가  Traverse 와 다른점은,  result 를 무시 한다는 것
 // 다음은 하스켈의 traverse_ 함수
 // traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
@@ -166,36 +139,6 @@ func Traverse_[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) error {
 
 func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.Try[fp.Option[R]] {
 	return Map(Traverse(fp.IteratorOfOption(opta), fa), fp.Iterator[R].NextOption)
-}
-
-func TraverseSeq[A, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
-	return traverse(fp.IteratorOfSeq(sa), fa)
-}
-
-func TraverseSlice[A, R any](sa []A, fa func(A) fp.Try[R]) fp.Try[[]R] {
-	return Map(traverse(fp.IteratorOfSeq(sa), fa), fp.Seq[R].Widen)
-}
-
-func TraverseFunc[A, R any](far func(A) fp.Try[R]) func(fp.Iterator[A]) fp.Try[fp.Iterator[R]] {
-	return func(iterA fp.Iterator[A]) fp.Try[fp.Iterator[R]] {
-		return Traverse(iterA, far)
-	}
-}
-
-func TraverseSeqFunc[A, R any](far func(A) fp.Try[R]) func(fp.Seq[A]) fp.Try[fp.Seq[R]] {
-	return func(seqA fp.Seq[A]) fp.Try[fp.Seq[R]] {
-		return TraverseSeq(seqA, far)
-	}
-}
-
-func TraverseSliceFunc[A, R any](far func(A) fp.Try[R]) func([]A) fp.Try[[]R] {
-	return func(seqA []A) fp.Try[[]R] {
-		return TraverseSlice(seqA, far)
-	}
-}
-func Sequence[A any](tsa []fp.Try[A]) fp.Try[[]A] {
-	ret := iterator.Fold(iterator.FromSeq(tsa), Success(seq.Empty[A]()), LiftA2(fp.Seq[A].Add))
-	return Map(ret, fp.Seq[A].Widen)
 }
 
 func Fold[A, B any](ta fp.Try[A], bzero B, fba func(B, A) B) B {
@@ -223,6 +166,20 @@ func ToSeq[A any](ta fp.Try[A]) fp.Seq[A] {
 
 func Iterator[A any](ta fp.Try[A]) fp.Iterator[A] {
 	return fp.IteratorOfSeq(ToSeq(ta))
+}
+
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B] {
+	sum := zero
+	for s.HasNext() {
+		t := f(sum, s.Next())
+		if t.IsSuccess() {
+			sum = t.Get()
+		} else {
+			return t
+		}
+	}
+	return fp.Success(sum)
 }
 
 type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {
@@ -360,6 +317,14 @@ func Unit0(f func() error) fp.Func1[fp.Unit, fp.Try[fp.Unit]] {
 func _[A any]() genfp.GenerateMonadFunctions[fp.Try[A]] {
 	return genfp.GenerateMonadFunctions[fp.Try[A]]{
 		File:     "try_monad.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}
+
+// @internal.Generate
+func _[A any]() genfp.GenerateTraverseFunctions[fp.Try[A]] {
+	return genfp.GenerateTraverseFunctions[fp.Try[A]]{
+		File:     "try_traverse.go",
 		TypeParm: genfp.TypeOf[A](),
 	}
 }

@@ -855,6 +855,12 @@ type GenerateMonadFunctions[T any] struct {
 	TypeParm TypeTag
 }
 
+type GenerateTraverseFunctions[T any] struct {
+	// 생성될 file 이름
+	File     string
+	TypeParm TypeTag
+}
+
 type GenerateMonadFunctionsDirective struct {
 	Package    *packages.Package
 	TargetType *types.Named
