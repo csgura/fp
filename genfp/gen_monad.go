@@ -115,6 +115,25 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 			}
 			return f.String()
 		},
+		"monadFuncChain": func(start, until int, funcType ...string) string {
+			ft := "fp.Func1"
+			if len(funcType) > 0 {
+				ft = funcType[0]
+			}
+
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				if j == until {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, rettype("R"))
+				} else {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, rettype("A%d", j+1))
+				}
+			}
+			return f.String()
+		},
 	}
 	param := map[string]any{
 		"tpargs":  tpargs,
@@ -431,6 +450,12 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 					return fa1({{CallArgs 1 .N}})
 				})
 			}
+		}
+	`, funcs, param)
+
+	w.Iteration(3, MaxCompose).Render(`
+		func Compose{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any]({{monadFuncChain 1 .N}}) fp.Func1[A1, {{monad "R"}}] {
+			return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
 		}
 	`, funcs, param)
 }

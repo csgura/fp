@@ -386,18 +386,3 @@ func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .
 }
 	`,
 }
-
-// @internal.Generate
-var _ = genfp.GenerateFromUntil{
-	File: "func_gen.go",
-	Imports: []genfp.ImportPackage{
-		{Package: "github.com/csgura/fp", Name: "fp"},
-	},
-	From:  3,
-	Until: genfp.MaxCompose,
-	Template: `
-func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Option").FuncChain 1 .N}}) fp.Func1[A1, fp.Option[R]] {
-	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
-}
-	`,
-}

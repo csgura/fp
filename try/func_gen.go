@@ -247,15 +247,3 @@ func Ptr9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(A1, A2, A3, A4, A5, 
 		return FlatMap(Apply(ret, err), FromPtr)
 	}
 }
-
-func Compose3[A1, A2, A3, R any](f1 fp.Func1[A1, fp.Try[A2]], f2 fp.Func1[A2, fp.Try[A3]], f3 fp.Func1[A3, fp.Try[R]]) fp.Func1[A1, fp.Try[R]] {
-	return Compose2(f1, Compose2(f2, f3))
-}
-
-func Compose4[A1, A2, A3, A4, R any](f1 fp.Func1[A1, fp.Try[A2]], f2 fp.Func1[A2, fp.Try[A3]], f3 fp.Func1[A3, fp.Try[A4]], f4 fp.Func1[A4, fp.Try[R]]) fp.Func1[A1, fp.Try[R]] {
-	return Compose2(f1, Compose3(f2, f3, f4))
-}
-
-func Compose5[A1, A2, A3, A4, A5, R any](f1 fp.Func1[A1, fp.Try[A2]], f2 fp.Func1[A2, fp.Try[A3]], f3 fp.Func1[A3, fp.Try[A4]], f4 fp.Func1[A4, fp.Try[A5]], f5 fp.Func1[A5, fp.Try[R]]) fp.Func1[A1, fp.Try[R]] {
-	return Compose2(f1, Compose4(f2, f3, f4, f5))
-}

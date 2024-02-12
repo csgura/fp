@@ -513,21 +513,6 @@ func Ptr{{.N}}[{{TypeArgs 1 .N}}, R any](f func({{TypeArgs 1 .N}}) (*R, error)) 
 
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
-	File: "func_gen.go",
-	Imports: []genfp.ImportPackage{
-		{Package: "github.com/csgura/fp", Name: "fp"},
-	},
-	From:  3,
-	Until: genfp.MaxCompose,
-	Template: `
-func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N}}) fp.Func1[A1, fp.Try[R]] {
-	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
-}
-	`,
-}
-
-// @internal.Generate
-var _ = genfp.GenerateFromUntil{
 	File: "curried_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
