@@ -412,7 +412,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 		func Flap{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](tf {{monad (CurriedFunc 1 .N "R")}}) {{CurriedFunc 1 .N (monad "R")}} {
 			return func(a1 A1) {{CurriedFunc 2 .N (monad "R")}} {
-				return Flap{{dec .N}}(Ap(tf, Success(a1)))
+				return Flap{{dec .N}}(Ap(tf, Pure(a1)))
 			}
 		}
 

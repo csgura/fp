@@ -81,18 +81,17 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	}
 
 	w.AddImport(types.NewPackage("github.com/csgura/fp/iterator", "iterator"))
-	w.AddImport(types.NewPackage("github.com/csgura/fp/seq", "seq"))
 
 	w.Render(`
 
 	func Traverse[{{.tpargs}}, R any](ia fp.Iterator[A], fn func(A) {{monad "R"}}) {{monad "fp.Iterator[R]"}} {
-		return Map(FoldM(ia, seq.Empty[R](), func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
+		return Map(FoldM(ia, fp.Seq[R]{}, func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
 			return Map(fn(a), acc.Add)
 		}), iterator.FromSeq)
 	}
 
 	func TraverseSeq[{{.tpargs}}, R any](sa fp.Seq[A], fa func(A) {{monad "R"}}) {{monad "fp.Seq[R]"}} {
-		return FoldM(fp.IteratorOfSeq(sa), seq.Empty[R](), func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
+		return FoldM(fp.IteratorOfSeq(sa), fp.Seq[R]{}, func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
 			return Map(fa(a), acc.Add)
 		})
 	}
@@ -129,7 +128,7 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	}
 
 	func Sequence[{{.tpargs}}](tsa []{{monad "A"}}) {{monad "[]A"}} {
-		ret := FoldM(iterator.FromSeq(tsa), seq.Empty[A](), func(t1 fp.Seq[A], t2 {{monad "A"}}) {{monad "fp.Seq[A]"}} {
+		ret := FoldM(iterator.FromSeq(tsa), fp.Seq[A]{}, func(t1 fp.Seq[A], t2 {{monad "A"}}) {{monad "fp.Seq[A]"}} {
 			return Map(t2, t1.Add)
 		})
 	
@@ -137,8 +136,8 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	}
 
 
-	func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] {
-		ret := FoldM(ita, seq.Empty[A](), func(t1 fp.Seq[A], t2 {{monad "A"}}) {{monad "fp.Seq[A]"}} {
+	func SequenceIterator[A any](ita fp.Iterator[{{monad "A"}}]) {{monad "fp.Iterator[A]"}} {
+		ret := FoldM(ita, fp.Seq[A]{}, func(t1 fp.Seq[A], t2 {{monad "A"}}) {{monad "fp.Seq[A]"}} {
 			return Map(t2, t1.Add)
 		})
 		return Map(ret, iterator.FromSeq)
