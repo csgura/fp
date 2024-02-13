@@ -143,7 +143,7 @@ func FlapMap[A any, B, R any](tfab func(A, B) R, a fp.Option[A]) func(B) fp.Opti
 // https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 // om , ==<<  이름으로 정의된 것이 있음
 func FlatFlapMap[A any, B, R any](fab func(A, B) fp.Option[R], ta fp.Option[A]) func(B) fp.Option[R] {
-	return fp.Compose(FlapMap(fab, ta), Flatten)
+	return fp.Compose(FlapMap(fab, ta), Flatten[R])
 }
 
 // FlatMap 과는 아규먼트 순서가 다른 함수로
@@ -170,7 +170,7 @@ func Method2[A any, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) R) fu
 
 func FlatMethod2[A any, B, C, R any](ta fp.Option[A], fabc func(a A, b B, c C) fp.Option[R]) func(B, C) fp.Option[R] {
 
-	return curried.Revert2(curried.Compose2(Flap2(Map(ta, curried.Func3(fabc))), Flatten))
+	return curried.Revert2(curried.Compose2(Flap2(Map(ta, curried.Func3(fabc))), Flatten[R]))
 
 	// return func(b B, c C) fp.Option[R] {
 	// 	return FlatMap(ta, func(a A) fp.Option[R] {

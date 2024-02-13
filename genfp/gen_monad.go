@@ -149,9 +149,15 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 			return fmt.Sprintf("Pure(%s)", v)
 		},
 
-		"infer": func() string {
+		"infer": func(extra ...string) string {
 			if fixedParams == "" {
+				if len(extra) > 0 {
+					return "[" + strings.Join(extra, ",") + "]"
+				}
 				return ""
+			}
+			if len(extra) > 0 {
+				return fmt.Sprintf("[%s,%s]", fixedParams, strings.Join(extra, ","))
 			}
 			return fmt.Sprintf("[%s]", fixedParams)
 		},
@@ -213,29 +219,28 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	`, funcs, param)
 
 	fmt.Fprintf(w, `
-		func Map[%s, R any](m %s,  f func(%s) R) %s {
+		func Map[%s, R any](m %s,  f func(A) R) %s {
 			return FlatMap(m, fp.Compose2(f, Pure[%s]))
 		}
-	`, tpargs, srctype, md.TypeParm, rettype("R"), rettp)
+	`, tpargs, srctype, rettype("R"), rettp)
 
 	fmt.Fprintf(w, `
 		// haskell 의 <$
 		// map . const 와 같은 함수
 		func Replace[%s, R any](s %s, b R) %s {
-			return Map(s, fp.Const[%s](b))
+			return Map(s, fp.Const[A](b))
 		}
-	`, tpargs, srctype, rettype("R"), md.TypeParm)
+	`, tpargs, srctype, rettype("R"))
 
 	fmt.Fprintf(w, `
-		func Map2[%s, B, R any](first %s, second %s, fab func(%s, B) R) %s {
-			return FlatMap(first, func(a %s) %s {
+		func Map2[%s, B, R any](first %s, second %s, fab func(A, B) R) %s {
+			return FlatMap(first, func(a A) %s {
 				return Map(second, func(b B) R {
 					return fab(a, b)
 				})
 			})
 		}
-	`, tpargs, srctype, rettype("B"), md.TypeParm, rettype("R"),
-		md.TypeParm, rettype("R"),
+	`, tpargs, srctype, rettype("B"), rettype("R"), rettype("R"),
 	)
 
 	w.AddImport(types.NewPackage("github.com/csgura/fp/product", "product"))
@@ -244,7 +249,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 			return Map2(first, second, product.Tuple2)
 		}
 
-	`, tpargs, srctype, rettype("B"), rettype(fmt.Sprintf("fp.Tuple2[%s,B]", md.TypeParm)),
+	`, tpargs, srctype, rettype("B"), rettype("fp.Tuple2[A,B]"),
 	)
 
 	fmt.Fprintf(w, `
@@ -254,7 +259,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 			})
 		}
 
-	`, tpargs, rettype("fp.Func1[%s,B]", md.TypeParm), rettype("%s", md.TypeParm), rettype("B"),
+	`, tpargs, rettype("fp.Func1[A,B]"), rettype("A"), rettype("B"),
 		rettype("B"),
 	)
 
@@ -288,7 +293,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 
 
-	`, tpargs, rettype("fp.Func1[%s, B]", md.TypeParm), rettype("%s", md.TypeParm), rettype("B"),
+	`, tpargs, rettype("fp.Func1[A, B]"), rettype("A"), rettype("B"),
 		rettype("B"),
 	)
 
@@ -296,28 +301,26 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 	fmt.Fprintf(w, `
 			// Map(ta , seq.Lift(f)) 와 동일
-			func MapSeqLift[%s, B any](ta %s, f func(v %s) B) %s {
+			func MapSeqLift[%s, B any](ta %s, f func(v A) B) %s {
 
-				return Map(ta, func(a fp.Seq[%s]) fp.Seq[B] {
+				return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
 					return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 				})
 			}
 
 
-	`, tpargs, rettype("fp.Seq[%s]", md.TypeParm), md.TypeParm, rettype("fp.Seq[B]"),
-		md.TypeParm,
+	`, tpargs, rettype("fp.Seq[A]"), rettype("fp.Seq[B]"),
 	)
 
 	fmt.Fprintf(w, `
 		// Map(ta , seq.Lift(f)) 와 동일
-		func MapSliceLift[%s, B any](ta %s, f func(v %s) B) %s {
+		func MapSliceLift[%s, B any](ta %s, f func(v A) B) %s {
 
-			return Map(ta, func(a []%s) []B {
+			return Map(ta, func(a []A) []B {
 				return iterator.Map(iterator.FromSeq(a), f).ToSeq()
 			})
 		}
-	`, tpargs, rettype("[]%s", md.TypeParm), md.TypeParm, rettype("[]B"),
-		md.TypeParm,
+	`, tpargs, rettype("[]A"), rettype("[]B"),
 	)
 
 	w.Render(`
@@ -403,7 +406,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		// https://hoogle.haskell.org/?hoogle=(%20a%20-%3E%20b%20-%3E%20m%20r%20)%20-%3E%20m%20a%20-%3E%20%20b%20-%3E%20m%20r%20
 		// om , ==<<  이름으로 정의된 것이 있음
 		func FlatFlapMap[{{.tpargs}}, B, R any](fab func(A, B) {{monad "R"}}, ta {{monad "A"}}) func(B) {{monad "R"}} {
-			return fp.Compose(FlapMap(fab, ta), Flatten)
+			return fp.Compose(FlapMap(fab, ta), Flatten{{infer "R"}})
 		}
 	`, funcs, param)
 
@@ -432,7 +435,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 		func FlatMethod2[{{.tpargs}}, B, C, R any](ta {{monad "A"}}, fabc func(a A, b B, c C) {{monad "R"}}) func(B, C) {{monad "R"}} {
 
-			return curried.Revert2(curried.Compose2(Flap2(Map(ta, curried.Func3(fabc))), Flatten))
+			return curried.Revert2(curried.Compose2(Flap2(Map(ta, curried.Func3(fabc))), Flatten{{infer "R"}}))
 
 			// return func(b B, c C) {{monad "R"}} {
 			// 	return FlatMap(ta, func(a A) {{monad "R"}} {
