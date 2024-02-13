@@ -5,14 +5,14 @@ import (
 	"github.com/csgura/fp"
 )
 
-func Compose3[A1, A2, A3, R any](f1 WithFunc[A1, fp.Try[A2]], f2 WithFunc[A2, fp.Try[A3]], f3 WithFunc[A3, fp.Try[R]]) WithFunc[A1, fp.Try[R]] {
-	return Compose2(f1, Compose2(f2, f3))
+func ComposeWith3[A1, A2, A3, R any](f1 WithFunc[A1, fp.Try[A2]], f2 WithFunc[A2, fp.Try[A3]], f3 WithFunc[A3, fp.Try[R]]) WithFunc[A1, fp.Try[R]] {
+	return ComposeWith2(f1, ComposeWith2(f2, f3))
 }
 
-func Compose4[A1, A2, A3, A4, R any](f1 WithFunc[A1, fp.Try[A2]], f2 WithFunc[A2, fp.Try[A3]], f3 WithFunc[A3, fp.Try[A4]], f4 WithFunc[A4, fp.Try[R]]) WithFunc[A1, fp.Try[R]] {
-	return Compose2(f1, Compose3(f2, f3, f4))
+func ComposeWith4[A1, A2, A3, A4, R any](f1 WithFunc[A1, fp.Try[A2]], f2 WithFunc[A2, fp.Try[A3]], f3 WithFunc[A3, fp.Try[A4]], f4 WithFunc[A4, fp.Try[R]]) WithFunc[A1, fp.Try[R]] {
+	return ComposeWith2(f1, ComposeWith3(f2, f3, f4))
 }
 
-func Compose5[A1, A2, A3, A4, A5, R any](f1 WithFunc[A1, fp.Try[A2]], f2 WithFunc[A2, fp.Try[A3]], f3 WithFunc[A3, fp.Try[A4]], f4 WithFunc[A4, fp.Try[A5]], f5 WithFunc[A5, fp.Try[R]]) WithFunc[A1, fp.Try[R]] {
-	return Compose2(f1, Compose4(f2, f3, f4, f5))
+func ComposeWith5[A1, A2, A3, A4, A5, R any](f1 WithFunc[A1, fp.Try[A2]], f2 WithFunc[A2, fp.Try[A3]], f3 WithFunc[A3, fp.Try[A4]], f4 WithFunc[A4, fp.Try[A5]], f5 WithFunc[A5, fp.Try[R]]) WithFunc[A1, fp.Try[R]] {
+	return ComposeWith2(f1, ComposeWith4(f2, f3, f4, f5))
 }

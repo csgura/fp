@@ -111,9 +111,21 @@ func Of[T any](f func(ctx context.Context) fp.Try[T]) State[T] {
 	}
 }
 
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) State[B]) State[B] {
+	sum := Pure(zero)
+	for s.HasNext() {
+		na := s.Next()
+		sum = FlatMap(sum, func(b B) State[B] {
+			return f(b, na)
+		})
+	}
+	return sum
+}
+
 type WithFunc[A, R any] func(context.Context, A) R
 
-func Compose2[A, B, R any](f1 WithFunc[A, fp.Try[B]], f2 WithFunc[B, fp.Try[R]]) WithFunc[A, fp.Try[R]] {
+func ComposeWith2[A, B, R any](f1 WithFunc[A, fp.Try[B]], f2 WithFunc[B, fp.Try[R]]) WithFunc[A, fp.Try[R]] {
 	return func(ctx context.Context, a A) fp.Try[R] {
 		return try.FlatMap(f1(ctx, a), as.Func2(f2).ApplyFirst(ctx))
 	}
@@ -130,6 +142,14 @@ func _[S, A any]() genfp.GenerateMonadFunctions[State[A]] {
 }
 
 // @internal.Generate
+func _[S, A any]() genfp.GenerateTraverseFunctions[State[A]] {
+	return genfp.GenerateTraverseFunctions[State[A]]{
+		File:     "tctx_traverse.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}
+
+// @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "func_gen.go",
 	Imports: []genfp.ImportPackage{
@@ -138,8 +158,8 @@ var _ = genfp.GenerateFromUntil{
 	From:  3,
 	Until: genfp.MaxCompose,
 	Template: `
-func Compose{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N "WithFunc"}}) WithFunc[A1,fp.Try[R]] {
-	return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+func ComposeWith{{.N}}[{{TypeArgs 1 .N}}, R any]({{(Monad "fp.Try").FuncChain 1 .N "WithFunc"}}) WithFunc[A1,fp.Try[R]] {
+	return ComposeWith2(f1, ComposeWith{{dec .N}}({{CallArgs 2 .N "f"}}))
 }
 	`,
 }

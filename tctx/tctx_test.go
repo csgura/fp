@@ -129,7 +129,7 @@ func TestCompose(t *testing.T) {
 
 	cf1 := tctx.SlipL3(try.CurriedPure3(formatInt))
 
-	ff := tctx.Compose5(
+	ff := tctx.ComposeWith5(
 		tctx.AsWithFunc1(cf1, "hello%d"),
 		tctx.AsWithFunc1(try.CurriedPure3(joinPort), 8080),
 		try.Pure2(validate).Widen(),

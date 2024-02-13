@@ -3,9 +3,28 @@ package statet
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/try"
 )
+
+//go:generate go run github.com/csgura/fp/cmd/gombok
+
+// @fp.Generate
+func _[S, A any]() genfp.GenerateMonadFunctions[fp.StateT[S, A]] {
+	return genfp.GenerateMonadFunctions[fp.StateT[S, A]]{
+		File:     "state_monad.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}
+
+// @fp.Generate
+func _[S, A any]() genfp.GenerateTraverseFunctions[fp.StateT[S, A]] {
+	return genfp.GenerateTraverseFunctions[fp.StateT[S, A]]{
+		File:     "state_traverse.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}
 
 func Run[S, A any](f func(S) (A, S)) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
@@ -107,13 +126,6 @@ func WithStateT[S, A any](st fp.StateT[S, A], f func(S) fp.Try[S]) fp.StateT[S, 
 	}
 }
 
-func Ap[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a A) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
-		af, ns := st.Run(s)
-		return try.Zip(try.Ap(af, try.Success(a)), ns)
-	}
-}
-
 func ApTry[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a fp.Try[A]) fp.StateT[S, B] {
 	return func(s S) fp.Try[fp.Tuple2[B, S]] {
 		af, ns := st.Run(s)
@@ -126,17 +138,6 @@ func ApOption[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a fp.Option[A]) fp.S
 		af, ns := st.Run(s)
 		return try.Zip(try.Ap(af, try.FromOption(a)), ns)
 	}
-}
-
-func Map[S, A, B any](st fp.StateT[S, A], f func(A) B) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
-		a, ns := st.Run(s)
-		return try.Zip(try.Map(a, f), ns)
-	}
-}
-
-func Replace[S, A, B any](s fp.StateT[S, A], b B) fp.StateT[S, B] {
-	return Map(s, fp.Const[A](b))
 }
 
 func MapWithState[S, A, B any](st fp.StateT[S, A], f func(S, A) B) fp.StateT[S, B] {
@@ -168,14 +169,14 @@ func PeekState[S, A any](st fp.StateT[S, A], f func(ctx S)) fp.StateT[S, A] {
 	}
 }
 
-func Map2[S, A, B, R any](first fp.StateT[S, A], second fp.StateT[S, B], fab func(A, B) R) fp.StateT[S, R] {
-	return FlatMap(first, func(a A) fp.StateT[S, R] {
-		return Map(second, func(b B) R {
-			return fab(a, b)
+// foldM : (b -> a -> m b ) -> b -> t a -> m b
+func FoldM[S, A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.StateT[S, B]) fp.StateT[S, B] {
+	sum := Pure[S](zero)
+	for s.HasNext() {
+		na := s.Next()
+		sum = FlatMap(sum, func(b B) fp.StateT[S, B] {
+			return f(b, na)
 		})
-	})
-}
-
-func Zip[S, A, B any](first fp.StateT[S, A], second fp.StateT[S, B]) fp.StateT[S, fp.Tuple2[A, B]] {
-	return Map2(first, second, product.Tuple2)
+	}
+	return sum
 }
