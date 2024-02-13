@@ -10,6 +10,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/seq"
 )
 
 func Pure[T any](t T) fp.Try[T] {
@@ -326,6 +327,22 @@ func _[A any]() genfp.GenerateTraverseFunctions[fp.Try[A]] {
 	return genfp.GenerateTraverseFunctions[fp.Try[A]]{
 		File:     "try_traverse.go",
 		TypeParm: genfp.TypeOf[A](),
+	}
+}
+
+// OptionT[F,A] 는 F[Option[A]]  와 같은 타입
+// SeqT[Try,A] 는  Try[Seq[A]] 타입임
+// PureSeqT
+// MapSeqT
+// FlatMapSeqT
+
+// @internal.Generate
+func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
+	return genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]]{
+		File:     "try_seqt.go",
+		TypeParm: genfp.TypeOf[A](),
+		Pure:     seq.Pure[A],
+		FlatMap:  seq.FlatMap[A, B],
 	}
 }
 

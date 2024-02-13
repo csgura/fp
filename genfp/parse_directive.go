@@ -913,3 +913,81 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 	}
 	return ret, nil
 }
+
+type GenerateMonadTransformer[T any] struct {
+	Name string
+	// 생성될 file 이름
+	File     string
+	TypeParm TypeTag
+	Pure     any
+	FlatMap  any
+}
+
+type GenerateMonadTransformerDirective struct {
+	Name       string
+	Package    *packages.Package
+	TargetType *types.Named
+	MonadType  *types.Named
+	// 생성될 file 이름
+	File     string
+	TypeParm *types.TypeParam
+	Pure     TypeReference
+	FlatMap  TypeReference
+}
+
+func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
+	ret := GenerateMonadTransformerDirective{
+		Package: lit.Package,
+	}
+
+	if lit.Type.TypeArgs().Len() != 1 {
+		return ret, fmt.Errorf("invalid number of type argument")
+	}
+
+	argType, ok := lit.Type.TypeArgs().At(0).(*types.Named)
+	if !ok {
+		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
+	}
+
+	ret.TargetType = argType
+
+	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap"}
+	for idx, e := range lit.Lit.Elts {
+		if idx >= len(names) {
+			return ret, fmt.Errorf("invalid number of literals")
+		}
+		name := names[idx]
+		name, value := asKeyValue(e, name)
+		switch name {
+		case "Name":
+			v, err := evalStringValue(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			ret.Name = v
+		case "File":
+			v, err := evalStringValue(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			ret.File = v
+		case "TypeParm":
+			v, err := evalTypeOf(lit.Package)(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			if tp, ok := v.Type.(*types.TypeParam); ok {
+				ret.TypeParm = tp
+			} else {
+				return ret, fmt.Errorf("invalid TypeParam. %s is not type param", v.Type)
+			}
+		case "Pure":
+			found := evalTypeReference(lit.Package, value)
+			ret.Pure = found
+
+		case "FlatMap":
+			ret.FlatMap = evalTypeReference(lit.Package, value)
+		}
+	}
+	return ret, nil
+}

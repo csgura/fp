@@ -47,6 +47,10 @@ func Empty[T any]() fp.Seq[T] {
 	return nil
 }
 
+func Pure[T any](v T) fp.Seq[T] {
+	return fp.Seq[T]{v}
+}
+
 func Of[T any](list ...T) fp.Seq[T] {
 	return list
 }
