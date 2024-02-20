@@ -10,6 +10,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 )
 
@@ -343,6 +344,18 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
 		TypeParm: genfp.TypeOf[A](),
 		Pure:     seq.Pure[A],
 		FlatMap:  seq.FlatMap[A, B],
+	}
+}
+
+// try.OptionT[A] =  fp.Try[fp.Option[A]]
+
+// @internal.Generate
+func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Option[A]]] {
+	return genfp.GenerateMonadTransformer[fp.Try[fp.Option[A]]]{
+		File:     "try_optiont.go",
+		TypeParm: genfp.TypeOf[A](),
+		Pure:     option.Pure[A],
+		FlatMap:  option.FlatMap[A, B],
 	}
 }
 

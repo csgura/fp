@@ -949,7 +949,16 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
 	}
 
-	ret.TargetType = argType
+	typeArgs := argType.TypeArgs()
+	if typeArgs.Len() != 1 {
+		return ret, fmt.Errorf("invalid number of type argument")
+	}
+
+	if monadType, ok := typeArgs.At(0).(*types.Named); ok {
+		ret.MonadType = monadType
+	} else {
+		return ret, fmt.Errorf("target type is not named type : %s", typeArgs.At(0))
+	}
 
 	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap"}
 	for idx, e := range lit.Lit.Elts {
@@ -989,5 +998,19 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 			ret.FlatMap = evalTypeReference(lit.Package, value)
 		}
 	}
+	ctx := types.NewContext()
+
+	ins, err := types.Instantiate(ctx, argType.Origin(), []types.Type{ret.TypeParm}, false)
+
+	if err != nil {
+		return ret, err
+	}
+
+	ret.TargetType = ins.(*types.Named)
+
+	if ret.Name == "" {
+		ret.Name = ret.MonadType.Obj().Name() + "T"
+	}
+
 	return ret, nil
 }

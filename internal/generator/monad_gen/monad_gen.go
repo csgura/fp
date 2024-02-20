@@ -42,4 +42,15 @@ func main() {
 			}
 		})
 	}
+
+	monadt := genfp.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
+	for file, list := range monadt {
+
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
+				fmt.Printf("target type = %s, monad type = %s, name = %s\n", gfu.TargetType, gfu.MonadType, gfu.Name)
+				genfp.WriteMonadTransformers(w, gfu)
+			}
+		})
+	}
 }

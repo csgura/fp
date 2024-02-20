@@ -95,7 +95,6 @@ func NameParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *type
 }
 
 func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
-	fmt.Printf("generateo for %s\n", md.TargetType)
 
 	tp := md.TargetType.TypeArgs()
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
