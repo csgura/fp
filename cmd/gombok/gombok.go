@@ -94,7 +94,7 @@ func processDeref(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 	workingPackage := ctx.workingPackage
 
 	if _, ok := ts.Tags.Get("@fp.Deref").Unapply(); ok {
-		//fmt.Printf("rhs type = %s\n", ts.RhsType)
+		fmt.Printf("rhs type = %s\n", ts.RhsType)
 
 		if rhs, ok := ts.RhsType.Unapply(); ok {
 

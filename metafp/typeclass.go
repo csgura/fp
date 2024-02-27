@@ -127,7 +127,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 								Types: make(map[ast.Expr]types.TypeAndValue),
 							}
 							//fmt.Printf("check expr = %s\n", types.ExprString(vs.Type))
-							types.CheckExpr(pk.Fset, pk.Types, v.Pos(), vs.Type, info)
+							types.CheckExpr(pk.Fset, pk.Types, v.End(), vs.Type, info)
 							ti := info.Types[vs.Type]
 
 							if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {

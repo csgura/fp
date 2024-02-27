@@ -3,7 +3,6 @@ package metafp
 import (
 	"fmt"
 	"go/ast"
-	"go/token"
 	"go/types"
 	"strings"
 	"unicode"
@@ -169,20 +168,20 @@ type PackagedName struct {
 	Name    string
 }
 
-func EvalTypeExpr(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) types.Type {
+func EvalTypeExpr(pk *packages.Package, typeExpr ast.Expr) types.Type {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+	types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
 	ti := info.Types[typeExpr]
 	return ti.Type
 }
 
-func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Named {
+func checkType(pk *packages.Package, typeExpr ast.Expr) *types.Named {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+	types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
 
 	ti := info.Types[typeExpr]
 	if named, ok := ti.Type.(*types.Named); ok {
@@ -234,7 +233,10 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 								info := &types.Info{
 									Types: make(map[ast.Expr]types.TypeAndValue),
 								}
-								types.CheckExpr(pk.Fset, pk.Types, v.Pos(), ts.Type, info)
+								err := types.CheckExpr(pk.Fset, pk.Types, ts.Type.End(), ts.Type, info)
+								if err != nil {
+									fmt.Printf("selector err = %s\n", err)
+								}
 								ti := info.Types[ts.Type]
 								if _, ok := ti.Type.(*types.Named); ok {
 									ret.RhsType = option.Some(typeInfo(ti.Type))
@@ -246,7 +248,14 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 								info := &types.Info{
 									Types: make(map[ast.Expr]types.TypeAndValue),
 								}
-								types.CheckExpr(pk.Fset, pk.Types, v.Pos(), ts.Type, info)
+								pos := ts.Type.End()
+								if ts.TypeParams != nil {
+									pos = ts.TypeParams.Closing
+								}
+								err := types.CheckExpr(pk.Fset, pk.Types, pos, ts.Type, info)
+								if err != nil {
+									fmt.Printf("index expr err = %s\n", err)
+								}
 								ti := info.Types[ts.Type]
 								if _, ok := ti.Type.(*types.Named); ok {
 									ret.RhsType = option.Some(typeInfo(ti.Type))
@@ -256,7 +265,14 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 								info := &types.Info{
 									Types: make(map[ast.Expr]types.TypeAndValue),
 								}
-								types.CheckExpr(pk.Fset, pk.Types, v.Pos(), ts.Type, info)
+								pos := ts.Type.End()
+								if ts.TypeParams != nil {
+									pos = ts.TypeParams.Closing
+								}
+								err := types.CheckExpr(pk.Fset, pk.Types, pos, ts.Type, info)
+								if err != nil {
+									fmt.Printf("index list err = %s\n", err)
+								}
 								ti := info.Types[ts.Type]
 								if _, ok := ti.Type.(*types.Named); ok {
 									ret.RhsType = option.Some(typeInfo(ti.Type))

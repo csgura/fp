@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"go/token"
 	"go/types"
 	"strings"
 
@@ -243,11 +242,11 @@ func FindGenerateMonadTransfomers(p []*packages.Package, tags ...string) map[str
 	return ret
 }
 
-func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Named {
+func checkType(pk *packages.Package, typeExpr ast.Expr) *types.Named {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+	types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
 
 	ti := info.Types[typeExpr]
 	if named, ok := ti.Type.(*types.Named); ok {
@@ -256,11 +255,11 @@ func checkType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Na
 	return nil
 }
 
-func checkFuncType(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) *types.Signature {
+func checkFuncType(pk *packages.Package, typeExpr ast.Expr) *types.Signature {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+	types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
 
 	ti := info.Types[typeExpr]
 	if named, ok := ti.Type.(*types.Signature); ok {
@@ -299,7 +298,7 @@ func taggedFromFuncDecl(pk *packages.Package, typeName string, gd *ast.FuncDecl,
 
 		if gd.Type.Results.NumFields() == 1 {
 
-			sig := checkFuncType(pk, gd.Type, gd.Pos())
+			sig := checkFuncType(pk, gd.Type)
 			if sig != nil {
 				if sig.Results().Len() == 1 {
 					if named, ok := sig.Results().At(0).Type().(*types.Named); ok {
@@ -348,7 +347,7 @@ func taggedFromGenDecl(pk *packages.Package, typeName string, gd *ast.GenDecl, t
 					}
 
 					if cl, ok := v.I2.(*ast.CompositeLit); ok {
-						named := checkType(pk, cl.Type, v.I2.Pos())
+						named := checkType(pk, cl.Type)
 						if named != nil {
 							if named.Obj().Name() == typeName {
 								return []TaggedLit{{pk, named, cl}}

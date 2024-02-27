@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"go/constant"
-	"go/token"
 	"go/types"
 	"reflect"
 	"strconv"
@@ -117,12 +116,12 @@ func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
 			return t.Value[1 : len(t.Value)-1], nil
 		}
 	case *ast.Ident:
-		v, _ := evalConst(p, e, e.Pos())
+		v, _ := evalConst(p, e)
 		if v.Kind() == constant.String {
 			return v.String(), nil
 		}
 	case *ast.SelectorExpr:
-		v, _ := evalConst(p, e, e.Pos())
+		v, _ := evalConst(p, e)
 		if v.Kind() == constant.String {
 			return v.String(), nil
 		}
@@ -201,7 +200,7 @@ func evalIntValue(p *packages.Package, e ast.Expr) (int, error) {
 		}
 		return int(i), nil
 	case *ast.Ident:
-		v, _ := evalConst(p, e, e.Pos())
+		v, _ := evalConst(p, e)
 		if v.Kind() == constant.Int {
 			i, err := strconv.ParseInt(v.String(), 10, 64)
 			if err != nil {
@@ -210,7 +209,7 @@ func evalIntValue(p *packages.Package, e ast.Expr) (int, error) {
 			return int(i), nil
 		}
 	case *ast.SelectorExpr:
-		v, _ := evalConst(p, e, e.Pos())
+		v, _ := evalConst(p, e)
 		if v.Kind() == constant.Int {
 			i, err := strconv.ParseInt(v.String(), 10, 64)
 			if err != nil {
@@ -401,7 +400,7 @@ type TypeReference struct {
 }
 
 func evalTypeReference(pk *packages.Package, exp ast.Expr) TypeReference {
-	t, imp := evalFuncLit(pk, exp, exp.Pos())
+	t, imp := evalFuncLit(pk, exp)
 
 	return TypeReference{
 		Expr:       exp,
@@ -684,14 +683,14 @@ type ImplOptionDirective struct {
 // 	return ti.Type
 // }
 
-func evalConst(pk *packages.Package, constExpr ast.Expr, pos token.Pos) (constant.Value, []ImportPackage) {
+func evalConst(pk *packages.Package, constExpr ast.Expr) (constant.Value, []ImportPackage) {
 	info := &types.Info{
 		Types:     make(map[ast.Expr]types.TypeAndValue),
 		Instances: map[*ast.Ident]types.Instance{},
 		Defs:      map[*ast.Ident]types.Object{},
 		Uses:      map[*ast.Ident]types.Object{},
 	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, constExpr, info)
+	types.CheckExpr(pk.Fset, pk.Types, constExpr.End(), constExpr, info)
 
 	var imports []ImportPackage
 	for k, v := range info.Uses {
@@ -708,12 +707,15 @@ func evalConst(pk *packages.Package, constExpr ast.Expr, pos token.Pos) (constan
 	return ti.Value, imports
 }
 
-func evalFuncLit(pk *packages.Package, typeExpr ast.Expr, pos token.Pos) (types.Type, []ImportPackage) {
+func evalFuncLit(pk *packages.Package, typeExpr ast.Expr) (types.Type, []ImportPackage) {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 		Uses:  map[*ast.Ident]types.Object{},
 	}
-	types.CheckExpr(pk.Fset, pk.Types, pos, typeExpr, info)
+	err := types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
+	if err != nil {
+		fmt.Printf("check expr err = %s\n", err)
+	}
 
 	var imports []ImportPackage
 	for k, v := range info.Uses {
@@ -788,7 +790,7 @@ func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Pack
 					ret.OmitGetterIfValOverride = v
 				case "DefaultImpl":
 
-					found, imports := evalFuncLit(pk, value, value.Pos())
+					found, imports := evalFuncLit(pk, value)
 					ret.DefaultImplImports = imports
 
 					ret.DefaultImplExpr = value
