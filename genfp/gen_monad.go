@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/types"
+	"slices"
 	"strings"
 )
 
-func asPtr[T any](v T) *T {
-	return &v
-}
-
-func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) string {
+func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) []string {
 	if realtp.TypeArgs() != nil {
 		args := []string{}
 		for i := 0; i < realtp.TypeArgs().Len(); i++ {
@@ -26,11 +23,25 @@ func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.Type
 			}
 		}
 
-		argsstr := strings.Join(args, ",")
-
-		return argsstr
+		return args
 	}
-	return ""
+	return nil
+}
+
+func VariableParams(w Writer, pk *types.Package, realtp *types.Named, fixedParam []string) []string {
+	if realtp.TypeArgs() != nil {
+		args := []string{}
+		for i := 0; i < realtp.TypeArgs().Len(); i++ {
+			ta := realtp.TypeArgs().At(i)
+			if tp, ok := ta.(*types.TypeParam); ok {
+				if !slices.Contains(fixedParam, tp.Obj().Name()) {
+					args = append(args, w.TypeName(pk, ta))
+				}
+			}
+		}
+		return args
+	}
+	return nil
 }
 
 func TypeParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
@@ -138,7 +149,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
 
 	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
-	fixedParams := FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm)
+	fixedParams := strings.Join(FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm), ",")
 
 	funcs := map[string]any{
 		"pure": func(v string, tpe string) string {

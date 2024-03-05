@@ -923,6 +923,7 @@ type GenerateMonadTransformer[T any] struct {
 	TypeParm TypeTag
 	Pure     any
 	FlatMap  any
+	Sequence any
 }
 
 type GenerateMonadTransformerDirective struct {
@@ -935,6 +936,7 @@ type GenerateMonadTransformerDirective struct {
 	TypeParm *types.TypeParam
 	Pure     TypeReference
 	FlatMap  TypeReference
+	Sequence TypeReference
 }
 
 func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
@@ -962,7 +964,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("target type is not named type : %s", typeArgs.At(0))
 	}
 
-	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap"}
+	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap", "Sequence"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -998,6 +1000,8 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 
 		case "FlatMap":
 			ret.FlatMap = evalTypeReference(lit.Package, value)
+		case "Sequence":
+			ret.Sequence = evalTypeReference(lit.Package, value)
 		}
 	}
 	ctx := types.NewContext()

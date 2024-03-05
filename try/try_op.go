@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
@@ -344,6 +345,9 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
 		TypeParm: genfp.TypeOf[A](),
 		Pure:     seq.Pure[A],
 		FlatMap:  seq.FlatMap[A, B],
+		Sequence: func(v fp.Seq[fp.Try[A]]) fp.Try[fp.Seq[A]] {
+			return Map(Sequence(v), as.Seq)
+		},
 	}
 }
 
@@ -356,6 +360,12 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Option[A]]] {
 		TypeParm: genfp.TypeOf[A](),
 		Pure:     option.Pure[A],
 		FlatMap:  option.FlatMap[A, B],
+		Sequence: func(v fp.Option[fp.Try[A]]) fp.Try[fp.Option[A]] {
+			if v.IsDefined() {
+				return Map(v.Get(), option.Some)
+			}
+			return Success(fp.Option[A]{})
+		},
 	}
 }
 

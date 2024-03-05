@@ -7,21 +7,37 @@ import (
 )
 
 func PureOptionT[A any](a A) fp.Try[fp.Option[A]] {
-	return Pure(option.Pure(a))
+	return Pure(option.Pure[A](a))
 }
 
 func MapOptionT[A any, B any](t fp.Try[fp.Option[A]], f func(A) B) fp.Try[fp.Option[B]] {
 	return Map(t, func(ma fp.Option[A]) fp.Option[B] {
-		return option.FlatMap(ma, func(a A) fp.Option[B] {
-			return option.Pure(f(a))
+		return option.FlatMap[A, B](ma, func(a A) fp.Option[B] {
+			return option.Pure[B](f(a))
 		})
 	})
 }
 
 func SubFlatMapOptionT[A any, B any](t fp.Try[fp.Option[A]], f func(A) fp.Option[B]) fp.Try[fp.Option[B]] {
 	return Map(t, func(ma fp.Option[A]) fp.Option[B] {
-		return option.FlatMap(ma, func(a A) fp.Option[B] {
+		return option.FlatMap[A, B](ma, func(a A) fp.Option[B] {
 			return f(a)
 		})
+	})
+}
+
+func FlatMapOptionT[A any, B any](t fp.Try[fp.Option[A]], f func(A) fp.Try[fp.Option[B]]) fp.Try[fp.Option[B]] {
+
+	return FlatMap(t, func(ma fp.Option[A]) fp.Try[fp.Option[B]] {
+		opt := option.FlatMap[A, fp.Try[fp.Option[B]]](ma, func(a A) fp.Option[fp.Try[fp.Option[B]]] {
+			return option.Pure[fp.Try[fp.Option[B]]](f(a))
+		})
+		ret := func(v fp.Option[fp.Try[fp.Option[B]]]) fp.Try[fp.Option[fp.Option[B]]] {
+			if v.IsDefined() {
+				return Map(v.Get(), option.Some)
+			}
+			return Success(fp.Option[fp.Option[B]]{})
+		}(opt)
+		return SubFlatMapOptionT(ret, fp.Id)
 	})
 }

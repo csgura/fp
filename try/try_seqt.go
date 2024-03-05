@@ -3,25 +3,39 @@ package try
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/seq"
 )
 
 func PureSeqT[A any](a A) fp.Try[fp.Seq[A]] {
-	return Pure(seq.Pure(a))
+	return Pure(seq.Pure[A](a))
 }
 
 func MapSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) B) fp.Try[fp.Seq[B]] {
 	return Map(t, func(ma fp.Seq[A]) fp.Seq[B] {
-		return seq.FlatMap(ma, func(a A) fp.Seq[B] {
-			return seq.Pure(f(a))
+		return seq.FlatMap[A, B](ma, func(a A) fp.Seq[B] {
+			return seq.Pure[B](f(a))
 		})
 	})
 }
 
 func SubFlatMapSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) fp.Seq[B]) fp.Try[fp.Seq[B]] {
 	return Map(t, func(ma fp.Seq[A]) fp.Seq[B] {
-		return seq.FlatMap(ma, func(a A) fp.Seq[B] {
+		return seq.FlatMap[A, B](ma, func(a A) fp.Seq[B] {
 			return f(a)
 		})
+	})
+}
+
+func FlatMapSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) fp.Try[fp.Seq[B]]) fp.Try[fp.Seq[B]] {
+
+	return FlatMap(t, func(ma fp.Seq[A]) fp.Try[fp.Seq[B]] {
+		opt := seq.FlatMap[A, fp.Try[fp.Seq[B]]](ma, func(a A) fp.Seq[fp.Try[fp.Seq[B]]] {
+			return seq.Pure[fp.Try[fp.Seq[B]]](f(a))
+		})
+		ret := func(v fp.Seq[fp.Try[fp.Seq[B]]]) fp.Try[fp.Seq[fp.Seq[B]]] {
+			return Map(Sequence(v), as.Seq)
+		}(opt)
+		return SubFlatMapSeqT(ret, fp.Id)
 	})
 }

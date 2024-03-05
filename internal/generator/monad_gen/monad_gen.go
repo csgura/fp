@@ -24,6 +24,7 @@ func main() {
 	}
 
 	genseq := genfp.FindGenerateMonadFunctions(pkgs, "@internal.Generate")
+
 	for file, list := range genseq {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {

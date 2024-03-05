@@ -47,7 +47,7 @@ func InstiateTransfomer(w Writer, pk *types.Package, realtp *types.Named, monadT
 	}
 }
 
-func exprString(expr ast.Expr) string {
+func exprString(expr ast.Node) string {
 	fs := token.NewFileSet()
 
 	buf := &bytes.Buffer{}
@@ -56,31 +56,77 @@ func exprString(expr ast.Expr) string {
 	return buf.String()
 }
 
+type visotor struct {
+	replace map[string]string
+}
+
+func (r *visotor) Visit(node ast.Node) (w ast.Visitor) {
+	switch e := node.(type) {
+	case *ast.Ident:
+		if tobe, ok := r.replace[e.Name]; ok {
+			e.Name = tobe
+		}
+	}
+
+	return r
+}
+
+func reverseMap(m map[string]string) map[string]string {
+	ret := map[string]string{}
+	for k, v := range m {
+		ret[v] = k
+	}
+	return ret
+}
+
+func replaceTypeParam(expr ast.Node, replace map[string]string) string {
+
+	if len(replace) == 0 {
+		return exprString(expr)
+	}
+
+	ast.Walk(&visotor{replace}, expr)
+	ret := exprString(expr)
+	ast.Walk(&visotor{reverseMap(replace)}, expr)
+	return ret
+}
+
 func removeTypeParams(s string) string {
 	start := strings.Index(s, "[")
 	return s[:start]
 }
 
-func CallFunc(w Writer, tr TypeReference) string {
-	for _, i := range tr.Imports {
-		w.AddImport(types.NewPackage(i.Package, i.Name))
+func CallFunc(w Writer, tr TypeReference) func(replace map[string]string) string {
+	return func(replace map[string]string) string {
+		for _, i := range tr.Imports {
+			w.AddImport(types.NewPackage(i.Package, i.Name))
+		}
+
+		if _, ok := tr.Type.(*types.Signature); ok {
+			return replaceTypeParam(tr.Expr, replace)
+		} else if _, ok := tr.Expr.(*ast.FuncLit); ok {
+			return replaceTypeParam(tr.Expr, replace)
+		}
+		panic("tr is not types.Signature")
 	}
+}
 
-	if _, ok := tr.Type.(*types.Signature); ok {
-		if fl, ok := tr.Expr.(*ast.FuncLit); ok {
-			fs := token.NewFileSet()
-
-			buf := &bytes.Buffer{}
-
-			printer.Fprint(buf, fs, fl)
-			return removeTypeParams(buf.String())
-		} else {
-			return removeTypeParams(exprString(tr.Expr))
+func FlatMapRetType(w Writer, pk *types.Package, tr TypeReference, fixed []string) string {
+	if sig, ok := tr.Type.(*types.Signature); ok {
+		if sig.Results().Len() == 1 {
+			rettp := sig.Results().At(0).Type()
+			if named, ok := rettp.(*types.Named); ok {
+				vp := VariableParams(w, pk, named, fixed)
+				if len(vp) == 1 {
+					return vp[0]
+				}
+			}
 		}
 	}
-	panic("tr is not types.Signature")
-
+	return ""
 }
+
+type replaceParam map[string]string
 
 func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
@@ -129,29 +175,44 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
 	fixedParams := FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm)
+	fixedStr := strings.Join(fixedParams, ",")
 
 	pureins := CallFunc(w, md.Pure)
 	puref := func(v string, args ...any) string {
-		return fmt.Sprintf("%s(%s)", pureins, fmt.Sprintf("%s", args...))
+		return fmt.Sprintf("%s(%s)", pureins(nil), fmt.Sprintf("%s", args...))
 	}
+
 	flatmapf := CallFunc(w, md.FlatMap)
+
+	flatmapRet := FlatMapRetType(w, md.Package.Types, md.FlatMap, fixedParams)
+
+	fmt.Printf("flatmapRet = %s\n", flatmapRet)
 
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
-			if fixedParams != "" {
+			if fixedStr != "" {
 				return fmt.Sprintf("Pure[%s](%s)", fixedParams, puref("%s", v))
 			}
 			return fmt.Sprintf("Pure(%s)", puref("%s", v))
 		},
 		"pure": func(of string) string {
-			return pureins
+			return pureins(replaceParam{
+				md.TypeParm.String(): of,
+			})
+		},
+		"sequence": func(of string) string {
+			sf := CallFunc(w, md.Sequence)
+			return sf(replaceParam{md.TypeParm.String(): of})
 		},
 		"flatmap": func(from, to string) string {
-			return flatmapf
+			return flatmapf(replaceParam{
+				md.TypeParm.String(): from,
+				flatmapRet:           to,
+			})
 		},
 
 		"infer": func(extra ...string) string {
-			if fixedParams == "" {
+			if fixedStr == "" {
 				if len(extra) > 0 {
 					return "[" + strings.Join(extra, ",") + "]"
 				}
@@ -236,4 +297,18 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 		}
 	`, funcs, param)
 
+	if md.Sequence.Expr != nil {
+		w.Render(`
+			func FlatMap{{.name}}[A any, B any](t {{combined "A"}}, f func(A) {{combined "B"}}) {{combined "B"}} {
+
+			return FlatMap(t, func(ma {{monad "A"}}) {{combined "B"}} {
+				opt :=  {{flatmap "A" (combined "B")}}(ma, func(a A) {{monad (combined "B")}} {
+					return {{pure (combined "B")}}(f(a))
+				})
+				ret := {{sequence (monad "B")}}(opt)
+				return SubFlatMap{{.name}}(ret , fp.Id)
+			})
+		}
+		`, funcs, param)
+	}
 }
