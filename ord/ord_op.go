@@ -11,6 +11,10 @@ import (
 	"github.com/csgura/fp/option"
 )
 
+func FromCompare[T any](cmp func(a, b T) int) fp.Ord[T] {
+	return fp.CompareFunc[T](cmp)
+}
+
 func New[T any](eqv fp.Eq[T], less fp.LessFunc[T]) fp.Ord[T] {
 	return fp.CompareFunc[T](func(a, b T) int {
 		if eqv.Eqv(a, b) {
