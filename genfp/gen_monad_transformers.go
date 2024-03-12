@@ -155,7 +155,8 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 	}), func(v string) bool { return v != "" }), ",")
 
-	monadtype := NameParamReplaced(w, md.Package.Types, md.MonadType, md.TypeParm)
+	outertype := NameParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
+	innertype := NameParamReplaced(w, md.Package.Types, md.MonadType, md.TypeParm)
 
 	combinedtype := InstiateTransfomer(w, md.Package.Types, md.TargetType, md.MonadType, md.TypeParm)
 
@@ -225,7 +226,8 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 		},
 
 		"combined": combinedtype,
-		"monad":    monadtype,
+		"inner":    innertype,
+		"outer":    outertype,
 
 		"monadIns": func(start, until int) string {
 			f := &bytes.Buffer{}
@@ -280,17 +282,21 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 			return {{puret "a" "A"}}
 		}
 
+		func Lift{{.name}}[{{.tpargs}}](a {{outer "A"}}) {{combined "A"}} {
+			return Map(a, {{pure "A"}})
+		}
+
 		func Map{{.name}}[{{.tpargs}},B any](t {{combined "A"}}, f func(A) B) {{combined "B"}} {
-			return Map(t, func( ma {{monad "A"}} )  {{monad "B"}} {
-				return {{flatmap "A" "B"}}(ma, func(a A) {{monad "B"}} {
+			return Map(t, func( ma {{inner "A"}} )  {{inner "B"}} {
+				return {{flatmap "A" "B"}}(ma, func(a A) {{inner "B"}} {
 					return {{pure "B"}}(f(a))
 				})
 			})
 		}
 
-		func SubFlatMap{{.name}}[{{.tpargs}},B any](t {{combined "A"}}, f func(A) {{monad "B"}}) {{combined "B"}} {
-			return Map(t, func( ma {{monad "A"}} )  {{monad "B"}} {
-				return {{flatmap "A" "B"}}(ma, func(a A) {{monad "B"}} {
+		func SubFlatMap{{.name}}[{{.tpargs}},B any](t {{combined "A"}}, f func(A) {{inner "B"}}) {{combined "B"}} {
+			return Map(t, func( ma {{inner "A"}} )  {{inner "B"}} {
+				return {{flatmap "A" "B"}}(ma, func(a A) {{inner "B"}} {
 					return f(a)
 				})
 			})
@@ -299,16 +305,20 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 	if md.Sequence.Expr != nil {
 		w.Render(`
+			func Traverse{{.name}}[A any, B any](t {{combined "A"}}, f func(A) {{outer "B"}}) {{combined "B"}} {
+				sequencef := {{sequence "B"}}
+				return FlatMap(Map{{.name}}(t,f), sequencef)
+			}
+
 			func FlatMap{{.name}}[A any, B any](t {{combined "A"}}, f func(A) {{combined "B"}}) {{combined "B"}} {
 
-			return FlatMap(t, func(ma {{monad "A"}}) {{combined "B"}} {
-				opt :=  {{flatmap "A" (combined "B")}}(ma, func(a A) {{monad (combined "B")}} {
-					return {{pure (combined "B")}}(f(a))
-				})
-				ret := {{sequence (monad "B")}}(opt)
-				return SubFlatMap{{.name}}(ret , fp.Id)
-			})
-		}
+				flatten := func(v {{inner (inner "B")}}) {{inner "B"}} {
+					return {{flatmap (inner "B") "B"}}(v , fp.Id)
+				}
+
+				return Map(Traverse{{.name}}(t, f), flatten)
+
+			}
 		`, funcs, param)
 	}
 }

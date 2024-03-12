@@ -11,6 +11,10 @@ func PureSeqT[A any](a A) fp.Try[fp.Seq[A]] {
 	return Pure(seq.Pure[A](a))
 }
 
+func LiftSeqT[A any](a fp.Try[A]) fp.Try[fp.Seq[A]] {
+	return Map(a, seq.Pure[A])
+}
+
 func MapSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) B) fp.Try[fp.Seq[B]] {
 	return Map(t, func(ma fp.Seq[A]) fp.Seq[B] {
 		return seq.FlatMap[A, B](ma, func(a A) fp.Seq[B] {
@@ -27,15 +31,19 @@ func SubFlatMapSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) fp.Seq[B]) fp.T
 	})
 }
 
+func TraverseSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) fp.Try[B]) fp.Try[fp.Seq[B]] {
+	sequencef := func(v fp.Seq[fp.Try[B]]) fp.Try[fp.Seq[B]] {
+		return Map(Sequence(v), as.Seq)
+	}
+	return FlatMap(MapSeqT(t, f), sequencef)
+}
+
 func FlatMapSeqT[A any, B any](t fp.Try[fp.Seq[A]], f func(A) fp.Try[fp.Seq[B]]) fp.Try[fp.Seq[B]] {
 
-	return FlatMap(t, func(ma fp.Seq[A]) fp.Try[fp.Seq[B]] {
-		opt := seq.FlatMap[A, fp.Try[fp.Seq[B]]](ma, func(a A) fp.Seq[fp.Try[fp.Seq[B]]] {
-			return seq.Pure[fp.Try[fp.Seq[B]]](f(a))
-		})
-		ret := func(v fp.Seq[fp.Try[fp.Seq[B]]]) fp.Try[fp.Seq[fp.Seq[B]]] {
-			return Map(Sequence(v), as.Seq)
-		}(opt)
-		return SubFlatMapSeqT(ret, fp.Id)
-	})
+	flatten := func(v fp.Seq[fp.Seq[B]]) fp.Seq[B] {
+		return seq.FlatMap[fp.Seq[B], B](v, fp.Id)
+	}
+
+	return Map(TraverseSeqT(t, f), flatten)
+
 }
