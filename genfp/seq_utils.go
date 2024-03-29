@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+func asSeq[T any](len int, getter func(idx int) T) []T {
+	ret := []T{}
+	for i := 0; i < len; i++ {
+		ret = append(ret, getter(i))
+	}
+	return ret
+}
+
+func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) []R {
+	ret := []R{}
+	for i := 0; i < len; i++ {
+		ret = append(ret, fn(i, getter(i)))
+	}
+	return ret
+}
+
 func asPtr[T any](v T) *T {
 	return &v
 }
@@ -37,6 +53,15 @@ func seqFilter[T any](r []T, p func(v T) bool) []T {
 		}
 	}
 	return ret
+}
+
+func seqFirst[T any](r []T) (T, bool) {
+	if len(r) > 0 {
+		return r[0], true
+	} else {
+		var zero T
+		return zero, false
+	}
 }
 
 func seqLast[T any](r []T) (T, bool) {

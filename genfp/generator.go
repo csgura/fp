@@ -314,13 +314,6 @@ func (r *writer) ImportList() []string {
 	return ret
 }
 
-func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) []R {
-	ret := []R{}
-	for i := 0; i < len; i++ {
-		ret = append(ret, fn(i, getter(i)))
-	}
-	return ret
-}
 func (r *importSet) ZeroExpr(pk *types.Package, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:

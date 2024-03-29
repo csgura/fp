@@ -366,6 +366,17 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Option[A]]] {
 			}
 			return Success(fp.Option[A]{})
 		},
+		Transform: []any{
+			fp.Option[A].Filter,
+			fp.Option[A].OrElse,
+			fp.Option[A].OrZero,
+			fp.Option[A].OrElseGet,
+			fp.Option[A].Or,
+			fp.Option[A].OrOption,
+			fp.Option[A].OrPtr,
+			fp.Option[A].Recover,
+			option.Fold[A, B],
+		},
 	}
 }
 

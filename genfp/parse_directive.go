@@ -173,6 +173,8 @@ func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (string, 
 				// return "", fmt.Errorf("invalid method reference : %s", x.Name)
 			}
 			return "", fmt.Errorf("can't eval %T as method reference", t.X)
+		case *ast.IndexListExpr:
+			return evalMethodRef(tname)(p, t.X)
 		}
 		return "", fmt.Errorf("can't eval %T as method reference", e)
 	}
@@ -399,6 +401,12 @@ type TypeReference struct {
 	Imports    []ImportPackage
 }
 
+type FuncReference struct {
+	Name          string
+	TypeParams    []TypeReference
+	TypeReference TypeReference
+}
+
 func evalTypeReference(pk *packages.Package, exp ast.Expr) TypeReference {
 	t, imp := evalFuncLit(pk, exp)
 
@@ -411,6 +419,8 @@ func evalTypeReference(pk *packages.Package, exp ast.Expr) TypeReference {
 }
 func extractTypeParam(pk *packages.Package, exp ast.Expr) ([]TypeReference, error) {
 	switch e := exp.(type) {
+	case *ast.SelectorExpr:
+		return extractTypeParam(pk, e.X)
 	case *ast.IndexExpr:
 		return []TypeReference{evalTypeReference(pk, e.Index)}, nil
 	case *ast.IndexListExpr:
@@ -919,11 +929,12 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 type GenerateMonadTransformer[T any] struct {
 	Name string
 	// 생성될 file 이름
-	File     string
-	TypeParm TypeTag
-	Pure     any
-	FlatMap  any
-	Sequence any
+	File      string
+	TypeParm  TypeTag
+	Pure      any
+	FlatMap   any
+	Sequence  any
+	Transform []any
 }
 
 type GenerateMonadTransformerDirective struct {
@@ -932,11 +943,12 @@ type GenerateMonadTransformerDirective struct {
 	TargetType *types.Named
 	MonadType  *types.Named
 	// 생성될 file 이름
-	File     string
-	TypeParm *types.TypeParam
-	Pure     TypeReference
-	FlatMap  TypeReference
-	Sequence TypeReference
+	File      string
+	TypeParm  *types.TypeParam
+	Pure      TypeReference
+	FlatMap   TypeReference
+	Sequence  TypeReference
+	Transform []FuncReference
 }
 
 func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
@@ -964,7 +976,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("target type is not named type : %s", typeArgs.At(0))
 	}
 
-	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap", "Sequence"}
+	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap", "Sequence", "Transform"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -1002,6 +1014,26 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 			ret.FlatMap = evalTypeReference(lit.Package, value)
 		case "Sequence":
 			ret.Sequence = evalTypeReference(lit.Package, value)
+		case "Transform":
+			v, err := evalArray(lit.Package, value, func(p *packages.Package, e ast.Expr) (FuncReference, error) {
+				name, err := evalMethodRef("")(p, e)
+				if err != nil {
+					return FuncReference{}, err
+				}
+				ret := evalTypeReference(p, e)
+
+				tp, err := extractTypeParam(p, e)
+				if err != nil {
+					return FuncReference{}, err
+				}
+
+				return FuncReference{Name: name, TypeReference: ret, TypeParams: tp}, nil
+
+			})
+			if err != nil {
+				return ret, err
+			}
+			ret.Transform = v
 		}
 	}
 	ctx := types.NewContext()

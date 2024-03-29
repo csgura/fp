@@ -321,4 +321,103 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 			}
 		`, funcs, param)
 	}
+
+	targName := privateName(md.Name)
+	for _, t := range md.Transform {
+		fmt.Printf("generate transform %s, %s\n", t.Name, t.TypeReference.Type)
+
+		if sig, ok := t.TypeReference.Type.(*types.Signature); ok {
+
+			argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+				var tpe string
+				if sig.Variadic() && i == sig.Params().Len()-1 {
+					st := t.Type().(*types.Slice)
+					tpe = w.TypeName(md.Package.Types, st.Elem())
+				} else {
+					tpe = w.TypeName(md.Package.Types, t.Type())
+				}
+				return tpe
+			})
+
+			targIdx, ok := seqFirst(seqFilter(iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) int {
+				tpe := argTypes[i]
+				if tpe == innertype(md.TypeParm.String()) {
+					return i
+				}
+				return -1
+			}), func(v int) bool { return v >= 0 }))
+
+			if ok {
+
+				argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+					tpe := argTypes[i]
+
+					if i == targIdx {
+						tpe = combinedtype("A")
+						return fmt.Sprintf("%s %s", targName, tpe)
+
+					}
+
+					return fmt.Sprintf("%s %s", argName(i, t), tpe)
+				})
+
+				callArgs := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+
+					if i == targIdx {
+						return "insideValue"
+					}
+
+					return argName(i, t)
+				})
+
+				for i, a := range argTypeStr {
+					if a == innertype(md.TypeParm.String()) {
+						argTypeStr[i] = combinedtype("A")
+					}
+				}
+
+				retType := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+					return w.TypeName(md.Package.Types, t.Type())
+				})
+
+				tp := seqMap(t.TypeParams, func(v TypeReference) string {
+					if p, ok := v.Type.(*types.TypeParam); ok {
+						return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package.Types, p.Constraint()))
+					}
+					return ""
+				})
+
+				fmt.Printf("params = %s\n", seqMakeString(argTypeStr, ","))
+				param["trans"] = t.Name
+				param["args"] = seqMakeString(argTypeStr, ",")
+				param["callArgs"] = seqMakeString(callArgs, ",")
+
+				param["targName"] = targName
+				param["transExpr"] = exprString(t.TypeReference.Expr)
+				param["retType"] = retType[0]
+				param["tparams"] = seqMakeString(tp, ",")
+
+				w.Render(`
+					func {{.name}}{{.trans}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
+						return Map({{.targName}}, func(insideValue {{inner "A"}}) {{.retType}} {
+							return {{.transExpr}}({{.callArgs}})
+						} )
+					}
+				`, funcs, param)
+			}
+		}
+
+	}
+}
+
+func privateName(name string) string {
+	return strings.ToLower(name[:1]) + name[1:]
+}
+
+func argName(i int, t *types.Var) string {
+	var name = t.Name()
+	if name == "" {
+		name = fmt.Sprintf("a%d", i+1)
+	}
+	return name
 }
