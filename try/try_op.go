@@ -354,28 +354,28 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
 // try.OptionT[A] =  fp.Try[fp.Option[A]]
 
 // @internal.Generate
-func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Option[A]]] {
-	return genfp.GenerateMonadTransformer[fp.Try[fp.Option[A]]]{
+func _[T, U any]() genfp.GenerateMonadTransformer[fp.Try[fp.Option[T]]] {
+	return genfp.GenerateMonadTransformer[fp.Try[fp.Option[T]]]{
 		File:     "try_optiont.go",
-		TypeParm: genfp.TypeOf[A](),
-		Pure:     option.Pure[A],
-		FlatMap:  option.FlatMap[A, B],
-		Sequence: func(v fp.Option[fp.Try[A]]) fp.Try[fp.Option[A]] {
+		TypeParm: genfp.TypeOf[T](),
+		Pure:     option.Pure[T],
+		FlatMap:  option.FlatMap[T, U],
+		Sequence: func(v fp.Option[fp.Try[T]]) fp.Try[fp.Option[T]] {
 			if v.IsDefined() {
 				return Map(v.Get(), option.Some)
 			}
-			return Success(fp.Option[A]{})
+			return Success(fp.Option[T]{})
 		},
 		Transform: []any{
-			fp.Option[A].Filter,
-			fp.Option[A].OrElse,
-			fp.Option[A].OrZero,
-			fp.Option[A].OrElseGet,
-			fp.Option[A].Or,
-			fp.Option[A].OrOption,
-			fp.Option[A].OrPtr,
-			fp.Option[A].Recover,
-			option.Fold[A, B],
+			fp.Option[T].Filter,
+			fp.Option[T].OrElse,
+			fp.Option[T].OrZero,
+			fp.Option[T].OrElseGet,
+			fp.Option[T].Or,
+			fp.Option[T].OrOption,
+			fp.Option[T].OrPtr,
+			fp.Option[T].Recover,
+			option.Fold[T, U],
 		},
 	}
 }

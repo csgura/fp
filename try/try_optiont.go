@@ -50,56 +50,56 @@ func FlatMapOptionT[A any, B any](t fp.Try[fp.Option[A]], f func(A) fp.Try[fp.Op
 
 }
 
-func OptionTFilter[A any](optionT fp.Try[fp.Option[A]], p func(v A) bool) fp.Try[fp.Option[A]] {
-	return Map(optionT, func(insideValue fp.Option[A]) fp.Option[A] {
-		return fp.Option[A].Filter(insideValue, p)
+func OptionTFilter[T any](optionT fp.Try[fp.Option[T]], p func(v T) bool) fp.Try[fp.Option[T]] {
+	return Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].Filter(insideValue, p)
 	})
 }
 
-func OptionTOrElse[A any](optionT fp.Try[fp.Option[A]], t A) fp.Try[A] {
-	return Map(optionT, func(insideValue fp.Option[A]) A {
-		return fp.Option[A].OrElse(insideValue, t)
+func OptionTOrElse[T any](optionT fp.Try[fp.Option[T]], t T) fp.Try[T] {
+	return Map(optionT, func(insideValue fp.Option[T]) T {
+		return fp.Option[T].OrElse(insideValue, t)
 	})
 }
 
-func OptionTOrZero[A any](optionT fp.Try[fp.Option[A]]) fp.Try[A] {
-	return Map(optionT, func(insideValue fp.Option[A]) A {
-		return fp.Option[A].OrZero(insideValue)
+func OptionTOrZero[T any](optionT fp.Try[fp.Option[T]]) fp.Try[T] {
+	return Map(optionT, func(insideValue fp.Option[T]) T {
+		return fp.Option[T].OrZero(insideValue)
 	})
 }
 
-func OptionTOrElseGet[A any](optionT fp.Try[fp.Option[A]], f func() A) fp.Try[A] {
-	return Map(optionT, func(insideValue fp.Option[A]) A {
-		return fp.Option[A].OrElseGet(insideValue, f)
+func OptionTOrElseGet[T any](optionT fp.Try[fp.Option[T]], f func() T) fp.Try[T] {
+	return Map(optionT, func(insideValue fp.Option[T]) T {
+		return fp.Option[T].OrElseGet(insideValue, f)
 	})
 }
 
-func OptionTOr[A any](optionT fp.Try[fp.Option[A]], f func() fp.Option[A]) fp.Try[fp.Option[A]] {
-	return Map(optionT, func(insideValue fp.Option[A]) fp.Option[A] {
-		return fp.Option[A].Or(insideValue, f)
+func OptionTOr[T any](optionT fp.Try[fp.Option[T]], f func() fp.Option[T]) fp.Try[fp.Option[T]] {
+	return Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].Or(insideValue, f)
 	})
 }
 
-func OptionTOrOption[A any](optionT fp.Try[fp.Option[A]], v fp.Option[A]) fp.Try[fp.Option[A]] {
-	return Map(optionT, func(insideValue fp.Option[A]) fp.Option[A] {
-		return fp.Option[A].OrOption(insideValue, v)
+func OptionTOrOption[T any](optionT fp.Try[fp.Option[T]], v fp.Option[T]) fp.Try[fp.Option[T]] {
+	return Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].OrOption(insideValue, v)
 	})
 }
 
-func OptionTOrPtr[A any](optionT fp.Try[fp.Option[A]], v *A) fp.Try[fp.Option[A]] {
-	return Map(optionT, func(insideValue fp.Option[A]) fp.Option[A] {
-		return fp.Option[A].OrPtr(insideValue, v)
+func OptionTOrPtr[T any](optionT fp.Try[fp.Option[T]], v *T) fp.Try[fp.Option[T]] {
+	return Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].OrPtr(insideValue, v)
 	})
 }
 
-func OptionTRecover[A any](optionT fp.Try[fp.Option[A]], f func() A) fp.Try[fp.Option[A]] {
-	return Map(optionT, func(insideValue fp.Option[A]) fp.Option[A] {
-		return fp.Option[A].Recover(insideValue, f)
+func OptionTRecover[T any](optionT fp.Try[fp.Option[T]], f func() T) fp.Try[fp.Option[T]] {
+	return Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].Recover(insideValue, f)
 	})
 }
 
-func OptionTFold[A any, B any](optionT fp.Try[fp.Option[A]], zero B, f func(B, A) B) fp.Try[B] {
-	return Map(optionT, func(insideValue fp.Option[A]) B {
-		return option.Fold[A, B](insideValue, zero, f)
+func OptionTFold[T any, U any](optionT fp.Try[fp.Option[T]], zero U, f func(U, T) U) fp.Try[U] {
+	return Map(optionT, func(insideValue fp.Option[T]) U {
+		return option.Fold[T, U](insideValue, zero, f)
 	})
 }

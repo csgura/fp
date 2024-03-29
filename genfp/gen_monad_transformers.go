@@ -180,7 +180,9 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 	pureins := CallFunc(w, md.Pure)
 	puref := func(v string, args ...any) string {
-		return fmt.Sprintf("%s(%s)", pureins(nil), fmt.Sprintf("%s", args...))
+		return fmt.Sprintf("%s(%s)", pureins(replaceParam{
+			md.TypeParm.String(): "A",
+		}), fmt.Sprintf("%s", args...))
 	}
 
 	flatmapf := CallFunc(w, md.FlatMap)
@@ -353,7 +355,7 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 					tpe := argTypes[i]
 
 					if i == targIdx {
-						tpe = combinedtype("A")
+						tpe = combinedtype(md.TypeParm.String())
 						return fmt.Sprintf("%s %s", targName, tpe)
 
 					}
@@ -370,12 +372,6 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 					return argName(i, t)
 				})
 
-				for i, a := range argTypeStr {
-					if a == innertype(md.TypeParm.String()) {
-						argTypeStr[i] = combinedtype("A")
-					}
-				}
-
 				retType := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
 					return w.TypeName(md.Package.Types, t.Type())
 				})
@@ -387,7 +383,6 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 					return ""
 				})
 
-				fmt.Printf("params = %s\n", seqMakeString(argTypeStr, ","))
 				param["trans"] = t.Name
 				param["args"] = seqMakeString(argTypeStr, ",")
 				param["callArgs"] = seqMakeString(callArgs, ",")
@@ -399,7 +394,7 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 				w.Render(`
 					func {{.name}}{{.trans}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
-						return Map({{.targName}}, func(insideValue {{inner "A"}}) {{.retType}} {
+						return Map({{.targName}}, func(insideValue {{inner (.tp)}}) {{.retType}} {
 							return {{.transExpr}}({{.callArgs}})
 						} )
 					}
