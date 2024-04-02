@@ -14,7 +14,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
-	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/option"
@@ -130,6 +129,7 @@ type DefinedInstance struct {
 	name       string
 	instance   metafp.TypeClassInstance
 	required   fp.Seq[metafp.RequiredInstance]
+	local      bool
 }
 
 func (r DefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
@@ -152,6 +152,10 @@ func (r DefinedInstance) Instance() metafp.TypeClassInstance {
 
 func (r DefinedInstance) Required() fp.Seq[metafp.RequiredInstance] {
 	return r.required
+}
+
+func (r DefinedInstance) IsLocal() bool {
+	return r.local
 }
 
 type NotDefinedInstance struct {
@@ -204,6 +208,24 @@ func (r lookupTarget) required() fp.Seq[metafp.RequiredInstance] {
 			as.Func3(either.Fold[ArgumentInstance, DefinedInstance, fp.Seq[metafp.RequiredInstance]]).ApplyLast2(
 				ArgumentInstance.Required,
 				DefinedInstance.Required,
+			),
+		),
+	)
+}
+
+func (r lookupTarget) isGivenAny() bool {
+	return option.Map(r.instance(), metafp.TypeClassInstance.IsGivenAny).OrElse(false)
+}
+
+func (r lookupTarget) isLocal() bool {
+	return either.Fold(
+		r.target,
+		fp.Const[NotDefinedInstance](false),
+		as.Func3(either.Fold[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance], bool]).ApplyLast2(
+			fp.Const[SummonExprInstance](false),
+			as.Func3(either.Fold[ArgumentInstance, DefinedInstance, bool]).ApplyLast2(
+				fp.Const[ArgumentInstance](false),
+				DefinedInstance.IsLocal,
 			),
 		),
 	)
@@ -334,6 +356,12 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 	}
 
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+
+		if tci.IsGivenAny() && ctx.recursiveGen && isRecursiveDerivable(req) {
+			return false
+			//fmt.Printf("%s is recursive derivable\n", req.Type)
+		}
+
 		return r.checkRequired(ctx, tci.RequiredInstance)
 	})
 
@@ -344,6 +372,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 			pk:         v.Package,
 			name:       v.Name,
 			instance:   v,
+			local:      true,
 
 			// 함수의 아규먼트는 Eq 가 포함 되어 있음.
 			required: v.RequiredInstance,
@@ -560,6 +589,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx Current
 			pk:         v.Package,
 			name:       v.Name,
 			instance:   v,
+			local:      false,
 
 			// 함수의 아규먼트는 Eq 가 포함 되어 있음.
 			required: v.RequiredInstance,
@@ -590,6 +620,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx CurrentConte
 					pk:         f.Pkg,
 					name:       name,
 					instance:   metafp.AsTypeClassInstance(req.TypeClass, obj).Get(),
+					local:      false,
 
 					// 함수의 아규먼트는 Eq 가 포함 되어 있음.
 					required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
@@ -613,9 +644,30 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx CurrentConte
 }
 
 func (r *TypeClassSummonContext) namedLookup(ctx CurrentContext, req metafp.RequiredInstance, name string) lookupTarget {
-	ret := r.lookupTypeClassInstanceLocalDeclared(ctx, req, name).Or(lazy.Func3(r.lookupTypeClassInstanceTypePkg)(ctx, req, name).Get).Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, name))
 
-	return ret.OrElse(r.typeclassInstanceMust(ctx, req, name))
+	localInsOpt := r.lookupTypeClassInstanceLocalDeclared(ctx, req, name)
+	if localInsOpt.IsDefined() {
+
+		localIns := localInsOpt.Get()
+		if !localIns.isGivenAny() {
+			return localIns
+
+		}
+
+	}
+
+	ret := r.lookupTypeClassInstanceTypePkg(ctx, req, name).
+		Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, name))
+
+	if localInsOpt.IsDefined() && ret.IsDefined() {
+		retIns := ret.Get()
+		if retIns.isGivenAny() {
+			return localInsOpt.Get()
+		}
+
+	}
+
+	return ret.OrOption(localInsOpt).OrElse(r.typeclassInstanceMust(ctx, req, name))
 
 }
 
