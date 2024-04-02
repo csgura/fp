@@ -120,7 +120,6 @@ func FindGenerateAdaptor(p []*packages.Package, tags ...string) map[string][]Gen
 func FindGenerateMonadFunctions(p []*packages.Package, tags ...string) map[string][]GenerateMonadFunctionsDirective {
 	ret := map[string][]GenerateMonadFunctionsDirective{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateMonadFunctions", tags...)
-	fmt.Printf("genseq size = %d\n", len(genseq))
 	for _, cl := range genseq {
 		gfu, err := ParseGenerateMonadFunctions(cl)
 		if err != nil {
