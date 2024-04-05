@@ -167,3 +167,15 @@ func TakeSeqT[A any](seqT fp.Try[fp.Seq[A]], n int) fp.Try[fp.Seq[A]] {
 		return fp.Seq[A].Take(insideValue, n)
 	})
 }
+
+func FoldSeqT[A any, B any](seqT fp.Try[fp.Seq[A]], zero B, f func(B, A) B) fp.Try[B] {
+	return Map(seqT, func(insideValue fp.Seq[A]) B {
+		return seq.Fold[A, B](insideValue, zero, f)
+	})
+}
+
+func ScanSeqT[A any, B any](seqT fp.Try[fp.Seq[A]], zero B, f func(B, A) B) fp.Try[fp.Seq[B]] {
+	return Map(seqT, func(insideValue fp.Seq[A]) fp.Seq[B] {
+		return seq.Scan[A, B](insideValue, zero, f)
+	})
+}

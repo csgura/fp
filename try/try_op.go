@@ -370,6 +370,15 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
 			fp.Seq[A].Reverse,
 			fp.Seq[A].Size,
 			fp.Seq[A].Take,
+			seq.Fold[A, B],
+			seq.Scan[A, B],
+			seq.Sort[A],
+			seq.Min[A],
+			seq.Max[A],
+
+			// TODO: SPAN (multi value return)
+			// ToGoMAP :  comparable constraints
+			// FoldTry : -> flatten
 		},
 	}
 }

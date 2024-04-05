@@ -13,7 +13,6 @@ func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.Type
 		args := []string{}
 		for i := 0; i < realtp.TypeArgs().Len(); i++ {
 			ta := realtp.TypeArgs().At(i)
-			fmt.Printf("type %s tp at %d, %s\n", realtp, i, ta)
 			if tp, ok := ta.(*types.TypeParam); ok {
 				if tp.Obj().Name() == p.Obj().Name() {
 				} else {

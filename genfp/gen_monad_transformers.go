@@ -189,8 +189,6 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 	flatmapRet := FlatMapRetType(w, md.Package.Types, md.FlatMap, fixedParams)
 
-	fmt.Printf("flatmapRet = %s\n", flatmapRet)
-
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
 			if fixedStr != "" {
@@ -326,7 +324,6 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 
 	targName := privateName(md.Name)
 	for _, t := range md.Transform {
-		fmt.Printf("generate transform %s, %s\n", t.Name, t.TypeReference.Type)
 
 		if sig, ok := t.TypeReference.Type.(*types.Signature); ok {
 
