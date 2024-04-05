@@ -376,29 +376,31 @@ func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
 					return w.TypeName(md.Package.Types, t.Type())
 				})
 
-				tp := seqMap(t.TypeParams, func(v TypeReference) string {
-					if p, ok := v.Type.(*types.TypeParam); ok {
-						return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package.Types, p.Constraint()))
-					}
-					return ""
-				})
+				if len(retType) > 0 {
+					tp := seqMap(t.TypeParams, func(v TypeReference) string {
+						if p, ok := v.Type.(*types.TypeParam); ok {
+							return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package.Types, p.Constraint()))
+						}
+						return ""
+					})
 
-				param["trans"] = t.Name
-				param["args"] = seqMakeString(argTypeStr, ",")
-				param["callArgs"] = seqMakeString(callArgs, ",")
+					param["trans"] = t.Name
+					param["args"] = seqMakeString(argTypeStr, ",")
+					param["callArgs"] = seqMakeString(callArgs, ",")
 
-				param["targName"] = targName
-				param["transExpr"] = exprString(t.TypeReference.Expr)
-				param["retType"] = retType[0]
-				param["tparams"] = seqMakeString(tp, ",")
+					param["targName"] = targName
+					param["transExpr"] = exprString(t.TypeReference.Expr)
+					param["retType"] = retType[0]
+					param["tparams"] = seqMakeString(tp, ",")
 
-				w.Render(`
-					func {{.name}}{{.trans}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
+					w.Render(`
+					func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
 						return Map({{.targName}}, func(insideValue {{inner (.tp)}}) {{.retType}} {
 							return {{.transExpr}}({{.callArgs}})
 						} )
 					}
 				`, funcs, param)
+				}
 			}
 		}
 

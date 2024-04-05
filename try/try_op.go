@@ -348,6 +348,29 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
 		Sequence: func(v fp.Seq[fp.Try[A]]) fp.Try[fp.Seq[A]] {
 			return Map(Sequence(v), as.Seq)
 		},
+		Transform: []any{
+			fp.Seq[A].Filter,
+			fp.Seq[A].Add,
+			fp.Seq[A].Append,
+			fp.Seq[A].Concat,
+			fp.Seq[A].Drop,
+			fp.Seq[A].Exists,
+			fp.Seq[A].FilterNot,
+			fp.Seq[A].Find,
+			fp.Seq[A].ForAll,
+			fp.Seq[A].Foreach,
+			fp.Seq[A].Get,
+			fp.Seq[A].Head,
+			fp.Seq[A].Tail,
+			fp.Seq[A].Init,
+			fp.Seq[A].IsEmpty,
+			fp.Seq[A].Last,
+			fp.Seq[A].MakeString,
+			fp.Seq[A].NonEmpty,
+			fp.Seq[A].Reverse,
+			fp.Seq[A].Size,
+			fp.Seq[A].Take,
+		},
 	}
 }
 
