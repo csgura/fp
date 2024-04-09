@@ -122,6 +122,10 @@ func CaseErrorType[E error, R any](then func(E) R) fp.PartialFunc[error, R] {
 	})
 }
 
+func CaseNotFoundAsNone[R any]() fp.PartialFunc[error, fp.Option[R]] {
+	return CaseErrorCode(404, fp.Const[error](option.None[R]()))
+}
+
 func CaseErrorCode[R any](guard int, then func(error) R) fp.PartialFunc[error, R] {
 	return as.PartialFunc(func(t error) bool {
 		if sc, ok := t.(interface {
