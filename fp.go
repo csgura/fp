@@ -415,6 +415,12 @@ func Const[B, A any](a A) func(b B) A {
 	}
 }
 
+func ConstS[B, A any](f func() A) func(b B) A {
+	return func(b B) A {
+		return f()
+	}
+}
+
 // (  A -> B -> A  ) -> B -> A -> A  인 함수인데
 // flip 함수가 ( A -> B -> C ) -> B -> A -> C  이니까..
 // 사실 같은거고 , 중복 정의할 필요가 없는데
