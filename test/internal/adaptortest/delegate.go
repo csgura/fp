@@ -74,3 +74,28 @@ var _ = genfp.GenerateAdaptor[context.Context]{
 		},
 	},
 }
+
+type Closer interface {
+	Close() error
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Tracer]{
+	File: "delegate_generated.go",
+	Name: "TracerWith",
+	Self: true,
+	ExtendsWith: map[string]genfp.TypeTag{
+		"Closer": genfp.TypeOf[Closer](),
+	},
+	Options: []genfp.ImplOption{
+		{
+			Method: Closer.Close,
+			Delegate: genfp.Delegate{
+				Field: "Closer",
+			},
+			DefaultImpl: func() error {
+				return nil
+			},
+		},
+	},
+}

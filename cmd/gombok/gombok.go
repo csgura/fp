@@ -94,7 +94,7 @@ func processDeref(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 	workingPackage := ctx.workingPackage
 
 	if _, ok := ts.Tags.Get("@fp.Deref").Unapply(); ok {
-		fmt.Printf("rhs type = %s\n", ts.RhsType)
+		//fmt.Printf("rhs type = %s\n", ts.RhsType)
 
 		if rhs, ok := ts.RhsType.Unapply(); ok {
 
@@ -308,7 +308,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 			})
 
 			insOpt := option.FlatMap(showDerive, func(v metafp.TypeClassDerive) fp.Option[metafp.TypeClassInstance] {
-				fmt.Printf("find by name %s\n", v.GeneratedInstanceName())
+				//fmt.Printf("find by name %s\n", v.GeneratedInstanceName())
 				return scope.FindByName(v.GeneratedInstanceName(), ts.Info)
 			}).Or(func() fp.Option[metafp.TypeClassInstance] {
 				return scope.Find(ts.Info).Head()

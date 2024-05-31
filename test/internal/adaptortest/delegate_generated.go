@@ -345,3 +345,50 @@ func (r *ContextWrapper) Value(key any) any {
 
 	panic("ContextWrapper.Value not implemented")
 }
+
+type TracerWith struct {
+	Closer  Closer
+	DoTrace func(self Tracer, message string)
+	DoClose func(self Tracer) error
+}
+
+func (r *TracerWith) Trace(message string) {
+	r.TraceImpl(r, message)
+}
+
+func (r *TracerWith) TraceImpl(self Tracer, message string) {
+
+	if r.DoTrace != nil {
+		r.DoTrace(self, message)
+		return
+	}
+
+	panic("TracerWith.Trace not implemented")
+}
+
+func (r *TracerWith) Close() error {
+	return r.CloseImpl(r)
+}
+
+func (r *TracerWith) CloseImpl(self Tracer) error {
+
+	if r.DoClose != nil {
+		return r.DoClose(self)
+	}
+
+	if r.Closer != nil {
+		type impl interface {
+			CloseImpl(self Tracer) error
+		}
+
+		if super, ok := r.Closer.(impl); ok {
+			return super.CloseImpl(self)
+		}
+
+		return r.Closer.Close()
+	}
+
+	return func() error {
+		return nil
+	}()
+}

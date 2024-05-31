@@ -148,13 +148,29 @@ func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
 // 	return "", fmt.Errorf("can't eval %T as selector expr", e)
 // }
 
-func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (string, error) {
-	return func(p *packages.Package, e ast.Expr) (string, error) {
+type MethodReference struct {
+	Receiver TypeReference
+	Name     string
+}
+
+func (r MethodReference) GetName() string {
+	return r.Name
+}
+
+func asMethodRef(p *packages.Package, receiver ast.Expr, name string) MethodReference {
+	return MethodReference{
+		Receiver: evalTypeReference(p, receiver),
+		Name:     name,
+	}
+}
+
+func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (MethodReference, error) {
+	return func(p *packages.Package, e ast.Expr) (MethodReference, error) {
 		switch t := e.(type) {
 		case *ast.SelectorExpr:
 			switch t.X.(type) {
 			case *ast.SelectorExpr:
-				return t.Sel.Name, nil
+				return asMethodRef(p, t.X, t.Sel.Name), nil
 			// p, err := evalSelectorExpr(x)
 			// if err != nil {
 			// 	return "", err
@@ -164,19 +180,19 @@ func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (string, 
 			// }
 			// return "", fmt.Errorf("invalid method reference : %s", p)
 			case *ast.IndexExpr:
-				return t.Sel.Name, nil
+				return asMethodRef(p, t.X, t.Sel.Name), nil
 			case *ast.Ident:
-				return t.Sel.Name, nil
+				return asMethodRef(p, t.X, t.Sel.Name), nil
 				// if x.Name == tname {
 				// 	return t.Sel.Name, nil
 				// }
 				// return "", fmt.Errorf("invalid method reference : %s", x.Name)
 			}
-			return "", fmt.Errorf("can't eval %T as method reference", t.X)
+			return MethodReference{}, fmt.Errorf("can't eval %T as method reference", t.X)
 		case *ast.IndexListExpr:
 			return evalMethodRef(tname)(p, t.X)
 		}
-		return "", fmt.Errorf("can't eval %T as method reference", e)
+		return MethodReference{}, fmt.Errorf("can't eval %T as method reference", e)
 	}
 
 }
@@ -618,31 +634,31 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 			if err != nil {
 				return ret, err
 			}
-			ret.Getter = v
+			ret.Getter = seqMap(v, MethodReference.GetName)
 		case "EventHandler":
 			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
-			ret.EventHandler = v
+			ret.EventHandler = seqMap(v, MethodReference.GetName)
 		case "ValOverride":
 			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
-			ret.ValOverride = v
+			ret.ValOverride = seqMap(v, MethodReference.GetName)
 		case "ValOverrideUsingPtr":
 			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
-			ret.ValOverrideUsingPtr = v
+			ret.ValOverrideUsingPtr = seqMap(v, MethodReference.GetName)
 		case "ZeroReturn":
 			v, err := evalArray(lit.Package, value, evalMethodRef(intfname))
 			if err != nil {
 				return ret, err
 			}
-			ret.ZeroReturn = v
+			ret.ZeroReturn = seqMap(v, MethodReference.GetName)
 		case "Options":
 			v, err := evalArray(lit.Package, value, evalImplOption(lit.Package, intfname))
 			if err != nil {
@@ -663,6 +679,7 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 
 type ImplOptionDirective struct {
 	Method                  string
+	ReceiverType            TypeReference
 	Prefix                  string
 	Name                    string
 	Private                 bool
@@ -746,7 +763,7 @@ func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Pack
 	return func(p *packages.Package, e ast.Expr) (ImplOptionDirective, error) {
 		if lt, ok := e.(*ast.CompositeLit); ok {
 			ret := ImplOptionDirective{}
-			names := []string{"Method", "Prefix", "Name", "Private", "ValOverride", "OmitGetterIfValOverride", "DefaultImpl"}
+			names := []string{"Method", "Prefix", "Name", "Private", "ValOverride", "OmitGetterIfValOverride", "Delegate", "DefaultImpl"}
 			for idx, e := range lt.Elts {
 				if idx >= len(names) {
 					return ret, fmt.Errorf("invalid number of literals")
@@ -761,7 +778,9 @@ func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Pack
 					if err != nil {
 						return ret, err
 					}
-					ret.Method = v
+					ret.Method = v.Name
+
+					ret.ReceiverType = v.Receiver
 				case "Prefix":
 					v, err := evalStringValue(p, value)
 					if err != nil {
@@ -798,6 +817,12 @@ func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Pack
 						return ret, err
 					}
 					ret.OmitGetterIfValOverride = v
+				case "Delegate":
+					v, err := evalDelegate(p)(p, value)
+					if err != nil {
+						return ret, err
+					}
+					ret.Delegate = &v
 				case "DefaultImpl":
 
 					found, imports := evalFuncLit(pk, value)
@@ -1027,7 +1052,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 					return FuncReference{}, err
 				}
 
-				return FuncReference{Name: name, TypeReference: ret, TypeParams: tp}, nil
+				return FuncReference{Name: name.Name, TypeReference: ret, TypeParams: tp}, nil
 
 			})
 			if err != nil {

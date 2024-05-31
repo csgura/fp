@@ -229,6 +229,38 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 		}
 	}
 
+	for k, opt := range gad.Methods {
+		if !methodSet.Contains(k) && opt.Delegate != nil {
+			// gad.Method 는 사용자가 지정하지 않아도
+			// 지정한 interface 와 embedding interface 의 method가 모두 추가 된다.
+			// 그중에서  embedding interface 는  위에서 구현을 만들지 않지만
+			// fillOption 에서 자동으로 추가된다.
+			// 사용자가 명시적으로  지정한 경우에만 opt.ReceiverType.Type 이 nil 이 아님.
+			if opt.ReceiverType.Type != nil {
+				if intf, ok := opt.ReceiverType.Type.Underlying().(*types.Interface); ok {
+
+					of := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) *types.Func {
+						return t
+					}).Find(func(v *types.Func) bool {
+						return v.Name() == opt.Method
+					})
+
+					if of.IsDefined() && fp.IsInstanceOf[*types.Signature](of.Get().Type()) {
+
+						gad, _ = fillOption(gad, intf)
+						opt = gad.Methods[opt.Method]
+
+						af, ms := generateImpl(opt, gad, of.Get(), w, intf, "", adaptorTypeName, fieldSet, methodSet)
+						fields = fields.Append(af)
+						methodSet = ms
+					}
+
+				}
+			}
+
+		}
+	}
+
 	extends := ""
 	if gad.Extends && !gad.ExtendsByEmbedding {
 		extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
@@ -246,6 +278,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 				`, adaptorTypeName, decltp, fieldDecl.MakeString("\n"))
 
 	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
+
 }
 
 func genGenerate() {
@@ -726,161 +759,168 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 
 		opt := gad.Methods[t.Name()]
 
-		if opt.Delegate != nil && opt.Private {
-			if isEmbeddingField(gad, opt.Delegate.Field) {
-				if !gad.Self || !gad.ExtendsByEmbedding {
-					// 아무것도 리턴 안할 때는   TypeName 호출하면 안됨.
-					return as.Tuple("", "")
-				}
-			}
-		}
-
-		sig := opt.Signature
-		valName := fmt.Sprintf("Default%s", t.Name())
-		cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
-		if opt.Name != "" {
-			cbName = fmt.Sprintf("%s%s", opt.Prefix, opt.Name)
-			valName = fmt.Sprintf("Default%s", opt.Name)
-		}
-
-		selfarg := ""
-		if gad.Self {
-			selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
-		}
-
-		argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
-
-			return as.Tuple2(argName(i, t), t.Type())
-		})
-
-		argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-			if sig.Variadic() && i == sig.Params().Len()-1 {
-				return fmt.Sprintf("%s...", argName(i, t))
-			} else {
-
-				return argName(i, t)
-			}
-		}).MakeString(",")
-
-		argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
-			if sig.Variadic() && i == sig.Params().Len()-1 {
-				st := t.Type().(*types.Slice)
-				return fmt.Sprintf("%s ...%s", argName(i, t), w.TypeName(gad.Package.Types, st.Elem()))
-			}
-			return fmt.Sprintf("%s %s", argName(i, t), w.TypeName(gad.Package.Types, t.Type()))
-		}).MakeString(",")
-
-		resstr := ""
-		if sig.Results().Len() > 0 {
-			resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-				return w.TypeName(gad.Package.Types, t.Type())
-			}).MakeString(",") + ")"
-		}
-
-		implArgs := argTypeStr
-		if gad.ExtendsSelfCheck {
-			implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
-		}
-
-		implName := func() string {
-			if gad.ExtendsSelfCheck {
-				return t.Name() + "Impl"
-			}
-			return t.Name()
-		}()
-
-		ctx := &implContext{
-			namedInterface:  namedInterface,
-			superField:      superField,
-			adaptorTypeName: adaptorTypeName,
-			w:               w,
-			t:               t,
-			gad:             gad,
-			opt:             opt,
-			valName:         valName,
-			cbName:          cbName,
-			selfarg:         selfarg,
-			argTypes:        argTypes,
-			argStr:          argStr,
-			argTypeStr:      argTypeStr,
-			resstr:          resstr,
-			implArgs:        implArgs,
-			fieldMap:        fieldMap,
-		}
-
-		if opt.Delegate != nil && opt.Private {
-			if isEmbeddingField(gad, opt.Delegate.Field) {
-				if gad.Self && gad.ExtendsByEmbedding {
-					methodSet = methodSet.Incl(t.Name())
-					return as.Tuple("", fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-						}
-						`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-						ctx.withReturn(true, `r.%sImpl(r, %s)`, t.Name(), argStr),
-					))
-				}
-				// 아무것도 안하는 리턴이기 때문에 ,  위에 중간에 리턴하는 코드에서 이미 처리함.
-				// 여긴 절대로 실행안됨.
-				return as.Tuple("", "")
-			}
-		}
-
+		// 아무것도 리턴 안할 때는   TypeName 호출하면 안됨.
+		// 아무것도 안하는 리턴이기 때문에 ,  위에 중간에 리턴하는 코드에서 이미 처리함.
+		// 여긴 절대로 실행안됨.
 		//fmt.Printf("generate method %s (super:%s) impl %s of %s \n", t.Name(), ctx.superField, namedInterface.String(), adaptorTypeName)
-
-		defaultField, cbField := ctx.adaptorFields()
-		defaultExpr := ctx.defaultImpl()
-
-		delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v genfp.DelegateDirective) fp.Option[GeneratedExpr] {
-			return ctx.callExtends(v.Field)
-		})
-
-		unreachable := delegateExpr.IsDefined() && delegateExpr.Get().UnreachableAfter()
-
-		callExtendsExpr := ctx.callExtends(ctx.superField).FilterNot(fp.Const[GeneratedExpr](unreachable))
-		unreachable = unreachable || callExtendsExpr.IsDefined() && callExtendsExpr.Get().unreachableAfter
-
-		cbExpr := option.FlatMap(cbField, func(v string) fp.Option[string] { return ctx.callCb() })
-		panicExpr := option.Some(fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name()))
-		valExpr, end := ctx.valOverride(defaultExpr.IsDefined() || callExtendsExpr.IsDefined() || cbExpr.IsDefined())
-		cbExpr = cbExpr.FilterNot(func(v string) bool { return end })
-		callExtendsExpr = callExtendsExpr.FilterNot(func(v GeneratedExpr) bool { return end })
-		defaultExpr = defaultExpr.FilterNot(func(v string) bool { return end })
-
-		panicExpr = panicExpr.FilterNot(func(v string) bool { return end || unreachable }).FilterNot(func(v string) bool {
-			return defaultExpr.IsDefined()
-		})
-
-		impl := fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-						}
-						`, adaptorTypeName, implName, implArgs, resstr,
-			fp.Seq[string]{}.
-				Add(valExpr.OrElse("")).
-				Concat(cbExpr.ToSeq()).
-				Concat(option.Map(delegateExpr, GeneratedExpr.Expr).ToSeq()).
-				Concat(option.Map(callExtendsExpr, GeneratedExpr.Expr).ToSeq()).
-				Concat(defaultExpr.ToSeq()).
-				Concat(panicExpr.ToSeq()).
-				MakeString("\n\n"),
-		)
-		if gad.ExtendsSelfCheck {
-			impl = fmt.Sprintf(`
-						func (r *%s) %s(%s) %s {
-							%s
-						}
-					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
-				ctx.withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
-			) + impl
-
-		}
-		methodSet = methodSet.Incl(t.Name())
-		return as.Tuple(fp.Seq[string]{}.Concat(defaultField.ToSeq()).Concat(cbField.ToSeq()).MakeString("\n"), impl)
+		ret, ms := generateImpl(opt, gad, t, w, namedInterface, superField, adaptorTypeName, fieldMap, methodSet)
+		methodSet = ms
+		return ret
 
 	})
 
 	return fields, methodSet
+}
+
+func generateImpl(opt genfp.ImplOptionDirective, gad genfp.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
+	if opt.Delegate != nil && opt.Private {
+		if isEmbeddingField(gad, opt.Delegate.Field) {
+			if !gad.Self || !gad.ExtendsByEmbedding {
+
+				return as.Tuple("", ""), methodSet
+			}
+		}
+	}
+
+	sig := opt.Signature
+	valName := fmt.Sprintf("Default%s", t.Name())
+	cbName := fmt.Sprintf("%s%s", opt.Prefix, t.Name())
+	if opt.Name != "" {
+		cbName = fmt.Sprintf("%s%s", opt.Prefix, opt.Name)
+		valName = fmt.Sprintf("Default%s", opt.Name)
+	}
+
+	selfarg := ""
+	if gad.Self {
+		selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
+	}
+
+	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
+
+		return as.Tuple2(argName(i, t), t.Type())
+	})
+
+	argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+		if sig.Variadic() && i == sig.Params().Len()-1 {
+			return fmt.Sprintf("%s...", argName(i, t))
+		} else {
+
+			return argName(i, t)
+		}
+	}).MakeString(",")
+
+	argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
+		if sig.Variadic() && i == sig.Params().Len()-1 {
+			st := t.Type().(*types.Slice)
+			return fmt.Sprintf("%s ...%s", argName(i, t), w.TypeName(gad.Package.Types, st.Elem()))
+		}
+		return fmt.Sprintf("%s %s", argName(i, t), w.TypeName(gad.Package.Types, t.Type()))
+	}).MakeString(",")
+
+	resstr := ""
+	if sig.Results().Len() > 0 {
+		resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
+			return w.TypeName(gad.Package.Types, t.Type())
+		}).MakeString(",") + ")"
+	}
+
+	implArgs := argTypeStr
+	if gad.ExtendsSelfCheck {
+		implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
+	}
+
+	implName := func() string {
+		if gad.ExtendsSelfCheck {
+			return t.Name() + "Impl"
+		}
+		return t.Name()
+	}()
+
+	ctx := &implContext{
+		namedInterface:  namedInterface,
+		superField:      superField,
+		adaptorTypeName: adaptorTypeName,
+		w:               w,
+		t:               t,
+		gad:             gad,
+		opt:             opt,
+		valName:         valName,
+		cbName:          cbName,
+		selfarg:         selfarg,
+		argTypes:        argTypes,
+		argStr:          argStr,
+		argTypeStr:      argTypeStr,
+		resstr:          resstr,
+		implArgs:        implArgs,
+		fieldMap:        fieldMap,
+	}
+
+	if opt.Delegate != nil && opt.Private {
+		if isEmbeddingField(gad, opt.Delegate.Field) {
+			if gad.Self && gad.ExtendsByEmbedding {
+				methodSet = methodSet.Incl(t.Name())
+				return as.Tuple("", fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+						`, adaptorTypeName, t.Name(), argTypeStr, resstr,
+					ctx.withReturn(true, `r.%sImpl(r, %s)`, t.Name(), argStr),
+				)), methodSet
+			}
+
+			return as.Tuple("", ""), methodSet
+		}
+	}
+
+	defaultField, cbField := ctx.adaptorFields()
+	defaultExpr := ctx.defaultImpl()
+
+	delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v genfp.DelegateDirective) fp.Option[GeneratedExpr] {
+		return ctx.callExtends(v.Field)
+	})
+
+	unreachable := delegateExpr.IsDefined() && delegateExpr.Get().UnreachableAfter()
+
+	callExtendsExpr := ctx.callExtends(ctx.superField).FilterNot(fp.Const[GeneratedExpr](unreachable))
+	unreachable = unreachable || callExtendsExpr.IsDefined() && callExtendsExpr.Get().unreachableAfter
+
+	cbExpr := option.FlatMap(cbField, func(v string) fp.Option[string] { return ctx.callCb() })
+	panicExpr := option.Some(fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name()))
+	valExpr, end := ctx.valOverride(defaultExpr.IsDefined() || callExtendsExpr.IsDefined() || cbExpr.IsDefined())
+	cbExpr = cbExpr.FilterNot(func(v string) bool { return end })
+	callExtendsExpr = callExtendsExpr.FilterNot(func(v GeneratedExpr) bool { return end })
+	defaultExpr = defaultExpr.FilterNot(func(v string) bool { return end })
+
+	panicExpr = panicExpr.FilterNot(func(v string) bool { return end || unreachable }).FilterNot(func(v string) bool {
+		return defaultExpr.IsDefined()
+	})
+
+	impl := fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+						`, adaptorTypeName, implName, implArgs, resstr,
+		fp.Seq[string]{}.
+			Add(valExpr.OrElse("")).
+			Concat(cbExpr.ToSeq()).
+			Concat(option.Map(delegateExpr, GeneratedExpr.Expr).ToSeq()).
+			Concat(option.Map(callExtendsExpr, GeneratedExpr.Expr).ToSeq()).
+			Concat(defaultExpr.ToSeq()).
+			Concat(panicExpr.ToSeq()).
+			MakeString("\n\n"),
+	)
+	if gad.ExtendsSelfCheck {
+		impl = fmt.Sprintf(`
+						func (r *%s) %s(%s) %s {
+							%s
+						}
+					`, adaptorTypeName, t.Name(), argTypeStr, resstr,
+			ctx.withReturn(true, "r.%sImpl(r,%s)", t.Name(), argStr),
+		) + impl
+
+	}
+	methodSet = methodSet.Incl(t.Name())
+	return as.Tuple(fp.Seq[string]{}.Concat(defaultField.ToSeq()).Concat(cbField.ToSeq()).MakeString("\n"), impl), methodSet
 }
 
 func matchSelExpr(expr ast.Expr, exp ...string) bool {

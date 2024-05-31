@@ -134,13 +134,13 @@ func TestZipIndex(t *testing.T) {
 }
 
 func TestDropWhile(t *testing.T) {
-	i := iterator.Range(0, 10)
+	i := iterator.Range(0, 20)
 
 	tail := i.DropWhile(func(i int) bool {
 		return i != 9
 	})
 
-	fmt.Printf("tail.Next = %s\n", tail.NextOption())
+	fmt.Printf("tail.Next = %v\n", tail.ToSeq())
 
 }
 
