@@ -20,6 +20,14 @@ func Failure[T any](err error) Try[T] {
 	return Try[T]{false, zero, err}
 }
 
+func (r Try[T]) All() func(func(T) bool) {
+	return func(f func(T) bool) {
+		if r.IsSuccess() {
+			f(r.Get())
+		}
+	}
+}
+
 func (r Try[T]) IsSuccess() bool {
 	return r.success
 }

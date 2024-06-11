@@ -11,6 +11,14 @@ type Option[T any] struct {
 	v       T
 }
 
+func (r Option[T]) All() func(func(T) bool) {
+	return func(f func(T) bool) {
+		if r.IsDefined() {
+			f(r.Get())
+		}
+	}
+}
+
 func (r Option[T]) Foreach(f func(v T)) {
 	if r.IsDefined() {
 		f(r.Get())

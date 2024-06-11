@@ -16,17 +16,27 @@ type Iterator[T any] struct {
 }
 
 // range over func
-// func (r Iterator[T]) All() func(yield func(T) bool) bool {
-// 	return func(yield func(T) bool) bool {
-// 		for r.HasNext() {
-// 			v := r.Next()
-// 			if !yield(v) {
-// 				return false
-// 			}
-// 		}
-// 		return true
-// 	}
-// }
+//
+//	func (r Iterator[T]) All() func(yield func(T) bool) bool {
+//		return func(yield func(T) bool) bool {
+//			for r.HasNext() {
+//				v := r.Next()
+//				if !yield(v) {
+//					return false
+//				}
+//			}
+//			return true
+//		}
+//	}
+func (r Iterator[T]) All() func(func(T) bool) {
+	return func(f func(T) bool) {
+		for r.hasNext() {
+			if !f(r.Next()) {
+				return
+			}
+		}
+	}
+}
 
 func (r Iterator[T]) ToSeq() []T {
 	ret := []T{}
