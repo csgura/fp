@@ -115,3 +115,47 @@ func NumberAppender[T fp.ImplicitNum](v T) Appender {
 func StringerAppender[T fmt.Stringer](v T) Appender {
 	return AsAppender(Given[T](), v)
 }
+
+func AppendNil(buf []string, opt fp.ShowOption) []string {
+	return append(buf, nullForNil(opt))
+}
+
+func AppendSpaceBetweenTypeAndBrace(buf []string, opt fp.ShowOption) []string {
+	return append(buf, spaceBetweenTypeAndBrace(opt))
+}
+
+func AppendSpaceAfterComma(buf []string, opt fp.ShowOption) []string {
+	return append(buf, spaceAfterComma(opt))
+}
+
+func AppendSpaceAfterColon(buf []string, opt fp.ShowOption) []string {
+	return append(buf, spaceAfterColon(opt))
+}
+
+func AppendSpaceWithinBrace(buf []string, opt fp.ShowOption) []string {
+	return append(buf, spaceWithinBrace(opt))
+}
+
+func AppendTypeName(buf []string, typeName string, opt fp.ShowOption) []string {
+	return append(buf, omitTypeName(typeName, opt))
+}
+
+func AppendFieldName(buf []string, fieldName string, opt fp.ShowOption) []string {
+	return append(buf, quoteNames(fieldName, opt))
+}
+
+func AppendArrayBegin(buf []string, opt fp.ShowOption) []string {
+	return append(buf, arrayOpen(opt))
+}
+
+func AppendArrayEnd(buf []string, opt fp.ShowOption) []string {
+	return append(buf, arrayClose(opt))
+}
+
+func AppendTrailingComma(buf []string, opt fp.ShowOption) []string {
+	return append(buf, trailingComma(opt))
+}
+
+func AppendNewLineWithIndent(buf []string, opt fp.ShowOption) []string {
+	return append(buf, "\n", opt.CurrentIndent())
+}

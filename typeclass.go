@@ -45,7 +45,7 @@ type ShowOption struct {
 
 	// true 면  "name": value 로 출력
 	// false 면  name: value 로 출력
-	QouteNames bool
+	QuoteNames bool
 
 	currentIndent string
 }
@@ -104,8 +104,8 @@ func (r ShowOption) WithNullForNil(b bool) ShowOption {
 	return r
 }
 
-func (r ShowOption) WithQouteNames(b bool) ShowOption {
-	r.QouteNames = b
+func (r ShowOption) WithQuoteNames(b bool) ShowOption {
+	r.QuoteNames = b
 	return r
 }
 

@@ -42,7 +42,7 @@ var Json = fp.ShowOption{
 	OmitTypeName:          true,
 	SquareBracketForArray: true,
 	NullForNil:            true,
-	QouteNames:            true,
+	QuoteNames:            true,
 }
 
 var JsonSpace = fp.ShowOption{
@@ -54,7 +54,7 @@ var JsonSpace = fp.ShowOption{
 	SpaceAfterColon:       true,
 	SpaceBeforeBrace:      false,
 	SpaceWithinBrace:      true,
-	QouteNames:            true,
+	QuoteNames:            true,
 }
 
 var PrettyJson = fp.ShowOption{
@@ -67,7 +67,7 @@ var PrettyJson = fp.ShowOption{
 	SpaceAfterColon:       true,
 	SpaceBeforeBrace:      true,
 	SpaceWithinBrace:      true,
-	QouteNames:            true,
+	QuoteNames:            true,
 }
 
 type Derives[T any] interface {
@@ -215,7 +215,7 @@ func omitTypeName(name string, opt fp.ShowOption) string {
 }
 
 func quoteNames(name string, opt fp.ShowOption) string {
-	if opt.QouteNames {
+	if opt.QuoteNames {
 		return `"` + name + `"`
 	}
 	return name
