@@ -47,7 +47,14 @@ type ShowOption struct {
 	// false 면  name: value 로 출력
 	QuoteNames bool
 
+	UserOptions Map[string, string]
+
 	currentIndent string
+}
+
+func (r ShowOption) WithUserOption(optName, optValue string) ShowOption {
+	r.UserOptions = r.UserOptions.Updated(optName, optValue)
+	return r
 }
 
 func (r ShowOption) CurrentIndent() string {
