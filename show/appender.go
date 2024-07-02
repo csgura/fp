@@ -98,6 +98,22 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 
 }
 
+func StructAppender(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, Appender]) Appender {
+	return func(buf []string, opt fp.ShowOption) []string {
+		childOpt := opt.IncreaseIndent()
+
+		itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Tuple2[string, Appender]) []string {
+			valuestr := t.I2(nil, childOpt)
+			if isEmptyString(valuestr) {
+				return nil
+			}
+			return append([]string{quoteNames(t.I1, opt), spaceAfterColon(opt)}, valuestr...)
+		}).FilterNot(isZero)
+
+		return appendMap(buf, typeName, itr, opt)
+	}
+}
+
 func AsAppender[T any](tshow fp.Show[T], t T) Appender {
 	return func(buf []string, opt fp.ShowOption) []string {
 		return tshow.Append(buf, t, opt)
