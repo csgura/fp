@@ -91,7 +91,7 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 		if isEmptyString(valuestr) {
 			return nil
 		}
-		return append([]string{t.I1, spaceAfterColon(opt)}, valuestr...)
+		return append([]string{quoteNames(t.I1, opt), spaceAfterColon(opt)}, valuestr...)
 	}).FilterNot(isZero)
 
 	return appendMap(buf, typeName, itr, opt)
