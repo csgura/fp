@@ -53,7 +53,9 @@ type ShowOption struct {
 }
 
 func (r ShowOption) WithUserOption(optName, optValue string) ShowOption {
-	r.UserOptions = r.UserOptions.Updated(optName, optValue)
+	if optValue != "" {
+		r.UserOptions = r.UserOptions.Updated(optName, optValue)
+	}
 	return r
 }
 
