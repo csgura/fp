@@ -98,7 +98,7 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 
 }
 
-func StructAppender(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, Appender]) Appender {
+func StructAppender(typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, Appender]) Appender {
 	return func(buf []string, opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
 
