@@ -392,3 +392,33 @@ func (r *TracerWith) CloseImpl(self Tracer) error {
 		return nil
 	}()
 }
+
+type ComplexIntfAdaptor struct {
+	Extends SimpleIntf
+	DoHello func(self ComplexIntf, ctx context.Context, msg string) string
+}
+
+func (r *ComplexIntfAdaptor) Hello(ctx context.Context, msg string) string {
+	return r.HelloImpl(r, ctx, msg)
+}
+
+func (r *ComplexIntfAdaptor) HelloImpl(self ComplexIntf, ctx context.Context, msg string) string {
+
+	if r.DoHello != nil {
+		return r.DoHello(self, ctx, msg)
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			HelloImpl(self ComplexIntf, ctx context.Context, msg string) string
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.HelloImpl(self, ctx, msg)
+		}
+
+		return r.Extends.Hello(msg)
+	}
+
+	panic("ComplexIntfAdaptor.Hello not implemented")
+}

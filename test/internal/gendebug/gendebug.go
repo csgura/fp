@@ -1,36 +1,31 @@
 package gendebug
 
 import (
+	"context"
+
 	"github.com/csgura/fp/genfp"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type Tracer interface {
-	Trace(message string)
+type SimpleIntf interface {
+	Hello(msg string) string
 }
-
-type Closer interface {
-	Close() error
+type ComplexIntf interface {
+	Hello(ctx context.Context, msg string) string
 }
 
 // @fp.Generate
-var _ = genfp.GenerateAdaptor[Tracer]{
+var _ = genfp.GenerateAdaptor[ComplexIntf]{
 	File: "gendebug_generated.go",
-	Name: "TracerWith",
 	Self: true,
 	ExtendsWith: map[string]genfp.TypeTag{
-		"Closer": genfp.TypeOf[Closer](),
+		"Extends": genfp.TypeOf[SimpleIntf](),
 	},
 	Options: []genfp.ImplOption{
 		{
-			Method: Closer.Close,
-			Delegate: genfp.Delegate{
-				Field: "Closer",
-			},
-			DefaultImpl: func() error {
-				return nil
-			},
+			Method:   ComplexIntf.Hello,
+			Delegate: genfp.DelegatedBy[SimpleIntf]("Extends"),
 		},
 	},
 }

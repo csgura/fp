@@ -780,6 +780,10 @@ func IntoOptionalInt(v fp.Option[int]) OptionalInt {
 	return OptionalInt(v)
 }
 
+func (r OptionalInt) All() func(func(int) bool) {
+	return fp.Option[int](r).All()
+}
+
 func (r OptionalInt) Exists(p func(v int) bool) bool {
 	return fp.Option[int](r).Exists(p)
 }
@@ -878,6 +882,10 @@ func (r OptionalStringer[T]) Deref() fp.Option[T] {
 
 func IntoOptionalStringer[T fmt.Stringer](v fp.Option[T]) OptionalStringer[T] {
 	return OptionalStringer[T](v)
+}
+
+func (r OptionalStringer[T]) All() func(func(T) bool) {
+	return fp.Option[T](r).All()
 }
 
 func (r OptionalStringer[T]) Exists(p func(v T) bool) bool {

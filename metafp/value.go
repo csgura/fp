@@ -935,11 +935,23 @@ func typeInfo(tpe types.Type) TypeInfo {
 		args := typeArgs(realtp.TypeArgs())
 		params := typeParam(realtp.TypeParams())
 
-		//fmt.Printf("name %s, args = %s\n", realtp.Obj().Name(), args.MakeString(","))
-		method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
-			m := realtp.Method(v)
-			return as.Tuple2(m.Name(), m)
-		})
+		methodMap := func() fp.Map[string, *types.Func] {
+			if realtp.NumMethods() == 0 {
+				if underIntf, ok := realtp.Underlying().(*types.Interface); ok {
+					method := iterator.Map(iterator.Range(0, underIntf.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+						m := underIntf.Method(v)
+						return as.Tuple2(m.Name(), m)
+					})
+					return mutable.MapOf(iterator.ToGoMap(method))
+				}
+			}
+			method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+				m := realtp.Method(v)
+				return as.Tuple2(m.Name(), m)
+			})
+			return mutable.MapOf(iterator.ToGoMap(method))
+
+		}()
 
 		//TODO : type param 추가하면 난리남..
 		if params.Size() > 0 && args.Size() == 0 {
@@ -955,7 +967,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 			TypeName:  realtp.Obj().Name(),
 			TypeArgs:  args,
 			TypeParam: params,
-			Method:    mutable.MapOf(iterator.ToGoMap(method)),
+			Method:    methodMap,
 		}
 	case *types.Signature:
 		params := typeParam(realtp.TypeParams())

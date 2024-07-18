@@ -99,3 +99,25 @@ var _ = genfp.GenerateAdaptor[Tracer]{
 		},
 	},
 }
+
+type SimpleIntf interface {
+	Hello(msg string) string
+}
+type ComplexIntf interface {
+	Hello(ctx context.Context, msg string) string
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[ComplexIntf]{
+	File: "delegate_generated.go",
+	Self: true,
+	ExtendsWith: map[string]genfp.TypeTag{
+		"Extends": genfp.TypeOf[SimpleIntf](),
+	},
+	Options: []genfp.ImplOption{
+		{
+			Method:   ComplexIntf.Hello,
+			Delegate: genfp.DelegatedBy[SimpleIntf]("Extends"),
+		},
+	},
+}

@@ -462,6 +462,39 @@ func finalExpr(expr string) fp.Option[GeneratedExpr] {
 	return option.Some(GeneratedExpr{expr: expr, unreachableAfter: true})
 }
 
+type CallArgs struct {
+	avail fp.Seq[fp.Tuple2[string, types.Type]]
+	args  fp.Seq[string]
+}
+
+func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
+	gad := r.gad
+
+	defImplArgs := iterate(ms.Params().Len(), ms.Params().At, func(i int, t *types.Var) types.Type {
+		return t.Type()
+	})
+
+	availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
+		if gad.ExtendsSelfCheck {
+			return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), r.argTypes)
+		}
+		return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), r.argTypes)
+	}()
+
+	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
+		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
+			return t.I2.String() != tp.String()
+		})
+
+		arg := tail.NextOption()
+		if arg.IsDefined() {
+			return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
+		}
+		return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
+	})
+	return args
+}
+
 func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 	gad := r.gad
 
@@ -498,7 +531,31 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 		si := r.callSuperImpl(superField)
 		if cbNilCheck {
 
+			if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
+				if types.IsInterface(fieldTpe.Get().Type) {
+
+					tpe := metafp.GetTypeInfo(fieldTpe.Get().Type)
+					method := tpe.Method.Get(r.t.Name())
+					if method.IsDefined() {
+
+						os := method.Get().Type().(*types.Signature)
+						args := r.matchFuncArgs(os)
+						if args.IsSuccess() {
+
+							sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), args.Get().args.MakeString(","))
+							return someExpr(fmt.Sprintf(`
+								if r.%s != nil {
+									%s
+								}
+							`, superField, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
+							))
+						}
+
+					}
+				}
+			}
 			sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), r.argStr)
+
 			return someExpr(fmt.Sprintf(`
 					if r.%s != nil {
 						%s
@@ -506,6 +563,7 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 				`, superField, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
 			))
 		}
+
 		sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), r.argStr)
 		return finalExpr(fmt.Sprintf(`
 						%s
@@ -667,33 +725,7 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 		if opt.DefaultImplSignature != nil {
 			os := opt.DefaultImplSignature
 
-			defImplArgs := iterate(os.Params().Len(), os.Params().At, func(i int, t *types.Var) types.Type {
-				return t.Type()
-			})
-
-			availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
-				if gad.ExtendsSelfCheck {
-					return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), r.argTypes)
-				}
-				return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), r.argTypes)
-			}()
-
-			type CallArgs struct {
-				avail fp.Seq[fp.Tuple2[string, types.Type]]
-				args  fp.Seq[string]
-			}
-
-			args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
-				init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
-					return t.I2.String() != tp.String()
-				})
-
-				arg := tail.NextOption()
-				if arg.IsDefined() {
-					return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
-				}
-				return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
-			})
+			args := r.matchFuncArgs(os)
 
 			if args.IsSuccess() {
 				if fl, ok := opt.DefaultImplExpr.(*ast.FuncLit); ok {
