@@ -23,6 +23,7 @@ import (
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/xtr"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -417,6 +418,16 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 		}
 	}
 
+	args := r.matchSuperMethodArgs(field)
+	argstr := option.Map(args, CallArgs.ArgList).OrElse(r.argStr)
+
+	implArgs := option.Map(args, as.Func3(CallArgs.ArgTypeList).ApplyLast2(r.w, r.gad.Package.Types)).Map(func(s string) string {
+		if gad.ExtendsSelfCheck {
+			return "self " + r.w.TypeName(gad.Package.Types, gad.Interface) + "," + s
+		}
+		return s
+	}).OrElse(r.implArgs)
+
 	implName := func() string {
 		if gad.ExtendsSelfCheck {
 			return r.t.Name() + "Impl"
@@ -432,9 +443,9 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 									if super, ok := r.%s.(impl); ok {
 										%s 
 									}
-									`, implName, r.implArgs, r.resstr,
+									`, implName, implArgs, r.resstr,
 			field,
-			r.withReturn(false, "super.%s(self, %s)", implName, r.argStr),
+			r.withReturn(false, "super.%s(self, %s)", implName, argstr),
 		))
 	}
 	return option.None[string]()
@@ -463,8 +474,38 @@ func finalExpr(expr string) fp.Option[GeneratedExpr] {
 }
 
 type CallArgs struct {
-	avail fp.Seq[fp.Tuple2[string, types.Type]]
-	args  fp.Seq[string]
+	variadic bool
+	avail    fp.Seq[fp.Tuple2[string, types.Type]]
+	args     fp.Seq[fp.Tuple2[string, types.Type]]
+}
+
+func (r CallArgs) ArgList() string {
+	return iterator.Map(iterator.FromSlice(r.args), xtr.Head).MakeString(",")
+}
+
+func (r CallArgs) ArgTypeList(w genfp.Writer, pk *types.Package) string {
+	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Tuple2[string, types.Type]) string {
+		if r.variadic && i == r.args.Size()-1 {
+			return fmt.Sprintf("%s... %s", v.I1, w.TypeName(pk, v.I2))
+		}
+		return fmt.Sprintf("%s %s", v.I1, w.TypeName(pk, v.I2))
+	})).MakeString(",")
+}
+
+func (r *implContext) matchSuperMethodArgs(superField string) fp.Option[CallArgs] {
+	fieldTpe := r.fieldMap.Get(superField)
+	if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
+		tpe := metafp.GetTypeInfo(fieldTpe.Get().Type)
+		method := tpe.Method.Get(r.t.Name())
+		if method.IsDefined() {
+
+			os := method.Get().Type().(*types.Signature)
+
+			return option.FromTry(r.matchFuncArgs(os))
+
+		}
+	}
+	return option.None[CallArgs]()
 }
 
 func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
@@ -488,7 +529,11 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 
 		arg := tail.NextOption()
 		if arg.IsDefined() {
-			return try.Success(CallArgs{init.Concat(tail).ToSeq(), append(args.args, arg.Get().I1)})
+			return try.Success(CallArgs{
+				variadic: ms.Variadic(),
+				avail:    init.Concat(tail).ToSeq(),
+				args:     append(args.args, arg.Get()),
+			})
 		}
 		return try.Failure[CallArgs](fp.Error(400, "can't find proper args for type %s", tp.String()))
 	})
@@ -508,53 +553,13 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 		}
 	}
 
-	callSupercheck := func(field string) fp.Option[string] {
-		if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
-			if !types.IsInterface(fieldTpe.Get().Type) {
-				return option.None[string]()
-			}
-		}
-
-		si := r.callSuperImpl(field)
-		sc := fmt.Sprintf(`
-					if super , ok := r.%s.(%s); ok {
-						%s
-					}
-				`, field, r.w.TypeName(gad.Package.Types, r.namedInterface),
-			r.withReturn(false, "super.%s(%s)", r.t.Name(), r.argStr),
-		)
-
-		return option.Some(as.Seq(si.ToSeq()).Add(sc).MakeString("\n"))
-	}
+	argstr := option.Map(r.matchSuperMethodArgs(superField), CallArgs.ArgList).OrElse(r.argStr)
 
 	if superField != "" && !gad.ExtendsByEmbedding {
 		si := r.callSuperImpl(superField)
 		if cbNilCheck {
 
-			if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
-				if types.IsInterface(fieldTpe.Get().Type) {
-
-					tpe := metafp.GetTypeInfo(fieldTpe.Get().Type)
-					method := tpe.Method.Get(r.t.Name())
-					if method.IsDefined() {
-
-						os := method.Get().Type().(*types.Signature)
-						args := r.matchFuncArgs(os)
-						if args.IsSuccess() {
-
-							sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), args.Get().args.MakeString(","))
-							return someExpr(fmt.Sprintf(`
-								if r.%s != nil {
-									%s
-								}
-							`, superField, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
-							))
-						}
-
-					}
-				}
-			}
-			sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), r.argStr)
+			sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), argstr)
 
 			return someExpr(fmt.Sprintf(`
 					if r.%s != nil {
@@ -564,12 +569,31 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 			))
 		}
 
-		sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), r.argStr)
+		sc := r.withReturn(false, "r.%s.%s(%s)", superField, r.t.Name(), argstr)
 		return finalExpr(fmt.Sprintf(`
 						%s
 				`, as.Seq(si.ToSeq()).Add(sc).MakeString("\n"),
 		))
 	} else if gad.Extends {
+		callSupercheck := func(field string) fp.Option[string] {
+			if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
+				if !types.IsInterface(fieldTpe.Get().Type) {
+					return option.None[string]()
+				}
+			}
+
+			si := r.callSuperImpl(field)
+			sc := fmt.Sprintf(`
+					if super , ok := r.%s.(%s); ok {
+						%s
+					}
+				`, field, r.w.TypeName(gad.Package.Types, r.namedInterface),
+				r.withReturn(false, "super.%s(%s)", r.t.Name(), r.argStr),
+			)
+
+			return option.Some(as.Seq(si.ToSeq()).Add(sc).MakeString("\n"))
+		}
+
 		return option.Map(callSupercheck("Extends"), func(s string) GeneratedExpr {
 			return GeneratedExpr{expr: fmt.Sprintf(`
 				if r.Extends != nil {
@@ -734,10 +758,10 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 					buf := &bytes.Buffer{}
 
 					printer.Fprint(buf, fs, fl)
-					return option.Some(r.withReturn(true, "%s(%s)", buf.String(), args.Get().args.MakeString(",")))
+					return option.Some(r.withReturn(true, "%s(%s)", buf.String(), args.Get().ArgList()))
 				} else {
 
-					return option.Some(r.withReturn(true, `%s(%s)`, exprString(opt.DefaultImplExpr), args.Get().args.MakeString(",")))
+					return option.Some(r.withReturn(true, `%s(%s)`, exprString(opt.DefaultImplExpr), args.Get().ArgList()))
 
 				}
 			} else {

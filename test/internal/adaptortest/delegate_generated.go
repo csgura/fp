@@ -410,11 +410,11 @@ func (r *ComplexIntfAdaptor) HelloImpl(self ComplexIntf, ctx context.Context, ms
 
 	if r.Extends != nil {
 		type impl interface {
-			HelloImpl(self ComplexIntf, ctx context.Context, msg string) string
+			HelloImpl(self ComplexIntf, msg string) string
 		}
 
 		if super, ok := r.Extends.(impl); ok {
-			return super.HelloImpl(self, ctx, msg)
+			return super.HelloImpl(self, msg)
 		}
 
 		return r.Extends.Hello(msg)
