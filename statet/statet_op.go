@@ -4,7 +4,6 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/try"
 )
 
@@ -113,18 +112,22 @@ func FlatMapConst[S, A, B any](st fp.StateT[S, A], next fp.StateT[S, B]) fp.Stat
 	return FlatMap(st, fp.Const[A](next))
 }
 
-func WithState[S, A any](st fp.StateT[S, A], f func(S) S) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Map(st(s), as.Func2(product.MapValue[A, S, S]).ApplyLast(f))
-	}
+func WithState[S, A any](f func(S) fp.StateT[S, A]) fp.StateT[S, A] {
+	return FlatMap(Get[S](), f)
 }
 
-func WithStateT[S, A any](st fp.StateT[S, A], f func(S) fp.Try[S]) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		a, ns := st.Run(s)
-		return try.Zip(a, try.FlatMap(ns, f))
-	}
-}
+// func WithState[S, A any](st fp.StateT[S, A], f func(S) S) fp.StateT[S, A] {
+// 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
+// 		return try.Map(st(s), as.Func2(product.MapValue[A, S, S]).ApplyLast(f))
+// 	}
+// }
+
+// func WithStateT[S, A any](st fp.StateT[S, A], f func(S) fp.Try[S]) fp.StateT[S, A] {
+// 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
+// 		a, ns := st.Run(s)
+// 		return try.Zip(a, try.FlatMap(ns, f))
+// 	}
+// }
 
 func ApTry[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a fp.Try[A]) fp.StateT[S, B] {
 	return func(s S) fp.Try[fp.Tuple2[B, S]] {

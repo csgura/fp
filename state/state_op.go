@@ -4,7 +4,6 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/try"
 )
 
@@ -73,11 +72,15 @@ func FlatMapConst[S, A, B any](st fp.State[S, A], next fp.State[S, B]) fp.State[
 	return FlatMap(st, fp.Const[A](next))
 }
 
-func WithState[S, A any](st fp.State[S, A], f func(S) S) fp.State[S, A] {
-	return func(s S) fp.Tuple2[A, S] {
-		v := st(s)
-		return product.MapValue(v, f)
-	}
+// func WithState[S, A any](st fp.State[S, A], f func(S) S) fp.State[S, A] {
+// 	return func(s S) fp.Tuple2[A, S] {
+// 		v := st(s)
+// 		return product.MapValue(v, f)
+// 	}
+// }
+
+func WithState[S, A any](f func(S) fp.State[S, A]) fp.State[S, A] {
+	return FlatMap(Get[S](), f)
 }
 
 func MapWithState[S, A, B any](st fp.State[S, A], f func(S, A) B) fp.State[S, B] {
