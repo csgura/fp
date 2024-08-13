@@ -31,7 +31,7 @@ func Modify[S any](f func(S) S) fp.State[S, fp.Unit] {
 	}
 }
 
-func Eval[S, B any](f func(S) B) fp.State[S, B] {
+func GetS[S, B any](f func(S) B) fp.State[S, B] {
 	return func(s S) fp.Tuple2[B, S] {
 		return as.Tuple(f(s), s)
 	}

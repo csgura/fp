@@ -61,13 +61,13 @@ func ModifyT[S any](f func(S) fp.Try[S]) fp.StateT[S, fp.Unit] {
 	}
 }
 
-func Eval[S, A any](f func(S) A) fp.StateT[S, A] {
+func GetS[S, A any](f func(S) A) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
 		return try.Success(as.Tuple(f(s), s))
 	}
 }
 
-func EvalT[S, A any](f func(S) fp.Try[A]) fp.StateT[S, A] {
+func GetST[S, A any](f func(S) fp.Try[A]) fp.StateT[S, A] {
 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
 		return try.Zip(f(s), try.Success(s))
 	}
