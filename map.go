@@ -2,6 +2,8 @@ package fp
 
 import (
 	"fmt"
+	"iter"
+	"maps"
 )
 
 type MapBase[K, V any] interface {
@@ -175,10 +177,26 @@ func (r UnsafeGoMap[K, V]) Iterator() Iterator[Tuple2[K, V]] {
 	return IteratorOfSeq(seq)
 }
 
-func IteratorOfGoMap[K comparable, V any](m map[K]V) Iterator[Tuple2[K, V]] {
-	seq := []Tuple2[K, V]{}
-	for k, v := range m {
-		seq = append(seq, Tuple2[K, V]{k, v})
+func seq2[K, V any](seq iter.Seq2[K, V]) iter.Seq[Tuple2[K, V]] {
+	return func(yield func(Tuple2[K, V]) bool) {
+		for k, v := range seq {
+			if !yield(Tuple2[K, V]{
+				I1: k,
+				I2: v,
+			}) {
+				return
+			}
+
+		}
 	}
-	return IteratorOfSeq(seq)
+}
+
+func IteratorOfGoMap[K comparable, V any](m map[K]V) Iterator[Tuple2[K, V]] {
+	// seq := []Tuple2[K, V]{}
+	// for k, v := range m {
+	// 	seq = append(seq, Tuple2[K, V]{k, v})
+	// }
+	// return IteratorOfSeq(seq)
+
+	return MakePullIterator(seq2(maps.All(m)))
 }

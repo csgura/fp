@@ -2,6 +2,7 @@
 package iterator
 
 import (
+	"iter"
 	"sort"
 	"sync"
 
@@ -13,6 +14,10 @@ import (
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
 )
+
+func Pull[T any](seq iter.Seq[T]) fp.Iterator[T] {
+	return fp.MakePullIterator(seq)
+}
 
 func Empty[T any]() fp.Iterator[T] {
 	return fp.MakeIterator(func() bool {

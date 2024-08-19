@@ -1,6 +1,8 @@
 package mutable
 
 import (
+	"maps"
+
 	"github.com/csgura/fp"
 )
 
@@ -25,11 +27,13 @@ func (r Set[V]) ToSeq() []V {
 }
 
 func (r Set[V]) Iterator() fp.Iterator[V] {
-	seq := []V{}
-	for k := range r {
-		seq = append(seq, k)
-	}
-	return fp.IteratorOfSeq(seq)
+	// seq := []V{}
+	// for k := range r {
+	// 	seq = append(seq, k)
+	// }
+	// return fp.IteratorOfSeq(seq)
+
+	return fp.MakePullIterator(maps.Keys(r))
 }
 
 func (r Set[V]) Incl(v V) fp.SetMinimal[V] {
@@ -97,12 +101,14 @@ func (r Map[K, V]) Updated(k K, v V) fp.MapBase[K, V] {
 }
 
 func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
-	seq := []fp.Tuple2[K, V]{}
-	for k, v := range r {
-		seq = append(seq, fp.Tuple2[K, V]{
-			I1: k,
-			I2: v,
-		})
-	}
-	return fp.IteratorOfSeq(seq)
+	// seq := []fp.Tuple2[K, V]{}
+	// for k, v := range r {
+	// 	seq = append(seq, fp.Tuple2[K, V]{
+	// 		I1: k,
+	// 		I2: v,
+	// 	})
+	// }
+	// return fp.IteratorOfSeq(seq)
+
+	return fp.IteratorOfGoMap(r)
 }

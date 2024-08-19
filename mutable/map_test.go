@@ -1,6 +1,8 @@
 package mutable_test
 
 import (
+	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/csgura/fp"
@@ -76,5 +78,31 @@ func TestMapForAll(t *testing.T) {
 
 	anyTrue = mutable.MapOf(m).Values().Exists(fp.Id)
 	assert.False(anyTrue)
+
+}
+
+func TestMapIterator(t *testing.T) {
+
+	m := map[string]bool{
+		"1": false,
+		"2": true,
+		"3": false,
+		"4": true,
+	}
+
+	itr := fp.IteratorOfGoMap(m).Filter(func(t fp.Tuple2[string, bool]) bool {
+		return t.Last()
+	})
+
+	v := itr.Next()
+
+	fmt.Printf("v = %v\n", v)
+
+	runtime.GC()
+	fmt.Println("after gc1")
+
+	fmt.Printf("v = %v\n", itr.Next())
+	runtime.GC()
+	fmt.Println("after gc2")
 
 }

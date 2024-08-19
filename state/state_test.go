@@ -55,9 +55,9 @@ func pushOption[T any](v fp.Option[T]) fp.State[[]T, fp.Unit] {
 
 func calcPlus[T any](m fp.Monoid[T]) fp.State[[]T, fp.Unit] {
 	v1 := popState[T]()
-	v2 := popState[T]()
+	//v2 := popState[T]()
 
-	sum := state.Map2(v1, v2, monoid.Option(m).Combine)
+	sum := state.Map2(v1, v1, monoid.Option(m).Combine)
 	return state.FlatMap(sum, pushOption)
 }
 

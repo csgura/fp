@@ -3,6 +3,8 @@ package fp
 import (
 	"bytes"
 	"fmt"
+	"iter"
+	"runtime"
 )
 
 type Iterable[T any] interface {
@@ -437,4 +439,51 @@ func MakeIterator[T any](has func() bool, next func() T) Iterator[T] {
 		hasNext: has,
 		next:    next,
 	}
+}
+
+type pull[T any] struct {
+	nextfn func() (T, bool)
+	stop   func()
+	val    T
+	ok     bool
+}
+
+func (r *pull[T]) hasNext() bool {
+	return r.ok
+}
+
+func (r *pull[T]) next() T {
+	if !r.ok {
+		panic("next on empty iterator")
+	}
+
+	ret := r.val
+
+	r.val, r.ok = r.nextfn()
+
+	return ret
+}
+
+func (r *pull[T]) Close() error {
+
+	r.stop()
+
+	return nil
+}
+
+func MakePullIterator[T any](seq iter.Seq[T]) Iterator[T] {
+	nextfn, stopfn := iter.Pull(seq)
+
+	nv, ok := nextfn()
+	ret := &pull[T]{
+		nextfn: nextfn,
+		stop:   stopfn,
+		val:    nv,
+		ok:     ok,
+	}
+
+	runtime.SetFinalizer(ret, (*pull[T]).Close)
+
+	return MakeIterator(ret.hasNext, ret.next)
+
 }
