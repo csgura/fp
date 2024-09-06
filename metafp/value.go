@@ -3,6 +3,7 @@ package metafp
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 	"unicode"
@@ -74,6 +75,7 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 				Type:     tn,
 				Tag:      st.Tag(i),
 				Embedded: f.Embedded(),
+				Pos:      f.Pos(),
 			}
 		}).ToSeq()
 
@@ -166,6 +168,31 @@ func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation
 type PackagedName struct {
 	Package string
 	Name    string
+}
+
+func EvalTypeExprWithImport(pk *packages.Package, typeExpr ast.Expr) (types.Type, []genfp.ImportPackage) {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+		Uses:  map[*ast.Ident]types.Object{},
+	}
+	err := types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
+	if err != nil {
+		fmt.Printf("check expr err = %s\n", err)
+	}
+
+	var imports []genfp.ImportPackage
+	for k, v := range info.Uses {
+		if pk, ok := v.(*types.PkgName); ok {
+			imports = append(imports, genfp.ImportPackage{
+				Package: pk.Imported().Path(),
+				Name:    k.Name,
+			})
+
+		}
+	}
+
+	ti := info.Types[typeExpr]
+	return ti.Type, imports
 }
 
 func EvalTypeExpr(pk *packages.Package, typeExpr ast.Expr) types.Type {
@@ -475,12 +502,14 @@ func (r TypeInfo) Fields() fp.Seq[StructField] {
 		return under.Fields()
 	case *types.Struct:
 		return iterate(at.NumFields(), at.Field, func(i int, f *types.Var) StructField {
+
 			tn := typeInfo(f.Type())
 			return StructField{
 				Name:     f.Name(),
 				Type:     tn,
 				Tag:      at.Tag(i),
 				Embedded: f.Embedded(),
+				Pos:      f.Pos(),
 			}
 		})
 	}
@@ -881,6 +910,7 @@ type StructField struct {
 	Type     TypeInfo
 	Tag      string
 	Embedded bool
+	Pos      token.Pos
 }
 
 func (r StructField) Public() bool {
@@ -1025,4 +1055,35 @@ func typeInfo(tpe types.Type) TypeInfo {
 		Type:     tpe,
 		TypeName: tpe.String(),
 	}
+}
+
+type findPosVisitor struct {
+	pos   token.Pos
+	found ast.Node
+}
+
+func (r *findPosVisitor) Visit(node ast.Node) (w ast.Visitor) {
+
+	if node != nil && node.Pos() == r.pos {
+		r.found = node
+		return nil
+	}
+
+	return r
+}
+func FindNode(pk *packages.Package, pos token.Pos) ast.Node {
+	for _, f := range pk.Syntax {
+		if pos >= f.Pos() && pos <= f.End() {
+			for _, d := range f.Decls {
+				if pos >= d.Pos() && pos <= d.End() {
+
+					v := &findPosVisitor{pos: pos}
+					ast.Walk(v, d)
+					return v.found
+
+				}
+			}
+		}
+	}
+	return nil
 }

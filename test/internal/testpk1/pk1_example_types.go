@@ -436,3 +436,5 @@ func ShowShowConstraintExplicit[T fmt.Stringer]() fp.Show[ShowConstraintExplicit
 		return "t"
 	})
 }
+
+type Pk1Context = context.Context

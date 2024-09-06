@@ -1,8 +1,12 @@
+//go:debug gotypesalias=1
+
 package testpk2_test
 
 import (
 	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/types"
 	"os"
 	"testing"
 	"time"
@@ -218,5 +222,40 @@ func NotTestParseGenerateAdaptorDirective(t *testing.T) {
 		fmt.Printf("err = %s\n", err)
 	}
 	fmt.Printf("v = %v\n", v)
+
+}
+
+func TestAliasType(t *testing.T) {
+
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	ret := metafp.FindTaggedStruct(pkgs, "@TestAlias")
+	assert.Equal(ret.Size(), 1)
+	fmt.Printf("ret size = %d\n", ret.Size())
+	fmt.Printf("ret struct field type = %s\n", ret[0].Fields[0].Type.ID)
+
+	fd := metafp.FindNode(pkgs[0], ret[0].Fields[0].Pos)
+	fmt.Printf("fd = %T\n", fd)
+
+	if af, ok := fd.(*ast.Field); ok {
+		es := types.ExprString(af.Type)
+		fmt.Printf("es = %s\n", es)
+		tp, imps := metafp.EvalTypeExprWithImport(pkgs[0], af.Type)
+
+		fmt.Printf("tp = %s\n", tp)
+		for _, im := range imps {
+			fmt.Printf("import %s", im.Package)
+		}
+	}
 
 }

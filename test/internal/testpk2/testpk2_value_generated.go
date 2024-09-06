@@ -2,6 +2,7 @@
 package testpk2
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
@@ -1941,6 +1942,83 @@ func (r GetterOverride) Unapply() (string, string, string) {
 
 func (r GetterOverride) WithPrivField(v string) testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
+}
+
+func (r AliasTest) Ctx() context.Context {
+	return r.ctx
+}
+
+func (r AliasTest) WithCtx(v context.Context) AliasTest {
+	r.ctx = v
+	return r
+}
+
+func (r AliasTest) String() string {
+	return fmt.Sprintf("testpk2.AliasTest{ctx:%v}", r.ctx)
+}
+
+func (r AliasTest) AsTuple() fp.Tuple1[context.Context] {
+	return as.Tuple1(r.ctx)
+}
+
+func (r AliasTest) Unapply() context.Context {
+	return r.ctx
+}
+
+func (r AliasTest) AsMap() map[string]any {
+	m := map[string]any{}
+	m["ctx"] = r.ctx
+	return m
+}
+
+type AliasTestBuilder AliasTest
+
+func (r AliasTestBuilder) Build() AliasTest {
+	return AliasTest(r)
+}
+
+func (r AliasTest) Builder() AliasTestBuilder {
+	return AliasTestBuilder(r)
+}
+
+func (r AliasTestBuilder) Ctx(v context.Context) AliasTestBuilder {
+	r.ctx = v
+	return r
+}
+
+func (r AliasTestBuilder) FromTuple(t fp.Tuple1[context.Context]) AliasTestBuilder {
+	r.ctx = t.I1
+	return r
+}
+
+func (r AliasTestBuilder) Apply(ctx context.Context) AliasTestBuilder {
+	r.ctx = ctx
+	return r
+}
+
+func (r AliasTestBuilder) FromMap(m map[string]any) AliasTestBuilder {
+
+	if v, ok := m["ctx"].(context.Context); ok {
+		r.ctx = v
+	}
+
+	return r
+}
+
+type AliasTestMutable struct {
+	Ctx context.Context
+}
+
+func (r AliasTest) AsMutable() AliasTestMutable {
+	return AliasTestMutable{
+		Ctx: r.ctx,
+	}
+}
+
+func (r AliasTestMutable) AsImmutable() AliasTest {
+	return AliasTest{
+		ctx: r.Ctx,
+	}
 }
 
 func (r NotIgnored) Ig() int {

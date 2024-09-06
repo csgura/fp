@@ -228,3 +228,9 @@ var _ = genfp.GenerateFromUntil{
 	Until:    genfp.MaxProduct,
 	Template: "hello world",
 }
+
+// @fp.Value
+// @TestAlias
+type AliasTest struct {
+	ctx testpk1.Pk1Context
+}
