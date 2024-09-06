@@ -192,6 +192,15 @@ func EvalTypeExprWithImport(pk *packages.Package, typeExpr ast.Expr) (types.Type
 	}
 
 	ti := info.Types[typeExpr]
+
+	for _, v := range info.Uses {
+		if tn, ok := v.(*types.TypeName); ok {
+			if tn.Type() == ti.Type {
+				fmt.Printf("type aliased\n")
+			}
+		}
+	}
+
 	return ti.Type, imports
 }
 
