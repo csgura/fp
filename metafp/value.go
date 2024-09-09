@@ -238,6 +238,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 
 	tagSeq := as.Seq(tags)
 	return seq.FlatMap(p, func(pk *packages.Package) fp.Seq[TaggedStruct] {
+		working := genfp.NewWorkingPackage(pk.Types, pk.Fset, pk.Syntax)
 		s2 := seq.FlatMap(pk.Syntax, func(v *ast.File) fp.Seq[ast.Decl] {
 
 			return v.Decls
@@ -261,7 +262,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
 					}) {
 
-						return option.FlatMap(LookupStruct(pk.Types, ts.Name.Name), func(ret TaggedStruct) fp.Option[TaggedStruct] {
+						return option.FlatMap(LookupStruct(working.Package(), ts.Name.Name), func(ret TaggedStruct) fp.Option[TaggedStruct] {
 							ret.Tags = option.Map(doc, extractTag).OrZero()
 							if !tagSeq.Exists(ret.Tags.Contains) {
 								return option.None[TaggedStruct]()
@@ -353,7 +354,7 @@ type NamedTypeInfo struct {
 	Underlying TypeInfo
 }
 
-func (r NamedTypeInfo) PackagedName(w genfp.ImportSet, working *types.Package) string {
+func (r NamedTypeInfo) PackagedName(w genfp.ImportSet, working genfp.WorkingPackage) string {
 	if r.Package != nil && r.Package.Path() != working.Path() {
 		pk := w.GetImportedName(genfp.FromTypesPackage(r.Package))
 		return fmt.Sprintf("%s.%s", pk, r.Name)
@@ -501,8 +502,8 @@ func (r TypeInfo) PackagedName() PackagedName {
 	}
 }
 
-func (r TypeInfo) IsSamePkg(other *types.Package) bool {
-	return isSamePkg(r.Pkg, other)
+func (r TypeInfo) IsSamePkg(other genfp.WorkingPackage) bool {
+	return isSamePkg(other, genfp.FromTypesPackage(r.Pkg))
 }
 
 func (r TypeInfo) Fields() fp.Seq[StructField] {
@@ -534,7 +535,7 @@ func (r TypeInfo) HasTypeReference(checked fp.Set[string], refType TypeInfo) boo
 
 	checked = checked.Incl(r.ID)
 
-	if isSamePkg(r.Pkg, refType.Pkg) && r.TypeName == refType.TypeName {
+	if isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(refType.Pkg)) && r.TypeName == refType.TypeName {
 		return true
 	}
 
@@ -581,7 +582,7 @@ func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) fp.Tuple2[f
 	return as.Tuple2(usedParam, r)
 }
 
-func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
+func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 	if p1 == nil && p2 == nil {
 		return true
 	}
@@ -596,7 +597,7 @@ func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
 func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
 
 	// package가 동일해야 함
-	if !isSamePkg(r.Pkg, genericType.Pkg) {
+	if !isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(genericType.Pkg)) {
 		return ConstraintCheckResult{}
 	}
 
@@ -875,7 +876,7 @@ func (r TypeInfo) IsNilable() bool {
 	return false
 }
 
-func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd *types.Package) string {
+func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 	if len(r.TypeParam) > 0 {
 		return "[" + iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
 			tn := w.TypeName(cwd, v.Constraint)
@@ -886,7 +887,7 @@ func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd *types.Package) string {
 
 }
 
-func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd *types.Package) string {
+func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 	if len(r.TypeParam) > 0 {
 		return "[" + iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
 			return v.Name
@@ -895,14 +896,14 @@ func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd *types.Package) string {
 	return ""
 }
 
-func (r TypeInfo) TypeDeclStr(w genfp.ImportSet, cwd *types.Package) string {
+func (r TypeInfo) TypeDeclStr(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 	if r.TypeParam.Size() > 0 {
 		return w.TypeName(cwd, r.Type) + r.TypeParamDecl(w, cwd)
 	}
 	return w.TypeName(cwd, r.Type)
 }
 
-func (r TypeInfo) TypeStr(w genfp.ImportSet, cwd *types.Package) string {
+func (r TypeInfo) TypeStr(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 	if r.TypeParam.Size() > 0 {
 		return w.TypeName(cwd, r.Type) + r.TypeParamIns(w, cwd)
 	}

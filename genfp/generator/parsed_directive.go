@@ -304,7 +304,7 @@ type DelegateDirective struct {
 }
 
 type GenerateAdaptorDirective struct {
-	Package             *packages.Package
+	Package             genfp.WorkingPackage
 	Interface           *types.Named
 	File                string
 	Name                string
@@ -442,7 +442,7 @@ func evalTypeOf(pk *packages.Package) func(p *packages.Package, exp ast.Expr) (T
 
 func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret := GenerateAdaptorDirective{
-		Package: lit.Package,
+		Package: lit.WorkingPackage(),
 		Methods: map[string]ImplOptionDirective{},
 	}
 
@@ -792,7 +792,7 @@ func evalDelegate(pk *packages.Package) func(p *packages.Package, e ast.Expr) (D
 }
 
 type GenerateMonadFunctionsDirective struct {
-	Package    *packages.Package
+	Package    genfp.WorkingPackage
 	TargetType *types.Named
 	// 생성될 file 이름
 	File     string
@@ -801,7 +801,7 @@ type GenerateMonadFunctionsDirective struct {
 
 func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective, error) {
 	ret := GenerateMonadFunctionsDirective{
-		Package: lit.Package,
+		Package: lit.WorkingPackage(),
 	}
 
 	if lit.Type.TypeArgs().Len() != 1 {
@@ -846,7 +846,7 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 
 type GenerateMonadTransformerDirective struct {
 	Name       string
-	Package    *packages.Package
+	Package    genfp.WorkingPackage
 	TargetType *types.Named
 	MonadType  *types.Named
 	// 생성될 file 이름
@@ -860,7 +860,7 @@ type GenerateMonadTransformerDirective struct {
 
 func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
 	ret := GenerateMonadTransformerDirective{
-		Package: lit.Package,
+		Package: genfp.NewWorkingPackage(lit.Package.Types, lit.Package.Fset, lit.Package.Syntax),
 	}
 
 	if lit.Type.TypeArgs().Len() != 1 {

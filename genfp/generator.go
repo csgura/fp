@@ -3,7 +3,9 @@ package genfp
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/format"
+	"go/token"
 	"go/types"
 	"io"
 	"log"
@@ -251,37 +253,37 @@ type importAlias struct {
 	isalias bool
 }
 
-func (r *importSet) AddImport(p ImportPackage) bool {
-	alias := p.Name
+func (r *importSet) AddImport(p PackageId) bool {
+	alias := p.Alias()
 
 	_, ok := r.NameToPath[alias]
 	if ok {
 		return false
 	}
 
-	parr := strings.Split(p.Package, "/")
+	parr := strings.Split(p.Path(), "/")
 	plast := parr[len(parr)-1]
 
 	ia := importAlias{
-		path:    p.Package,
+		path:    p.Path(),
 		alias:   alias,
 		isalias: plast != alias,
 	}
 
-	r.PathToName[p.Package] = ia
+	r.PathToName[p.Path()] = ia
 	r.NameToPath[alias] = ia
 
 	return true
 }
 
-func (r *importSet) GetImportedName(p ImportPackage) string {
-	ret, ok := r.PathToName[p.Package]
+func (r *importSet) GetImportedName(p PackageId) string {
+	ret, ok := r.PathToName[p.Path()]
 	if ok {
 		return ret.alias
 	}
 
 	i := 1
-	alias := p.Name
+	alias := p.Alias()
 
 	for {
 		added := r.AddImport(p)
@@ -289,8 +291,8 @@ func (r *importSet) GetImportedName(p ImportPackage) string {
 			return alias
 		}
 
-		alias = fmt.Sprintf("%s%d", p.Name, i)
-		p = NewImportPackage(p.Package, alias)
+		alias = fmt.Sprintf("%s%d", p.Alias(), i)
+		p = NewImportPackage(p.Path(), alias)
 		i++
 	}
 }
@@ -314,7 +316,7 @@ func (r *writer) ImportList() []string {
 	return ret
 }
 
-func (r *importSet) ZeroExpr(pk *types.Package, tpe types.Type) string {
+func (r *importSet) ZeroExpr(pk WorkingPackage, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:
 		if _, ok := realtp.Underlying().(*types.Interface); ok {
@@ -358,7 +360,7 @@ func (r *importSet) ZeroExpr(pk *types.Package, tpe types.Type) string {
 	return tpe.String()
 }
 
-func (r *importSet) TypeName(pk *types.Package, tpe types.Type) string {
+func (r *importSet) TypeName(pk WorkingPackage, tpe types.Type) string {
 	//fmt.Printf("type %s %T\n", tpe.String(), tpe)
 	switch realtp := tpe.(type) {
 	case *types.Basic:
@@ -466,7 +468,23 @@ func (r *importSet) TypeName(pk *types.Package, tpe types.Type) string {
 	return tpe.String()
 }
 
+type ImportPackage struct {
+	Package string
+	Name    string
+}
+
+func (r ImportPackage) Path() string {
+	return r.Package
+}
+
+func (r ImportPackage) Alias() string {
+	return r.Name
+}
+
 func FromTypesPackage(pk *types.Package) ImportPackage {
+	if pk == nil {
+		return ImportPackage{}
+	}
 	return ImportPackage{
 		Package: pk.Path(),
 		Name:    pk.Name(),
@@ -480,11 +498,73 @@ func NewImportPackage(pkg string, name string) ImportPackage {
 	}
 }
 
+type WorkingPackage interface {
+	Path() string
+	Alias() string
+	Scope() *types.Scope
+	Package() *types.Package
+}
+
+func NewWorkingPackage(pk *types.Package, fset *token.FileSet, syntax []*ast.File) WorkingPackage {
+
+	fmt.Printf("new working package fset = \n")
+
+	return &workingPackage{
+		currentPackage: pk,
+		fset:           fset,
+		syntax:         syntax,
+	}
+}
+
+type workingPackage struct {
+	fset           *token.FileSet
+	syntax         []*ast.File
+	currentPackage *types.Package
+}
+
+// Scope implements WorkingPackage.
+func (w *workingPackage) Scope() *types.Scope {
+	if w == nil || w.currentPackage == nil {
+		return nil
+	}
+
+	return w.currentPackage.Scope()
+}
+
+// Name implements WorkingPackage.
+func (w *workingPackage) Alias() string {
+	if w == nil || w.currentPackage == nil {
+		return ""
+	}
+	return w.currentPackage.Name()
+}
+
+// Path implements WorkingPackage.
+func (w *workingPackage) Path() string {
+	if w == nil || w.currentPackage == nil {
+		return ""
+	}
+	return w.currentPackage.Path()
+}
+
+func (w *workingPackage) Package() *types.Package {
+	if w == nil || w.currentPackage == nil {
+		return nil
+	}
+	return w.currentPackage
+}
+
+var _ WorkingPackage = &workingPackage{}
+
+type PackageId interface {
+	Path() string
+	Alias() string
+}
 type ImportSet interface {
-	AddImport(p ImportPackage) bool
-	GetImportedName(p ImportPackage) string
-	TypeName(pk *types.Package, tpe types.Type) string
-	ZeroExpr(pk *types.Package, tpe types.Type) string
+	AddImport(p PackageId) bool
+	GetImportedName(p PackageId) string
+	TypeName(pk WorkingPackage, tpe types.Type) string
+	ZeroExpr(pk WorkingPackage, tpe types.Type) string
 }
 
 type Writer interface {
@@ -721,9 +801,4 @@ func (r Range) Render(txt string, funcs map[string]any, param map[string]any) {
 		fmt.Printf("template = %s\n", txt)
 		panic(err)
 	}
-}
-
-type ImportPackage struct {
-	Package string
-	Name    string
 }

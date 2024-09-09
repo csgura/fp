@@ -12,7 +12,7 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
-func InstiateTransfomer(w genfp.Writer, pk *types.Package, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
+func InstiateTransfomer(w genfp.Writer, pk genfp.WorkingPackage, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
 
 	rettype := NameParamReplaced(w, pk, monadType, p)
 	return func(newname string, fmtargs ...any) string {
@@ -113,7 +113,7 @@ func CallFunc(w genfp.Writer, tr TypeReference) func(replace map[string]string) 
 	}
 }
 
-func FlatMapRetType(w genfp.Writer, pk *types.Package, tr TypeReference, fixed []string) string {
+func FlatMapRetType(w genfp.Writer, pk genfp.WorkingPackage, tr TypeReference, fixed []string) string {
 	if sig, ok := tr.Type.(*types.Signature); ok {
 		if sig.Results().Len() == 1 {
 			rettp := sig.Results().At(0).Type()
@@ -136,9 +136,9 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
 		if tp, ok := t.(*types.TypeParam); ok {
 			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
-				return fmt.Sprintf("A %s", w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("A %s", w.TypeName(md.Package, tp.Constraint()))
 			} else {
-				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package, tp.Constraint()))
 			}
 		}
 		return ""
@@ -148,19 +148,19 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	tpargs1 := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
 		if tp, ok := t.(*types.TypeParam); ok {
 			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
-				return fmt.Sprintf("A1 %s", w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("A1 %s", w.TypeName(md.Package, tp.Constraint()))
 			} else {
-				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package, tp.Constraint()))
 			}
 		}
 		return ""
 
 	}), func(v string) bool { return v != "" }), ",")
 
-	outertype := NameParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
-	innertype := NameParamReplaced(w, md.Package.Types, md.MonadType, md.TypeParm)
+	outertype := NameParamReplaced(w, md.Package, md.TargetType, md.TypeParm)
+	innertype := NameParamReplaced(w, md.Package, md.MonadType, md.TypeParm)
 
-	combinedtype := InstiateTransfomer(w, md.Package.Types, md.TargetType, md.MonadType, md.TypeParm)
+	combinedtype := InstiateTransfomer(w, md.Package, md.TargetType, md.MonadType, md.TypeParm)
 
 	// srctype := rettype("A")
 	// rettp := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
@@ -177,7 +177,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
-	fixedParams := FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm)
+	fixedParams := FixedParams(w, md.Package, md.TargetType, md.TypeParm)
 	fixedStr := strings.Join(fixedParams, ",")
 
 	pureins := CallFunc(w, md.Pure)
@@ -189,7 +189,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 	flatmapf := CallFunc(w, md.FlatMap)
 
-	flatmapRet := FlatMapRetType(w, md.Package.Types, md.FlatMap, fixedParams)
+	flatmapRet := FlatMapRetType(w, md.Package, md.FlatMap, fixedParams)
 
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
@@ -333,9 +333,9 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				var tpe string
 				if sig.Variadic() && i == sig.Params().Len()-1 {
 					st := t.Type().(*types.Slice)
-					tpe = w.TypeName(md.Package.Types, st.Elem())
+					tpe = w.TypeName(md.Package, st.Elem())
 				} else {
-					tpe = w.TypeName(md.Package.Types, t.Type())
+					tpe = w.TypeName(md.Package, t.Type())
 				}
 				return tpe
 			})
@@ -372,13 +372,13 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				})
 
 				retType := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-					return w.TypeName(md.Package.Types, t.Type())
+					return w.TypeName(md.Package, t.Type())
 				})
 
 				if len(retType) > 0 {
 					tp := seqMap(t.TypeParams, func(v TypeReference) string {
 						if p, ok := v.Type.(*types.TypeParam); ok {
-							return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package.Types, p.Constraint()))
+							return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package, p.Constraint()))
 						}
 						return ""
 					})

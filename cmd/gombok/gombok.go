@@ -22,7 +22,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
+func isSamePkg(p1 genfp.WorkingPackage, p2 genfp.PackageId) bool {
 	if p1 == nil && p2 == nil {
 		return true
 	}
@@ -33,7 +33,7 @@ func isSamePkg(p1 *types.Package, p2 *types.Package) bool {
 	return p1.Path() == p2.Path()
 }
 
-func namedName(w genfp.Writer, working *types.Package, typePkg *types.Package, name string) string {
+func namedName(w genfp.Writer, working genfp.WorkingPackage, typePkg genfp.WorkingPackage, name string) string {
 
 	ret := publicName(name)
 	if ret == name {
@@ -45,7 +45,7 @@ func namedName(w genfp.Writer, working *types.Package, typePkg *types.Package, n
 	if isSamePkg(working, typePkg) {
 		return ret
 	} else {
-		return fmt.Sprintf("%s.%s", w.GetImportedName(genfp.FromTypesPackage(typePkg)), ret)
+		return fmt.Sprintf("%s.%s", w.GetImportedName(typePkg), ret)
 	}
 
 }
@@ -58,11 +58,11 @@ func privateName(name string) string {
 	return strings.ToLower(name[:1]) + name[1:]
 }
 
-func isTypeDefined(pk *types.Package, name string) bool {
+func isTypeDefined(pk genfp.WorkingPackage, name string) bool {
 	return pk.Scope().Lookup(name) != nil
 }
 
-func isMethodDefined(pk *types.Package, tpeName string, method string) bool {
+func isMethodDefined(pk genfp.WorkingPackage, tpeName string, method string) bool {
 	obj := pk.Scope().Lookup(tpeName)
 	if obj == nil {
 		return false
@@ -297,11 +297,11 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 
 			tc := metafp.TypeClass{
 				Name:    "Show",
-				Package: types.NewPackage("github.com/csgura/fp", "fp"),
+				Package: genfp.NewImportPackage("github.com/csgura/fp", "fp"),
 			}
 
 			// ctx.summCtx.summon(ctx CurrentContext, req metafp.RequiredInstance)
-			scope := tccache.GetLocal(workingPackage, tc)
+			scope := tccache.GetLocal(workingPackage.Package(), tc)
 
 			showDerive := derives.Find(func(v metafp.TypeClassDerive) bool {
 				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
@@ -895,13 +895,13 @@ func processAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Se
 
 type TaggedStructContext struct {
 	w              genfp.Writer
-	workingPackage *types.Package
+	workingPackage genfp.WorkingPackage
 	ts             metafp.TaggedStruct
 	summCtx        *TypeClassSummonContext
 	derives        fp.Seq[metafp.TypeClassDerive]
 }
 
-func genTaggedStruct(w genfp.Writer, workingPackage *types.Package, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext) {
+func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext) {
 	keyTags := mutable.EmptySet[string]()
 
 	st.Foreach(func(ts metafp.TaggedStruct) {
@@ -1427,7 +1427,7 @@ func genValueAndGetter() {
 			return
 		}
 
-		workingPackage := pkgs[0].Types
+		workingPackage := genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax)
 
 		st := metafp.FindTaggedStruct(pkgs,
 			"@fp.Value",

@@ -36,7 +36,7 @@ type TypeClassSummonContext struct {
 }
 
 type CurrentContext struct {
-	working      *types.Package
+	working      genfp.WorkingPackage
 	tc           metafp.TypeClassDerive
 	primScope    metafp.TypeClassScope
 	workingScope metafp.TypeClassScope
@@ -69,7 +69,7 @@ var EqParamInstance = eq.New(func(a, b ParamInstance) bool {
 	return true
 })
 
-func (r ParamInstance) Expr(importSet genfp.ImportSet, working *types.Package) string {
+func (r ParamInstance) Expr(importSet genfp.ImportSet, working genfp.WorkingPackage) string {
 	return fmt.Sprintf("%s %s[%s]", r.ArgName, r.TypeClass.PackagedName(importSet, working), r.ParamName)
 }
 
@@ -104,7 +104,7 @@ type ArgumentInstance struct {
 	typeParam  fp.Option[metafp.TypeClass]
 }
 
-func (r ArgumentInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
+func (r ArgumentInstance) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 	param := option.Map(r.typeParam, func(v metafp.TypeClass) ParamInstance {
 		return ParamInstance{
 			ArgName:   r.name,
@@ -132,7 +132,7 @@ type DefinedInstance struct {
 	local      bool
 }
 
-func (r DefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
+func (r DefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 	if r.pk == nil || r.pk.Path() == workingPkg.Path() {
 		return SummonExpr{
 			expr: r.name,
@@ -164,7 +164,7 @@ type NotDefinedInstance struct {
 	required   fp.Seq[metafp.RequiredInstance]
 }
 
-func (r NotDefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
+func (r NotDefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 	return SummonExpr{
 		expr: r.name,
 	}
@@ -174,10 +174,10 @@ func (r NotDefinedInstance) Required() fp.Seq[metafp.RequiredInstance] {
 }
 
 type SummonExprInstance struct {
-	expr func(w genfp.ImportSet, workingPkg *types.Package) SummonExpr
+	expr func(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr
 }
 
-func (r SummonExprInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
+func (r SummonExprInstance) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 	return r.expr(w, workingPkg)
 }
 
@@ -244,7 +244,7 @@ func (r lookupTarget) isFunc() bool {
 	return false
 }
 
-func (r lookupTarget) instanceExpr(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
+func (r lookupTarget) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 
 	return either.Fold(
 		r.target,
@@ -263,7 +263,7 @@ func (r *TypeClassSummonContext) typeclassInstanceMust(ctx CurrentContext, req m
 
 	genName := req.TypeClass.Name + publicName(name)
 
-	if req.Type.Pkg != nil && req.Type.Pkg.Path() != "" && !isSamePkg(ctx.working, req.Type.Pkg) {
+	if req.Type.Pkg != nil && req.Type.Pkg.Path() != "" && !isSamePkg(ctx.working, genfp.FromTypesPackage(req.Type.Pkg)) {
 		genName = req.TypeClass.Name + publicName(req.Type.Pkg.Name()) + publicName(name)
 	}
 
@@ -294,7 +294,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 
 	scope := ctx.workingScope
 	if req.TypeClass.Id() != ctx.tc.TypeClass.Id() {
-		scope = r.tcCache.GetLocal(ctx.working, req.TypeClass)
+		scope = r.tcCache.GetLocal(ctx.working.Package(), req.TypeClass)
 	}
 	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
 		if f.Pkg != nil && ctx.working.Path() != f.Pkg.Path() {
@@ -400,7 +400,7 @@ func (r *TypeClassSummonContext) lookupHConsMust(ctx CurrentContext, tc metafp.T
 	nameWithTc := tc.Name + "HCons"
 
 	return metafp.TypeClassInstance{
-		Package: ctx.working,
+		Package: ctx.working.Package(),
 		Name:    nameWithTc,
 		Static:  true,
 	}
@@ -419,7 +419,7 @@ func (r *TypeClassSummonContext) lookupHNilMust(ctx CurrentContext, tc metafp.Ty
 	nameWithTc := tc.Name + "HNil"
 
 	return metafp.TypeClassInstance{
-		Package: ctx.working,
+		Package: ctx.working.Package(),
 		Name:    nameWithTc,
 		Static:  true,
 	}
@@ -432,7 +432,7 @@ func (r *TypeClassSummonContext) lookupTypeClassFunc(ctx CurrentContext, tc meta
 	primScope := ctx.primScope
 	if ctx.tc.TypeClass.Id() != tc.Id() {
 		primScope = r.tcCache.GetImported(tc)
-		workingScope = r.tcCache.GetLocal(ctx.working, tc)
+		workingScope = r.tcCache.GetLocal(ctx.working.Package(), tc)
 	}
 
 	ins := workingScope.FindFunc(nameWithTc)
@@ -458,7 +458,7 @@ func (r *TypeClassSummonContext) lookupTypeClassFuncMust(ctx CurrentContext, tc 
 	nameWithTc := tc.Name + name
 
 	return metafp.TypeClassInstance{
-		Package: ctx.working,
+		Package: ctx.working.Package(),
 		Name:    nameWithTc,
 		Static:  true,
 	}
@@ -871,7 +871,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx CurrentContext, req
 		fields := f.Fields()
 
 		if fields.ForAll(metafp.StructField.Public) || req.FieldOf.Exists(fp.Test(metafp.TypeInfo.IsSamePkg, ctx.working)) {
-			ret := func(w genfp.ImportSet, workingPkg *types.Package) SummonExpr {
+			ret := func(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 				return r.summonUntypedStruct(ctx, req.TypeClass, f, fields)
 			}
 			return lookupTarget{
@@ -960,7 +960,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx CurrentContext, named fp.Op
 	return fmt.Sprintf(`%s{%s}`, valuereceiver, argslist)
 }
 
-func namedOrRuntime(w genfp.ImportSet, working *types.Package, typePkg *types.Package, name string, labelledGen bool) string {
+func namedOrRuntime(w genfp.ImportSet, working genfp.WorkingPackage, typePkg *types.Package, name string, labelledGen bool) string {
 
 	if labelledGen {
 		ret := publicName(name)
@@ -970,7 +970,7 @@ func namedOrRuntime(w genfp.ImportSet, working *types.Package, typePkg *types.Pa
 			ret = fmt.Sprintf("Named%s", ret)
 		}
 
-		if isSamePkg(working, typePkg) {
+		if isSamePkg(working, genfp.FromTypesPackage(typePkg)) {
 			return ret
 		} else {
 			return fmt.Sprintf("%s.%s", w.GetImportedName(genfp.FromTypesPackage(typePkg)), ret)
@@ -1202,15 +1202,15 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		}).MakeString(",") + "]"
 	}
 
-	typeStr := func(pk *types.Package) string {
+	typeStr := func(pk genfp.WorkingPackage) string {
 		return fmt.Sprintf("%s%s", named.PackagedName(r.w, ctx.working), valuetp)
 	}
 
-	builderTypeStr := func(pk *types.Package) string {
+	builderTypeStr := func(pk genfp.WorkingPackage) string {
 		return fmt.Sprintf("%sBuilder%s", named.PackagedName(r.w, ctx.working), valuetp)
 	}
 
-	if !hasUnapply && !isSamePkg(ctx.working, named.Package) {
+	if !hasUnapply && !isSamePkg(ctx.working, genfp.FromTypesPackage(named.Package)) {
 		fields = fields.Filter(func(v metafp.StructField) bool { return v.Public() })
 	}
 
@@ -1389,7 +1389,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 
 func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe metafp.TypeInfo, fields fp.Seq[metafp.StructField]) structFunctions {
 
-	typeStr := func(pk *types.Package) string {
+	typeStr := func(pk genfp.WorkingPackage) string {
 		valuereceiver := "struct { " + seq.Map(fields, func(v metafp.StructField) string {
 			if v.Embedded {
 				return r.w.TypeName(ctx.working, v.Type.Type)
@@ -1498,7 +1498,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	}
 
 	sf := structFunctions{
-		pack:         ctx.working,
+		pack:         ctx.working.Package(),
 		tpe:          tpe,
 		fields:       fields,
 		asTuple:      tupleFuncExpr,
@@ -1526,7 +1526,7 @@ type structFunctions struct {
 	fields         fp.Seq[metafp.StructField]
 	namedGenerated bool
 
-	typeStr func(pk *types.Package) string
+	typeStr func(pk genfp.WorkingPackage) string
 
 	// func( v struct{} ) fp.Tuple2[A,B] {}
 	asTuple func() string
@@ -1816,7 +1816,7 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 func (r *TypeClassSummonContext) SummonExpression(tc metafp.TypeClassDerive) SummonExpr {
 
 	ctx := CurrentContext{
-		workingScope: r.tcCache.GetLocal(tc.Package, tc.TypeClass),
+		workingScope: r.tcCache.GetLocal(tc.Package.Package(), tc.TypeClass),
 		primScope:    r.tcCache.Get(tc.PrimitiveInstancePkg, tc.TypeClass),
 		tc:           tc,
 		working:      tc.Package,
@@ -1997,7 +1997,7 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 	workingPackage := tc.Package
 
 	ctx := CurrentContext{
-		workingScope: r.tcCache.GetLocal(tc.Package, tc.TypeClass),
+		workingScope: r.tcCache.GetLocal(tc.Package.Package(), tc.TypeClass),
 		primScope:    r.tcCache.Get(tc.PrimitiveInstancePkg, tc.TypeClass),
 		tc:           tc,
 		working:      workingPackage,

@@ -120,7 +120,7 @@ func fillOption(ret generator.GenerateAdaptorDirective, intf *types.Interface) (
 	return ret, nil
 }
 
-func typeDecl(pk *types.Package, w genfp.Writer, t genfp.TypeReference) string {
+func typeDecl(pk genfp.WorkingPackage, w genfp.Writer, t genfp.TypeReference) string {
 	if t.Type != nil {
 		return w.TypeName(pk, t.Type)
 	}
@@ -142,7 +142,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 		efield := seq.Last(strings.Split(i.StringExpr, "."))
 		if efield.IsDefined() {
 			if !fieldSet.Contains(efield.Get()) {
-				fieldList = append(fieldList, typeDecl(gad.Package.Types, w, i))
+				fieldList = append(fieldList, typeDecl(gad.Package, w, i))
 			}
 			fieldSet = fieldSet.Updated(efield.Get(), i)
 
@@ -162,7 +162,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 		efield := seq.Last(strings.Split(e.StringExpr, "."))
 		if efield.IsDefined() {
 			if !fieldSet.Contains(efield.Get()) {
-				fieldList = append(fieldList, typeDecl(gad.Package.Types, w, e))
+				fieldList = append(fieldList, typeDecl(gad.Package, w, e))
 			}
 
 			fieldSet = fieldSet.Updated(efield.Get(), e)
@@ -171,7 +171,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	for k, e := range gad.ExtendsWith {
 		if !fieldSet.Contains(k) {
-			fieldList = append(fieldList, fmt.Sprintf("%s %s", k, typeDecl(gad.Package.Types, w, e)))
+			fieldList = append(fieldList, fmt.Sprintf("%s %s", k, typeDecl(gad.Package, w, e)))
 		}
 		fieldSet = fieldSet.Updated(k, e)
 	}
@@ -198,7 +198,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 		}).Get()
 
 		fieldSet = fieldSet.Updated(fn, d.TypeOf)
-		fieldList = append(fieldList, fmt.Sprintf("%s %s", fn, typeDecl(gad.Package.Types, w, d.TypeOf)))
+		fieldList = append(fieldList, fmt.Sprintf("%s %s", fn, typeDecl(gad.Package, w, d.TypeOf)))
 
 	}
 
@@ -214,8 +214,8 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 	intf := gad.Interface.Underlying().(*types.Interface)
 
 	ti := metafp.GetTypeInfo(gad.Interface)
-	decltp := ti.TypeParamDecl(w, gad.Package.Types)
-	valuetp := ti.TypeParamIns(w, gad.Package.Types)
+	decltp := ti.TypeParamDecl(w, gad.Package)
+	valuetp := ti.TypeParamIns(w, gad.Package)
 
 	gad, _ = fillOption(gad, intf)
 	fields, methodSet := fieldAndImplOfInterfaceImpl2(w, gad, gad.Interface, adaptorTypeName+valuetp, superField, fieldSet, methodSet)
@@ -265,7 +265,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	extends := ""
 	if gad.Extends && !gad.ExtendsByEmbedding {
-		extends = "Extends " + w.TypeName(gad.Package.Types, gad.Interface)
+		extends = "Extends " + w.TypeName(gad.Package, gad.Interface)
 	}
 
 	fieldDecl := seq.Of(extends)
@@ -422,9 +422,9 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 	args := r.matchSuperMethodArgs(field)
 	argstr := option.Map(args, CallArgs.ArgList).OrElse(r.argStr)
 
-	implArgs := option.Map(args, as.Func3(CallArgs.ArgTypeList).ApplyLast2(r.w, r.gad.Package.Types)).Map(func(s string) string {
+	implArgs := option.Map(args, as.Func3(CallArgs.ArgTypeList).ApplyLast2(r.w, r.gad.Package)).Map(func(s string) string {
 		if gad.ExtendsSelfCheck {
-			return "self " + r.w.TypeName(gad.Package.Types, gad.Interface) + "," + s
+			return "self " + r.w.TypeName(gad.Package, gad.Interface) + "," + s
 		}
 		return s
 	}).OrElse(r.implArgs)
@@ -484,7 +484,7 @@ func (r CallArgs) ArgList() string {
 	return iterator.Map(iterator.FromSlice(r.args), xtr.Head).MakeString(",")
 }
 
-func (r CallArgs) ArgTypeList(w genfp.Writer, pk *types.Package) string {
+func (r CallArgs) ArgTypeList(w genfp.Writer, pk genfp.WorkingPackage) string {
 	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Tuple2[string, types.Type]) string {
 		if r.variadic && i == r.args.Size()-1 {
 			return fmt.Sprintf("%s... %s", v.I1, w.TypeName(pk, v.I2))
@@ -548,7 +548,7 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 
 	fieldTpe := r.fieldMap.Get(superField)
 	if fieldTpe.IsDefined() && fieldTpe.Get().Type != nil {
-		zeroval := r.w.ZeroExpr(gad.Package.Types, fieldTpe.Get().Type)
+		zeroval := r.w.ZeroExpr(gad.Package, fieldTpe.Get().Type)
 		if zeroval != "nil" {
 			cbNilCheck = false
 		}
@@ -588,7 +588,7 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 					if super , ok := r.%s.(%s); ok {
 						%s
 					}
-				`, field, r.w.TypeName(gad.Package.Types, r.namedInterface),
+				`, field, r.w.TypeName(gad.Package, r.namedInterface),
 				r.withReturn(false, "super.%s(%s)", r.t.Name(), r.argStr),
 			)
 
@@ -624,9 +624,9 @@ func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
 
 	defaultField := option.Map(option.Of(r.isValOverride()).Filter(fp.Id), func(v bool) string {
 		if opt.ValOverrideUsingPtr {
-			return fmt.Sprintf("%s *%s", r.valName, r.w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
+			return fmt.Sprintf("%s *%s", r.valName, r.w.TypeName(gad.Package, sig.Results().At(0).Type()))
 		}
-		return fmt.Sprintf("%s %s", r.valName, r.w.TypeName(gad.Package.Types, sig.Results().At(0).Type()))
+		return fmt.Sprintf("%s %s", r.valName, r.w.TypeName(gad.Package, sig.Results().At(0).Type()))
 	})
 
 	return defaultField, cbfield
@@ -667,7 +667,7 @@ func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 			return option.Some(ret), false
 		}
 
-		zeroVal := w.ZeroExpr(gad.Package.Types, sig.Results().At(0).Type())
+		zeroVal := w.ZeroExpr(gad.Package, sig.Results().At(0).Type())
 		if hasNil(sig.Results().At(0).Type()) {
 			ret := fmt.Sprintf(`if r.%s != nil {
 								return r.%s
@@ -692,7 +692,7 @@ func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 							return r.%s
 						}
 					
-					`, w.TypeName(gad.Package.Types, sig.Results().At(0).Type()),
+					`, w.TypeName(gad.Package, sig.Results().At(0).Type()),
 				valName,
 				valName)
 			return option.Some(ret), false
@@ -735,7 +735,7 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 			return option.Some[string]("")
 		}
 		zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-			return w.ZeroExpr(gad.Package.Types, t.Type())
+			return w.ZeroExpr(gad.Package, t.Type())
 		}).MakeString(",")
 		if zeroval != "" {
 			return option.Some(fmt.Sprintf(`return %s`, zeroval))
@@ -784,7 +784,7 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 		printer.Fprint(buf, fs, opt.DefaultImplExpr)
 		if sig.Results().Len() > 1 {
 			zeroval := iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-				return w.ZeroExpr(gad.Package.Types, t.Type())
+				return w.ZeroExpr(gad.Package, t.Type())
 			}).Drop(1).MakeString(",")
 			return option.Some("return " + buf.String() + "," + zeroval)
 		} else {
@@ -849,7 +849,7 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 
 	selfarg := ""
 	if gad.Self {
-		selfarg = "self " + w.TypeName(gad.Package.Types, gad.Interface) + ","
+		selfarg = "self " + w.TypeName(gad.Package, gad.Interface) + ","
 	}
 
 	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
@@ -869,21 +869,21 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 	argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 		if sig.Variadic() && i == sig.Params().Len()-1 {
 			st := t.Type().(*types.Slice)
-			return fmt.Sprintf("%s ...%s", argName(i, t), w.TypeName(gad.Package.Types, st.Elem()))
+			return fmt.Sprintf("%s ...%s", argName(i, t), w.TypeName(gad.Package, st.Elem()))
 		}
-		return fmt.Sprintf("%s %s", argName(i, t), w.TypeName(gad.Package.Types, t.Type()))
+		return fmt.Sprintf("%s %s", argName(i, t), w.TypeName(gad.Package, t.Type()))
 	}).MakeString(",")
 
 	resstr := ""
 	if sig.Results().Len() > 0 {
 		resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-			return w.TypeName(gad.Package.Types, t.Type())
+			return w.TypeName(gad.Package, t.Type())
 		}).MakeString(",") + ")"
 	}
 
 	implArgs := argTypeStr
 	if gad.ExtendsSelfCheck {
-		implArgs = "self " + w.TypeName(gad.Package.Types, gad.Interface) + "," + argTypeStr
+		implArgs = "self " + w.TypeName(gad.Package, gad.Interface) + "," + argTypeStr
 	}
 
 	implName := func() string {

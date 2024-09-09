@@ -19,7 +19,7 @@ import (
 
 type TypeClass struct {
 	Name    string
-	Package *types.Package
+	Package genfp.PackageId
 }
 
 func (r TypeClass) IsLazy() bool {
@@ -33,16 +33,16 @@ func (r TypeClass) Id() string {
 	return r.Name
 }
 
-func (r TypeClass) PackagedName(w genfp.ImportSet, workingPackage *types.Package) string {
+func (r TypeClass) PackagedName(w genfp.ImportSet, workingPackage genfp.WorkingPackage) string {
 	if r.Package != nil && r.Package.Path() != workingPackage.Path() {
-		pk := w.GetImportedName(genfp.FromTypesPackage(r.Package))
+		pk := w.GetImportedName(r.Package)
 		return fmt.Sprintf("%s.%s", pk, r.Name)
 	}
 	return r.Name
 }
 
 type TypeClassDerive struct {
-	Package              *types.Package
+	Package              genfp.WorkingPackage
 	PrimitiveInstancePkg *types.Package
 	TypeClass            TypeClass
 	TypeClassType        TypeInfo
@@ -88,7 +88,7 @@ func (r TypeClassDerive) GeneratedInstanceName() string {
 }
 
 type TypeClassDirective struct {
-	Package              *types.Package
+	Package              genfp.WorkingPackage
 	PrimitiveInstancePkg *types.Package
 	TypeClass            TypeClass
 	TypeClassType        TypeInfo
@@ -138,11 +138,11 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 									//fmt.Printf("tcType = %s\n", tcType)
 
 									return seq.Of(TypeClassDirective{
-										Package:              pk.Types,
+										Package:              genfp.NewWorkingPackage(pk.Types, pk.Fset, pk.Syntax),
 										PrimitiveInstancePkg: nt.Obj().Pkg(),
 										TypeClass: TypeClass{
 											Name:    tt.Obj().Name(),
-											Package: tt.Obj().Pkg(),
+											Package: genfp.FromTypesPackage(tt.Obj().Pkg()),
 										},
 										TypeClassType: tcType,
 										TypeArgs:      typeArgs(tt.TypeArgs()),
@@ -250,7 +250,7 @@ func (r TypeClassInstance) String() string {
 	return r.Name
 }
 
-func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *types.Package) string {
+func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working genfp.WorkingPackage) string {
 	if r.Package.Path() == working.Path() {
 		return r.Name
 	}
@@ -530,7 +530,7 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 	}
 
 	found := list.Find(pkPred).OrElseGet(func() TypeClassInstancesOfPackage {
-		return LoadTypeClassInstance(tc.Package, tc.TypeClass)
+		return LoadTypeClassInstance(tc.Package.Package(), tc.TypeClass)
 	})
 
 	t := tc.InstantiatedType(tc.DeriveFor.Info)
@@ -540,7 +540,7 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 	// 	fmt.Printf("will generate arg type = %s\n", t.TypeArgs.Head().Get().TypeArgs)
 	// }
 	ins := TypeClassInstance{
-		Package:         tc.Package,
+		Package:         tc.Package.Package(),
 		Name:            tc.GeneratedInstanceName(),
 		Static:          false,
 		Implicit:        false,
@@ -644,7 +644,7 @@ func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassS
 func asRequired(v TypeInfo) RequiredInstance {
 	tc := TypeClass{
 		Name:    v.Name().Get(),
-		Package: v.Pkg,
+		Package: genfp.FromTypesPackage(v.Pkg),
 	}
 
 	if tc.IsLazy() {
@@ -759,11 +759,12 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 
 }
 
-func loadPackage(path string) *types.Package {
+func loadPackage(path string) genfp.WorkingPackage {
 	cfg := &packages.Config{
 		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 	}
 
+	//fmt.Printf("load package %s\n", path)
 	pkgs, err := packages.Load(cfg, path)
 	if err != nil {
 		return nil
@@ -772,7 +773,7 @@ func loadPackage(path string) *types.Package {
 		return nil
 	}
 
-	return pkgs[0].Types
+	return genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax)
 }
 
 func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOfPackage {
@@ -784,13 +785,15 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		ByName:      mutable.EmptyMap[string, TypeClassInstance](),
 		All:         seq.Empty[TypeClassInstance](),
 	}
+
 	// fmt.Printf("Searching instances of %s from %s\n", tc.Name, pk.Path())
 	names := pk.Scope().Names()
 	if len(names) == 0 {
-		pk = loadPackage(pk.Path())
-		if pk == nil {
+		working := loadPackage(pk.Path())
+		if working == nil {
 			return ret
 		}
+		pk = working.Package()
 		ret.Package = pk
 	}
 

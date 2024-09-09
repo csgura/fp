@@ -201,6 +201,10 @@ type TaggedLit struct {
 	Lit     *ast.CompositeLit
 }
 
+func (r TaggedLit) WorkingPackage() genfp.WorkingPackage {
+	return genfp.NewWorkingPackage(r.Package.Types, r.Package.Fset, r.Package.Syntax)
+}
+
 type FuncOrGen struct {
 	fn *ast.FuncDecl
 	gn *ast.GenDecl

@@ -12,7 +12,7 @@ import (
 
 type Writer = genfp.Writer
 
-func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) []string {
+func FixedParams(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p *types.TypeParam) []string {
 	if realtp.TypeArgs() != nil {
 		args := []string{}
 		for i := 0; i < realtp.TypeArgs().Len(); i++ {
@@ -32,7 +32,7 @@ func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.Type
 	return nil
 }
 
-func VariableParams(w Writer, pk *types.Package, realtp *types.Named, fixedParam []string) []string {
+func VariableParams(w Writer, pk genfp.WorkingPackage, realtp *types.Named, fixedParam []string) []string {
 	if realtp.TypeArgs() != nil {
 		args := []string{}
 		for i := 0; i < realtp.TypeArgs().Len(); i++ {
@@ -48,7 +48,7 @@ func VariableParams(w Writer, pk *types.Package, realtp *types.Named, fixedParam
 	return nil
 }
 
-func TypeParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
+func TypeParamReplaced(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
 	return func(newname string, fmtargs ...any) string {
 		if realtp.TypeArgs() != nil {
 			args := []string{}
@@ -74,7 +74,7 @@ func TypeParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *type
 	}
 }
 
-func NameParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
+func NameParamReplaced(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
 	return func(newname string, fmtargs ...any) string {
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
@@ -115,9 +115,9 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
 		if tp, ok := t.(*types.TypeParam); ok {
 			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
-				return fmt.Sprintf("A %s", w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("A %s", w.TypeName(md.Package, tp.Constraint()))
 			} else {
-				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package, tp.Constraint()))
 			}
 		}
 		return ""
@@ -127,16 +127,16 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	tpargs1 := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
 		if tp, ok := t.(*types.TypeParam); ok {
 			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
-				return fmt.Sprintf("A1 %s", w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("A1 %s", w.TypeName(md.Package, tp.Constraint()))
 			} else {
-				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package.Types, tp.Constraint()))
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package, tp.Constraint()))
 			}
 		}
 		return ""
 
 	}), func(v string) bool { return v != "" }), ",")
 
-	rettype := NameParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
+	rettype := NameParamReplaced(w, md.Package, md.TargetType, md.TypeParm)
 
 	srctype := rettype("A")
 	rettp := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
@@ -153,7 +153,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
-	fixedParams := strings.Join(FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm), ",")
+	fixedParams := strings.Join(FixedParams(w, md.Package, md.TargetType, md.TypeParm), ",")
 
 	funcs := map[string]any{
 		"pure": func(v string, tpe string) string {
