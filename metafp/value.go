@@ -674,6 +674,8 @@ func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
 
 func (r TypeInfo) IsAny() bool {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return typeInfo(at.Rhs()).IsAny()
 	case *types.Interface:
 		if at.NumMethods() == 0 && at.NumEmbeddeds() == 0 {
 			return true
