@@ -179,3 +179,21 @@ func ScanSeqT[A any, B any](seqT fp.Try[fp.Seq[A]], zero B, f func(B, A) B) fp.T
 		return seq.Scan[A, B](insideValue, zero, f)
 	})
 }
+
+func SortSeqT[A any](seqT fp.Try[fp.Seq[A]], ord fp.Ord[A]) fp.Try[fp.Seq[A]] {
+	return Map(seqT, func(insideValue fp.Seq[A]) fp.Seq[A] {
+		return seq.Sort[A](insideValue, ord)
+	})
+}
+
+func MinSeqT[A any](seqT fp.Try[fp.Seq[A]], ord fp.Ord[A]) fp.Try[fp.Option[A]] {
+	return Map(seqT, func(insideValue fp.Seq[A]) fp.Option[A] {
+		return seq.Min[A](insideValue, ord)
+	})
+}
+
+func MaxSeqT[A any](seqT fp.Try[fp.Seq[A]], ord fp.Ord[A]) fp.Try[fp.Option[A]] {
+	return Map(seqT, func(insideValue fp.Seq[A]) fp.Option[A] {
+		return seq.Max[A](insideValue, ord)
+	})
+}

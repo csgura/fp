@@ -96,11 +96,13 @@ func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (MethodRe
 				// }
 				// return "", fmt.Errorf("invalid method reference : %s", x.Name)
 			}
-			return MethodReference{}, fmt.Errorf("can't eval %T as method reference", t.X)
+			return MethodReference{}, fmt.Errorf("can't eval %T as method reference. '%s'", t.X, types.ExprString(t.X))
 		case *ast.IndexListExpr:
 			return evalMethodRef(tname)(p, t.X)
+		case *ast.IndexExpr:
+			return evalMethodRef(tname)(p, t.X)
 		}
-		return MethodReference{}, fmt.Errorf("can't eval %T as method reference", e)
+		return MethodReference{}, fmt.Errorf("can't eval %T as method reference. '%s'", e, types.ExprString(e))
 	}
 
 }
@@ -647,6 +649,8 @@ func evalFuncLit(pk *packages.Package, typeExpr ast.Expr) (types.Type, []genfp.I
 	}
 	err := types.CheckExpr(pk.Fset, pk.Types, typeExpr.End(), typeExpr, info)
 	if err != nil {
+		// TODO: Hello.World 같은 경우 receiver type 을  eval 하는데
+		// seq.Sort 처럼  package 이름이 있는 경우,  여기서 에러가 출력됨.
 		fmt.Printf("check expr err = %s\n", err)
 	}
 
