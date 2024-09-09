@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -23,33 +24,33 @@ func main() {
 		return
 	}
 
-	genseq := genfp.FindGenerateMonadFunctions(pkgs, "@internal.Generate")
+	genseq := generator.FindGenerateMonadFunctions(pkgs, "@internal.Generate")
 
 	for file, list := range genseq {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
-				genfp.WriteMonadFunctions(w, gfu)
+				generator.WriteMonadFunctions(w, gfu)
 			}
 		})
 	}
 
-	genseq = genfp.FindGenerateTraverseFunctions(pkgs, "@internal.Generate")
+	genseq = generator.FindGenerateTraverseFunctions(pkgs, "@internal.Generate")
 	for file, list := range genseq {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
-				genfp.WriteTraverseFunctions(w, gfu)
+				generator.WriteTraverseFunctions(w, gfu)
 			}
 		})
 	}
 
-	monadt := genfp.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
+	monadt := generator.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
 	for file, list := range monadt {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
-				genfp.WriteMonadTransformers(w, gfu)
+				generator.WriteMonadTransformers(w, gfu)
 			}
 		})
 	}

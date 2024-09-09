@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -33,7 +33,7 @@ func TestLoad(t *testing.T) {
 		fmt.Printf("const value = %s\n", c.Val())
 	}
 
-	res := genfp.FindGenerateFromUntil(pkgs, "@ConstTest")
+	res := generator.FindGenerateFromUntil(pkgs, "@ConstTest")
 	for _, list := range res {
 		for _, v := range list {
 			fmt.Printf("File = %s\n", v.File)

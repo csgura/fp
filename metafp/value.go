@@ -11,6 +11,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/mutable"
@@ -226,11 +227,11 @@ func checkType(pk *packages.Package, typeExpr ast.Expr) *types.Named {
 	return nil
 }
 
-func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags ...string) fp.Seq[genfp.TaggedLit] {
+func FindTaggedCompositeVariable(p []*packages.Package, typ PackagedName, tags ...string) fp.Seq[generator.TaggedLit] {
 	p = as.Seq(p).Filter(func(v *packages.Package) bool {
 		return v.PkgPath == typ.Package
 	})
-	return genfp.FindTaggedCompositeVariable(p, typ.Name, tags...)
+	return generator.FindTaggedCompositeVariable(p, typ.Name, tags...)
 }
 
 func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct] {

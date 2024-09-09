@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -24,7 +25,7 @@ func main() {
 		return
 	}
 
-	genseq := genfp.FindGenerateFromUntil(pkgs, "@internal.Generate")
+	genseq := generator.FindGenerateFromUntil(pkgs, "@internal.Generate")
 	for file, list := range genseq {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {

@@ -1,4 +1,4 @@
-package genfp
+package generator
 
 import (
 	"bytes"
@@ -6,7 +6,11 @@ import (
 	"go/types"
 	"slices"
 	"strings"
+
+	"github.com/csgura/fp/genfp"
 )
+
+type Writer = genfp.Writer
 
 func FixedParams(w Writer, pk *types.Package, realtp *types.Named, p *types.TypeParam) []string {
 	if realtp.TypeArgs() != nil {
@@ -480,7 +484,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 	`, funcs, param)
 
-	w.Iteration(3, MaxFunc).Render(`
+	w.Iteration(3, genfp.MaxFunc).Render(`
 
 		func LiftA{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](f func({{DeclArgs 1 .N}}) R) func({{monadTypes 1 .N}}) {{monad "R"}} {
 			return func({{monadIns 1 .N}}) {{monad "R"}} {
@@ -528,7 +532,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 	`, funcs, param)
 
-	w.Iteration(3, MaxCompose).Render(`
+	w.Iteration(3, genfp.MaxCompose).Render(`
 		func Compose{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any]({{monadFuncChain 1 .N}}) fp.Func1[A1, {{monad "R"}}] {
 			return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
 		}

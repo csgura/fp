@@ -13,7 +13,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/option"
@@ -182,7 +182,7 @@ func NotTestParseGenerateDirective(t *testing.T) {
 	ret := metafp.FindTaggedCompositeVariable(pkgs, metafp.PackagedName{Package: "github.com/csgura/fp/genfp", Name: "GenerateFromUntil"}, "@fp.GenerateTest")
 	fmt.Printf("ret = %v\n", ret)
 
-	v, _ := genfp.ParseGenerateFromUntil(ret[0])
+	v, _ := generator.ParseGenerateFromUntil(ret[0])
 	fmt.Printf("v = %v\n", v)
 
 }
@@ -200,10 +200,10 @@ func NotTestParseGenerateAdaptorDirective(t *testing.T) {
 		return
 	}
 
-	ret := genfp.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.Generate")
+	ret := generator.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.Generate")
 	fmt.Printf("ret = %v\n", ret)
 
-	v, err := genfp.ParseGenerateAdaptor(ret[0])
+	v, err := generator.ParseGenerateAdaptor(ret[0])
 	if err != nil {
 		fmt.Printf("err = %s\n", err)
 	}
@@ -214,10 +214,10 @@ func NotTestParseGenerateAdaptorDirective(t *testing.T) {
 		fmt.Printf("args = %s\n", v)
 	})
 
-	ret = genfp.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.GenerateTest")
+	ret = generator.FindTaggedCompositeVariable(pkgs, "GenerateAdaptor", "@fp.GenerateTest")
 	fmt.Printf("ret = %v\n", ret)
 
-	v, err = genfp.ParseGenerateAdaptor(ret[1])
+	v, err = generator.ParseGenerateAdaptor(ret[1])
 	if err != nil {
 		fmt.Printf("err = %s\n", err)
 	}

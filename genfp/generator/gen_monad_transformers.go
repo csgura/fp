@@ -1,4 +1,4 @@
-package genfp
+package generator
 
 import (
 	"bytes"
@@ -8,9 +8,11 @@ import (
 	"go/token"
 	"go/types"
 	"strings"
+
+	"github.com/csgura/fp/genfp"
 )
 
-func InstiateTransfomer(w Writer, pk *types.Package, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
+func InstiateTransfomer(w genfp.Writer, pk *types.Package, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
 
 	rettype := NameParamReplaced(w, pk, monadType, p)
 	return func(newname string, fmtargs ...any) string {
@@ -96,7 +98,7 @@ func removeTypeParams(s string) string {
 	return s[:start]
 }
 
-func CallFunc(w Writer, tr TypeReference) func(replace map[string]string) string {
+func CallFunc(w genfp.Writer, tr TypeReference) func(replace map[string]string) string {
 	return func(replace map[string]string) string {
 		for _, i := range tr.Imports {
 			w.AddImport(types.NewPackage(i.Package, i.Name))
@@ -111,7 +113,7 @@ func CallFunc(w Writer, tr TypeReference) func(replace map[string]string) string
 	}
 }
 
-func FlatMapRetType(w Writer, pk *types.Package, tr TypeReference, fixed []string) string {
+func FlatMapRetType(w genfp.Writer, pk *types.Package, tr TypeReference, fixed []string) string {
 	if sig, ok := tr.Type.(*types.Signature); ok {
 		if sig.Results().Len() == 1 {
 			rettp := sig.Results().At(0).Type()
@@ -128,7 +130,7 @@ func FlatMapRetType(w Writer, pk *types.Package, tr TypeReference, fixed []strin
 
 type replaceParam map[string]string
 
-func WriteMonadTransformers(w Writer, md GenerateMonadTransformerDirective) {
+func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective) {
 
 	tp := md.TargetType.TypeArgs()
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {

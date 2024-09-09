@@ -1,4 +1,4 @@
-package genfp
+package generator
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"go/types"
 	"strings"
 
+	"github.com/csgura/fp/genfp"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -83,8 +84,8 @@ func seqExists[T any](r []T, p func(v T) bool) bool {
 	return false
 }
 
-func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]GenerateFromUntil {
-	ret := map[string][]GenerateFromUntil{}
+func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]genfp.GenerateFromUntil {
+	ret := map[string][]genfp.GenerateFromUntil{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateFromUntil", tags...)
 	for _, cl := range genseq {
 		gfu, err := ParseGenerateFromUntil(cl)

@@ -16,6 +16,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/mutable"
@@ -51,7 +52,7 @@ func hasMethod(v types.Type, name string) bool {
 	return false
 }
 
-func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genfp.GenerateAdaptorDirective, error) {
+func fillOption(ret generator.GenerateAdaptorDirective, intf *types.Interface) (generator.GenerateAdaptorDirective, error) {
 	for i := 0; i < intf.NumMethods(); i++ {
 		m := intf.Method(i)
 
@@ -61,7 +62,7 @@ func fillOption(ret genfp.GenerateAdaptorDirective, intf *types.Interface) (genf
 		for _, d := range ret.Delegate {
 
 			if hasMethod(d.TypeOf.Type, m.Name()) {
-				opt.Delegate = &genfp.DelegateDirective{
+				opt.Delegate = &generator.DelegateDirective{
 					TypeOf: d.TypeOf,
 					Field:  d.Field,
 				}
@@ -126,7 +127,7 @@ func typeDecl(pk *types.Package, w genfp.Writer, t genfp.TypeReference) string {
 	return t.StringExpr
 }
 
-func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
+func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	adaptorTypeName := gad.Name
 	if adaptorTypeName == "" {
@@ -145,11 +146,11 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 			}
 			fieldSet = fieldSet.Updated(efield.Get(), i)
 
-			contains := slices.ContainsFunc(gad.Delegate, func(d genfp.DelegateDirective) bool {
+			contains := slices.ContainsFunc(gad.Delegate, func(d generator.DelegateDirective) bool {
 				return d.Field == efield.Get()
 			})
 			if !contains {
-				gad.Delegate = append(gad.Delegate, genfp.DelegateDirective{
+				gad.Delegate = append(gad.Delegate, generator.DelegateDirective{
 					TypeOf: i,
 					Field:  efield.Get(),
 				})
@@ -175,7 +176,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 		fieldSet = fieldSet.Updated(k, e)
 	}
 
-	i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v genfp.DelegateDirective) string {
+	i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v generator.DelegateDirective) string {
 		return v.Field
 	})
 
@@ -192,7 +193,7 @@ func generateAdaptor(w genfp.Writer, gad genfp.GenerateAdaptorDirective) {
 
 	for _, fn := range delegateFields {
 
-		d := as.Seq(gad.Delegate).Find(func(v genfp.DelegateDirective) bool {
+		d := as.Seq(gad.Delegate).Find(func(v generator.DelegateDirective) bool {
 			return v.Field == fn
 		}).Get()
 
@@ -297,10 +298,10 @@ func genGenerate() {
 		return
 	}
 
-	gentemplate := genfp.FindGenerateFromUntil(pkgs, "@fp.Generate")
-	genadaptor := genfp.FindGenerateAdaptor(pkgs, "@fp.Generate")
-	monadf := genfp.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
-	traversef := genfp.FindGenerateTraverseFunctions(pkgs, "@fp.Generate")
+	gentemplate := generator.FindGenerateFromUntil(pkgs, "@fp.Generate")
+	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
+	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
+	traversef := generator.FindGenerateTraverseFunctions(pkgs, "@fp.Generate")
 
 	filelist := iterator.ToGoSet(
 		mutable.MapOf(gentemplate).Keys().
@@ -324,18 +325,18 @@ func genGenerate() {
 			}
 
 			for _, md := range monadf[file] {
-				genfp.WriteMonadFunctions(w, md)
+				generator.WriteMonadFunctions(w, md)
 			}
 
 			for _, md := range traversef[file] {
-				genfp.WriteTraverseFunctions(w, md)
+				generator.WriteTraverseFunctions(w, md)
 			}
 		})
 	}
 
 }
 
-func isEmbeddingField(gad genfp.GenerateAdaptorDirective, field string) bool {
+func isEmbeddingField(gad generator.GenerateAdaptorDirective, field string) bool {
 	is := func(e []genfp.TypeReference) bool {
 		for _, e := range e {
 			if seq.Last(strings.Split(e.StringExpr, ".")) == option.Some(field) {
@@ -350,12 +351,12 @@ func isEmbeddingField(gad genfp.GenerateAdaptorDirective, field string) bool {
 
 type implContext struct {
 	w               genfp.Writer
-	gad             genfp.GenerateAdaptorDirective
+	gad             generator.GenerateAdaptorDirective
 	namedInterface  types.Type
 	adaptorTypeName string
 	superField      string
 	t               *types.Func
-	opt             genfp.ImplOptionDirective
+	opt             generator.ImplOptionDirective
 	valName         string
 	cbName          string
 	selfarg         string
@@ -804,7 +805,7 @@ func argName(i int, t *types.Var) string {
 	return name
 }
 
-func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
+func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
 	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
 
@@ -828,7 +829,7 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad genfp.GenerateAdaptorDirec
 	return fields, methodSet
 }
 
-func generateImpl(opt genfp.ImplOptionDirective, gad genfp.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
+func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
 	if opt.Delegate != nil && opt.Private {
 		if isEmbeddingField(gad, opt.Delegate.Field) {
 			if !gad.Self || !gad.ExtendsByEmbedding {
@@ -931,7 +932,7 @@ func generateImpl(opt genfp.ImplOptionDirective, gad genfp.GenerateAdaptorDirect
 	defaultField, cbField := ctx.adaptorFields()
 	defaultExpr := ctx.defaultImpl()
 
-	delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v genfp.DelegateDirective) fp.Option[GeneratedExpr] {
+	delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v generator.DelegateDirective) fp.Option[GeneratedExpr] {
 		return ctx.callExtends(v.Field)
 	})
 

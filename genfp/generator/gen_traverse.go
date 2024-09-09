@@ -1,4 +1,4 @@
-package genfp
+package generator
 
 import (
 	"bytes"
