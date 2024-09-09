@@ -79,7 +79,7 @@ func NameParamReplaced(w Writer, pk *types.Package, realtp *types.Named, p *type
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
 		if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
-			alias := w.GetImportedName(realtp.Obj().Pkg())
+			alias := w.GetImportedName(genfp.FromTypesPackage(realtp.Obj().Pkg()))
 
 			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
 		}
@@ -150,7 +150,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 		return ""
 	}), func(v string) bool { return v != "" }), ",")
-	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
 	fixedParams := strings.Join(FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm), ",")
@@ -257,7 +257,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	`, tpargs, srctype, rettype("B"), rettype("R"), rettype("R"),
 	)
 
-	w.AddImport(types.NewPackage("github.com/csgura/fp/product", "product"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/product", "product"))
 	fmt.Fprintf(w, `
 		func Zip[%s, B any](first %s, second %s) %s {
 			return Map2(first, second, product.Tuple2)
@@ -311,7 +311,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		rettype("B"),
 	)
 
-	w.AddImport(types.NewPackage("github.com/csgura/fp/iterator", "iterator"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/iterator", "iterator"))
 
 	fmt.Fprintf(w, `
 			// Map(ta , seq.Lift(f)) 와 동일
@@ -399,7 +399,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 	`, funcs, param)
 
-	w.AddImport(types.NewPackage("github.com/csgura/fp/curried", "curried"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/curried", "curried"))
 
 	w.Render(`
 		// (a -> b -> r) -> m a -> b -> m r
@@ -460,8 +460,8 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 
 	`, funcs, param)
 
-	w.AddImport(types.NewPackage("github.com/csgura/fp/xtr", "xtr"))
-	w.AddImport(types.NewPackage("github.com/csgura/fp/product", "product"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/xtr", "xtr"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/product", "product"))
 
 	w.Render(`
 		func UnZip[{{.tpargs}}, B any](t {{monad "fp.Tuple2[A, B]"}}) ({{monad "A"}}, {{monad "B"}}) {

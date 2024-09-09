@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"go/types"
 
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/internal/max"
@@ -30,9 +29,9 @@ func flipTypeArgs(start, until int) string {
 func main() {
 
 	genfp.Generate("future", "applicative_gen.go", func(f genfp.Writer) {
-		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/curried", "curried"))
-		_ = f.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+		_ = f.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		_ = f.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/curried", "curried"))
+		_ = f.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 		for i := 2; i < max.Func; i++ {
 

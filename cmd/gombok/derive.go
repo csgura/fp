@@ -139,7 +139,7 @@ func (r DefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg *types.Packa
 		}
 	}
 
-	pk := w.GetImportedName(r.pk)
+	pk := w.GetImportedName(genfp.FromTypesPackage(r.pk))
 
 	return SummonExpr{
 		expr: fmt.Sprintf("%s.%s", pk, r.name),
@@ -726,7 +726,7 @@ func (r *TypeClassSummonContext) summonArgs(ctx CurrentContext, args fp.Seq[meta
 		// TODO: checkRequired 에서  lookup 하는 코드 있음. checkRequired 에서 한번 했으면 안하게 할 필요 있음.
 		ret := r.summonRequired(ctx, t)
 		if t.Lazy {
-			lazypk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/lazy", "lazy"))
+			lazypk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/lazy", "lazy"))
 			expr := fmt.Sprintf(`%s.Call( func() %s[%s] {
 				return %s
 			})`, lazypk, t.TypeClass.PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.Type.Type), ret.expr)
@@ -973,10 +973,10 @@ func namedOrRuntime(w genfp.ImportSet, working *types.Package, typePkg *types.Pa
 		if isSamePkg(working, typePkg) {
 			return ret
 		} else {
-			return fmt.Sprintf("%s.%s", w.GetImportedName(typePkg), ret)
+			return fmt.Sprintf("%s.%s", w.GetImportedName(genfp.FromTypesPackage(typePkg)), ret)
 		}
 	} else {
-		fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		fppk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 		return fmt.Sprintf("%s.RuntimeNamed", fppk)
 
@@ -1021,7 +1021,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 				ToReprExpr: func() string {
 
 					if typeArgs.Size() == 0 {
-						hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+						hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 						return fmt.Sprintf(`func (%s) %s.Nil {
 							return %s.Empty()
@@ -1031,8 +1031,8 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						arity := fp.Min(typeArgs.Size(), max.Product-1)
 						//arity := typeArgs.Size()
 
-						fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-						aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+						fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+						aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
@@ -1059,7 +1059,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						}
 
 					} else {
-						hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+						hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
@@ -1081,7 +1081,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 								)`, hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), r.w.TypeName(ctx.working, tp.Type), idx, expr)
 							})
 						}).OrElseGet(func() string {
-							aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+							aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 							return seq.Fold(seq.ZipWithIndex(namedTypeArgs).Reverse(), hlistpk+".Empty()", func(expr string, t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
 								idx, t2 := t3.Unapply()
@@ -1105,7 +1105,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 				},
 				FromReprExpr: func() string {
 					if typeArgs.Size() == 0 {
-						hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+						hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 						valuereceiver := sf.typeStr(ctx.working)
 						return fmt.Sprintf(`func (%s.Nil) %s{
 							return %s{}
@@ -1114,8 +1114,8 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						arity := fp.Min(typeArgs.Size(), max.Product-1)
 						//arity := typeArgs.Size()
 
-						fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-						productpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/product", "product"))
+						fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+						productpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/product", "product"))
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
@@ -1144,7 +1144,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 							%s ,
 						)`, fppk, hlistToTuple, tupleToStruct)
 					} else {
-						hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+						hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
@@ -1226,8 +1226,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		return fmt.Sprintf("%s.AsTuple", typeStr(ctx.working))
 	}
 	applyFuncExpr := func() string {
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 		builderreceiver := builderTypeStr(ctx.working)
 		return fmt.Sprintf(`%s.Compose(
@@ -1245,8 +1245,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 
 	fromLabelledFuncExpr := func() string {
 		builderreceiver := builderTypeStr(ctx.working)
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 		return fmt.Sprintf(`%s.Compose(
 					%s.Curried2(%s.FromLabelled)(%s{}),
@@ -1272,8 +1272,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 				return r.w.TypeName(ctx.working, f.Type)
 			}).MakeString(",")
 
-			fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-			aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 			return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
 			return %s.Tuple%d(%s)
@@ -1287,8 +1287,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 				return r.w.TypeName(ctx.working, f.Type)
 			}).MakeString(",")
 
-			fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-			//aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+			//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 			assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, string]) string {
 				return fmt.Sprintf("%s : t.I%d", v.I2, v.I1+1)
@@ -1323,8 +1323,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 	hasAsLabelled := named.Info.Method.Contains("AsLabelled")
 	if !hasAsLabelled {
 		asLabelledFuncExpr = func() string {
-			fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-			aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 			namedTypeArgs := seq.Zip(names, typeArgs)
 
@@ -1352,7 +1352,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		}
 
 		fromLabelledFuncExpr = func() string {
-			fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 			namedTypeArgs := seq.Zip(names, typeArgs)
 
 			labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfo]) string {
@@ -1417,8 +1417,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 			return r.w.TypeName(ctx.working, f.Type)
 		}).MakeString(",")
 
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 		return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
 			return %s.Tuple%d(%s)
@@ -1432,8 +1432,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 			return r.w.TypeName(ctx.working, f.Type)
 		}).MakeString(",")
 
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-		//aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 		assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, string]) string {
 			return fmt.Sprintf("%s : t.I%d", v.I2, v.I1+1)
@@ -1449,8 +1449,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	}
 
 	asLabelledFuncExpr := func() string {
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 		namedTypeArgs := seq.Zip(names, typeArgs)
 
@@ -1479,7 +1479,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	}
 
 	fromLabelledFuncExpr := func() string {
-		fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 		namedTypeArgs := seq.Zip(names, typeArgs)
 
 		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfo]) string {
@@ -1592,7 +1592,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 		ToReprExpr: func() string {
 
 			if typeArgs.Size() >= max.Product {
-				hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfo) string {
 					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, r.w.TypeName(ctx.working, a.Type), b)
@@ -1614,7 +1614,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 					varlist, sf.unapply("v"),
 					hlistExpr)
 			} else if typeArgs.Size() > 0 {
-				fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 				return fmt.Sprintf(`%s.Compose(
 				%s,
@@ -1624,7 +1624,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 					tupleGeneric.ToReprExpr(),
 				)
 			} else {
-				hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 				return fmt.Sprintf(`func(%s) %s.Nil {
 					return %s.Empty()
 				}`, sf.typeStr(ctx.working), hlistpk, hlistpk)
@@ -1633,7 +1633,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 		},
 		FromReprExpr: func() string {
 			if typeArgs.Size() >= max.Product {
-				hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfo) string {
 					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, r.w.TypeName(ctx.working, a.Type), b)
@@ -1657,8 +1657,8 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 					sf.apply(arglist))
 			} else if typeArgs.Size() > 0 {
 
-				fppk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-				//aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+				//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 				tupleToStruct := sf.fromTuple()
 				return fmt.Sprintf(`
@@ -1667,7 +1667,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 					%s ,
 				)`, fppk, tupleGeneric.FromReprExpr(), tupleToStruct)
 			} else {
-				hlistpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/hlist", "hlist"))
+				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
 				return fmt.Sprintf(`func(%s.Nil) %s {
 					return %s{}
@@ -1709,7 +1709,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
 		// },
 		ToReprExpr: func() string {
-			aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
@@ -1729,7 +1729,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 
 		},
 		FromReprExpr: func() string {
-			productpk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/product", "product"))
+			productpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/product", "product"))
 
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
@@ -1903,7 +1903,7 @@ func (r *TypeClassSummonContext) summonUntypedStruct(ctx CurrentContext, tc meta
 func (r *TypeClassSummonContext) summonVariant(ctx CurrentContext, tc metafp.TypeClass, genericName string, genericRepr GenericRepr) SummonExpr {
 	mapExpr := option.Map(r.lookupTypeClassFunc(ctx, tc, "Generic"), func(generic metafp.TypeClassInstance) SummonExpr {
 
-		aspk := r.w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 		repr := genericRepr.ReprExpr()
 		return newSummonExpr(fmt.Sprintf(`%s(
 					%s.Generic(
@@ -2133,8 +2133,8 @@ func genDerive() {
 			return
 		}
 
-		// fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
-		// asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+		// fmtalias := w.GetImportedName(genfp.NewImportPackage("fmt", "fmt"))
+		// asalias := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 		summonCtx := NewTypeClassSummonContext(pkgs, w)
 		if summonCtx.recursiveGen.Size() == 0 {

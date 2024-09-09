@@ -45,7 +45,7 @@ func namedName(w genfp.Writer, working *types.Package, typePkg *types.Package, n
 	if isSamePkg(working, typePkg) {
 		return ret
 	} else {
-		return fmt.Sprintf("%s.%s", w.GetImportedName(typePkg), ret)
+		return fmt.Sprintf("%s.%s", w.GetImportedName(genfp.FromTypesPackage(typePkg)), ret)
 	}
 
 }
@@ -372,7 +372,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 			}
 		}
 
-		fmtalias := w.GetImportedName(types.NewPackage("fmt", "fmt"))
+		fmtalias := w.GetImportedName(genfp.NewImportPackage("fmt", "fmt"))
 
 		printable := allFields.Filter(func(v metafp.StructField) bool {
 			return v.Type.IsPrintable()
@@ -412,9 +412,9 @@ func genUnapply(ctx TaggedStructContext, allFields fp.Seq[metafp.StructField], g
 	if allFields.Size() < max.Product {
 
 		if ts.Info.Method.Get("AsTuple").IsEmpty() && !genMethod.Contains("AsTuple") {
-			asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+			asalias := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 			arity := fp.Min(allFields.Size(), max.Product-1)
 			tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
@@ -539,7 +539,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 		if f.Type.IsOption() {
 			optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
-			optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
+			optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
 
 			if !isMethodDefined(workingPackage, builderTypeName, "Some"+uname) {
 
@@ -568,7 +568,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	if allFields.Size() < max.Product {
 
 		if !isMethodDefined(workingPackage, builderTypeName, "FromTuple") {
-			fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+			fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 			arity := fp.Min(allFields.Size(), max.Product-1)
 
@@ -615,7 +615,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 		fields := iterator.Map(seq.Iterator(allFields), func(f metafp.StructField) string {
 			if f.Type.IsOption() {
-				optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
+				optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
 
 				return fmt.Sprintf(`if v , ok := m["%s"].(%s); ok {
 							r.%s = v
@@ -657,7 +657,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 				arity := fp.Min(allFields.Size(), max.Product-1)
 
-				fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+				fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
 					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), w.TypeName(workingPackage, v.Type.Type))
@@ -721,7 +721,7 @@ func genPrivateWiths(ctx TaggedStructContext, privateFields fp.Seq[metafp.Struct
 
 		if f.Type.IsOption() {
 			optiont := w.TypeName(workingPackage, f.Type.TypeArgs.Head().Get().Type)
-			optionpk := w.GetImportedName(types.NewPackage("github.com/csgura/fp/option", "option"))
+			optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
 
 			fnName := "WithSome" + uname
 			if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
@@ -1020,7 +1020,7 @@ func genTypeClassMethod(ctx TaggedStructContext, derives fp.Seq[metafp.TypeClass
 	}
 
 	if showDerive.IsDefined() && ts.Info.Method.Get("ShowIndent").IsEmpty() && valuetp == "" {
-		fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+		fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 		if showDerive.Get().IsRecursive() {
 			fmt.Fprintf(w, `
@@ -1332,7 +1332,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 
 			if allFields.Size() < max.Product {
 
-				asalias := w.GetImportedName(types.NewPackage("github.com/csgura/fp/as", "as"))
+				asalias := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 				arity := fp.Min(allFields.Size(), max.Product-1)
 
@@ -1345,7 +1345,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 						return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, f.Name), w.TypeName(workingPackage, f.Type.Type), f.Name)
 					}).Take(arity).MakeString(",")
 
-					fppkg := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
+					fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 					fmt.Fprintf(w, `
 					func(r %s) AsLabelled() %s.Labelled%d[%s] {
@@ -1365,7 +1365,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 		if ts.Tags.Contains("@fp.Json") {
 
 			if ts.Info.Method.Get("MarshalJSON").IsEmpty() {
-				jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
+				jsonpk := w.GetImportedName(genfp.NewImportPackage("encoding/json", "json"))
 
 				fmt.Fprintf(w, `
 					func(r %s) MarshalJSON() ([]byte, error) {
@@ -1378,9 +1378,9 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 			}
 
 			if ts.Info.Method.Get("UnmarshalJSON").IsEmpty() {
-				httppk := w.GetImportedName(types.NewPackage("net/http", "http"))
-				fppk := w.GetImportedName(types.NewPackage("github.com/csgura/fp", "fp"))
-				jsonpk := w.GetImportedName(types.NewPackage("encoding/json", "json"))
+				httppk := w.GetImportedName(genfp.NewImportPackage("net/http", "http"))
+				fppk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+				jsonpk := w.GetImportedName(genfp.NewImportPackage("encoding/json", "json"))
 
 				fmt.Fprintf(w, `
 					func(r *%s) UnmarshalJSON(b []byte) error {

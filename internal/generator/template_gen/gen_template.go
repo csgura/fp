@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"go/types"
 	"os"
 
 	"github.com/csgura/fp/genfp"
@@ -31,7 +30,7 @@ func main() {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
 				for _, im := range gfu.Imports {
-					w.GetImportedName(types.NewPackage(im.Package, im.Name))
+					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
 				}
 
 				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, map[string]any{})

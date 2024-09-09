@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/types"
+
+	"github.com/csgura/fp/genfp"
 )
 
 func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
@@ -47,7 +49,7 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 	// 	}
 	// 	return ""
 	// }), func(v string) bool { return v != "" }), ",")
-	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 	funcs := map[string]any{
 		"monad": rettype,
@@ -79,7 +81,7 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		"tp": md.TypeParm.String(),
 	}
 
-	w.AddImport(types.NewPackage("github.com/csgura/fp/iterator", "iterator"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/iterator", "iterator"))
 
 	w.Render(`
 

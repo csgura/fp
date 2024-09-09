@@ -251,37 +251,37 @@ type importAlias struct {
 	isalias bool
 }
 
-func (r *importSet) AddImport(p *types.Package) bool {
-	alias := p.Name()
+func (r *importSet) AddImport(p ImportPackage) bool {
+	alias := p.Name
 
 	_, ok := r.NameToPath[alias]
 	if ok {
 		return false
 	}
 
-	parr := strings.Split(p.Path(), "/")
+	parr := strings.Split(p.Package, "/")
 	plast := parr[len(parr)-1]
 
 	ia := importAlias{
-		path:    p.Path(),
+		path:    p.Package,
 		alias:   alias,
 		isalias: plast != alias,
 	}
 
-	r.PathToName[p.Path()] = ia
+	r.PathToName[p.Package] = ia
 	r.NameToPath[alias] = ia
 
 	return true
 }
 
-func (r *importSet) GetImportedName(p *types.Package) string {
-	ret, ok := r.PathToName[p.Path()]
+func (r *importSet) GetImportedName(p ImportPackage) string {
+	ret, ok := r.PathToName[p.Package]
 	if ok {
 		return ret.alias
 	}
 
 	i := 1
-	alias := p.Name()
+	alias := p.Name
 
 	for {
 		added := r.AddImport(p)
@@ -289,8 +289,8 @@ func (r *importSet) GetImportedName(p *types.Package) string {
 			return alias
 		}
 
-		alias = fmt.Sprintf("%s%d", p.Name(), i)
-		p = types.NewPackage(p.Path(), alias)
+		alias = fmt.Sprintf("%s%d", p.Name, i)
+		p = NewImportPackage(p.Package, alias)
 		i++
 	}
 }
@@ -363,14 +363,14 @@ func (r *importSet) TypeName(pk *types.Package, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Basic:
 		if realtp.Kind() == types.UnsafePointer {
-			r.AddImport(types.NewPackage("unsafe", "unsafe"))
+			r.AddImport(NewImportPackage("unsafe", "unsafe"))
 		}
 		return tpe.String()
 	case *types.Named:
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
 		if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
-			alias := r.GetImportedName(realtp.Obj().Pkg())
+			alias := r.GetImportedName(FromTypesPackage(realtp.Obj().Pkg()))
 
 			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
 		}
@@ -466,9 +466,23 @@ func (r *importSet) TypeName(pk *types.Package, tpe types.Type) string {
 	return tpe.String()
 }
 
+func FromTypesPackage(pk *types.Package) ImportPackage {
+	return ImportPackage{
+		Package: pk.Path(),
+		Name:    pk.Name(),
+	}
+}
+
+func NewImportPackage(pkg string, name string) ImportPackage {
+	return ImportPackage{
+		Package: pkg,
+		Name:    name,
+	}
+}
+
 type ImportSet interface {
-	AddImport(p *types.Package) bool
-	GetImportedName(p *types.Package) string
+	AddImport(p ImportPackage) bool
+	GetImportedName(p ImportPackage) string
 	TypeName(pk *types.Package, tpe types.Type) string
 	ZeroExpr(pk *types.Package, tpe types.Type) string
 }

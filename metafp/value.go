@@ -56,7 +56,7 @@ func (r TaggedStruct) PackagedName(w genfp.ImportSet, workingPackage *types.Pack
 		return r.Name
 	}
 
-	pk := w.GetImportedName(r.Package)
+	pk := w.GetImportedName(genfp.FromTypesPackage(r.Package))
 	return fmt.Sprintf("%s.%s", pk, r.Name)
 }
 
@@ -355,7 +355,7 @@ type NamedTypeInfo struct {
 
 func (r NamedTypeInfo) PackagedName(w genfp.ImportSet, working *types.Package) string {
 	if r.Package != nil && r.Package.Path() != working.Path() {
-		pk := w.GetImportedName(r.Package)
+		pk := w.GetImportedName(genfp.FromTypesPackage(r.Package))
 		return fmt.Sprintf("%s.%s", pk, r.Name)
 	}
 	return r.Name

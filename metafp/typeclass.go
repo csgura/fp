@@ -35,7 +35,7 @@ func (r TypeClass) Id() string {
 
 func (r TypeClass) PackagedName(w genfp.ImportSet, workingPackage *types.Package) string {
 	if r.Package != nil && r.Package.Path() != workingPackage.Path() {
-		pk := w.GetImportedName(r.Package)
+		pk := w.GetImportedName(genfp.FromTypesPackage(r.Package))
 		return fmt.Sprintf("%s.%s", pk, r.Name)
 	}
 	return r.Name
@@ -254,7 +254,7 @@ func (r TypeClassInstance) PackagedName(importSet genfp.ImportSet, working *type
 	if r.Package.Path() == working.Path() {
 		return r.Name
 	}
-	pk := importSet.GetImportedName(r.Package)
+	pk := importSet.GetImportedName(genfp.FromTypesPackage(r.Package))
 	return fmt.Sprintf("%s.%s", pk, r.Name)
 }
 

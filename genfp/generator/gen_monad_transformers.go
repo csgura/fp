@@ -19,7 +19,7 @@ func InstiateTransfomer(w genfp.Writer, pk *types.Package, realtp *types.Named, 
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
 		if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
-			alias := w.GetImportedName(realtp.Obj().Pkg())
+			alias := w.GetImportedName(genfp.FromTypesPackage(realtp.Obj().Pkg()))
 
 			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
 		}
@@ -101,7 +101,7 @@ func removeTypeParams(s string) string {
 func CallFunc(w genfp.Writer, tr TypeReference) func(replace map[string]string) string {
 	return func(replace map[string]string) string {
 		for _, i := range tr.Imports {
-			w.AddImport(types.NewPackage(i.Package, i.Name))
+			w.AddImport(genfp.NewImportPackage(i.Package, i.Name))
 		}
 
 		if _, ok := tr.Type.(*types.Signature); ok {
@@ -174,7 +174,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	// 	}
 	// 	return ""
 	// }), func(v string) bool { return v != "" }), ",")
-	w.AddImport(types.NewPackage("github.com/csgura/fp", "fp"))
+	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
 	fixedParams := FixedParams(w, md.Package.Types, md.TargetType, md.TypeParm)

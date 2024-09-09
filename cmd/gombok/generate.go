@@ -314,7 +314,7 @@ func genGenerate() {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range gentemplate[file] {
 				for _, im := range gfu.Imports {
-					w.GetImportedName(types.NewPackage(im.Package, im.Name))
+					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
 				}
 
 				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, map[string]any{})
@@ -744,7 +744,7 @@ func (r *implContext) defaultImpl() fp.Option[string] {
 	} else if opt.DefaultImplExpr != nil {
 
 		for _, i := range opt.DefaultImplImports {
-			w.AddImport(types.NewPackage(i.Package, i.Name))
+			w.AddImport(genfp.NewImportPackage(i.Package, i.Name))
 		}
 
 		if opt.DefaultImplSignature != nil {
