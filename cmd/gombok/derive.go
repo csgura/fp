@@ -948,11 +948,11 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx CurrentContext, named fp.Op
 	}).OrElseGet(func() string {
 		return "struct { " + seq.Map(fields, func(v metafp.StructField) string {
 			if v.Embedded {
-				return r.w.TypeName(ctx.working, v.Type.Type)
+				return v.TypeName(r.w, ctx.working)
 			}
 			return fmt.Sprintf("%s %s",
 				v.Name,
-				r.w.TypeName(ctx.working, v.Type.Type),
+				v.TypeName(r.w, ctx.working),
 			)
 		}).MakeString("\n") + "}"
 	})
@@ -994,7 +994,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 	})
 
 	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.Type
+		return v.FieldType
 	})
 
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Labelled%d", typeArgs.Size()))
@@ -1215,7 +1215,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 	}
 
 	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.Type
+		return v.FieldType
 	})
 
 	names := seq.Map(fields, func(v metafp.StructField) string {
@@ -1392,12 +1392,12 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	typeStr := func(pk genfp.WorkingPackage) string {
 		valuereceiver := "struct { " + seq.Map(fields, func(v metafp.StructField) string {
 			if v.Embedded {
-				return r.w.TypeName(ctx.working, v.Type.Type)
+				return v.TypeName(r.w, ctx.working)
 
 			}
 			return fmt.Sprintf("%s %s",
 				v.Name,
-				r.w.TypeName(ctx.working, v.Type.Type),
+				v.TypeName(r.w, ctx.working),
 			)
 		}).MakeString("\n") + "}"
 
@@ -1405,7 +1405,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	}
 
 	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.Type
+		return v.FieldType
 	})
 
 	names := seq.Map(fields, func(v metafp.StructField) string {
@@ -1560,7 +1560,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", fields.Size()))
 
 	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.Type
+		return v.FieldType
 	})
 
 	if result.IsDefined() {

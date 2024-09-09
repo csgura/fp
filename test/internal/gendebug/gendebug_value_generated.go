@@ -2,17 +2,17 @@
 package gendebug
 
 import (
-	"context"
 	"fmt"
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/test/internal/testpk1"
 )
 
-func (r AliasTest) Ctx() context.Context {
+func (r AliasTest) Ctx() testpk1.Pk1Context {
 	return r.ctx
 }
 
-func (r AliasTest) WithCtx(v context.Context) AliasTest {
+func (r AliasTest) WithCtx(v testpk1.Pk1Context) AliasTest {
 	r.ctx = v
 	return r
 }
@@ -21,11 +21,11 @@ func (r AliasTest) String() string {
 	return fmt.Sprintf("gendebug.AliasTest{ctx:%v}", r.ctx)
 }
 
-func (r AliasTest) AsTuple() fp.Tuple1[context.Context] {
+func (r AliasTest) AsTuple() fp.Tuple1[testpk1.Pk1Context] {
 	return as.Tuple1(r.ctx)
 }
 
-func (r AliasTest) Unapply() context.Context {
+func (r AliasTest) Unapply() testpk1.Pk1Context {
 	return r.ctx
 }
 
@@ -45,24 +45,24 @@ func (r AliasTest) Builder() AliasTestBuilder {
 	return AliasTestBuilder(r)
 }
 
-func (r AliasTestBuilder) Ctx(v context.Context) AliasTestBuilder {
+func (r AliasTestBuilder) Ctx(v testpk1.Pk1Context) AliasTestBuilder {
 	r.ctx = v
 	return r
 }
 
-func (r AliasTestBuilder) FromTuple(t fp.Tuple1[context.Context]) AliasTestBuilder {
+func (r AliasTestBuilder) FromTuple(t fp.Tuple1[testpk1.Pk1Context]) AliasTestBuilder {
 	r.ctx = t.I1
 	return r
 }
 
-func (r AliasTestBuilder) Apply(ctx context.Context) AliasTestBuilder {
+func (r AliasTestBuilder) Apply(ctx testpk1.Pk1Context) AliasTestBuilder {
 	r.ctx = ctx
 	return r
 }
 
 func (r AliasTestBuilder) FromMap(m map[string]any) AliasTestBuilder {
 
-	if v, ok := m["ctx"].(context.Context); ok {
+	if v, ok := m["ctx"].(testpk1.Pk1Context); ok {
 		r.ctx = v
 	}
 
@@ -70,7 +70,7 @@ func (r AliasTestBuilder) FromMap(m map[string]any) AliasTestBuilder {
 }
 
 type AliasTestMutable struct {
-	Ctx context.Context
+	Ctx testpk1.Pk1Context
 }
 
 func (r AliasTest) AsMutable() AliasTestMutable {

@@ -503,11 +503,11 @@ type WorkingPackage interface {
 	Alias() string
 	Scope() *types.Scope
 	Package() *types.Package
+	FindNode(pos token.Pos) ast.Node
+	EvalTypeExpr(typeExpr ast.Expr) (types.Type, []ImportPackage)
 }
 
 func NewWorkingPackage(pk *types.Package, fset *token.FileSet, syntax []*ast.File) WorkingPackage {
-
-	fmt.Printf("new working package fset = \n")
 
 	return &workingPackage{
 		currentPackage: pk,
@@ -516,10 +516,76 @@ func NewWorkingPackage(pk *types.Package, fset *token.FileSet, syntax []*ast.Fil
 	}
 }
 
+type findPosVisitor struct {
+	pos   token.Pos
+	found ast.Node
+}
+
+func (r *findPosVisitor) Visit(node ast.Node) (w ast.Visitor) {
+
+	if node != nil && node.Pos() == r.pos {
+		r.found = node
+		return nil
+	}
+
+	return r
+}
+
 type workingPackage struct {
 	fset           *token.FileSet
 	syntax         []*ast.File
 	currentPackage *types.Package
+}
+
+func (w *workingPackage) EvalTypeExpr(typeExpr ast.Expr) (types.Type, []ImportPackage) {
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+		Uses:  map[*ast.Ident]types.Object{},
+	}
+	err := types.CheckExpr(w.fset, w.currentPackage, typeExpr.End(), typeExpr, info)
+	if err != nil {
+		fmt.Printf("check expr err = %s\n", err)
+	}
+
+	var imports []ImportPackage
+	for k, v := range info.Uses {
+		if pk, ok := v.(*types.PkgName); ok {
+			imports = append(imports, ImportPackage{
+				Package: pk.Imported().Path(),
+				Name:    k.Name,
+			})
+
+		}
+	}
+
+	ti := info.Types[typeExpr]
+
+	// for _, v := range info.Uses {
+	// 	if tn, ok := v.(*types.TypeName); ok {
+	// 		if tn.Type() == ti.Type {
+	// 			fmt.Printf("type aliased\n")
+	// 		}
+	// 	}
+	// }
+
+	return ti.Type, imports
+}
+
+func (w *workingPackage) FindNode(pos token.Pos) ast.Node {
+	for _, f := range w.syntax {
+		if pos >= f.Pos() && pos <= f.End() {
+			for _, d := range f.Decls {
+				if pos >= d.Pos() && pos <= d.End() {
+
+					v := &findPosVisitor{pos: pos}
+					ast.Walk(v, d)
+					return v.found
+
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // Scope implements WorkingPackage.

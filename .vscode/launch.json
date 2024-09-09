@@ -22,9 +22,9 @@
 			"mode": "debug",
 			"program": "${workspaceFolder}/cmd/gombok",
 			"env": {
-				"GOPACKAGE": "try"
+				"GOPACKAGE": "gendebug"
 			},
-			"cwd": "${workspaceFolder}/try"
+			"cwd": "${workspaceFolder}/test/internal/gendebug"
 		}
 	]
 }

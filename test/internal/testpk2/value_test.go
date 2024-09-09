@@ -242,7 +242,7 @@ func TestAliasType(t *testing.T) {
 	ret := metafp.FindTaggedStruct(pkgs, "@TestAlias")
 	assert.Equal(ret.Size(), 1)
 	fmt.Printf("ret size = %d\n", ret.Size())
-	fmt.Printf("ret struct field type = %s\n", ret[0].Fields[0].Type.ID)
+	fmt.Printf("ret struct field type = %s\n", ret[0].Fields[0].FieldType.ID)
 
 	fd := metafp.FindNode(pkgs[0], ret[0].Fields[0].Pos)
 	fmt.Printf("fd = %T\n", fd)

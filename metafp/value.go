@@ -47,7 +47,7 @@ type TaggedStruct struct {
 func (r TaggedStruct) IsRecursive() bool {
 
 	return r.Fields.Exists(func(v StructField) bool {
-		return v.Type.HasTypeReference(mutable.EmptySet[string](), r.Info)
+		return v.FieldType.HasTypeReference(mutable.EmptySet[string](), r.Info)
 	})
 }
 
@@ -72,11 +72,11 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 			f := st.Field(i)
 			tn := typeInfo(f.Type())
 			return StructField{
-				Name:     f.Name(),
-				Type:     tn,
-				Tag:      st.Tag(i),
-				Embedded: f.Embedded(),
-				Pos:      f.Pos(),
+				Name:      f.Name(),
+				FieldType: tn,
+				Tag:       st.Tag(i),
+				Embedded:  f.Embedded(),
+				Pos:       f.Pos(),
 			}
 		}).ToSeq()
 
@@ -516,11 +516,11 @@ func (r TypeInfo) Fields() fp.Seq[StructField] {
 
 			tn := typeInfo(f.Type())
 			return StructField{
-				Name:     f.Name(),
-				Type:     tn,
-				Tag:      at.Tag(i),
-				Embedded: f.Embedded(),
-				Pos:      f.Pos(),
+				Name:      f.Name(),
+				FieldType: tn,
+				Tag:       at.Tag(i),
+				Embedded:  f.Embedded(),
+				Pos:       f.Pos(),
 			}
 		})
 	}
@@ -919,11 +919,24 @@ func (r TypeInfo) GenericType() TypeInfo {
 }
 
 type StructField struct {
-	Name     string
-	Type     TypeInfo
-	Tag      string
-	Embedded bool
-	Pos      token.Pos
+	Name      string
+	FieldType TypeInfo
+	Tag       string
+	Embedded  bool
+	Pos       token.Pos
+}
+
+func (r StructField) TypeName(w genfp.ImportSet, wp genfp.WorkingPackage) string {
+
+	if expr, ok := wp.FindNode(r.Pos).(*ast.Field); ok {
+		_, iset := wp.EvalTypeExpr(expr.Type)
+		for _, v := range iset {
+			w.AddImport(v)
+		}
+		return types.ExprString(expr.Type)
+	}
+
+	return w.TypeName(wp, r.FieldType.Type)
 }
 
 func (r StructField) Public() bool {

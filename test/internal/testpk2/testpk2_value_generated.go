@@ -2,7 +2,6 @@
 package testpk2
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
@@ -13,7 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
+	rf "reflect"
 	"sync/atomic"
 )
 
@@ -122,7 +121,7 @@ func (r AllKindTypes) Hi() fp.Option[int] {
 	return r.hi
 }
 
-func (r AllKindTypes) Tpe() reflect.Type {
+func (r AllKindTypes) Tpe() rf.Type {
 	return r.tpe
 }
 
@@ -220,7 +219,7 @@ func (r AllKindTypes) WithNoneHi() AllKindTypes {
 	return r
 }
 
-func (r AllKindTypes) WithTpe(v reflect.Type) AllKindTypes {
+func (r AllKindTypes) WithTpe(v rf.Type) AllKindTypes {
 	r.tpe = v
 	return r
 }
@@ -326,7 +325,7 @@ func (r AllKindTypes) String() string {
 	return fmt.Sprintf("testpk2.AllKindTypes{hi:%v, tpe:%v, arr:%v, m:%v, a:%v, p:%v, l:%v, t:%v, m2:%v, mm:%v, intf:%v, ch:%v, ch2:%v, ch3:%v, fn3:%v, arr2:%v, st:%v, i2:%v}", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -337,7 +336,7 @@ func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], reflect.Type, []os.Fi
 	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) Unapply() (fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypes) Unapply() (fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -400,7 +399,7 @@ func (r AllKindTypesBuilder) NoneHi() AllKindTypesBuilder {
 	return r
 }
 
-func (r AllKindTypesBuilder) Tpe(v reflect.Type) AllKindTypesBuilder {
+func (r AllKindTypesBuilder) Tpe(v rf.Type) AllKindTypesBuilder {
 	r.tpe = v
 	return r
 }
@@ -502,7 +501,7 @@ func (r AllKindTypesBuilder) I2(v interface {
 	return r
 }
 
-func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -533,7 +532,7 @@ func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], reflect.Type
 	return r
 }
 
-func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe reflect.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.Try[fp.Option[Local]], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
+func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe rf.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.Try[fp.Option[Local]], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -572,7 +571,7 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 		r.hi = option.Some(v)
 	}
 
-	if v, ok := m["tpe"].(reflect.Type); ok {
+	if v, ok := m["tpe"].(rf.Type); ok {
 		r.tpe = v
 	}
 
@@ -661,7 +660,7 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 type AllKindTypesMutable struct {
 	Embed
 	Hi   fp.Option[int]
-	Tpe  reflect.Type
+	Tpe  rf.Type
 	Arr  []os.File
 	M    map[string]int
 	A    any
@@ -1944,11 +1943,11 @@ func (r GetterOverride) WithPrivField(v string) testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
 }
 
-func (r AliasTest) Ctx() context.Context {
+func (r AliasTest) Ctx() testpk1.Pk1Context {
 	return r.ctx
 }
 
-func (r AliasTest) WithCtx(v context.Context) AliasTest {
+func (r AliasTest) WithCtx(v testpk1.Pk1Context) AliasTest {
 	r.ctx = v
 	return r
 }
@@ -1957,11 +1956,11 @@ func (r AliasTest) String() string {
 	return fmt.Sprintf("testpk2.AliasTest{ctx:%v}", r.ctx)
 }
 
-func (r AliasTest) AsTuple() fp.Tuple1[context.Context] {
+func (r AliasTest) AsTuple() fp.Tuple1[testpk1.Pk1Context] {
 	return as.Tuple1(r.ctx)
 }
 
-func (r AliasTest) Unapply() context.Context {
+func (r AliasTest) Unapply() testpk1.Pk1Context {
 	return r.ctx
 }
 
@@ -1981,24 +1980,24 @@ func (r AliasTest) Builder() AliasTestBuilder {
 	return AliasTestBuilder(r)
 }
 
-func (r AliasTestBuilder) Ctx(v context.Context) AliasTestBuilder {
+func (r AliasTestBuilder) Ctx(v testpk1.Pk1Context) AliasTestBuilder {
 	r.ctx = v
 	return r
 }
 
-func (r AliasTestBuilder) FromTuple(t fp.Tuple1[context.Context]) AliasTestBuilder {
+func (r AliasTestBuilder) FromTuple(t fp.Tuple1[testpk1.Pk1Context]) AliasTestBuilder {
 	r.ctx = t.I1
 	return r
 }
 
-func (r AliasTestBuilder) Apply(ctx context.Context) AliasTestBuilder {
+func (r AliasTestBuilder) Apply(ctx testpk1.Pk1Context) AliasTestBuilder {
 	r.ctx = ctx
 	return r
 }
 
 func (r AliasTestBuilder) FromMap(m map[string]any) AliasTestBuilder {
 
-	if v, ok := m["ctx"].(context.Context); ok {
+	if v, ok := m["ctx"].(testpk1.Pk1Context); ok {
 		r.ctx = v
 	}
 
@@ -2006,7 +2005,7 @@ func (r AliasTestBuilder) FromMap(m map[string]any) AliasTestBuilder {
 }
 
 type AliasTestMutable struct {
-	Ctx context.Context
+	Ctx testpk1.Pk1Context
 }
 
 func (r AliasTest) AsMutable() AliasTestMutable {
