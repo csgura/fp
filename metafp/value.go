@@ -60,6 +60,28 @@ func (r TaggedStruct) PackagedName(w genfp.ImportSet, workingPackage *types.Pack
 	return fmt.Sprintf("%s.%s", pk, r.Name)
 }
 
+type TypeInfoExpr struct {
+	Type TypeInfo
+	Expr fp.Option[ast.Expr]
+}
+
+func (r TypeInfoExpr) String() string {
+	return r.Type.String()
+}
+
+func (r TypeInfoExpr) TypeName(w genfp.ImportSet, wp genfp.WorkingPackage) string {
+
+	if expr, ok := r.Expr.Unapply(); ok {
+		_, iset := wp.EvalTypeExpr(expr)
+		for _, v := range iset {
+			w.AddImport(v)
+		}
+		return types.ExprString(expr)
+	}
+
+	return w.TypeName(wp, r.Type.Type)
+}
+
 func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	l := pk.Scope().Lookup(name)
 
@@ -924,6 +946,19 @@ type StructField struct {
 	Tag       string
 	Embedded  bool
 	Pos       token.Pos
+}
+
+func (r StructField) TypeInfoExpr(wp genfp.WorkingPackage) TypeInfoExpr {
+	if expr, ok := wp.FindNode(r.Pos).(*ast.Field); ok {
+		return TypeInfoExpr{
+			Type: r.FieldType,
+			Expr: option.Some(expr.Type),
+		}
+	}
+	return TypeInfoExpr{
+		Type: r.FieldType,
+		Expr: option.None[ast.Expr](),
+	}
 }
 
 func (r StructField) TypeName(w genfp.ImportSet, wp genfp.WorkingPackage) string {

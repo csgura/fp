@@ -782,12 +782,12 @@ func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lo
 
 }
 
-func (r *TypeClassSummonContext) exprTypeClassMember(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo]) SummonExpr {
+func (r *TypeClassSummonContext) exprTypeClassMember(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typeArgs fp.Seq[metafp.TypeInfoExpr], fieldOf fp.Option[metafp.TypeInfo]) SummonExpr {
 	if len(typeArgs) > 0 {
-		list := r.summonArgs(ctx, seq.Map(typeArgs, func(t metafp.TypeInfo) metafp.RequiredInstance {
+		list := r.summonArgs(ctx, seq.Map(typeArgs, func(t metafp.TypeInfoExpr) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
 				TypeClass: tc,
-				Type:      t,
+				Type:      t.Type,
 				FieldOf:   fieldOf,
 			}
 		}))
@@ -799,9 +799,9 @@ func (r *TypeClassSummonContext) exprTypeClassMember(ctx CurrentContext, tc meta
 
 }
 
-func (r *TypeClassSummonContext) exprTypeClassMemberLabelled(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typePkg *types.Package, names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfo], genLabelled bool) SummonExpr {
+func (r *TypeClassSummonContext) exprTypeClassMemberLabelled(ctx CurrentContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typePkg *types.Package, names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfoExpr], genLabelled bool) SummonExpr {
 	if len(typeArgs) > 0 {
-		list := collectSummonExpr(seq.Map(seq.Zip(typeArgs, names), func(t fp.Tuple2[metafp.TypeInfo, string]) SummonExpr {
+		list := collectSummonExpr(seq.Map(seq.Zip(typeArgs, names), func(t fp.Tuple2[metafp.TypeInfoExpr, string]) SummonExpr {
 			return r.summonFpNamed(ctx, tc, typePkg, t.I2, t.I1, genLabelled)
 		}))
 
@@ -993,8 +993,8 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 		return v.Name
 	})
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.FieldType
+	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+		return v.TypeInfoExpr(ctx.working)
 	})
 
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Labelled%d", typeArgs.Size()))
@@ -1036,8 +1036,8 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
-						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), r.w.TypeName(ctx.working, f.I2.Type))
+						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfoExpr]) string {
+							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), f.I2.TypeName(r.w, ctx.working))
 						}).Take(arity).MakeString(",")
 
 						if r.implicitTypeInference {
@@ -1063,9 +1063,9 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
-						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, f fp.Tuple2[string, metafp.TypeInfo]) string {
+						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, f fp.Tuple2[string, metafp.TypeInfoExpr]) string {
 							name, a := f.Unapply()
-							return fmt.Sprintf("%s.Cons[%s[%s],%s]", hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), r.w.TypeName(ctx.working, a.Type), b)
+							return fmt.Sprintf("%s.Cons[%s[%s],%s]", hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), a.TypeName(r.w, ctx.working), b)
 						})
 
 						varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
@@ -1073,17 +1073,17 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 						}).MakeString(",")
 
 						hlistExpr := option.Map(option.Of(sf.namedGenerated).Filter(eq.GivenValue(true)), func(bool) string {
-							return seq.Fold(seq.ZipWithIndex(namedTypeArgs).Reverse(), hlistpk+".Empty()", func(expr string, t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
+							return seq.Fold(seq.ZipWithIndex(namedTypeArgs).Reverse(), hlistpk+".Empty()", func(expr string, t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfoExpr]]) string {
 								idx, t2 := t3.Unapply()
 								name, tp := t2.Unapply()
 								return fmt.Sprintf(`%s.Concat(%s[%s]{i%d}, 
 									%s,
-								)`, hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), r.w.TypeName(ctx.working, tp.Type), idx, expr)
+								)`, hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), tp.TypeName(r.w, ctx.working), idx, expr)
 							})
 						}).OrElseGet(func() string {
 							aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-							return seq.Fold(seq.ZipWithIndex(namedTypeArgs).Reverse(), hlistpk+".Empty()", func(expr string, t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
+							return seq.Fold(seq.ZipWithIndex(namedTypeArgs).Reverse(), hlistpk+".Empty()", func(expr string, t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfoExpr]]) string {
 								idx, t2 := t3.Unapply()
 								name, _ := t2.Unapply()
 								return fmt.Sprintf(`%s.Concat(%s.Named("%s", i%d), 
@@ -1119,8 +1119,8 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
-						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfo]) string {
-							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), r.w.TypeName(ctx.working, f.I2.Type))
+						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[string, metafp.TypeInfoExpr]) string {
+							return fmt.Sprintf("%s[%s]", namedOrRuntime(r.w, ctx.working, sf.pack, f.I1, sf.namedGenerated), f.I2.TypeName(r.w, ctx.working))
 						}).Take(arity).MakeString(",")
 
 						hlistToTuple := func() string {
@@ -1148,9 +1148,9 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
-						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, t2 fp.Tuple2[string, metafp.TypeInfo]) string {
+						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, t2 fp.Tuple2[string, metafp.TypeInfoExpr]) string {
 							name, a := t2.Unapply()
-							return fmt.Sprintf("%s.Cons[%s[%s],%s]", hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), r.w.TypeName(ctx.working, a.Type), b)
+							return fmt.Sprintf("%s.Cons[%s[%s],%s]", hlistpk, namedOrRuntime(r.w, ctx.working, sf.pack, name, sf.namedGenerated), a.TypeName(r.w, ctx.working), b)
 						})
 
 						expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
@@ -1177,7 +1177,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 					hnil := r.lookupHNilMust(ctx, tc)
 					namedTypeArgs := seq.Zip(names, typeArgs)
-					hlist := seq.Fold(namedTypeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti fp.Tuple2[string, metafp.TypeInfo]) SummonExpr {
+					hlist := seq.Fold(namedTypeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti fp.Tuple2[string, metafp.TypeInfoExpr]) SummonExpr {
 						instance := r.summonFpNamed(ctx, tc, sf.pack, ti.I1, ti.I2, sf.namedGenerated)
 						return newSummonExpr(fmt.Sprintf(`%s(
 							%s,
@@ -1214,8 +1214,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		fields = fields.Filter(func(v metafp.StructField) bool { return v.Public() })
 	}
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.FieldType
+	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+		return v.TypeInfoExpr(ctx.working)
 	})
 
 	names := seq.Map(fields, func(v metafp.StructField) string {
@@ -1268,8 +1268,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 	if !hasUnapply {
 
 		tupleFuncExpr = func() string {
-			p := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-				return r.w.TypeName(ctx.working, f.Type)
+			p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+				return f.TypeName(r.w, ctx.working)
 			}).MakeString(",")
 
 			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
@@ -1283,8 +1283,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		}
 
 		applyFuncExpr = func() string {
-			p := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-				return r.w.TypeName(ctx.working, f.Type)
+			p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+				return f.TypeName(r.w, ctx.working)
 			}).MakeString(",")
 
 			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
@@ -1328,15 +1328,15 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 
 			namedTypeArgs := seq.Zip(names, typeArgs)
 
-			labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfo]) string {
-				return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, r.w.TypeName(ctx.working, tp.I2.Type))
+			labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfoExpr]) string {
+				return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 			}).MakeString(",")
 
 			varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
 				return fmt.Sprintf("i%d", v)
 			}).MakeString(",")
 
-			hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
+			hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfoExpr]]) string {
 				idx, t2 := t3.Unapply()
 				name, _ := t2.Unapply()
 				return fmt.Sprintf(`%s.Named("%s", i%d )`, aspk, name, idx)
@@ -1355,8 +1355,8 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 			namedTypeArgs := seq.Zip(names, typeArgs)
 
-			labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfo]) string {
-				return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, r.w.TypeName(ctx.working, tp.I2.Type))
+			labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfoExpr]) string {
+				return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 			}).MakeString(",")
 
 			args := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, string]) string {
@@ -1404,8 +1404,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 		return valuereceiver
 	}
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.FieldType
+	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+		return v.TypeInfoExpr(ctx.working)
 	})
 
 	names := seq.Map(fields, func(v metafp.StructField) string {
@@ -1413,8 +1413,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	})
 
 	tupleFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-			return r.w.TypeName(ctx.working, f.Type)
+		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
@@ -1428,8 +1428,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 	}
 
 	applyFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-			return r.w.TypeName(ctx.working, f.Type)
+		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
@@ -1454,15 +1454,15 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 
 		namedTypeArgs := seq.Zip(names, typeArgs)
 
-		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfo]) string {
-			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, r.w.TypeName(ctx.working, tp.I2.Type))
+		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfoExpr]) string {
+			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 		}).MakeString(",")
 
 		varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
 			return fmt.Sprintf("i%d", v)
 		}).MakeString(",")
 
-		hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfo]]) string {
+		hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[string, metafp.TypeInfoExpr]]) string {
 			idx, t2 := t3.Unapply()
 			name, _ := t2.Unapply()
 			return fmt.Sprintf(`%s.Named("%s",  i%d)`, aspk, name, idx)
@@ -1482,8 +1482,8 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 		namedTypeArgs := seq.Zip(names, typeArgs)
 
-		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfo]) string {
-			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, r.w.TypeName(ctx.working, tp.I2.Type))
+		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[string, metafp.TypeInfoExpr]) string {
+			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 		}).MakeString(",")
 
 		args := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, string]) string {
@@ -1559,8 +1559,8 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 	fields := sf.fields
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", fields.Size()))
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfo {
-		return v.FieldType
+	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+		return v.TypeInfoExpr(ctx.working)
 	})
 
 	if result.IsDefined() {
@@ -1594,8 +1594,8 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 			if typeArgs.Size() >= max.Product {
 				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfo) string {
-					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, r.w.TypeName(ctx.working, a.Type), b)
+				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
 				})
 
 				varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
@@ -1635,8 +1635,8 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 			if typeArgs.Size() >= max.Product {
 				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfo) string {
-					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, r.w.TypeName(ctx.working, a.Type), b)
+				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
 				})
 
 				expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
@@ -1678,10 +1678,10 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 			return option.Map(r.lookupTypeClassFunc(ctx, tc, "StructHCons"), func(hcons metafp.TypeClassInstance) SummonExpr {
 				arity := typeArgs.Size()
 				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
-				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfo) SummonExpr {
+				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
 					instance := r.summonRequired(ctx, metafp.RequiredInstance{
 						TypeClass: ctx.tc.TypeClass,
-						Type:      ti,
+						Type:      ti.Type,
 						FieldOf:   option.Some(sf.tpe),
 					})
 					return newSummonExpr(fmt.Sprintf(`%s(
@@ -1702,7 +1702,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 // 	return r.summonStructGenericRepr(ctx, tc, sf)
 // }
 
-func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo], fieldOf fp.Option[metafp.TypeInfo], explicit bool) GenericRepr {
+func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfoExpr], fieldOf fp.Option[metafp.TypeInfo], explicit bool) GenericRepr {
 	return GenericRepr{
 		Kind: fp.GenericKindTuple,
 		// ReprType: func() string {
@@ -1714,8 +1714,8 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
 
-			tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-				return r.w.TypeName(ctx.working, f.Type)
+			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+				return f.TypeName(r.w, ctx.working)
 			}).Take(arity).MakeString(",")
 
 			if r.implicitTypeInference {
@@ -1734,8 +1734,8 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
 
-			tp := seq.Map(typeArgs, func(f metafp.TypeInfo) string {
-				return r.w.TypeName(ctx.working, f.Type)
+			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+				return f.TypeName(r.w, ctx.working)
 			}).Take(arity).MakeString(",")
 
 			hlistToTuple := func() string {
@@ -1768,10 +1768,10 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 
 			hnil := r.lookupTypeClassFunc(ctx, tc, "TupleHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 
-			hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfo) SummonExpr {
+			hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
 				instance := r.summonRequired(ctx, metafp.RequiredInstance{
 					TypeClass: ctx.tc.TypeClass,
-					Type:      ti,
+					Type:      ti.Type,
 					FieldOf:   fieldOf,
 				})
 				return newSummonExpr(fmt.Sprintf(`%s(
@@ -1784,7 +1784,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 	}
 }
 
-func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfo]) SummonExpr {
+func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfoExpr]) SummonExpr {
 
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", typeArgs.Size()))
 
@@ -1797,17 +1797,17 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 
 }
 
-func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.TypeClass, typePkg *types.Package, name string, t metafp.TypeInfo, genLabelled bool) SummonExpr {
+func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.TypeClass, typePkg *types.Package, name string, t metafp.TypeInfoExpr, genLabelled bool) SummonExpr {
 
 	instance := r.lookupTypeClassFuncMust(ctx, tc, "Named")
 
 	expr := r.summonRequired(ctx, metafp.RequiredInstance{
 		TypeClass: tc,
-		Type:      t,
+		Type:      t.Type,
 	})
 
 	return newSummonExpr(fmt.Sprintf("%s[%s[%s]](%s)", instance.PackagedName(r.w, ctx.working), namedOrRuntime(r.w, ctx.working, typePkg, name, genLabelled),
-		r.w.TypeName(ctx.working, t.Type), expr.expr), expr.paramInstance)
+		t.TypeName(r.w, ctx.working), expr.expr), expr.paramInstance)
 
 	// pk := r.w.GetImportedName(ctx.working)
 	// return fmt.Sprintf("%s.Named(%s)", pk, r.summon(t))
@@ -1839,7 +1839,11 @@ func (r *TypeClassSummonContext) summonRequired(ctx CurrentContext, req metafp.R
 	// }
 
 	if t.IsTuple() {
-		return r.summonTuple(ctx, req.TypeClass, t.TypeArgs)
+		return r.summonTuple(ctx, req.TypeClass, seq.Map(t.TypeArgs, func(v metafp.TypeInfo) metafp.TypeInfoExpr {
+			return metafp.TypeInfoExpr{
+				Type: v,
+			}
+		}))
 	}
 
 	result := r.lookupTypeClassInstance(ctx, req)
