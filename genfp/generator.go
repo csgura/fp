@@ -355,6 +355,11 @@ func (r *importSet) ZeroExpr(pk WorkingPackage, tpe types.Type) string {
 		case types.IsString:
 			return `""`
 		}
+	case *types.Alias:
+		if _, ok := realtp.Underlying().(*types.Interface); ok {
+			return "nil"
+		}
+		return fmt.Sprintf("%s{}", r.TypeName(pk, tpe))
 	}
 
 	return tpe.String()
@@ -463,6 +468,31 @@ func (r *importSet) TypeName(pk WorkingPackage, tpe types.Type) string {
 			%s
 			%s
 		}`, strings.Join(embeded, "\n"), strings.Join(fields, "\n"))
+	case *types.Alias:
+		tpname := realtp.Obj().Name()
+
+		nameWithPkg := tpname
+		if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
+			alias := r.GetImportedName(FromTypesPackage(realtp.Obj().Pkg()))
+
+			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
+		}
+
+		if realtp.TypeArgs() != nil {
+			args := []string{}
+			for i := 0; i < realtp.TypeArgs().Len(); i++ {
+				args = append(args, r.TypeName(pk, realtp.TypeArgs().At(i)))
+			}
+
+			argsstr := strings.Join(args, ",")
+
+			return fmt.Sprintf("%s[%s]", nameWithPkg, argsstr)
+		} else {
+
+			return nameWithPkg
+
+		}
+
 	}
 
 	return tpe.String()

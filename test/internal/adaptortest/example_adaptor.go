@@ -286,10 +286,10 @@ func (r *SenderSelfSelfArg) SendImpl(self Sender, msg string) (int, error) {
 }
 
 type InvokerAdaptor struct {
-	DoInvoke func(a1 any)
+	DoInvoke func(a1 interface{})
 }
 
-func (r *InvokerAdaptor) Invoke(a1 any) {
+func (r *InvokerAdaptor) Invoke(a1 interface{}) {
 
 	if r.DoInvoke != nil {
 		r.DoInvoke(a1)
@@ -301,14 +301,14 @@ func (r *InvokerAdaptor) Invoke(a1 any) {
 
 type InvokerCheckSelf struct {
 	Extends  Invoker
-	DoInvoke func(a1 any)
+	DoInvoke func(a1 interface{})
 }
 
-func (r *InvokerCheckSelf) Invoke(a1 any) {
+func (r *InvokerCheckSelf) Invoke(a1 interface{}) {
 	r.InvokeImpl(r, a1)
 }
 
-func (r *InvokerCheckSelf) InvokeImpl(self Invoker, a1 any) {
+func (r *InvokerCheckSelf) InvokeImpl(self Invoker, a1 interface{}) {
 
 	if r.DoInvoke != nil {
 		r.DoInvoke(a1)
@@ -317,7 +317,7 @@ func (r *InvokerCheckSelf) InvokeImpl(self Invoker, a1 any) {
 
 	if r.Extends != nil {
 		type impl interface {
-			InvokeImpl(self Invoker, a1 any)
+			InvokeImpl(self Invoker, a1 interface{})
 		}
 
 		if super, ok := r.Extends.(impl); ok {

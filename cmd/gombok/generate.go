@@ -360,7 +360,7 @@ type implContext struct {
 	valName         string
 	cbName          string
 	selfarg         string
-	argTypes        fp.Seq[fp.Tuple2[string, types.Type]]
+	argTypes        fp.Seq[fp.Tuple2[string, typeExpr]]
 	argStr          string
 	argTypeStr      string
 	resstr          string
@@ -476,8 +476,8 @@ func finalExpr(expr string) fp.Option[GeneratedExpr] {
 
 type CallArgs struct {
 	variadic bool
-	avail    fp.Seq[fp.Tuple2[string, types.Type]]
-	args     fp.Seq[fp.Tuple2[string, types.Type]]
+	avail    fp.Seq[fp.Tuple2[string, typeExpr]]
+	args     fp.Seq[fp.Tuple2[string, typeExpr]]
 }
 
 func (r CallArgs) ArgList() string {
@@ -485,11 +485,11 @@ func (r CallArgs) ArgList() string {
 }
 
 func (r CallArgs) ArgTypeList(w genfp.Writer, pk genfp.WorkingPackage) string {
-	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Tuple2[string, types.Type]) string {
+	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Tuple2[string, typeExpr]) string {
 		if r.variadic && i == r.args.Size()-1 {
-			return fmt.Sprintf("%s... %s", v.I1, w.TypeName(pk, v.I2))
+			return fmt.Sprintf("%s... %s", v.I1, v.I2.TypeName(w, pk))
 		}
-		return fmt.Sprintf("%s %s", v.I1, w.TypeName(pk, v.I2))
+		return fmt.Sprintf("%s %s", v.I1, v.I2.TypeName(w, pk))
 	})).MakeString(",")
 }
 
@@ -509,22 +509,50 @@ func (r *implContext) matchSuperMethodArgs(superField string) fp.Option[CallArgs
 	return option.None[CallArgs]()
 }
 
+type typeExpr struct {
+	Type types.Type
+	Expr fp.Option[ast.Expr]
+}
+
+func (r typeExpr) String() string {
+	return r.Type.String()
+}
+
+func (r typeExpr) TypeName(w genfp.ImportSet, wp genfp.WorkingPackage) string {
+
+	if expr, ok := r.Expr.Unapply(); ok {
+		_, iset := wp.EvalTypeExpr(expr)
+		for _, v := range iset {
+			w.AddImport(v)
+		}
+		return types.ExprString(expr)
+	}
+
+	return w.TypeName(wp, r.Type)
+}
+
+func namedTypeExpr(tp *types.Named) typeExpr {
+	return typeExpr{
+		Type: tp,
+	}
+}
+
 func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 	gad := r.gad
 
-	defImplArgs := iterate(ms.Params().Len(), ms.Params().At, func(i int, t *types.Var) types.Type {
-		return t.Type()
+	defImplArgs := iterate(ms.Params().Len(), ms.Params().At, func(i int, t *types.Var) typeExpr {
+		return varTypeExpr(gad.Package, t)
 	})
 
-	availableArgs := func() fp.Seq[fp.Tuple2[string, types.Type]] {
+	availableArgs := func() fp.Seq[fp.Tuple2[string, typeExpr]] {
 		if gad.ExtendsSelfCheck {
-			return seq.Concat(as.Tuple[string, types.Type]("self", gad.Interface), r.argTypes)
+			return seq.Concat(as.Tuple[string, typeExpr]("self", namedTypeExpr(gad.Interface)), r.argTypes)
 		}
-		return seq.Concat(as.Tuple[string, types.Type]("r", gad.Interface), r.argTypes)
+		return seq.Concat(as.Tuple[string, typeExpr]("r", namedTypeExpr(gad.Interface)), r.argTypes)
 	}()
 
-	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp types.Type) fp.Try[CallArgs] {
-		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, types.Type]) bool {
+	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp typeExpr) fp.Try[CallArgs] {
+		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, typeExpr]) bool {
 			return t.I2.String() != tp.String()
 		})
 
@@ -624,9 +652,9 @@ func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
 
 	defaultField := option.Map(option.Of(r.isValOverride()).Filter(fp.Id), func(v bool) string {
 		if opt.ValOverrideUsingPtr {
-			return fmt.Sprintf("%s *%s", r.valName, r.w.TypeName(gad.Package, sig.Results().At(0).Type()))
+			return fmt.Sprintf("%s *%s", r.valName, varTypeName(r.w, gad.Package, sig.Results().At(0)))
 		}
-		return fmt.Sprintf("%s %s", r.valName, r.w.TypeName(gad.Package, sig.Results().At(0).Type()))
+		return fmt.Sprintf("%s %s", r.valName, varTypeName(r.w, gad.Package, sig.Results().At(0)))
 	})
 
 	return defaultField, cbfield
@@ -692,7 +720,7 @@ func (r *implContext) valOverride(defaultImpl bool) (fp.Option[string], bool) {
 							return r.%s
 						}
 					
-					`, w.TypeName(gad.Package, sig.Results().At(0).Type()),
+					`, varTypeName(r.w, gad.Package, sig.Results().At(0)),
 				valName,
 				valName)
 			return option.Some(ret), false
@@ -829,6 +857,73 @@ func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorD
 	return fields, methodSet
 }
 
+func varTypeExpr(wp genfp.WorkingPackage, t *types.Var) typeExpr {
+	retexpr := wp.FindNode(t.Pos())
+	tpExpr := func() ast.Expr {
+		if fl, ok := retexpr.(*ast.FieldList); ok {
+			return fl.List[0].Type
+		} else if f, ok := retexpr.(*ast.Field); ok {
+			return f.Type
+		}
+		return nil
+
+	}()
+	return typeExpr{
+		Type: t.Type(),
+		Expr: option.NonZero(tpExpr),
+	}
+}
+
+func varTypeName(w genfp.ImportSet, wp genfp.WorkingPackage, t *types.Var) string {
+	retexpr := wp.FindNode(t.Pos())
+	tpExpr := func() ast.Expr {
+		if fl, ok := retexpr.(*ast.FieldList); ok {
+			return fl.List[0].Type
+		} else if f, ok := retexpr.(*ast.Field); ok {
+			return f.Type
+		}
+		return nil
+
+	}()
+
+	if tpExpr != nil {
+		_, iset := wp.EvalTypeExpr(tpExpr)
+		for _, v := range iset {
+			w.AddImport(v)
+		}
+		return types.ExprString(tpExpr)
+	}
+	return w.TypeName(wp, t.Type())
+}
+
+func elemTypeExpr(w genfp.ImportSet, wp genfp.WorkingPackage, t *types.Var) string {
+	st := t.Type().(*types.Slice)
+
+	retexpr := wp.FindNode(t.Pos())
+	tpExpr := func() ast.Expr {
+		if fl, ok := retexpr.(*ast.FieldList); ok {
+			return fl.List[0].Type
+		} else if f, ok := retexpr.(*ast.Field); ok {
+			return f.Type
+		}
+		return nil
+
+	}()
+
+	if elt, ok := tpExpr.(*ast.Ellipsis); ok {
+		tpExpr = elt.Elt
+	}
+
+	if tpExpr != nil {
+		_, iset := wp.EvalTypeExpr(tpExpr)
+		for _, v := range iset {
+			w.AddImport(v)
+		}
+		return types.ExprString(tpExpr)
+	}
+	return w.TypeName(wp, st.Elem())
+}
+
 func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
 	if opt.Delegate != nil && opt.Private {
 		if isEmbeddingField(gad, opt.Delegate.Field) {
@@ -852,9 +947,8 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 		selfarg = "self " + w.TypeName(gad.Package, gad.Interface) + ","
 	}
 
-	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, types.Type] {
-
-		return as.Tuple2(argName(i, t), t.Type())
+	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, typeExpr] {
+		return as.Tuple2(argName(i, t), varTypeExpr(gad.Package, t))
 	})
 
 	argStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
@@ -868,16 +962,15 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 
 	argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 		if sig.Variadic() && i == sig.Params().Len()-1 {
-			st := t.Type().(*types.Slice)
-			return fmt.Sprintf("%s ...%s", argName(i, t), w.TypeName(gad.Package, st.Elem()))
+			return fmt.Sprintf("%s ...%s", argName(i, t), elemTypeExpr(w, gad.Package, t))
 		}
-		return fmt.Sprintf("%s %s", argName(i, t), w.TypeName(gad.Package, t.Type()))
+		return fmt.Sprintf("%s %s", argName(i, t), varTypeName(w, gad.Package, t))
 	}).MakeString(",")
 
 	resstr := ""
 	if sig.Results().Len() > 0 {
 		resstr = "(" + iterate(sig.Results().Len(), sig.Results().At, func(i int, t *types.Var) string {
-			return w.TypeName(gad.Package, t.Type())
+			return varTypeName(w, gad.Package, t)
 		}).MakeString(",") + ")"
 	}
 

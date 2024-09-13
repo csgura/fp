@@ -229,8 +229,22 @@ var _ = genfp.GenerateFromUntil{
 	Template: "hello world",
 }
 
+type Pk1Context = testpk1.Pk1Context
+
 // @fp.Value
 // @TestAlias
 type AliasTest struct {
-	ctx testpk1.Pk1Context
+	ctx   testpk1.Pk1Context
+	other Pk1Context
+}
+
+type AliasIntf interface {
+	Ctx() testpk1.Pk1Context
+	Other() Pk1Context
+}
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[AliasIntf]{
+	File: "adaptor.go",
+	Self: true,
 }

@@ -6,10 +6,19 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/test/internal/testpk1"
+	"github.com/csgura/fp/test/internal/testpk2"
 )
 
 func (r AliasTest) Ctx() testpk1.Pk1Context {
 	return r.ctx
+}
+
+func (r AliasTest) Other() Pk1Context {
+	return r.other
+}
+
+func (r AliasTest) Pk2ctx() testpk2.Pk1Context {
+	return r.pk2ctx
 }
 
 func (r AliasTest) WithCtx(v testpk1.Pk1Context) AliasTest {
@@ -17,21 +26,33 @@ func (r AliasTest) WithCtx(v testpk1.Pk1Context) AliasTest {
 	return r
 }
 
+func (r AliasTest) WithOther(v Pk1Context) AliasTest {
+	r.other = v
+	return r
+}
+
+func (r AliasTest) WithPk2ctx(v testpk2.Pk1Context) AliasTest {
+	r.pk2ctx = v
+	return r
+}
+
 func (r AliasTest) String() string {
-	return fmt.Sprintf("gendebug.AliasTest{ctx:%v}", r.ctx)
+	return fmt.Sprintf("gendebug.AliasTest{ctx:%v, other:%v, pk2ctx:%v}", r.ctx, r.other, r.pk2ctx)
 }
 
-func (r AliasTest) AsTuple() fp.Tuple1[testpk1.Pk1Context] {
-	return as.Tuple1(r.ctx)
+func (r AliasTest) AsTuple() fp.Tuple3[testpk1.Pk1Context, Pk1Context, testpk2.Pk1Context] {
+	return as.Tuple3(r.ctx, r.other, r.pk2ctx)
 }
 
-func (r AliasTest) Unapply() testpk1.Pk1Context {
-	return r.ctx
+func (r AliasTest) Unapply() (testpk1.Pk1Context, Pk1Context, testpk2.Pk1Context) {
+	return r.ctx, r.other, r.pk2ctx
 }
 
 func (r AliasTest) AsMap() map[string]any {
 	m := map[string]any{}
 	m["ctx"] = r.ctx
+	m["other"] = r.other
+	m["pk2ctx"] = r.pk2ctx
 	return m
 }
 
@@ -50,13 +71,27 @@ func (r AliasTestBuilder) Ctx(v testpk1.Pk1Context) AliasTestBuilder {
 	return r
 }
 
-func (r AliasTestBuilder) FromTuple(t fp.Tuple1[testpk1.Pk1Context]) AliasTestBuilder {
-	r.ctx = t.I1
+func (r AliasTestBuilder) Other(v Pk1Context) AliasTestBuilder {
+	r.other = v
 	return r
 }
 
-func (r AliasTestBuilder) Apply(ctx testpk1.Pk1Context) AliasTestBuilder {
+func (r AliasTestBuilder) Pk2ctx(v testpk2.Pk1Context) AliasTestBuilder {
+	r.pk2ctx = v
+	return r
+}
+
+func (r AliasTestBuilder) FromTuple(t fp.Tuple3[testpk1.Pk1Context, Pk1Context, testpk2.Pk1Context]) AliasTestBuilder {
+	r.ctx = t.I1
+	r.other = t.I2
+	r.pk2ctx = t.I3
+	return r
+}
+
+func (r AliasTestBuilder) Apply(ctx testpk1.Pk1Context, other Pk1Context, pk2ctx testpk2.Pk1Context) AliasTestBuilder {
 	r.ctx = ctx
+	r.other = other
+	r.pk2ctx = pk2ctx
 	return r
 }
 
@@ -66,21 +101,35 @@ func (r AliasTestBuilder) FromMap(m map[string]any) AliasTestBuilder {
 		r.ctx = v
 	}
 
+	if v, ok := m["other"].(Pk1Context); ok {
+		r.other = v
+	}
+
+	if v, ok := m["pk2ctx"].(testpk2.Pk1Context); ok {
+		r.pk2ctx = v
+	}
+
 	return r
 }
 
 type AliasTestMutable struct {
-	Ctx testpk1.Pk1Context
+	Ctx    testpk1.Pk1Context
+	Other  Pk1Context
+	Pk2ctx testpk2.Pk1Context
 }
 
 func (r AliasTest) AsMutable() AliasTestMutable {
 	return AliasTestMutable{
-		Ctx: r.ctx,
+		Ctx:    r.ctx,
+		Other:  r.other,
+		Pk2ctx: r.pk2ctx,
 	}
 }
 
 func (r AliasTestMutable) AsImmutable() AliasTest {
 	return AliasTest{
-		ctx: r.Ctx,
+		ctx:    r.Ctx,
+		other:  r.Other,
+		pk2ctx: r.Pk2ctx,
 	}
 }
