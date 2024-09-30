@@ -1,6 +1,10 @@
 package fn1
 
-import "github.com/csgura/fp"
+import (
+	"sync"
+
+	"github.com/csgura/fp"
+)
 
 func Pure[X, A any](v A) fp.Func1[X, A] {
 	return fp.Const[X](v)
@@ -28,4 +32,15 @@ func Get[X any]() fp.Func1[X, X] {
 
 func WithArg[X, A any](fn fp.Func1[X, fp.Func1[X, A]]) fp.Func1[X, A] {
 	return FlatMap(Get[X](), fn)
+}
+
+func Memoize[A, B any](f func(A) B) fp.Func1[A, B] {
+	once := sync.Once{}
+	var ret B
+	return func(a A) B {
+		once.Do(func() {
+			ret = f(a)
+		})
+		return ret
+	}
 }
