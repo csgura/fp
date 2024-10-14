@@ -309,7 +309,17 @@ func GroupBy[A any, K comparable](s fp.Seq[A], keyFunc func(A) K) map[K]fp.Seq[A
 }
 
 func Distinct[V comparable](s fp.Seq[V]) fp.Seq[V] {
-	return ToGoSet(s).Iterator().ToSeq()
+
+	dupcheck := map[V]bool{}
+
+	return Fold(s, make(fp.Seq[V], 0, s.Size()), func(acc fp.Seq[V], a V) fp.Seq[V] {
+		if dupcheck[a] {
+			return acc
+		}
+
+		dupcheck[a] = true
+		return append(acc, a)
+	})
 }
 
 func ToMap[K, V any](s fp.Seq[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[K, V] {
