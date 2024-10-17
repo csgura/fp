@@ -19,6 +19,14 @@ func Put[S any](s S) fp.State[S, fp.Unit] {
 	}
 }
 
+func PutWith[C, V any](withf func(C, V) C) func(v V) fp.State[C, fp.Unit] {
+	return func(v V) fp.State[C, fp.Unit] {
+		return func(c C) fp.Tuple2[fp.Unit, C] {
+			return as.Tuple(fp.Unit{}, withf(c, v))
+		}
+	}
+}
+
 func Get[S any]() fp.State[S, S] {
 	return func(s S) fp.Tuple2[S, S] {
 		return as.Tuple(s, s)
