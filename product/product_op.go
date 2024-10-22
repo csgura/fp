@@ -55,6 +55,11 @@ func Split[T, K, V any](kext func(T) K, vext func(T) V) func(T) fp.Tuple2[K, V] 
 	}
 }
 
+func Flatten3[A1, A2, A3 any](list fp.Tuple2[A1, fp.Tuple2[A2, A3]]) fp.Tuple3[A1, A2, A3] {
+	tail := list.Tail()
+	return Tuple3(list.Head(), tail.I1, tail.I2)
+}
+
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "tuple_gen.go",
@@ -91,6 +96,26 @@ func TupleFromHList{{.N}}[{{TypeArgs 1 .N}} any](list {{ConsType 1 .N "hlist.Nil
 	tail := TupleFromHList{{dec .N}}(hlist.Tail(list))
 	return Tuple{{.N}}(list.Head(), {{CallArgs 1 (dec .N) "tail.I"}})
 }
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+		{Package: "github.com/csgura/fp/as", Name: "as"},
+	},
+	From:  4,
+	Until: genfp.MaxProduct,
+	Template: `
+
+func Flatten{{.N}}[{{TypeArgs 1 .N}} any](list {{RecursiveType "fp.Tuple2" 1 (dec .N) (TypeArg .N)}}) fp.{{TupleType .N}} {
+	tail := Flatten{{dec .N}}(list.Tail())
+	return Tuple{{.N}}(list.Head(), {{CallArgs 1 (dec .N) "tail.I"}})
+}
+
 	`,
 }
 

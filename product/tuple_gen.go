@@ -430,6 +430,96 @@ func TupleFromHList21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A1
 	return Tuple21(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16, tail.I17, tail.I18, tail.I19, tail.I20)
 }
 
+func Flatten4[A1, A2, A3, A4 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, A4]]]) fp.Tuple4[A1, A2, A3, A4] {
+	tail := Flatten3(list.Tail())
+	return Tuple4(list.Head(), tail.I1, tail.I2, tail.I3)
+}
+
+func Flatten5[A1, A2, A3, A4, A5 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, A5]]]]) fp.Tuple5[A1, A2, A3, A4, A5] {
+	tail := Flatten4(list.Tail())
+	return Tuple5(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4)
+}
+
+func Flatten6[A1, A2, A3, A4, A5, A6 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, A6]]]]]) fp.Tuple6[A1, A2, A3, A4, A5, A6] {
+	tail := Flatten5(list.Tail())
+	return Tuple6(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5)
+}
+
+func Flatten7[A1, A2, A3, A4, A5, A6, A7 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, A7]]]]]]) fp.Tuple7[A1, A2, A3, A4, A5, A6, A7] {
+	tail := Flatten6(list.Tail())
+	return Tuple7(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6)
+}
+
+func Flatten8[A1, A2, A3, A4, A5, A6, A7, A8 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, A8]]]]]]]) fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8] {
+	tail := Flatten7(list.Tail())
+	return Tuple8(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7)
+}
+
+func Flatten9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, A9]]]]]]]]) fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
+	tail := Flatten8(list.Tail())
+	return Tuple9(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8)
+}
+
+func Flatten10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, A10]]]]]]]]]) fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10] {
+	tail := Flatten9(list.Tail())
+	return Tuple10(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9)
+}
+
+func Flatten11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, A11]]]]]]]]]]) fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11] {
+	tail := Flatten10(list.Tail())
+	return Tuple11(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10)
+}
+
+func Flatten12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, A12]]]]]]]]]]]) fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12] {
+	tail := Flatten11(list.Tail())
+	return Tuple12(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11)
+}
+
+func Flatten13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, A13]]]]]]]]]]]]) fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13] {
+	tail := Flatten12(list.Tail())
+	return Tuple13(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12)
+}
+
+func Flatten14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, A14]]]]]]]]]]]]]) fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14] {
+	tail := Flatten13(list.Tail())
+	return Tuple14(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13)
+}
+
+func Flatten15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, A15]]]]]]]]]]]]]]) fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15] {
+	tail := Flatten14(list.Tail())
+	return Tuple15(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14)
+}
+
+func Flatten16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, fp.Tuple2[A15, A16]]]]]]]]]]]]]]]) fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16] {
+	tail := Flatten15(list.Tail())
+	return Tuple16(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15)
+}
+
+func Flatten17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, fp.Tuple2[A15, fp.Tuple2[A16, A17]]]]]]]]]]]]]]]]) fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17] {
+	tail := Flatten16(list.Tail())
+	return Tuple17(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16)
+}
+
+func Flatten18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, fp.Tuple2[A15, fp.Tuple2[A16, fp.Tuple2[A17, A18]]]]]]]]]]]]]]]]]) fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18] {
+	tail := Flatten17(list.Tail())
+	return Tuple18(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16, tail.I17)
+}
+
+func Flatten19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, fp.Tuple2[A15, fp.Tuple2[A16, fp.Tuple2[A17, fp.Tuple2[A18, A19]]]]]]]]]]]]]]]]]]) fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19] {
+	tail := Flatten18(list.Tail())
+	return Tuple19(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16, tail.I17, tail.I18)
+}
+
+func Flatten20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, fp.Tuple2[A15, fp.Tuple2[A16, fp.Tuple2[A17, fp.Tuple2[A18, fp.Tuple2[A19, A20]]]]]]]]]]]]]]]]]]]) fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20] {
+	tail := Flatten19(list.Tail())
+	return Tuple20(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16, tail.I17, tail.I18, tail.I19)
+}
+
+func Flatten21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](list fp.Tuple2[A1, fp.Tuple2[A2, fp.Tuple2[A3, fp.Tuple2[A4, fp.Tuple2[A5, fp.Tuple2[A6, fp.Tuple2[A7, fp.Tuple2[A8, fp.Tuple2[A9, fp.Tuple2[A10, fp.Tuple2[A11, fp.Tuple2[A12, fp.Tuple2[A13, fp.Tuple2[A14, fp.Tuple2[A15, fp.Tuple2[A16, fp.Tuple2[A17, fp.Tuple2[A18, fp.Tuple2[A19, fp.Tuple2[A20, A21]]]]]]]]]]]]]]]]]]]]) fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21] {
+	tail := Flatten20(list.Tail())
+	return Tuple21(list.Head(), tail.I1, tail.I2, tail.I3, tail.I4, tail.I5, tail.I6, tail.I7, tail.I8, tail.I9, tail.I10, tail.I11, tail.I12, tail.I13, tail.I14, tail.I15, tail.I16, tail.I17, tail.I18, tail.I19, tail.I20)
+}
+
 func LabelledFromHList2[A1, A2 fp.Named](list hlist.Cons[A1, hlist.Cons[A2, hlist.Nil]]) fp.Labelled2[A1, A2] {
 	tail := LabelledFromHList1(hlist.Tail(list))
 	return as.Labelled2(list.Head(), tail.I1)

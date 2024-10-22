@@ -45,6 +45,7 @@ var defaultFunc = map[string]any{
 	"FuncChain":         FuncChain,
 	"ConsType":          ConsType,
 	"ReversConsType":    ReversConsType,
+	"TypeArg":           FuncTypeArg,
 	"TypeArgs":          FuncTypeArgs,
 	"DeclArgs":          FuncDeclArgs,
 	"CallArgs":          FuncCallArgs,
@@ -104,6 +105,10 @@ func FormatStr(start, until int) string {
 	return f.String()
 }
 
+func TypeArg(prefix string, idx int) string {
+	return fmt.Sprintf("%s%d", prefix, idx)
+}
+
 func TypeArgs(prefix string, start, until int) string {
 	f := &bytes.Buffer{}
 	for j := start; j <= until; j++ {
@@ -113,6 +118,13 @@ func TypeArgs(prefix string, start, until int) string {
 		fmt.Fprintf(f, "%s%d", prefix, j)
 	}
 	return f.String()
+}
+
+func FuncTypeArg(idx int, prefix ...string) string {
+	if len(prefix) > 0 {
+		return TypeArg(prefix[0], idx)
+	}
+	return TypeArg("A", idx)
 }
 
 func FuncTypeArgs(start, until int, prefix ...string) string {
