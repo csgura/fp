@@ -50,7 +50,7 @@ func TestShow(t *testing.T) {
 	}
 
 	fmt.Printf("d = %s\n", showtest.ShowHasTuple().ShowIndent(d, show.JsonSpace))
-	assert.Equal(showtest.ShowHasTuple().ShowIndent(d, show.JsonSpace.WithNamingCase(fp.CamelCase)), `{ "entry": [ "hello", 10 ], "hList": "hello", 1 }`)
+	assert.Equal(showtest.ShowHasTuple().ShowIndent(d, show.JsonSpace.WithNamingCase(fp.CamelCase)), `{ "entry": [ "hello", 10 ], "hlist": "hello", 1 }`)
 
 	// untyped struct 에 private field 있는 경우, 다른 패키지에서 호출 불가능
 	// showtest.UntypedStructFunc(struct {

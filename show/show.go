@@ -3,6 +3,7 @@ package show
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/seq"
@@ -43,7 +45,7 @@ var Json = fp.ShowOption{
 	SquareBracketForArray: true,
 	NullForNil:            true,
 	QuoteNames:            true,
-}
+}.WithUserOption("format", "json")
 
 var JsonSpace = fp.ShowOption{
 	OmitEmpty:             true,
@@ -55,7 +57,7 @@ var JsonSpace = fp.ShowOption{
 	SpaceBeforeBrace:      false,
 	SpaceWithinBrace:      true,
 	QuoteNames:            true,
-}
+}.WithUserOption("format", "json")
 
 var PrettyJson = fp.ShowOption{
 	Indent:                "  ",
@@ -68,7 +70,7 @@ var PrettyJson = fp.ShowOption{
 	SpaceBeforeBrace:      true,
 	SpaceWithinBrace:      true,
 	QuoteNames:            true,
-}
+}.WithUserOption("format", "json")
 
 type Derives[T any] interface {
 }
@@ -130,8 +132,20 @@ func Ptr[T any](tshow lazy.Eval[fp.Show[T]]) fp.Show[*T] {
 }
 
 func Given[T fmt.Stringer]() fp.Show[T] {
-	return New(func(t T) string {
-		return fmt.Sprint(t)
+	return NewAppend(func(buf []string, t T, opt fp.ShowOption) []string {
+		if opt.UserOptions.Get("format") == option.Some("json") {
+			b, err := json.Marshal(t)
+			if err == nil {
+				if len(b) > 0 {
+					return append(buf, string(b))
+				}
+			}
+			if opt.OmitEmpty {
+				return append(buf, "")
+			}
+			return append(buf, nullForNil(opt))
+		}
+		return append(buf, t.String())
 	})
 }
 
