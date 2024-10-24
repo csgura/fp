@@ -47,6 +47,8 @@ type ShowOption struct {
 	// false 면  name: value 로 출력
 	QuoteNames bool
 
+	NamingCase NamingCase
+
 	UserOptions Map[string, string]
 
 	currentIndent string
@@ -120,6 +122,11 @@ func (r ShowOption) WithQuoteNames(b bool) ShowOption {
 
 func (r ShowOption) WithTrailingComma(b bool) ShowOption {
 	r.TrailingComma = b
+	return r
+}
+
+func (r ShowOption) WithNamingCase(namingCase NamingCase) ShowOption {
+	r.NamingCase = namingCase
 	return r
 }
 

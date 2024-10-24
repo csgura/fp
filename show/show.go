@@ -334,7 +334,7 @@ func Named[T fp.NamedField[A], A any](ashow fp.Show[A]) fp.Show[T] {
 		if isEmptyString(valuestr) {
 			return nil
 		}
-		return append(append(buf, quoteNames(s.Name(), opt), spaceAfterColon(opt)), valuestr...)
+		return append(append(buf, quoteNames(fp.ConvertNaming(s.Name(), opt.NamingCase), opt), spaceAfterColon(opt)), valuestr...)
 
 	})
 }
