@@ -2,6 +2,8 @@
 package ord
 
 import (
+	"time"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
@@ -23,6 +25,8 @@ func New[T any](eqv fp.Eq[T], less fp.LessFunc[T]) fp.Ord[T] {
 		return less.Compare(a, b)
 	})
 }
+
+var Time = FromCompare(time.Time.Compare)
 
 func Tuple1[A any](a fp.Ord[A]) fp.Ord[fp.Tuple1[A]] {
 	return New[fp.Tuple1[A]](

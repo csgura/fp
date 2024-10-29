@@ -254,6 +254,7 @@ type Ord[T any] interface {
 	*/
 	Compare(a, b T) int
 	Less(a T, b T) bool
+	LessEq(a T, b T) bool
 	ThenComparing(other Ord[T]) Ord[T]
 	Reversed() Ord[T]
 	Max(a T, b T) T
@@ -272,6 +273,10 @@ func (r CompareFunc[T]) Compare(a, b T) int {
 
 func (r CompareFunc[T]) Less(a, b T) bool {
 	return r(a, b) < 0
+}
+
+func (r CompareFunc[T]) LessEq(a, b T) bool {
+	return r(a, b) <= 0
 }
 
 func (r CompareFunc[T]) Max(a, b T) T {
@@ -321,6 +326,10 @@ func (r LessFunc[T]) Eqv(a, b T) bool {
 
 func (r LessFunc[T]) Less(a, b T) bool {
 	return r(a, b)
+}
+
+func (r LessFunc[T]) LessEq(a, b T) bool {
+	return r.Compare(a, b) <= 0
 }
 
 func (r LessFunc[T]) Max(a, b T) T {

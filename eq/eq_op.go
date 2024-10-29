@@ -3,6 +3,7 @@ package eq
 
 import (
 	"bytes"
+	"time"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
@@ -15,6 +16,7 @@ func New[T any](f func(a, b T) bool) fp.Eq[T] {
 	return fp.EqFunc[T](f)
 }
 
+var Time fp.Eq[time.Time] = New(time.Time.Equal)
 var Bytes fp.Eq[[]byte] = New(bytes.Equal)
 
 func Tuple1[A any](a fp.Eq[A]) fp.Eq[fp.Tuple1[A]] {
