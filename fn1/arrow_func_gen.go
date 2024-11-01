@@ -7,11 +7,9 @@ import (
 
 func Merge3[A, A1, A2, A3 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3) func(A) fp.Tuple3[A1, A2, A3] {
 	return func(a A) fp.Tuple3[A1, A2, A3] {
-		ret := Merge2(f1, f2)(a)
-
 		return fp.Tuple3[A1, A2, A3]{
-			I1: ret.I1,
-			I2: ret.I2,
+			I1: f1(a),
+			I2: f2(a),
 			I3: f3(a),
 		}
 
@@ -20,12 +18,10 @@ func Merge3[A, A1, A2, A3 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3) func
 
 func Merge4[A, A1, A2, A3, A4 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, f4 func(A) A4) func(A) fp.Tuple4[A1, A2, A3, A4] {
 	return func(a A) fp.Tuple4[A1, A2, A3, A4] {
-		ret := Merge3(f1, f2, f3)(a)
-
 		return fp.Tuple4[A1, A2, A3, A4]{
-			I1: ret.I1,
-			I2: ret.I2,
-			I3: ret.I3,
+			I1: f1(a),
+			I2: f2(a),
+			I3: f3(a),
 			I4: f4(a),
 		}
 
@@ -34,13 +30,11 @@ func Merge4[A, A1, A2, A3, A4 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, 
 
 func Merge5[A, A1, A2, A3, A4, A5 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, f4 func(A) A4, f5 func(A) A5) func(A) fp.Tuple5[A1, A2, A3, A4, A5] {
 	return func(a A) fp.Tuple5[A1, A2, A3, A4, A5] {
-		ret := Merge4(f1, f2, f3, f4)(a)
-
 		return fp.Tuple5[A1, A2, A3, A4, A5]{
-			I1: ret.I1,
-			I2: ret.I2,
-			I3: ret.I3,
-			I4: ret.I4,
+			I1: f1(a),
+			I2: f2(a),
+			I3: f3(a),
+			I4: f4(a),
 			I5: f5(a),
 		}
 
@@ -49,14 +43,12 @@ func Merge5[A, A1, A2, A3, A4, A5 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) 
 
 func Merge6[A, A1, A2, A3, A4, A5, A6 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, f4 func(A) A4, f5 func(A) A5, f6 func(A) A6) func(A) fp.Tuple6[A1, A2, A3, A4, A5, A6] {
 	return func(a A) fp.Tuple6[A1, A2, A3, A4, A5, A6] {
-		ret := Merge5(f1, f2, f3, f4, f5)(a)
-
 		return fp.Tuple6[A1, A2, A3, A4, A5, A6]{
-			I1: ret.I1,
-			I2: ret.I2,
-			I3: ret.I3,
-			I4: ret.I4,
-			I5: ret.I5,
+			I1: f1(a),
+			I2: f2(a),
+			I3: f3(a),
+			I4: f4(a),
+			I5: f5(a),
 			I6: f6(a),
 		}
 
@@ -65,15 +57,13 @@ func Merge6[A, A1, A2, A3, A4, A5, A6 any](f1 func(A) A1, f2 func(A) A2, f3 func
 
 func Merge7[A, A1, A2, A3, A4, A5, A6, A7 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, f4 func(A) A4, f5 func(A) A5, f6 func(A) A6, f7 func(A) A7) func(A) fp.Tuple7[A1, A2, A3, A4, A5, A6, A7] {
 	return func(a A) fp.Tuple7[A1, A2, A3, A4, A5, A6, A7] {
-		ret := Merge6(f1, f2, f3, f4, f5, f6)(a)
-
 		return fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]{
-			I1: ret.I1,
-			I2: ret.I2,
-			I3: ret.I3,
-			I4: ret.I4,
-			I5: ret.I5,
-			I6: ret.I6,
+			I1: f1(a),
+			I2: f2(a),
+			I3: f3(a),
+			I4: f4(a),
+			I5: f5(a),
+			I6: f6(a),
 			I7: f7(a),
 		}
 
@@ -82,16 +72,14 @@ func Merge7[A, A1, A2, A3, A4, A5, A6, A7 any](f1 func(A) A1, f2 func(A) A2, f3 
 
 func Merge8[A, A1, A2, A3, A4, A5, A6, A7, A8 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, f4 func(A) A4, f5 func(A) A5, f6 func(A) A6, f7 func(A) A7, f8 func(A) A8) func(A) fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8] {
 	return func(a A) fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8] {
-		ret := Merge7(f1, f2, f3, f4, f5, f6, f7)(a)
-
 		return fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]{
-			I1: ret.I1,
-			I2: ret.I2,
-			I3: ret.I3,
-			I4: ret.I4,
-			I5: ret.I5,
-			I6: ret.I6,
-			I7: ret.I7,
+			I1: f1(a),
+			I2: f2(a),
+			I3: f3(a),
+			I4: f4(a),
+			I5: f5(a),
+			I6: f6(a),
+			I7: f7(a),
 			I8: f8(a),
 		}
 
@@ -100,17 +88,15 @@ func Merge8[A, A1, A2, A3, A4, A5, A6, A7, A8 any](f1 func(A) A1, f2 func(A) A2,
 
 func Merge9[A, A1, A2, A3, A4, A5, A6, A7, A8, A9 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, f4 func(A) A4, f5 func(A) A5, f6 func(A) A6, f7 func(A) A7, f8 func(A) A8, f9 func(A) A9) func(A) fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
 	return func(a A) fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9] {
-		ret := Merge8(f1, f2, f3, f4, f5, f6, f7, f8)(a)
-
 		return fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]{
-			I1: ret.I1,
-			I2: ret.I2,
-			I3: ret.I3,
-			I4: ret.I4,
-			I5: ret.I5,
-			I6: ret.I6,
-			I7: ret.I7,
-			I8: ret.I8,
+			I1: f1(a),
+			I2: f2(a),
+			I3: f3(a),
+			I4: f4(a),
+			I5: f5(a),
+			I6: f6(a),
+			I7: f7(a),
+			I8: f8(a),
 			I9: f9(a),
 		}
 
