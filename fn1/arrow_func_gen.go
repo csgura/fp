@@ -12,7 +12,6 @@ func Merge3[A, A1, A2, A3 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3) func
 			I2: f2(a),
 			I3: f3(a),
 		}
-
 	}
 }
 
@@ -24,7 +23,6 @@ func Merge4[A, A1, A2, A3, A4 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) A3, 
 			I3: f3(a),
 			I4: f4(a),
 		}
-
 	}
 }
 
@@ -37,7 +35,6 @@ func Merge5[A, A1, A2, A3, A4, A5 any](f1 func(A) A1, f2 func(A) A2, f3 func(A) 
 			I4: f4(a),
 			I5: f5(a),
 		}
-
 	}
 }
 
@@ -51,7 +48,6 @@ func Merge6[A, A1, A2, A3, A4, A5, A6 any](f1 func(A) A1, f2 func(A) A2, f3 func
 			I5: f5(a),
 			I6: f6(a),
 		}
-
 	}
 }
 
@@ -66,7 +62,6 @@ func Merge7[A, A1, A2, A3, A4, A5, A6, A7 any](f1 func(A) A1, f2 func(A) A2, f3 
 			I6: f6(a),
 			I7: f7(a),
 		}
-
 	}
 }
 
@@ -82,7 +77,6 @@ func Merge8[A, A1, A2, A3, A4, A5, A6, A7, A8 any](f1 func(A) A1, f2 func(A) A2,
 			I7: f7(a),
 			I8: f8(a),
 		}
-
 	}
 }
 
@@ -99,6 +93,5 @@ func Merge9[A, A1, A2, A3, A4, A5, A6, A7, A8, A9 any](f1 func(A) A1, f2 func(A)
 			I8: f8(a),
 			I9: f9(a),
 		}
-
 	}
 }

@@ -63,9 +63,9 @@ var _ = genfp.GenerateFromUntil{
 		{{- end -}}
 	{{end}}
 
-	func Merge{{.N}}[A, {{TypeArgs 1 .N}} any]({{template "fargs" .}}) func(A) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
-		return func(a A) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
-			return fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+	func Merge{{.N}}[A, {{TypeArgs 1 .N}} any]({{template "fargs" .}}) func(A) fp.{{TupleType .N}} {
+		return func(a A) fp.{{TupleType .N}} {
+			return fp.{{TupleType .N}} {
 				{{- range $idx := Range 1 .N}}
 					I{{$idx}}: f{{$idx}}(a),
 				{{- end}}
