@@ -1,5 +1,10 @@
 package fn1
 
+import (
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/genfp"
+)
+
 // first :: a b c -> a (b, d) (c, d)
 func First[D, B, C any](f func(B) C) func(B, D) (C, D) {
 	return func(b B, d D) (C, D) {
@@ -30,4 +35,47 @@ func Merge[A, B, C any](f1 func(A) B, f2 func(A) C) func(A) (B, C) {
 	return func(a A) (B, C) {
 		return f1(a), f2(a)
 	}
+}
+
+func Merge2[A, B, C any](f1 func(A) B, f2 func(A) C) func(A) fp.Tuple2[B, C] {
+	return func(a A) fp.Tuple2[B, C] {
+		return fp.Tuple2[B, C]{
+			I1: f1(a),
+			I2: f2(a),
+		}
+	}
+}
+
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "arrow_func_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+	},
+	From:  3,
+	Until: genfp.MaxFunc,
+	Template: `
+	{{define "fargs"}}
+		{{- range $idx := Range 1 .N -}}
+			f{{$idx}} func(A) {{TypeArg $idx}},
+		{{- end -}}
+	{{end}}
+
+	func Merge{{.N}}[A, {{TypeArgs 1 .N}} any]({{template "fargs" .}}) func(A) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+		return func(a A) fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+			ret := Merge{{dec .N}}({{CallArgs 1 (dec .N) "f"}})(a)
+
+			return fp.Tuple{{.N}}[{{TypeArgs 1 .N}}] {
+				{{- range $idx := Range 1 (dec .N)}}
+					I{{$idx}}: ret.I{{$idx}},
+				{{- end}}
+				I{{.N}} : f{{.N}}(a),
+			}
+				
+
+		}
+	}
+	`,
 }
