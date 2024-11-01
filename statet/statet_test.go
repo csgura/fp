@@ -16,9 +16,7 @@ func push[T any](v T) fp.StateT[fp.Seq[T], fp.Unit] {
 }
 
 func pop[T any]() fp.StateT[fp.Seq[T], T] {
-	return statet.MapT(statet.Run(func(s fp.Seq[T]) (fp.Option[T], fp.Seq[T]) {
-		return s.Last(), s.Init()
-	}), try.FromOption)
+	return statet.MapT(statet.Merge(fp.Seq[T].Init, fp.Seq[T].Last), try.FromOption)
 }
 
 func calc[T any](op fp.Monoid[T]) fp.StateT[fp.Seq[T], fp.Unit] {

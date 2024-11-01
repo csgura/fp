@@ -2,6 +2,7 @@ package statet
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/fn1"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/try"
 	"github.com/csgura/fp/unit"
@@ -32,6 +33,10 @@ func Run[S, A any](f func(S) (A, S)) fp.StateT[S, A] {
 	}
 }
 
+func Merge[S, A any](fss func(S) S, fsa func(S) A) fp.StateT[S, A] {
+	return Run(fn1.Merge(fsa, fss))
+}
+
 func Put[S any](s S) fp.StateT[S, fp.Unit] {
 	return func(s S) (fp.Try[fp.Unit], S) {
 		return unit.Success, s
@@ -55,6 +60,12 @@ func Get[S any]() fp.StateT[S, S] {
 func Modify[S any](f func(S) S) fp.StateT[S, fp.Unit] {
 	return func(s S) (fp.Try[fp.Unit], S) {
 		return unit.Success, f(s)
+	}
+}
+
+func ModifyS[S, A any](fss func(S) S, fsa func(S) A) fp.StateT[S, A] {
+	return func(s S) (fp.Try[A], S) {
+		return try.Success(fsa(s)), fss(s)
 	}
 }
 
