@@ -2,9 +2,9 @@ package statet
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/unit"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -26,94 +26,80 @@ func _[S, A any]() genfp.GenerateTraverseFunctions[fp.StateT[S, A]] {
 }
 
 func Run[S, A any](f func(S) (A, S)) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Success(as.Tuple(f(s)))
-	}
-}
-
-func RunT[S, A any](f func(S) (fp.Try[A], fp.Try[S])) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Zip(f(s))
+	return func(s S) (fp.Try[A], S) {
+		ret, ns := f(s)
+		return try.Success(ret), ns
 	}
 }
 
 func Put[S any](s S) fp.StateT[S, fp.Unit] {
-	return func(s S) fp.Try[fp.Tuple2[fp.Unit, S]] {
-		return try.Success(as.Tuple(fp.Unit{}, s))
+	return func(s S) (fp.Try[fp.Unit], S) {
+		return unit.Success, s
 	}
 }
 
-func PutWith[C, V any](withf func(C, V) C) func(v V) fp.StateT[C, fp.Unit] {
-	return func(v V) fp.StateT[C, fp.Unit] {
-		return func(c C) fp.Try[fp.Tuple2[fp.Unit, C]] {
-			return try.Success(as.Tuple(fp.Unit{}, withf(c, v)))
+func PutWith[S, V any](withf func(S, V) S) func(v V) fp.StateT[S, fp.Unit] {
+	return func(v V) fp.StateT[S, fp.Unit] {
+		return func(s S) (fp.Try[fp.Unit], S) {
+			return unit.Success, withf(s, v)
 		}
 	}
 }
 
 func Get[S any]() fp.StateT[S, S] {
-	return func(s S) fp.Try[fp.Tuple2[S, S]] {
-		return try.Success(as.Tuple(s, s))
+	return func(s S) (fp.Try[S], S) {
+		return try.Success(s), s
 	}
 }
 
 func Modify[S any](f func(S) S) fp.StateT[S, fp.Unit] {
-	return func(s S) fp.Try[fp.Tuple2[fp.Unit, S]] {
-		return try.Success(as.Tuple(fp.Unit{}, f(s)))
+	return func(s S) (fp.Try[fp.Unit], S) {
+		return unit.Success, f(s)
 	}
 }
 
 func ModifyT[S any](f func(S) fp.Try[S]) fp.StateT[S, fp.Unit] {
-	return func(s S) fp.Try[fp.Tuple2[fp.Unit, S]] {
-		return try.Zip(try.Success(fp.Unit{}), f(s))
+	return func(s S) (fp.Try[fp.Unit], S) {
+		nst := f(s)
+		if nst.IsSuccess() {
+			return unit.Success, nst.Get()
+		}
+		return try.Failure[fp.Unit](nst.Failed().Get()), s
 	}
 }
 
 func GetS[S, A any](f func(S) A) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Success(as.Tuple(f(s), s))
+	return func(s S) (fp.Try[A], S) {
+		return try.Success(f(s)), s
 	}
 }
 
 func GetST[S, A any](f func(S) fp.Try[A]) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Zip(f(s), try.Success(s))
+	return func(s S) (fp.Try[A], S) {
+		return f(s), s
 	}
 }
 
 func Pure[S, A any](a A) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Success(as.Tuple2(a, s))
+	return func(s S) (fp.Try[A], S) {
+		return try.Success(a), s
 	}
 }
 
 func FromTry[S, A any](t fp.Try[A]) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-		return try.Map(t, as.Func2(as.Tuple2[A, S]).ApplyLast(s))
-	}
-}
-
-func MapState[S, A, B any](st fp.StateT[S, A], f func(A) fp.State[S, B]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
-		ns := st(s)
-		return try.Map(ns, func(v fp.Tuple2[A, S]) fp.Tuple2[B, S] {
-			return f(v.I1)(v.I2)
-		})
-	}
-}
-
-// FlatMap 과 동일
-func MapStateT[S, A, B any](st fp.StateT[S, A], f func(A) fp.StateT[S, B]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
-		ns := st(s)
-		return try.FlatMap(ns, func(v fp.Tuple2[A, S]) fp.Try[fp.Tuple2[B, S]] {
-			return f(v.I1)(v.I2)
-		})
+	return func(s S) (fp.Try[A], S) {
+		return t, s
 	}
 }
 
 func FlatMap[S, A, B any](st fp.StateT[S, A], f func(A) fp.StateT[S, B]) fp.StateT[S, B] {
-	return MapStateT(st, f)
+	return func(s S) (fp.Try[B], S) {
+		ret, ns := st(s)
+		if ret.IsSuccess() {
+			return f(ret.Get())(ns)
+		}
+		return try.Failure[B](ret.Failed().Get()), ns
+	}
 }
 
 func FlatMapConst[S, A, B any](st fp.StateT[S, A], next fp.StateT[S, B]) fp.StateT[S, B] {
@@ -124,59 +110,57 @@ func WithState[S, A any](f func(S) fp.StateT[S, A]) fp.StateT[S, A] {
 	return FlatMap(Get[S](), f)
 }
 
-// func WithState[S, A any](st fp.StateT[S, A], f func(S) S) fp.StateT[S, A] {
-// 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-// 		return try.Map(st(s), as.Func2(product.MapValue[A, S, S]).ApplyLast(f))
-// 	}
-// }
-
-// func WithStateT[S, A any](st fp.StateT[S, A], f func(S) fp.Try[S]) fp.StateT[S, A] {
-// 	return func(s S) fp.Try[fp.Tuple2[A, S]] {
-// 		a, ns := st.Run(s)
-// 		return try.Zip(a, try.FlatMap(ns, f))
-// 	}
-// }
-
 func ApTry[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a fp.Try[A]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
+	return func(s S) (fp.Try[B], S) {
 		af, ns := st.Run(s)
-		return try.Zip(try.Ap(af, a), ns)
+		return try.Ap(af, a), ns
 	}
 }
 
 func ApOption[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a fp.Option[A]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
+	return func(s S) (fp.Try[B], S) {
 		af, ns := st.Run(s)
-		return try.Zip(try.Ap(af, try.FromOption(a)), ns)
+		return try.Ap(af, try.FromOption(a)), ns
+	}
+}
+
+func Transform[S, A, B any](st fp.StateT[S, A], f func(S, A) (S, fp.Try[B])) fp.StateT[S, B] {
+	return func(s S) (fp.Try[B], S) {
+		a, ns := st.Run(s)
+		if a.IsSuccess() {
+			nns, b := f(ns, a.Get())
+			return b, nns
+		}
+		return try.Failure[B](a.Failed().Get()), ns
 	}
 }
 
 func MapWithState[S, A, B any](st fp.StateT[S, A], f func(S, A) B) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
+	return func(s S) (fp.Try[B], S) {
 		a, ns := st.Run(s)
-		return try.Zip(try.Map2(ns, a, f), ns)
+		return try.Map2(try.Success(ns), a, f), ns
 	}
 }
 
 func MapT[S, A, B any](st fp.StateT[S, A], f func(A) fp.Try[B]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
+	return func(s S) (fp.Try[B], S) {
 		a, ns := st.Run(s)
-		return try.Zip(try.FlatMap(a, f), ns)
+		return try.FlatMap(a, f), ns
 	}
 }
 
 func MapWithStateT[S, A, B any](st fp.StateT[S, A], f func(S, A) fp.Try[B]) fp.StateT[S, B] {
-	return func(s S) fp.Try[fp.Tuple2[B, S]] {
+	return func(s S) (fp.Try[B], S) {
 		a, ns := st.Run(s)
-		return try.Zip(try.LiftM2(f)(ns, a), ns)
+		return try.LiftM2(f)(try.Success(ns), a), ns
 	}
 }
 
 func PeekState[S, A any](st fp.StateT[S, A], f func(ctx S)) fp.StateT[S, A] {
-	return func(s S) fp.Try[fp.Tuple2[A, S]] {
+	return func(s S) (fp.Try[A], S) {
 		r, ns := st.Run(s)
-		ns.Foreach(f)
-		return try.Zip(r, ns)
+		f(ns)
+		return r, ns
 	}
 }
 
