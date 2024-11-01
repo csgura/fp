@@ -186,3 +186,11 @@ func FoldM[S, A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.StateT[S, B]) 
 	}
 	return sum
 }
+
+func Concat[C, V any](start fp.StateT[C, V], tail ...fp.StateT[C, V]) fp.StateT[C, V] {
+	ret := start
+	for _, v := range tail {
+		ret = FlatMapConst(ret, v)
+	}
+	return ret
+}

@@ -34,3 +34,13 @@ func TestStateT(t *testing.T) {
 	assert.True(sum.IsSuccess())
 	assert.Equal(sum.Get(), 7)
 }
+
+func TestRecover(t *testing.T) {
+	rv := pop[int]().RecoverWith(func(err error) fp.StateT[fp.Seq[int], int] {
+		return func(s fp.Seq[int]) (fp.Try[int], fp.Seq[int]) {
+			return try.Success(10), nil
+		}
+	}).Eval(seq.Of[int]())
+	assert.True(rv.IsSuccess())
+	assert.Equal(rv.Get(), 10)
+}
