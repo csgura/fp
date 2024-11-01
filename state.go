@@ -23,7 +23,29 @@ func (r StateT[S, A]) Eval(s S) Try[A] {
 	return result
 }
 
-func (r StateT[S, A]) Recover(f func(s S, err error) A) StateT[S, A] {
+func (r StateT[S, A]) Recover(f func(err error) A) StateT[S, A] {
+	return func(s S) (Try[A], S) {
+		at, ns := r.Run(s)
+		if at.IsFailure() {
+			ra := f(at.Failed().Get())
+			return Success(ra), ns
+		}
+		return at, ns
+	}
+}
+
+func (r StateT[S, A]) RecoverT(f func(err error) Try[A]) StateT[S, A] {
+	return func(s S) (Try[A], S) {
+		at, ns := r.Run(s)
+		if at.IsFailure() {
+			rt := f(at.Failed().Get())
+			return rt, ns
+		}
+		return at, ns
+	}
+}
+
+func (r StateT[S, A]) RecoverWithState(f func(s S, err error) A) StateT[S, A] {
 	return func(s S) (Try[A], S) {
 		at, ns := r.Run(s)
 		if at.IsFailure() {
@@ -34,11 +56,11 @@ func (r StateT[S, A]) Recover(f func(s S, err error) A) StateT[S, A] {
 	}
 }
 
-func (r StateT[S, A]) RecoverT(f func(s S, err error) Try[A]) StateT[S, A] {
+func (r StateT[S, A]) RecoverWithStateT(f func(s S, err error) Try[A]) StateT[S, A] {
 	return func(s S) (Try[A], S) {
 		at, ns := r.Run(s)
 		if at.IsFailure() {
-			rt := f(ns, at.Failed().Get())
+			rt := f(s, at.Failed().Get())
 			return rt, ns
 		}
 		return at, ns

@@ -135,14 +135,19 @@ func ApOption[S, A, B any](st fp.StateT[S, fp.Func1[A, B]], a fp.Option[A]) fp.S
 	}
 }
 
-func Transform[S, A, B any](st fp.StateT[S, A], f func(S, A) (S, fp.Try[B])) fp.StateT[S, B] {
+func Transform[S, A, B any](st fp.StateT[S, A], f func(S, fp.Try[A]) (S, fp.Try[B])) fp.StateT[S, B] {
 	return func(s S) (fp.Try[B], S) {
 		a, ns := st.Run(s)
-		if a.IsSuccess() {
-			nns, b := f(ns, a.Get())
-			return b, nns
-		}
-		return try.Failure[B](a.Failed().Get()), ns
+		nss, tb := f(ns, a)
+		return tb, nss
+	}
+}
+
+func TransformWith[S, A, B any](st fp.StateT[S, A], f func(fp.Try[A]) fp.StateT[S, B]) fp.StateT[S, B] {
+	return func(s S) (fp.Try[B], S) {
+		at, ns := st.Run(s)
+		tb, nss := f(at)(ns)
+		return tb, nss
 	}
 }
 
