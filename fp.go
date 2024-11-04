@@ -45,9 +45,10 @@ type Named interface {
 type NamedField[T any] interface {
 	Named
 	Value() T
+	Tag() string
 }
 
-type RuntimeNamed[T any] Tuple2[string, T]
+type RuntimeNamed[T any] Tuple3[string, T, string]
 
 func (r RuntimeNamed[T]) Name() string {
 	return r.I1
@@ -58,7 +59,11 @@ func (r RuntimeNamed[T]) Value() T {
 }
 
 func (r RuntimeNamed[T]) WithValue(v T) RuntimeNamed[T] {
-	return RuntimeNamed[T]{r.I1, v}
+	return RuntimeNamed[T]{r.I1, v, r.I3}
+}
+
+func (r RuntimeNamed[T]) Tag() string {
+	return r.I3
 }
 
 type Labelled1[T1 Named] struct {

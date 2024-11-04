@@ -1522,7 +1522,7 @@ func (r Greeting) AsMap() map[string]any {
 }
 
 func (r Greeting) AsLabelled() fp.Labelled2[NamedHello[testpk1.World], NamedLanguage[string]] {
-	return as.Labelled2(NamedHello[testpk1.World]{r.hello}, NamedLanguage[string]{r.language})
+	return as.Labelled2(NamedHello[testpk1.World]{r.hello, ``}, NamedLanguage[string]{r.language, ``})
 }
 
 func (r Greeting) MarshalJSON() ([]byte, error) {
@@ -1660,7 +1660,7 @@ func (r Three) AsMap() map[string]any {
 }
 
 func (r Three) AsLabelled() fp.Labelled3[NamedOne[int], NamedTwo[string], NamedThree[float64]] {
-	return as.Labelled3(NamedOne[int]{r.one}, NamedTwo[string]{r.two}, NamedThree[float64]{r.three})
+	return as.Labelled3(NamedOne[int]{r.one, ``}, NamedTwo[string]{r.two, ``}, NamedThree[float64]{r.three, ``})
 }
 
 type ThreeBuilder Three
@@ -2121,7 +2121,7 @@ func (r NotIgnoredMutable) AsImmutable() NotIgnored {
 	}
 }
 
-type NamedHello[T any] fp.Tuple1[T]
+type NamedHello[T any] fp.Tuple2[T, string]
 
 func (r NamedHello[T]) Name() string {
 	return "hello"
@@ -2129,12 +2129,19 @@ func (r NamedHello[T]) Name() string {
 func (r NamedHello[T]) Value() T {
 	return r.I1
 }
+func (r NamedHello[T]) Tag() string {
+	return r.I2
+}
 func (r NamedHello[T]) WithValue(v T) NamedHello[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedHello[T]) WithTag(v string) NamedHello[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedLanguage[T any] fp.Tuple1[T]
+type NamedLanguage[T any] fp.Tuple2[T, string]
 
 func (r NamedLanguage[T]) Name() string {
 	return "language"
@@ -2142,12 +2149,19 @@ func (r NamedLanguage[T]) Name() string {
 func (r NamedLanguage[T]) Value() T {
 	return r.I1
 }
+func (r NamedLanguage[T]) Tag() string {
+	return r.I2
+}
 func (r NamedLanguage[T]) WithValue(v T) NamedLanguage[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedLanguage[T]) WithTag(v string) NamedLanguage[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedOne[T any] fp.Tuple1[T]
+type NamedOne[T any] fp.Tuple2[T, string]
 
 func (r NamedOne[T]) Name() string {
 	return "one"
@@ -2155,12 +2169,19 @@ func (r NamedOne[T]) Name() string {
 func (r NamedOne[T]) Value() T {
 	return r.I1
 }
+func (r NamedOne[T]) Tag() string {
+	return r.I2
+}
 func (r NamedOne[T]) WithValue(v T) NamedOne[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedOne[T]) WithTag(v string) NamedOne[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedThree[T any] fp.Tuple1[T]
+type NamedThree[T any] fp.Tuple2[T, string]
 
 func (r NamedThree[T]) Name() string {
 	return "three"
@@ -2168,12 +2189,19 @@ func (r NamedThree[T]) Name() string {
 func (r NamedThree[T]) Value() T {
 	return r.I1
 }
+func (r NamedThree[T]) Tag() string {
+	return r.I2
+}
 func (r NamedThree[T]) WithValue(v T) NamedThree[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedThree[T]) WithTag(v string) NamedThree[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedTwo[T any] fp.Tuple1[T]
+type NamedTwo[T any] fp.Tuple2[T, string]
 
 func (r NamedTwo[T]) Name() string {
 	return "two"
@@ -2181,7 +2209,14 @@ func (r NamedTwo[T]) Name() string {
 func (r NamedTwo[T]) Value() T {
 	return r.I1
 }
+func (r NamedTwo[T]) Tag() string {
+	return r.I2
+}
 func (r NamedTwo[T]) WithValue(v T) NamedTwo[T] {
 	r.I1 = v
+	return r
+}
+func (r NamedTwo[T]) WithTag(v string) NamedTwo[T] {
+	r.I2 = v
 	return r
 }

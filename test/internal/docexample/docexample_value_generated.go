@@ -301,7 +301,7 @@ func (r Car) AsMap() map[string]any {
 }
 
 func (r Car) AsLabelled() fp.Labelled3[NamedCompany[string], NamedModel[string], NamedYear[int]] {
-	return as.Labelled3(NamedCompany[string]{r.company}, NamedModel[string]{r.model}, NamedYear[int]{r.year})
+	return as.Labelled3(NamedCompany[string]{r.company, `column:"company"`}, NamedModel[string]{r.model, ``}, NamedYear[int]{r.year, ``})
 }
 
 type CarBuilder Car
@@ -368,7 +368,7 @@ func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompany[string], NamedModel
 }
 
 type CarMutable struct {
-	Company string
+	Company string `column:"company"`
 	Model   string
 	Year    int
 }
@@ -980,7 +980,7 @@ func (r *OptionalStringer[T]) UnmarshalJSON(b []byte) error {
 	return (*fp.Option[T])(r).UnmarshalJSON(b)
 }
 
-type NamedCompany[T any] fp.Tuple1[T]
+type NamedCompany[T any] fp.Tuple2[T, string]
 
 func (r NamedCompany[T]) Name() string {
 	return "company"
@@ -988,12 +988,19 @@ func (r NamedCompany[T]) Name() string {
 func (r NamedCompany[T]) Value() T {
 	return r.I1
 }
+func (r NamedCompany[T]) Tag() string {
+	return r.I2
+}
 func (r NamedCompany[T]) WithValue(v T) NamedCompany[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedCompany[T]) WithTag(v string) NamedCompany[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedModel[T any] fp.Tuple1[T]
+type NamedModel[T any] fp.Tuple2[T, string]
 
 func (r NamedModel[T]) Name() string {
 	return "model"
@@ -1001,12 +1008,19 @@ func (r NamedModel[T]) Name() string {
 func (r NamedModel[T]) Value() T {
 	return r.I1
 }
+func (r NamedModel[T]) Tag() string {
+	return r.I2
+}
 func (r NamedModel[T]) WithValue(v T) NamedModel[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedModel[T]) WithTag(v string) NamedModel[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedYear[T any] fp.Tuple1[T]
+type NamedYear[T any] fp.Tuple2[T, string]
 
 func (r NamedYear[T]) Name() string {
 	return "year"
@@ -1014,7 +1028,14 @@ func (r NamedYear[T]) Name() string {
 func (r NamedYear[T]) Value() T {
 	return r.I1
 }
+func (r NamedYear[T]) Tag() string {
+	return r.I2
+}
 func (r NamedYear[T]) WithValue(v T) NamedYear[T] {
 	r.I1 = v
+	return r
+}
+func (r NamedYear[T]) WithTag(v string) NamedYear[T] {
+	r.I2 = v
 	return r
 }

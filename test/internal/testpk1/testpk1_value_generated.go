@@ -51,7 +51,7 @@ func (r World) AsMap() map[string]any {
 }
 
 func (r World) AsLabelled() fp.Labelled3[NamedMessage[string], NamedTimestamp[time.Time], PubNamedPub[string]] {
-	return as.Labelled3(NamedMessage[string]{r.message}, NamedTimestamp[time.Time]{r.timestamp}, PubNamedPub[string]{r.Pub})
+	return as.Labelled3(NamedMessage[string]{r.message, ``}, NamedTimestamp[time.Time]{r.timestamp, ``}, PubNamedPub[string]{r.Pub, ``})
 }
 
 func (r World) MarshalJSON() ([]byte, error) {
@@ -222,7 +222,7 @@ func (r HasOption) AsMap() map[string]any {
 }
 
 func (r HasOption) AsLabelled() fp.Labelled4[NamedMessage[string], NamedAddr[fp.Option[string]], NamedPhone[[]string], NamedEmptySeq[[]int]] {
-	return as.Labelled4(NamedMessage[string]{r.message}, NamedAddr[fp.Option[string]]{r.addr}, NamedPhone[[]string]{r.phone}, NamedEmptySeq[[]int]{r.emptySeq})
+	return as.Labelled4(NamedMessage[string]{r.message, ``}, NamedAddr[fp.Option[string]]{r.addr, ``}, NamedPhone[[]string]{r.phone, ``}, NamedEmptySeq[[]int]{r.emptySeq, ``})
 }
 
 type HasOptionBuilder HasOption
@@ -2538,7 +2538,7 @@ func (r ShowConstraintExplicit[T]) String() string {
 	return ShowShowConstraintExplicit[T]().Show(r)
 }
 
-type PubNamedPub[T any] fp.Tuple1[T]
+type PubNamedPub[T any] fp.Tuple2[T, string]
 
 func (r PubNamedPub[T]) Name() string {
 	return "Pub"
@@ -2546,12 +2546,19 @@ func (r PubNamedPub[T]) Name() string {
 func (r PubNamedPub[T]) Value() T {
 	return r.I1
 }
+func (r PubNamedPub[T]) Tag() string {
+	return r.I2
+}
 func (r PubNamedPub[T]) WithValue(v T) PubNamedPub[T] {
 	r.I1 = v
 	return r
 }
+func (r PubNamedPub[T]) WithTag(v string) PubNamedPub[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedAddr[T any] fp.Tuple1[T]
+type NamedAddr[T any] fp.Tuple2[T, string]
 
 func (r NamedAddr[T]) Name() string {
 	return "addr"
@@ -2559,12 +2566,19 @@ func (r NamedAddr[T]) Name() string {
 func (r NamedAddr[T]) Value() T {
 	return r.I1
 }
+func (r NamedAddr[T]) Tag() string {
+	return r.I2
+}
 func (r NamedAddr[T]) WithValue(v T) NamedAddr[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedAddr[T]) WithTag(v string) NamedAddr[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedEmptySeq[T any] fp.Tuple1[T]
+type NamedEmptySeq[T any] fp.Tuple2[T, string]
 
 func (r NamedEmptySeq[T]) Name() string {
 	return "emptySeq"
@@ -2572,12 +2586,19 @@ func (r NamedEmptySeq[T]) Name() string {
 func (r NamedEmptySeq[T]) Value() T {
 	return r.I1
 }
+func (r NamedEmptySeq[T]) Tag() string {
+	return r.I2
+}
 func (r NamedEmptySeq[T]) WithValue(v T) NamedEmptySeq[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedEmptySeq[T]) WithTag(v string) NamedEmptySeq[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI1[T any] fp.Tuple1[T]
+type NamedI1[T any] fp.Tuple2[T, string]
 
 func (r NamedI1[T]) Name() string {
 	return "i1"
@@ -2585,12 +2606,19 @@ func (r NamedI1[T]) Name() string {
 func (r NamedI1[T]) Value() T {
 	return r.I1
 }
+func (r NamedI1[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI1[T]) WithValue(v T) NamedI1[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI1[T]) WithTag(v string) NamedI1[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI10[T any] fp.Tuple1[T]
+type NamedI10[T any] fp.Tuple2[T, string]
 
 func (r NamedI10[T]) Name() string {
 	return "i10"
@@ -2598,12 +2626,19 @@ func (r NamedI10[T]) Name() string {
 func (r NamedI10[T]) Value() T {
 	return r.I1
 }
+func (r NamedI10[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI10[T]) WithValue(v T) NamedI10[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI10[T]) WithTag(v string) NamedI10[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI11[T any] fp.Tuple1[T]
+type NamedI11[T any] fp.Tuple2[T, string]
 
 func (r NamedI11[T]) Name() string {
 	return "i11"
@@ -2611,12 +2646,19 @@ func (r NamedI11[T]) Name() string {
 func (r NamedI11[T]) Value() T {
 	return r.I1
 }
+func (r NamedI11[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI11[T]) WithValue(v T) NamedI11[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI11[T]) WithTag(v string) NamedI11[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI12[T any] fp.Tuple1[T]
+type NamedI12[T any] fp.Tuple2[T, string]
 
 func (r NamedI12[T]) Name() string {
 	return "i12"
@@ -2624,12 +2666,19 @@ func (r NamedI12[T]) Name() string {
 func (r NamedI12[T]) Value() T {
 	return r.I1
 }
+func (r NamedI12[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI12[T]) WithValue(v T) NamedI12[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI12[T]) WithTag(v string) NamedI12[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI13[T any] fp.Tuple1[T]
+type NamedI13[T any] fp.Tuple2[T, string]
 
 func (r NamedI13[T]) Name() string {
 	return "i13"
@@ -2637,12 +2686,19 @@ func (r NamedI13[T]) Name() string {
 func (r NamedI13[T]) Value() T {
 	return r.I1
 }
+func (r NamedI13[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI13[T]) WithValue(v T) NamedI13[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI13[T]) WithTag(v string) NamedI13[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI14[T any] fp.Tuple1[T]
+type NamedI14[T any] fp.Tuple2[T, string]
 
 func (r NamedI14[T]) Name() string {
 	return "i14"
@@ -2650,12 +2706,19 @@ func (r NamedI14[T]) Name() string {
 func (r NamedI14[T]) Value() T {
 	return r.I1
 }
+func (r NamedI14[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI14[T]) WithValue(v T) NamedI14[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI14[T]) WithTag(v string) NamedI14[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI15[T any] fp.Tuple1[T]
+type NamedI15[T any] fp.Tuple2[T, string]
 
 func (r NamedI15[T]) Name() string {
 	return "i15"
@@ -2663,12 +2726,19 @@ func (r NamedI15[T]) Name() string {
 func (r NamedI15[T]) Value() T {
 	return r.I1
 }
+func (r NamedI15[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI15[T]) WithValue(v T) NamedI15[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI15[T]) WithTag(v string) NamedI15[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI16[T any] fp.Tuple1[T]
+type NamedI16[T any] fp.Tuple2[T, string]
 
 func (r NamedI16[T]) Name() string {
 	return "i16"
@@ -2676,12 +2746,19 @@ func (r NamedI16[T]) Name() string {
 func (r NamedI16[T]) Value() T {
 	return r.I1
 }
+func (r NamedI16[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI16[T]) WithValue(v T) NamedI16[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI16[T]) WithTag(v string) NamedI16[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI17[T any] fp.Tuple1[T]
+type NamedI17[T any] fp.Tuple2[T, string]
 
 func (r NamedI17[T]) Name() string {
 	return "i17"
@@ -2689,12 +2766,19 @@ func (r NamedI17[T]) Name() string {
 func (r NamedI17[T]) Value() T {
 	return r.I1
 }
+func (r NamedI17[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI17[T]) WithValue(v T) NamedI17[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI17[T]) WithTag(v string) NamedI17[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI18[T any] fp.Tuple1[T]
+type NamedI18[T any] fp.Tuple2[T, string]
 
 func (r NamedI18[T]) Name() string {
 	return "i18"
@@ -2702,12 +2786,19 @@ func (r NamedI18[T]) Name() string {
 func (r NamedI18[T]) Value() T {
 	return r.I1
 }
+func (r NamedI18[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI18[T]) WithValue(v T) NamedI18[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI18[T]) WithTag(v string) NamedI18[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI19[T any] fp.Tuple1[T]
+type NamedI19[T any] fp.Tuple2[T, string]
 
 func (r NamedI19[T]) Name() string {
 	return "i19"
@@ -2715,12 +2806,19 @@ func (r NamedI19[T]) Name() string {
 func (r NamedI19[T]) Value() T {
 	return r.I1
 }
+func (r NamedI19[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI19[T]) WithValue(v T) NamedI19[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI19[T]) WithTag(v string) NamedI19[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI2[T any] fp.Tuple1[T]
+type NamedI2[T any] fp.Tuple2[T, string]
 
 func (r NamedI2[T]) Name() string {
 	return "i2"
@@ -2728,12 +2826,19 @@ func (r NamedI2[T]) Name() string {
 func (r NamedI2[T]) Value() T {
 	return r.I1
 }
+func (r NamedI2[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI2[T]) WithValue(v T) NamedI2[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI2[T]) WithTag(v string) NamedI2[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI20[T any] fp.Tuple1[T]
+type NamedI20[T any] fp.Tuple2[T, string]
 
 func (r NamedI20[T]) Name() string {
 	return "i20"
@@ -2741,12 +2846,19 @@ func (r NamedI20[T]) Name() string {
 func (r NamedI20[T]) Value() T {
 	return r.I1
 }
+func (r NamedI20[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI20[T]) WithValue(v T) NamedI20[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI20[T]) WithTag(v string) NamedI20[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI21[T any] fp.Tuple1[T]
+type NamedI21[T any] fp.Tuple2[T, string]
 
 func (r NamedI21[T]) Name() string {
 	return "i21"
@@ -2754,12 +2866,19 @@ func (r NamedI21[T]) Name() string {
 func (r NamedI21[T]) Value() T {
 	return r.I1
 }
+func (r NamedI21[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI21[T]) WithValue(v T) NamedI21[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI21[T]) WithTag(v string) NamedI21[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI22[T any] fp.Tuple1[T]
+type NamedI22[T any] fp.Tuple2[T, string]
 
 func (r NamedI22[T]) Name() string {
 	return "i22"
@@ -2767,12 +2886,19 @@ func (r NamedI22[T]) Name() string {
 func (r NamedI22[T]) Value() T {
 	return r.I1
 }
+func (r NamedI22[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI22[T]) WithValue(v T) NamedI22[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI22[T]) WithTag(v string) NamedI22[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI23[T any] fp.Tuple1[T]
+type NamedI23[T any] fp.Tuple2[T, string]
 
 func (r NamedI23[T]) Name() string {
 	return "i23"
@@ -2780,12 +2906,19 @@ func (r NamedI23[T]) Name() string {
 func (r NamedI23[T]) Value() T {
 	return r.I1
 }
+func (r NamedI23[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI23[T]) WithValue(v T) NamedI23[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI23[T]) WithTag(v string) NamedI23[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI24[T any] fp.Tuple1[T]
+type NamedI24[T any] fp.Tuple2[T, string]
 
 func (r NamedI24[T]) Name() string {
 	return "i24"
@@ -2793,12 +2926,19 @@ func (r NamedI24[T]) Name() string {
 func (r NamedI24[T]) Value() T {
 	return r.I1
 }
+func (r NamedI24[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI24[T]) WithValue(v T) NamedI24[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI24[T]) WithTag(v string) NamedI24[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI25[T any] fp.Tuple1[T]
+type NamedI25[T any] fp.Tuple2[T, string]
 
 func (r NamedI25[T]) Name() string {
 	return "i25"
@@ -2806,12 +2946,19 @@ func (r NamedI25[T]) Name() string {
 func (r NamedI25[T]) Value() T {
 	return r.I1
 }
+func (r NamedI25[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI25[T]) WithValue(v T) NamedI25[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI25[T]) WithTag(v string) NamedI25[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI26[T any] fp.Tuple1[T]
+type NamedI26[T any] fp.Tuple2[T, string]
 
 func (r NamedI26[T]) Name() string {
 	return "i26"
@@ -2819,12 +2966,19 @@ func (r NamedI26[T]) Name() string {
 func (r NamedI26[T]) Value() T {
 	return r.I1
 }
+func (r NamedI26[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI26[T]) WithValue(v T) NamedI26[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI26[T]) WithTag(v string) NamedI26[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI27[T any] fp.Tuple1[T]
+type NamedI27[T any] fp.Tuple2[T, string]
 
 func (r NamedI27[T]) Name() string {
 	return "i27"
@@ -2832,12 +2986,19 @@ func (r NamedI27[T]) Name() string {
 func (r NamedI27[T]) Value() T {
 	return r.I1
 }
+func (r NamedI27[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI27[T]) WithValue(v T) NamedI27[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI27[T]) WithTag(v string) NamedI27[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI28[T any] fp.Tuple1[T]
+type NamedI28[T any] fp.Tuple2[T, string]
 
 func (r NamedI28[T]) Name() string {
 	return "i28"
@@ -2845,12 +3006,19 @@ func (r NamedI28[T]) Name() string {
 func (r NamedI28[T]) Value() T {
 	return r.I1
 }
+func (r NamedI28[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI28[T]) WithValue(v T) NamedI28[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI28[T]) WithTag(v string) NamedI28[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI29[T any] fp.Tuple1[T]
+type NamedI29[T any] fp.Tuple2[T, string]
 
 func (r NamedI29[T]) Name() string {
 	return "i29"
@@ -2858,12 +3026,19 @@ func (r NamedI29[T]) Name() string {
 func (r NamedI29[T]) Value() T {
 	return r.I1
 }
+func (r NamedI29[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI29[T]) WithValue(v T) NamedI29[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI29[T]) WithTag(v string) NamedI29[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI3[T any] fp.Tuple1[T]
+type NamedI3[T any] fp.Tuple2[T, string]
 
 func (r NamedI3[T]) Name() string {
 	return "i3"
@@ -2871,12 +3046,19 @@ func (r NamedI3[T]) Name() string {
 func (r NamedI3[T]) Value() T {
 	return r.I1
 }
+func (r NamedI3[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI3[T]) WithValue(v T) NamedI3[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI3[T]) WithTag(v string) NamedI3[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI30[T any] fp.Tuple1[T]
+type NamedI30[T any] fp.Tuple2[T, string]
 
 func (r NamedI30[T]) Name() string {
 	return "i30"
@@ -2884,12 +3066,19 @@ func (r NamedI30[T]) Name() string {
 func (r NamedI30[T]) Value() T {
 	return r.I1
 }
+func (r NamedI30[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI30[T]) WithValue(v T) NamedI30[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI30[T]) WithTag(v string) NamedI30[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI4[T any] fp.Tuple1[T]
+type NamedI4[T any] fp.Tuple2[T, string]
 
 func (r NamedI4[T]) Name() string {
 	return "i4"
@@ -2897,12 +3086,19 @@ func (r NamedI4[T]) Name() string {
 func (r NamedI4[T]) Value() T {
 	return r.I1
 }
+func (r NamedI4[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI4[T]) WithValue(v T) NamedI4[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI4[T]) WithTag(v string) NamedI4[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI5[T any] fp.Tuple1[T]
+type NamedI5[T any] fp.Tuple2[T, string]
 
 func (r NamedI5[T]) Name() string {
 	return "i5"
@@ -2910,12 +3106,19 @@ func (r NamedI5[T]) Name() string {
 func (r NamedI5[T]) Value() T {
 	return r.I1
 }
+func (r NamedI5[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI5[T]) WithValue(v T) NamedI5[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI5[T]) WithTag(v string) NamedI5[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI6[T any] fp.Tuple1[T]
+type NamedI6[T any] fp.Tuple2[T, string]
 
 func (r NamedI6[T]) Name() string {
 	return "i6"
@@ -2923,12 +3126,19 @@ func (r NamedI6[T]) Name() string {
 func (r NamedI6[T]) Value() T {
 	return r.I1
 }
+func (r NamedI6[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI6[T]) WithValue(v T) NamedI6[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI6[T]) WithTag(v string) NamedI6[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI7[T any] fp.Tuple1[T]
+type NamedI7[T any] fp.Tuple2[T, string]
 
 func (r NamedI7[T]) Name() string {
 	return "i7"
@@ -2936,12 +3146,19 @@ func (r NamedI7[T]) Name() string {
 func (r NamedI7[T]) Value() T {
 	return r.I1
 }
+func (r NamedI7[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI7[T]) WithValue(v T) NamedI7[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI7[T]) WithTag(v string) NamedI7[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI8[T any] fp.Tuple1[T]
+type NamedI8[T any] fp.Tuple2[T, string]
 
 func (r NamedI8[T]) Name() string {
 	return "i8"
@@ -2949,12 +3166,19 @@ func (r NamedI8[T]) Name() string {
 func (r NamedI8[T]) Value() T {
 	return r.I1
 }
+func (r NamedI8[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI8[T]) WithValue(v T) NamedI8[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI8[T]) WithTag(v string) NamedI8[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedI9[T any] fp.Tuple1[T]
+type NamedI9[T any] fp.Tuple2[T, string]
 
 func (r NamedI9[T]) Name() string {
 	return "i9"
@@ -2962,12 +3186,19 @@ func (r NamedI9[T]) Name() string {
 func (r NamedI9[T]) Value() T {
 	return r.I1
 }
+func (r NamedI9[T]) Tag() string {
+	return r.I2
+}
 func (r NamedI9[T]) WithValue(v T) NamedI9[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedI9[T]) WithTag(v string) NamedI9[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedMessage[T any] fp.Tuple1[T]
+type NamedMessage[T any] fp.Tuple2[T, string]
 
 func (r NamedMessage[T]) Name() string {
 	return "message"
@@ -2975,12 +3206,19 @@ func (r NamedMessage[T]) Name() string {
 func (r NamedMessage[T]) Value() T {
 	return r.I1
 }
+func (r NamedMessage[T]) Tag() string {
+	return r.I2
+}
 func (r NamedMessage[T]) WithValue(v T) NamedMessage[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedMessage[T]) WithTag(v string) NamedMessage[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedPhone[T any] fp.Tuple1[T]
+type NamedPhone[T any] fp.Tuple2[T, string]
 
 func (r NamedPhone[T]) Name() string {
 	return "phone"
@@ -2988,12 +3226,19 @@ func (r NamedPhone[T]) Name() string {
 func (r NamedPhone[T]) Value() T {
 	return r.I1
 }
+func (r NamedPhone[T]) Tag() string {
+	return r.I2
+}
 func (r NamedPhone[T]) WithValue(v T) NamedPhone[T] {
 	r.I1 = v
 	return r
 }
+func (r NamedPhone[T]) WithTag(v string) NamedPhone[T] {
+	r.I2 = v
+	return r
+}
 
-type NamedTimestamp[T any] fp.Tuple1[T]
+type NamedTimestamp[T any] fp.Tuple2[T, string]
 
 func (r NamedTimestamp[T]) Name() string {
 	return "timestamp"
@@ -3001,7 +3246,14 @@ func (r NamedTimestamp[T]) Name() string {
 func (r NamedTimestamp[T]) Value() T {
 	return r.I1
 }
+func (r NamedTimestamp[T]) Tag() string {
+	return r.I2
+}
 func (r NamedTimestamp[T]) WithValue(v T) NamedTimestamp[T] {
 	r.I1 = v
+	return r
+}
+func (r NamedTimestamp[T]) WithTag(v string) NamedTimestamp[T] {
+	r.I2 = v
 	return r
 }

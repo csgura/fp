@@ -200,7 +200,7 @@ func ReadThree() read.Read[Three] {
 
 func EqTestpk1World() fp.Eq[testpk1.World] {
 	return eq.ContraMap(
-		eq.Tuple3(eq.String, eq.Given[time.Time](), eq.String),
+		eq.Tuple3(eq.String, eq.Time, eq.String),
 		testpk1.World.AsTuple,
 	)
 }

@@ -933,7 +933,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 
 	klist := keyTags.Iterator().ToSeq()
 	seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
-		fmt.Fprintf(w, `type %s[T any] fp.Tuple1[T]
+		fmt.Fprintf(w, `type %s[T any] fp.Tuple2[T,string]
 			`, namedName(w, workingPackage, workingPackage, name))
 
 		fmt.Fprintf(w, `func (r %s[T]) Name() string {
@@ -946,8 +946,19 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 			}
 			`, namedName(w, workingPackage, workingPackage, name))
 
+		fmt.Fprintf(w, `func (r %s[T]) Tag() string {
+				return r.I2
+			}
+			`, namedName(w, workingPackage, workingPackage, name))
+
 		fmt.Fprintf(w, `func (r %s[T]) WithValue(v T) %s[T] {
 				r.I1 = v
+				return r
+			}
+			`, namedName(w, workingPackage, workingPackage, name), namedName(w, workingPackage, workingPackage, name))
+
+		fmt.Fprintf(w, `func (r %s[T]) WithTag(v string) %s[T] {
+				r.I2 = v
 				return r
 			}
 			`, namedName(w, workingPackage, workingPackage, name), namedName(w, workingPackage, workingPackage, name))
@@ -1342,7 +1353,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 					}).MakeString(",")
 
 					fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-						return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, f.Name), f.TypeName(w, workingPackage), f.Name)
+						return fmt.Sprintf(`%s[%s]{r.%s, %s}`, namedName(w, workingPackage, workingPackage, f.Name), f.TypeName(w, workingPackage), f.Name, "`"+f.Tag+"`")
 					}).Take(arity).MakeString(",")
 
 					fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))

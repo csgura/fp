@@ -15,7 +15,7 @@ func ShowHello() fp.Show[Hello] {
 			"Struct",
 			func(v Hello) fp.Labelled4[fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[any], fp.RuntimeNamed[World]] {
 				i0, i1, i2, i3 := v.A, v.B, v.AN, v.World
-				return as.Labelled4(as.Named("A", i0), as.Named("B", i1), as.Named("AN", i2), as.Named("World", i3))
+				return as.Labelled4(as.Named("A", i0, ``), as.Named("B", i1, ``), as.Named("AN", i2, ``), as.Named("World", i3, ``))
 			},
 			func(t fp.Labelled4[fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[any], fp.RuntimeNamed[World]]) Hello {
 				return Hello{A: t.I1.Value(), B: t.I2.Value(), AN: t.I3.Value(), World: t.I4.Value()}
@@ -33,7 +33,7 @@ func ShowWorld() fp.Show[World] {
 			fp.Compose(
 				func(v World) fp.Labelled1[fp.RuntimeNamed[string]] {
 					i0 := v.Loc
-					return as.Labelled1(as.Named("Loc", i0))
+					return as.Labelled1(as.Named("Loc", i0, ``))
 				},
 				as.HList1Labelled,
 			),

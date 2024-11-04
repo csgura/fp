@@ -46,7 +46,7 @@ type Address struct {
 // @fp.Value
 // @fp.GenLabelled
 type Car struct {
-	company string
+	company string `column:"company"`
 	model   string
 	year    int
 }

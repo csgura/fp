@@ -12,7 +12,7 @@ import (
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 type NormalStruct struct {
-	Name    string
+	Name    string `json:"name"`
 	Age     int
 	Address string
 }
@@ -51,7 +51,7 @@ var _ js.Derives[js.Encoder[Tuple2Struct]]
 var _ js.Derives[js.Decoder[Tuple2Struct]]
 
 type Over21[T any] struct {
-	I1  T
+	I1  T `json:"i1"`
 	I2  int
 	I3  int
 	I4  int
