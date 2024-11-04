@@ -51,7 +51,11 @@ func Tuple[K, V any](k K, v V) fp.Tuple2[K, V] {
 	return fp.Tuple2[K, V]{I1: k, I2: v}
 }
 
-func Named[V any](name string, v V, tag string) fp.RuntimeNamed[V] {
+func Named[V any](name string, v V) fp.RuntimeNamed[V] {
+	return fp.RuntimeNamed[V]{I1: name, I2: v, I3: ""}
+}
+
+func NamedWithTag[V any](name string, v V, tag string) fp.RuntimeNamed[V] {
 	return fp.RuntimeNamed[V]{I1: name, I2: v, I3: tag}
 }
 

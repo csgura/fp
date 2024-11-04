@@ -89,7 +89,7 @@ func EncoderNormalStruct() js.Encoder[NormalStruct] {
 		fp.Compose(
 			func(v NormalStruct) fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]] {
 				i0, i1, i2 := v.Name, v.Age, v.Address
-				return as.Labelled3(as.Named("Name", i0, `json:"name"`), as.Named("Age", i1, ``), as.Named("Address", i2, ``))
+				return as.Labelled3(as.NamedWithTag("Name", i0, `json:"name"`), as.NamedWithTag("Age", i1, ``), as.NamedWithTag("Address", i2, ``))
 			},
 			as.HList3Labelled,
 		),
@@ -155,7 +155,7 @@ func EncoderTuple2Struct() js.Encoder[Tuple2Struct] {
 		js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString), js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]())),
 		func(v Tuple2Struct) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
 			i0, i1 := v.Name, v.Age
-			return as.Labelled2(as.Named("Name", i0, ``), as.Named("Age", i1, ``))
+			return as.Labelled2(as.NamedWithTag("Name", i0, ``), as.NamedWithTag("Age", i1, ``))
 		},
 	)
 }
@@ -814,36 +814,36 @@ func EncoderOver21[T any](encoderT js.Encoder[T]) js.Encoder[Over21[T]] {
 		),
 		func(v Over21[T]) hlist.Cons[fp.RuntimeNamed[T], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[int], hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
 			i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.I1, v.I2, v.I3, v.I4, v.I5, v.I6, v.I7, v.I8, v.I9, v.I10, v.I11, v.I12, v.I13, v.I14, v.I15, v.I16, v.I17, v.I18, v.I19, v.I20, v.I21, v.I22, v.I23, v.I24, v.I25, v.I26, v.I27, v.I28, v.I29, v.I30
-			return hlist.Concat(as.Named("I1", i0, `json:"i1"`),
-				hlist.Concat(as.Named("I2", i1, ``),
-					hlist.Concat(as.Named("I3", i2, ``),
-						hlist.Concat(as.Named("I4", i3, ``),
-							hlist.Concat(as.Named("I5", i4, ``),
-								hlist.Concat(as.Named("I6", i5, ``),
-									hlist.Concat(as.Named("I7", i6, ``),
-										hlist.Concat(as.Named("I8", i7, ``),
-											hlist.Concat(as.Named("I9", i8, ``),
-												hlist.Concat(as.Named("I10", i9, ``),
-													hlist.Concat(as.Named("I11", i10, ``),
-														hlist.Concat(as.Named("I12", i11, ``),
-															hlist.Concat(as.Named("I13", i12, ``),
-																hlist.Concat(as.Named("I14", i13, ``),
-																	hlist.Concat(as.Named("I15", i14, ``),
-																		hlist.Concat(as.Named("I16", i15, ``),
-																			hlist.Concat(as.Named("I17", i16, ``),
-																				hlist.Concat(as.Named("I18", i17, ``),
-																					hlist.Concat(as.Named("I19", i18, ``),
-																						hlist.Concat(as.Named("I20", i19, ``),
-																							hlist.Concat(as.Named("I21", i20, ``),
-																								hlist.Concat(as.Named("I22", i21, ``),
-																									hlist.Concat(as.Named("I23", i22, ``),
-																										hlist.Concat(as.Named("I24", i23, ``),
-																											hlist.Concat(as.Named("I25", i24, ``),
-																												hlist.Concat(as.Named("I26", i25, ``),
-																													hlist.Concat(as.Named("I27", i26, ``),
-																														hlist.Concat(as.Named("I28", i27, ``),
-																															hlist.Concat(as.Named("I29", i28, ``),
-																																hlist.Concat(as.Named("I30", i29, ``),
+			return hlist.Concat(as.NamedWithTag("I1", i0, `json:"i1"`),
+				hlist.Concat(as.NamedWithTag("I2", i1, ``),
+					hlist.Concat(as.NamedWithTag("I3", i2, ``),
+						hlist.Concat(as.NamedWithTag("I4", i3, ``),
+							hlist.Concat(as.NamedWithTag("I5", i4, ``),
+								hlist.Concat(as.NamedWithTag("I6", i5, ``),
+									hlist.Concat(as.NamedWithTag("I7", i6, ``),
+										hlist.Concat(as.NamedWithTag("I8", i7, ``),
+											hlist.Concat(as.NamedWithTag("I9", i8, ``),
+												hlist.Concat(as.NamedWithTag("I10", i9, ``),
+													hlist.Concat(as.NamedWithTag("I11", i10, ``),
+														hlist.Concat(as.NamedWithTag("I12", i11, ``),
+															hlist.Concat(as.NamedWithTag("I13", i12, ``),
+																hlist.Concat(as.NamedWithTag("I14", i13, ``),
+																	hlist.Concat(as.NamedWithTag("I15", i14, ``),
+																		hlist.Concat(as.NamedWithTag("I16", i15, ``),
+																			hlist.Concat(as.NamedWithTag("I17", i16, ``),
+																				hlist.Concat(as.NamedWithTag("I18", i17, ``),
+																					hlist.Concat(as.NamedWithTag("I19", i18, ``),
+																						hlist.Concat(as.NamedWithTag("I20", i19, ``),
+																							hlist.Concat(as.NamedWithTag("I21", i20, ``),
+																								hlist.Concat(as.NamedWithTag("I22", i21, ``),
+																									hlist.Concat(as.NamedWithTag("I23", i22, ``),
+																										hlist.Concat(as.NamedWithTag("I24", i23, ``),
+																											hlist.Concat(as.NamedWithTag("I25", i24, ``),
+																												hlist.Concat(as.NamedWithTag("I26", i25, ``),
+																													hlist.Concat(as.NamedWithTag("I27", i26, ``),
+																														hlist.Concat(as.NamedWithTag("I28", i27, ``),
+																															hlist.Concat(as.NamedWithTag("I29", i28, ``),
+																																hlist.Concat(as.NamedWithTag("I30", i29, ``),
 																																	hlist.Empty(),
 																																),
 																															),
@@ -1166,7 +1166,7 @@ func EncoderTestpk1LegacyStruct() js.Encoder[testpk1.LegacyStruct] {
 							World int
 						}) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
 							i0, i1 := v.Hello, v.World
-							return as.Labelled2(as.Named("Hello", i0, ``), as.Named("World", i1, ``))
+							return as.Labelled2(as.NamedWithTag("Hello", i0, ``), as.NamedWithTag("World", i1, ``))
 						},
 					)),
 					js.EncoderHNil,
@@ -1179,7 +1179,7 @@ func EncoderTestpk1LegacyStruct() js.Encoder[testpk1.LegacyStruct] {
 				World int
 			}]] {
 				i0, i1, i2 := v.Name, v.Age, v.NoName
-				return as.Labelled3(as.Named("Name", i0, ``), as.Named("Age", i1, ``), as.Named("NoName", i2, ``))
+				return as.Labelled3(as.NamedWithTag("Name", i0, ``), as.NamedWithTag("Age", i1, ``), as.NamedWithTag("NoName", i2, ``))
 			},
 			as.HList3Labelled,
 		),
@@ -1301,7 +1301,7 @@ func EncoderTestpk1LegacyPhoneBook() js.Encoder[testpk1.LegacyPhoneBook] {
 		js.EncoderLabelled2(js.EncoderNamed[fp.RuntimeNamed[testpk1.LegacyPerson]](js.EncoderGiven[testpk1.LegacyPerson]()), js.EncoderNamed[fp.RuntimeNamed[string]](js.EncoderString)),
 		func(v testpk1.LegacyPhoneBook) fp.Labelled2[fp.RuntimeNamed[testpk1.LegacyPerson], fp.RuntimeNamed[string]] {
 			i0, i1 := v.Person, v.Phone
-			return as.Labelled2(as.Named("Person", i0, ``), as.Named("Phone", i1, ``))
+			return as.Labelled2(as.NamedWithTag("Person", i0, ``), as.NamedWithTag("Phone", i1, ``))
 		},
 	)
 }
@@ -1391,7 +1391,7 @@ func EncoderLocalPhoneBook() js.Encoder[LocalPhoneBook] {
 		fp.Compose(
 			func(v LocalPhoneBook) fp.Labelled3[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]] {
 				i0, i1, i2 := v.Person, v.Phone, v.Alias
-				return as.Labelled3(as.Named("Person", i0, ``), as.Named("Phone", i1, ``), as.Named("Alias", i2, ``))
+				return as.Labelled3(as.NamedWithTag("Person", i0, ``), as.NamedWithTag("Phone", i1, ``), as.NamedWithTag("Alias", i2, ``))
 			},
 			as.HList3Labelled,
 		),

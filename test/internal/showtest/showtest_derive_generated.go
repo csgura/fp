@@ -18,7 +18,7 @@ func ShowPerson() fp.Show[Person] {
 			"Struct",
 			func(v Person) fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]] {
 				i0, i1 := v.Name, v.Age
-				return as.Labelled2(as.Named("Name", i0, ``), as.Named("Age", i1, ``))
+				return as.Labelled2(as.NamedWithTag("Name", i0, ``), as.NamedWithTag("Age", i1, ``))
 			},
 			func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) Person {
 				return Person{Name: t.I1.Value(), Age: t.I2.Value()}
@@ -35,7 +35,7 @@ func ShowCollection() fp.Show[Collection] {
 			"Struct",
 			func(v Collection) fp.Labelled11[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]]] {
 				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10 := v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer, v.BoolPtr, v.NoMap, v.Alias, v.StringSeq
-				return as.Labelled11(as.Named("Index", i0, ``), as.Named("List", i1, ``), as.Named("Description", i2, ``), as.Named("Set", i3, ``), as.Named("Option", i4, ``), as.Named("NoDerive", i5, ``), as.Named("Stringer", i6, ``), as.Named("BoolPtr", i7, ``), as.Named("NoMap", i8, ``), as.Named("Alias", i9, ``), as.Named("StringSeq", i10, ``))
+				return as.Labelled11(as.NamedWithTag("Index", i0, ``), as.NamedWithTag("List", i1, ``), as.NamedWithTag("Description", i2, ``), as.NamedWithTag("Set", i3, ``), as.NamedWithTag("Option", i4, ``), as.NamedWithTag("NoDerive", i5, ``), as.NamedWithTag("Stringer", i6, ``), as.NamedWithTag("BoolPtr", i7, ``), as.NamedWithTag("NoMap", i8, ``), as.NamedWithTag("Alias", i9, ``), as.NamedWithTag("StringSeq", i10, ``))
 			},
 			func(t fp.Labelled11[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]]]) Collection {
 				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value(), NoDerive: t.I6.Value(), Stringer: t.I7.Value(), BoolPtr: t.I8.Value(), NoMap: t.I9.Value(), Alias: t.I10.Value(), StringSeq: t.I11.Value()}
@@ -56,7 +56,7 @@ func ShowDupGenerate() fp.Show[DupGenerate] {
 			"Struct",
 			func(v DupGenerate) fp.Labelled2[fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[string]] {
 				i0, i1 := v.NoDerive, v.World
-				return as.Labelled2(as.Named("NoDerive", i0, ``), as.Named("World", i1, ``))
+				return as.Labelled2(as.NamedWithTag("NoDerive", i0, ``), as.NamedWithTag("World", i1, ``))
 			},
 			func(t fp.Labelled2[fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[string]]) DupGenerate {
 				return DupGenerate{NoDerive: t.I1.Value(), World: t.I2.Value()}
@@ -73,7 +73,7 @@ func ShowHasTuple() fp.Show[HasTuple] {
 			"Struct",
 			func(v HasTuple) fp.Labelled2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]] {
 				i0, i1 := v.Entry, v.HList
-				return as.Labelled2(as.Named("Entry", i0, ``), as.Named("HList", i1, ``))
+				return as.Labelled2(as.NamedWithTag("Entry", i0, ``), as.NamedWithTag("HList", i1, ``))
 			},
 			func(t fp.Labelled2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]]) HasTuple {
 				return HasTuple{Entry: t.I1.Value(), HList: t.I2.Value()}
@@ -107,7 +107,7 @@ func ShowEmbeddedStruct() fp.Show[EmbeddedStruct] {
 				Stage string
 			}]] {
 				i0, i1 := v.Unapply()
-				return as.Labelled2(as.Named("hello", i0, ``), as.Named("world", i1, ``))
+				return as.Labelled2(as.NamedWithTag("hello", i0, ``), as.NamedWithTag("world", i1, ``))
 			},
 			func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
 				Level int
@@ -128,7 +128,7 @@ func ShowEmbeddedStruct() fp.Show[EmbeddedStruct] {
 					Stage string
 				}) fp.Labelled2[fp.RuntimeNamed[int], fp.RuntimeNamed[string]] {
 					i0, i1 := v.Level, v.Stage
-					return as.Labelled2(as.Named("Level", i0, ``), as.Named("Stage", i1, ``))
+					return as.Labelled2(as.NamedWithTag("Level", i0, ``), as.NamedWithTag("Stage", i1, ``))
 				},
 				func(t fp.Labelled2[fp.RuntimeNamed[int], fp.RuntimeNamed[string]]) struct {
 					Level int
@@ -155,7 +155,7 @@ func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypePa
 				Stage string
 			}]] {
 				i0, i1 := v.Unapply()
-				return as.Labelled2(as.Named("hello", i0, ``), as.Named("world", i1, ``))
+				return as.Labelled2(as.NamedWithTag("hello", i0, ``), as.NamedWithTag("world", i1, ``))
 			},
 			func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
 				Level T
@@ -176,7 +176,7 @@ func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypePa
 					Stage string
 				}) fp.Labelled2[fp.RuntimeNamed[T], fp.RuntimeNamed[string]] {
 					i0, i1 := v.Level, v.Stage
-					return as.Labelled2(as.Named("Level", i0, ``), as.Named("Stage", i1, ``))
+					return as.Labelled2(as.NamedWithTag("Level", i0, ``), as.NamedWithTag("Stage", i1, ``))
 				},
 				func(t fp.Labelled2[fp.RuntimeNamed[T], fp.RuntimeNamed[string]]) struct {
 					Level T
@@ -201,7 +201,7 @@ func ShowNoDerive() fp.Show[NoDerive] {
 			fp.Compose(
 				func(v NoDerive) fp.Labelled1[fp.RuntimeNamed[string]] {
 					i0 := v.Hello
-					return as.Labelled1(as.Named("Hello", i0, ``))
+					return as.Labelled1(as.NamedWithTag("Hello", i0, ``))
 				},
 				as.HList1Labelled,
 			),
