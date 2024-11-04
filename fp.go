@@ -66,6 +66,10 @@ func (r RuntimeNamed[T]) Tag() string {
 	return r.I3
 }
 
+func (r RuntimeNamed[T]) WithTag(v string) RuntimeNamed[T] {
+	return RuntimeNamed[T]{r.I1, r.I2, v}
+}
+
 type Labelled1[T1 Named] struct {
 	I1 T1
 }
