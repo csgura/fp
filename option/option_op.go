@@ -89,6 +89,13 @@ func NonZero[T comparable](t T) fp.Option[T] {
 	return Some(t)
 }
 
+func NonEmptySlice[T any](t []T) fp.Option[[]T] {
+	if t == nil {
+		return None[[]T]()
+	}
+	return Some(t)
+}
+
 func FromTry[T any](t fp.Try[T]) fp.Option[T] {
 	if t.IsSuccess() {
 		return Some(t.Get())

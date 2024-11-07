@@ -65,6 +65,12 @@ func TestSome(t *testing.T) {
 	optFn := curried.Flip(as.Curried2(intFunctor))(strconv.Itoa)
 	fmt.Println(optFn(option.Some(42)))
 
+	var e []string
+	assert.False(option.NonEmptySlice(e).IsDefined())
+
+	e = []string{"hello"}
+	assert.True(option.NonEmptySlice(e).IsDefined())
+
 }
 
 func TestCompileError(t *testing.T) {
