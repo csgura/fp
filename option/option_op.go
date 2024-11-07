@@ -89,9 +89,9 @@ func NonZero[T comparable](t T) fp.Option[T] {
 	return Some(t)
 }
 
-func NonEmptySlice[T any](t []T) fp.Option[[]T] {
+func NonEmptySlice[T ~[]E, E any](t T) fp.Option[T] {
 	if t == nil {
-		return None[[]T]()
+		return None[T]()
 	}
 	return Some(t)
 }
