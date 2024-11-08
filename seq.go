@@ -155,28 +155,34 @@ func (r Seq[T]) Add(item T) Seq[T] {
 }
 
 func (r Seq[T]) Append(items ...T) Seq[T] {
-	tail := Seq[T](items)
-	ret := make(Seq[T], r.Size()+tail.Size())
+	if len(items) > 0 {
+		tail := Seq[T](items)
+		ret := make(Seq[T], r.Size()+tail.Size())
 
-	copy(ret, r)
+		copy(ret, r)
 
-	for i := range tail {
-		ret[i+r.Size()] = tail[i]
+		for i := range tail {
+			ret[i+r.Size()] = tail[i]
+		}
+
+		return ret
 	}
-
-	return ret
+	return r
 }
 
 func (r Seq[T]) Concat(tail Seq[T]) Seq[T] {
-	ret := make(Seq[T], r.Size()+tail.Size())
+	if len(tail) > 0 {
+		ret := make(Seq[T], r.Size()+tail.Size())
 
-	copy(ret, r)
+		copy(ret, r)
 
-	for i := range tail {
-		ret[i+r.Size()] = tail[i]
+		for i := range tail {
+			ret[i+r.Size()] = tail[i]
+		}
+
+		return ret
 	}
-
-	return ret
+	return r
 }
 
 // func (r Seq[T]) Reduce(m Monoid[T]) T {
