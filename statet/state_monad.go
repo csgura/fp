@@ -108,6 +108,10 @@ func LiftM2[S any, A any, B, R any](fab func(A, B) fp.StateT[S, R]) func(fp.Stat
 	}
 }
 
+func FlatMap2[S any, A any, B, R any](first fp.StateT[S, A], second fp.StateT[S, B], fab func(A, B) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM2(fab)(first, second)
+}
+
 // 하스켈 : m( a -> r ) -> a -> m r
 // 스칼라 : M[ A => r ] => A => M[R]
 // 하스켈이나 스칼라의 기본 패키지에는 이런 기능을 하는 함수가 없는데,
@@ -209,6 +213,10 @@ func LiftA3[S any, A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) func(fp
 	}
 }
 
+func Map3[S any, A1 any, A2, A3, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], f func(a1 A1, a2 A2, a3 A3) R) fp.StateT[S, R] {
+	return LiftA3[S](f)(ins1, ins2, ins3)
+}
+
 func LiftM3[S any, A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3]) fp.StateT[S, R] {
 
@@ -218,6 +226,10 @@ func LiftM3[S any, A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.StateT[
 			})(ins2, ins3)
 		})
 	}
+}
+
+func FlatMap3[S any, A1 any, A2, A3, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], f func(a1 A1, a2 A2, a3 A3) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM3(f)(ins1, ins2, ins3)
 }
 
 func Flap3[S any, A1 any, A2, A3, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.StateT[S, R]]]] {
@@ -253,6 +265,10 @@ func LiftA4[S any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4)
 	}
 }
 
+func Map4[S any, A1 any, A2, A3, A4, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.StateT[S, R] {
+	return LiftA4[S](f)(ins1, ins2, ins3, ins4)
+}
+
 func LiftM4[S any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3], fp.StateT[S, A4]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4]) fp.StateT[S, R] {
 
@@ -262,6 +278,10 @@ func LiftM4[S any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4)
 			})(ins2, ins3, ins4)
 		})
 	}
+}
+
+func FlatMap4[S any, A1 any, A2, A3, A4, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM4(f)(ins1, ins2, ins3, ins4)
 }
 
 func Flap4[S any, A1 any, A2, A3, A4, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.StateT[S, R]]]]] {
@@ -297,6 +317,10 @@ func LiftA5[S any, A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4
 	}
 }
 
+func Map5[S any, A1 any, A2, A3, A4, A5, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.StateT[S, R] {
+	return LiftA5[S](f)(ins1, ins2, ins3, ins4, ins5)
+}
+
 func LiftM5[S any, A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3], fp.StateT[S, A4], fp.StateT[S, A5]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5]) fp.StateT[S, R] {
 
@@ -306,6 +330,10 @@ func LiftM5[S any, A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4
 			})(ins2, ins3, ins4, ins5)
 		})
 	}
+}
+
+func FlatMap5[S any, A1 any, A2, A3, A4, A5, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM5(f)(ins1, ins2, ins3, ins4, ins5)
 }
 
 func Flap5[S any, A1 any, A2, A3, A4, A5, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.StateT[S, R]]]]]] {
@@ -341,6 +369,10 @@ func LiftA6[S any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3
 	}
 }
 
+func Map6[S any, A1 any, A2, A3, A4, A5, A6, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.StateT[S, R] {
+	return LiftA6[S](f)(ins1, ins2, ins3, ins4, ins5, ins6)
+}
+
 func LiftM6[S any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3], fp.StateT[S, A4], fp.StateT[S, A5], fp.StateT[S, A6]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6]) fp.StateT[S, R] {
 
@@ -350,6 +382,10 @@ func LiftM6[S any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3
 			})(ins2, ins3, ins4, ins5, ins6)
 		})
 	}
+}
+
+func FlatMap6[S any, A1 any, A2, A3, A4, A5, A6, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM6(f)(ins1, ins2, ins3, ins4, ins5, ins6)
 }
 
 func Flap6[S any, A1 any, A2, A3, A4, A5, A6, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.StateT[S, R]]]]]]] {
@@ -385,6 +421,10 @@ func LiftA7[S any, A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a
 	}
 }
 
+func Map7[S any, A1 any, A2, A3, A4, A5, A6, A7, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.StateT[S, R] {
+	return LiftA7[S](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7)
+}
+
 func LiftM7[S any, A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3], fp.StateT[S, A4], fp.StateT[S, A5], fp.StateT[S, A6], fp.StateT[S, A7]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7]) fp.StateT[S, R] {
 
@@ -394,6 +434,10 @@ func LiftM7[S any, A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a
 			})(ins2, ins3, ins4, ins5, ins6, ins7)
 		})
 	}
+}
+
+func FlatMap7[S any, A1 any, A2, A3, A4, A5, A6, A7, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM7(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7)
 }
 
 func Flap7[S any, A1 any, A2, A3, A4, A5, A6, A7, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.StateT[S, R]]]]]]]] {
@@ -429,6 +473,10 @@ func LiftA8[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A
 	}
 }
 
+func Map8[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], ins8 fp.StateT[S, A8], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.StateT[S, R] {
+	return LiftA8[S](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8)
+}
+
 func LiftM8[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3], fp.StateT[S, A4], fp.StateT[S, A5], fp.StateT[S, A6], fp.StateT[S, A7], fp.StateT[S, A8]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], ins8 fp.StateT[S, A8]) fp.StateT[S, R] {
 
@@ -438,6 +486,10 @@ func LiftM8[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A
 			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
 		})
 	}
+}
+
+func FlatMap8[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], ins8 fp.StateT[S, A8], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM8(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8)
 }
 
 func Flap8[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.StateT[S, R]]]]]]]]] {
@@ -473,6 +525,10 @@ func LiftA9[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, 
 	}
 }
 
+func Map9[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], ins8 fp.StateT[S, A8], ins9 fp.StateT[S, A9], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) fp.StateT[S, R] {
+	return LiftA9[S](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
+}
+
 func LiftM9[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.StateT[S, R]) func(fp.StateT[S, A1], fp.StateT[S, A2], fp.StateT[S, A3], fp.StateT[S, A4], fp.StateT[S, A5], fp.StateT[S, A6], fp.StateT[S, A7], fp.StateT[S, A8], fp.StateT[S, A9]) fp.StateT[S, R] {
 	return func(ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], ins8 fp.StateT[S, A8], ins9 fp.StateT[S, A9]) fp.StateT[S, R] {
 
@@ -482,6 +538,10 @@ func LiftM9[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, 
 			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
 		})
 	}
+}
+
+func FlatMap9[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](ins1 fp.StateT[S, A1], ins2 fp.StateT[S, A2], ins3 fp.StateT[S, A3], ins4 fp.StateT[S, A4], ins5 fp.StateT[S, A5], ins6 fp.StateT[S, A6], ins7 fp.StateT[S, A7], ins8 fp.StateT[S, A8], ins9 fp.StateT[S, A9], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.StateT[S, R]) fp.StateT[S, R] {
+	return LiftM9(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
 }
 
 func Flap9[S any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](tf fp.StateT[S, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.StateT[S, R]]]]]]]]]] {

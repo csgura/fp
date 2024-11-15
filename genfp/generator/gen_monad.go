@@ -374,6 +374,10 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 				return Flatten(Map2(a, b, fab))
 			}
 		}
+
+		func FlatMap2[{{.tpargs}}, B, R any](first {{monad "A"}}, second {{monad "B"}}, fab func(A, B) {{monad "R"}}) {{monad "R"}} {
+			return LiftM2(fab)(first, second)
+		}
 	`, funcs, param)
 
 	w.Render(`
@@ -497,6 +501,10 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 			}
 		}
 
+		func Map{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any]({{monadIns 1 .N}}, f func({{DeclArgs 1 .N}}) R) {{monad "R"}} {
+			return LiftA{{.N}}{{infer}}(f)({{CallArgs 1 .N "ins"}})
+		}
+
 		func LiftM{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](f func({{DeclArgs 1 .N}}) {{monad "R"}}) func({{monadTypes 1 .N}}) {{monad "R"}} {
 			return func({{monadIns 1 .N}}) {{monad "R"}} {
 
@@ -506,6 +514,10 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 					})({{CallArgs 2 .N "ins"}})
 				})
 			}
+		}
+
+		func FlatMap{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any]({{monadIns 1 .N}}, f func({{DeclArgs 1 .N}}) {{monad "R"}}) {{monad "R"}} {
+			return LiftM{{.N}}(f)({{CallArgs 1 .N "ins"}})
 		}
 
 		func Flap{{.N}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](tf {{monad (CurriedFunc 1 .N "R")}}) {{CurriedFunc 1 .N (monad "R")}} {
