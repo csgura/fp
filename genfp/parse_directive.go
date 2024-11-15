@@ -1,6 +1,7 @@
 package genfp
 
 import (
+	"fmt"
 	"go/ast"
 	"go/types"
 	"reflect"
@@ -32,6 +33,46 @@ func DelegatedBy[T any](fieldName string) Delegate {
 		TypeOf: TypeOf[T](),
 		Field:  fieldName,
 	}
+}
+
+var defaultFunc = map[string]any{
+	"FormatStr":         FormatStr,
+	"FuncChain":         FuncChain,
+	"ConsType":          ConsType,
+	"ReversConsType":    ReversConsType,
+	"TypeArg":           FuncTypeArg,
+	"TypeArgs":          FuncTypeArgs,
+	"DeclArgs":          FuncDeclArgs,
+	"CallArgs":          FuncCallArgs,
+	"ReverseCallArgs":   ReverseFuncCallArgs,
+	"DeclTypeClassArgs": FuncDeclTypeClassArgs,
+	"CurriedCallArgs":   CurriedCallArgs,
+	"TypeClassArgs":     TypeClassArgs,
+	"CurriedFunc":       CurriedType,
+	"RecursiveType":     RecursiveType,
+
+	"Range": func(start, until int) []int {
+		var ret = make([]int, until-start+1)
+		for i := start; i <= until; i++ {
+			ret[i-start] = i
+		}
+		return ret
+	},
+	"Monad": func(s string) Monad {
+		return Monad(s)
+	},
+	"Args": func(s string, start, until int) ArgsRange {
+		return ArgsRange{s, start, until}
+	},
+	"TupleType": func(n int) string {
+		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
+	},
+	"dec": func(n int) int {
+		return n - 1
+	},
+	"inc": func(n int) int {
+		return n + 1
+	},
 }
 
 type GenerateFromUntil struct {
@@ -101,8 +142,9 @@ type TypeReference struct {
 
 type GenerateMonadFunctions[T any] struct {
 	// 생성될 file 이름
-	File     string
-	TypeParm TypeTag
+	File      string
+	TypeParm  TypeTag
+	NoMapFunc bool
 }
 
 type GenerateTraverseFunctions[T any] struct {

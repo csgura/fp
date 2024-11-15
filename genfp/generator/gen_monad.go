@@ -232,12 +232,13 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 	`, funcs, param)
 
-	fmt.Fprintf(w, `
-		func Map[%s, R any](m %s,  f func(A) R) %s {
-			return FlatMap(m, fp.Compose2(f, Pure[%s]))
-		}
-	`, tpargs, srctype, rettype("R"), rettp)
-
+	if !md.NoMapFunc {
+		fmt.Fprintf(w, `
+			func Map[%s, R any](m %s,  f func(A) R) %s {
+				return FlatMap(m, fp.Compose2(f, Pure[%s]))
+			}
+		`, tpargs, srctype, rettype("R"), rettp)
+	}
 	fmt.Fprintf(w, `
 		// haskell 의 <$
 		// map . const 와 같은 함수
