@@ -15,10 +15,6 @@ func Flatten[A any](tta fp.Try[fp.Try[A]]) fp.Try[A] {
 	})
 }
 
-func Map[A any, R any](m fp.Try[A], f func(A) R) fp.Try[R] {
-	return FlatMap(m, fp.Compose2(f, Pure[R]))
-}
-
 // haskell 의 <$
 // map . const 와 같은 함수
 func Replace[A any, R any](s fp.Try[A], b R) fp.Try[R] {

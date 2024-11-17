@@ -302,14 +302,36 @@ func genGenerate() {
 	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
 	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
 	traversef := generator.FindGenerateTraverseFunctions(pkgs, "@fp.Generate")
+	monadt := generator.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
 
 	filelist := iterator.ToGoSet(
 		mutable.MapOf(gentemplate).Keys().
 			Concat(mutable.MapOf(genadaptor).Keys()).
 			Concat(mutable.MapOf(monadf).Keys()).
-			Concat(mutable.MapOf(traversef).Keys()),
+			Concat(mutable.MapOf(traversef).Keys()).
+			Concat(mutable.MapOf(monadt).Keys()),
 	)
 
+	fileSet := map[string]bool{}
+	for file := range filelist {
+		fullpath := cwd + "/" + file
+		fileSet[fullpath] = true
+	}
+
+	funcList := map[string]bool{}
+	for _, p := range pkgs {
+		s := p.Types.Scope()
+		for _, n := range s.Names() {
+			o := s.Lookup(n)
+			if _, ok := o.Type().(*types.Signature); ok {
+				file := p.Fset.Position(o.Pos()).Filename
+				if !fileSet[file] {
+					funcList[o.Name()] = true
+				}
+
+			}
+		}
+	}
 	for file := range filelist {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range gentemplate[file] {
@@ -325,11 +347,15 @@ func genGenerate() {
 			}
 
 			for _, md := range monadf[file] {
-				generator.WriteMonadFunctions(w, md)
+				generator.WriteMonadFunctions(w, md, funcList)
 			}
 
 			for _, md := range traversef[file] {
-				generator.WriteTraverseFunctions(w, md)
+				generator.WriteTraverseFunctions(w, md, funcList)
+			}
+
+			for _, md := range monadt[file] {
+				generator.WriteMonadTransformers(w, md, funcList)
 			}
 		})
 	}

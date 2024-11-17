@@ -130,7 +130,7 @@ func FlatMapRetType(w genfp.Writer, pk genfp.WorkingPackage, tr TypeReference, f
 
 type replaceParam map[string]string
 
-func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective) {
+func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective, definedFunc map[string]bool) {
 
 	tp := md.TargetType.TypeArgs()
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {

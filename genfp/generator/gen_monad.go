@@ -109,7 +109,7 @@ func NameParamReplaced(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p
 	}
 }
 
-func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
+func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFunction map[string]bool) {
 
 	tp := md.TargetType.TypeArgs()
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
@@ -232,7 +232,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective) {
 		}
 	`, funcs, param)
 
-	if !md.NoMapFunc {
+	if !definedFunction["Map"] {
 		fmt.Fprintf(w, `
 			func Map[%s, R any](m %s,  f func(A) R) %s {
 				return FlatMap(m, fp.Compose2(f, Pure[%s]))

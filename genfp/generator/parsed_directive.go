@@ -795,9 +795,8 @@ type GenerateMonadFunctionsDirective struct {
 	Package    genfp.WorkingPackage
 	TargetType *types.Named
 	// 생성될 file 이름
-	File      string
-	TypeParm  *types.TypeParam
-	NoMapFunc bool
+	File     string
+	TypeParm *types.TypeParam
 }
 
 func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective, error) {
@@ -816,7 +815,7 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 
 	ret.TargetType = argType
 
-	names := []string{"File", "TypeParm", "NoMapFunc"}
+	names := []string{"File", "TypeParm"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -840,12 +839,6 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 			} else {
 				return ret, fmt.Errorf("invalid TypeParam. %s is not type param", v.Type)
 			}
-		case "NoMapFunc":
-			v, err := evalBoolValue(value)
-			if err != nil {
-				return ret, err
-			}
-			ret.NoMapFunc = v
 		}
 	}
 	return ret, nil

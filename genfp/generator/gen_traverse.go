@@ -8,7 +8,7 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
-func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective) {
+func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFunc map[string]bool) {
 
 	tp := md.TargetType.TypeArgs()
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {

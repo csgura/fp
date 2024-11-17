@@ -142,9 +142,8 @@ type TypeReference struct {
 
 type GenerateMonadFunctions[T any] struct {
 	// 생성될 file 이름
-	File      string
-	TypeParm  TypeTag
-	NoMapFunc bool
+	File     string
+	TypeParm TypeTag
 }
 
 type GenerateTraverseFunctions[T any] struct {

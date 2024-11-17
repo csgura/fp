@@ -119,9 +119,9 @@ func ComposePure[A, B any](fab func(A) B) func(A) fp.Try[B] {
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
-// func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
-// 	return Ap(Success(as.Func1(f)), opt)
-// }
+func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
+	return Ap(Success(as.Func1(f)), opt)
+}
 
 func FlatMap[A, B any](ta fp.Try[A], fn func(v A) fp.Try[B]) fp.Try[B] {
 	if ta.IsSuccess() {
