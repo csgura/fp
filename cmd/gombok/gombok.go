@@ -1486,10 +1486,9 @@ func main() {
 	}
 
 	delete_gen_files(pack)
-	genGenerate()
-
-	//fmt.Printf("GOPACKAGE = %s\n", pack)
 	genValueAndGetter()
+	genGenerate()
+	//fmt.Printf("GOPACKAGE = %s\n", pack)
 	genDerive()
 
 }
