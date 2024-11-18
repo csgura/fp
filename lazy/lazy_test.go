@@ -74,3 +74,22 @@ func TestFibo(t *testing.T) {
 	fmt.Println(fiboNoOpt(20).Get())
 
 }
+
+func TestFiboMax(t *testing.T) {
+	// max 1GB stack
+	// 0.51s
+	result := fibo(11184787, 0, 1)
+	fmt.Println(result)
+
+}
+
+func TestLazyFiboMax(t *testing.T) {
+	// 1.81s  -> 3~4 times slower
+	lazyResult := fiboEval(11184787, 0, 1)
+	fmt.Println(lazyResult.Get())
+}
+
+func TestLazyFiboMore(t *testing.T) {
+	lazyResult := fiboEval(20000000, 0, 1)
+	fmt.Println(lazyResult.Get())
+}
