@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/internal/assert"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/monoid"
@@ -100,19 +102,19 @@ type Result[S, A any] struct {
 	a A
 }
 
-type State[S, A any] func(S) lazy.Eval[Result[S, A]]
+type State[S, A any] func(S) lazy.Eval[fp.Tuple2[A, S]]
 
 func Pure[S, A any](v A) State[S, A] {
-	return func(s S) lazy.Eval[Result[S, A]] {
-		return lazy.Done(Result[S, A]{s: s, a: v})
+	return func(s S) lazy.Eval[fp.Tuple2[A, S]] {
+		return lazy.Done(as.Tuple(v, s))
 	}
 }
 
 func (r State[S, A]) FlatMap(f func(A) State[S, A]) State[S, A] {
-	return func(s S) lazy.Eval[Result[S, A]] {
+	return func(s S) lazy.Eval[fp.Tuple2[A, S]] {
 		res := r(s)
-		return res.FlatMap(func(r Result[S, A]) lazy.Eval[Result[S, A]] {
-			return f(r.a)(r.s)
+		return res.FlatMap(func(r fp.Tuple2[A, S]) lazy.Eval[fp.Tuple2[A, S]] {
+			return f(r.I1)(r.I2)
 		})
 	}
 }
@@ -144,9 +146,13 @@ func TestLazyState(t *testing.T) {
 		fmt.Printf("v = %d\n", v)
 		return v + 1
 	}
-	i := Pure[context.Context](1).Map(inc).Map(inc).Map(inc)
+	i := Pure[context.Context](1).
+		Map(inc). // 첫번째 resume 에서 flatMap 4회
+		Map(inc). // flatMap 3회
+		Map(inc). // flatMap 2회
+		Map(inc)  // flatMap 1회
 	res, resumeCnt := runCountResume(i(context.Background()))
-	assert.Equal(res.a, 4)
-	assert.Equal(resumeCnt, 4)
+	assert.Equal(res.I1, 5)
+	assert.Equal(resumeCnt, 5)
 
 }
