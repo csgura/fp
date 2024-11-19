@@ -1,6 +1,7 @@
 package lazy_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -92,4 +93,58 @@ func TestLazyFiboMax(t *testing.T) {
 func TestLazyFiboMore(t *testing.T) {
 	lazyResult := fiboEval(20000000, 0, 1)
 	fmt.Println(lazyResult.Get())
+}
+
+type Result[S, A any] struct {
+	s S
+	a A
+}
+
+type State[S, A any] func(S) lazy.Eval[Result[S, A]]
+
+func Pure[S, A any](v A) State[S, A] {
+	return func(s S) lazy.Eval[Result[S, A]] {
+		return lazy.Done(Result[S, A]{s: s, a: v})
+	}
+}
+
+func (r State[S, A]) FlatMap(f func(A) State[S, A]) State[S, A] {
+	return func(s S) lazy.Eval[Result[S, A]] {
+		res := r(s)
+		return res.FlatMap(func(r Result[S, A]) lazy.Eval[Result[S, A]] {
+			return f(r.a)(r.s)
+		})
+	}
+}
+
+func (r State[S, A]) Map(f func(A) A) State[S, A] {
+	return r.FlatMap(func(a A) State[S, A] {
+		return Pure[S](f(a))
+	})
+}
+
+func runCountResume[T any](t lazy.Eval[T]) (T, int) {
+	cnt := 0
+	for {
+		cnt++
+		result, continuation := t.Resume()
+
+		if continuation != nil {
+			t = continuation()
+			continue
+		}
+
+		return result, cnt
+	}
+}
+
+func TestLazyState(t *testing.T) {
+	inc := func(v int) int {
+		return v + 1
+	}
+	i := Pure[context.Context](1).Map(inc).Map(inc).Map(inc)
+	res, resumeCnt := runCountResume(i(context.Background()))
+	assert.Equal(res.a, 4)
+	assert.Equal(resumeCnt, 4)
+
 }
