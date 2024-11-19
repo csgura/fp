@@ -127,6 +127,7 @@ func runCountResume[T any](t lazy.Eval[T]) (T, int) {
 	cnt := 0
 	for {
 		cnt++
+		fmt.Printf("%d resume\n", cnt)
 		result, continuation := t.Resume()
 
 		if continuation != nil {
@@ -140,6 +141,7 @@ func runCountResume[T any](t lazy.Eval[T]) (T, int) {
 
 func TestLazyState(t *testing.T) {
 	inc := func(v int) int {
+		fmt.Printf("v = %d\n", v)
 		return v + 1
 	}
 	i := Pure[context.Context](1).Map(inc).Map(inc).Map(inc)
