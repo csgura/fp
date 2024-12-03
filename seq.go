@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+func SliceCasting[To ~[]T, From ~[]T, T any](a From) To {
+	return To(a)
+}
+
 type Seq[T any] []T
 
 func (r Seq[T]) Widen() []T {
