@@ -19,6 +19,10 @@ var Some = fp.Some(fp.Unit{})
 var None = fp.None[fp.Unit]()
 var Completed = future.Successful(fp.Unit{})
 
+func Failure(err error) fp.Try[fp.Unit] {
+	return fp.Failure[fp.Unit](err)
+}
+
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "func_gen.go",
