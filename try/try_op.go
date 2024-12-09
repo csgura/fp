@@ -13,7 +13,6 @@ import (
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
-	"github.com/csgura/fp/try"
 )
 
 func Pure[T any](t T) fp.Try[T] {
@@ -122,7 +121,7 @@ var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
 func Map[T, U any](tt fp.Try[T], f func(v T) U) fp.Try[U] {
 	if tt.IsSuccess() {
-		return try.Success(f(tt.Get()))
+		return Success(f(tt.Get()))
 	}
 	return Failure[U](tt.Failed().Get())
 }
