@@ -13,6 +13,7 @@ import (
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 )
 
 func Pure[T any](t T) fp.Try[T] {
@@ -119,8 +120,11 @@ func ComposePure[A, B any](fab func(A) B) func(A) fp.Try[B] {
 
 var Unit fp.Try[fp.Unit] = Success(fp.Unit{})
 
-func Map[T, U any](opt fp.Try[T], f func(v T) U) fp.Try[U] {
-	return Ap(Success(as.Func1(f)), opt)
+func Map[T, U any](tt fp.Try[T], f func(v T) U) fp.Try[U] {
+	if tt.IsSuccess() {
+		return try.Success(f(tt.Get()))
+	}
+	return Failure[U](tt.Failed().Get())
 }
 
 func FlatMap[A, B any](ta fp.Try[A], fn func(v A) fp.Try[B]) fp.Try[B] {
