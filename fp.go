@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime/debug"
+	"strconv"
 	"sync"
 
 	"github.com/csgura/fp/genfp"
@@ -226,6 +227,14 @@ type ImplicitOrd interface {
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr |
 		~float32 | ~float64 |
 		~string
+}
+
+func ParseInt(v string) Try[int] {
+	ret, err := strconv.Atoi(v)
+	if err != nil {
+		return Failure[int](err)
+	}
+	return Success(ret)
 }
 
 func Min[T ImplicitOrd](a1 T, a2 T) T {
