@@ -22,15 +22,15 @@ type otherStringKey struct {
 }
 
 func TestContextKey(t *testing.T) {
-	ctx := fp.WithContextValue(context.Background(), stringKey{}, "hello")
+	ctx := fp.WithContextValue[stringKey](context.Background(), "hello")
 
-	v := fp.GetContextValue(ctx, stringKey{})
+	v := fp.GetContextValue[stringKey](ctx)
 	assert.Equal(v, option.Some("hello"))
 
-	v2 := fp.GetContextValue(ctx, intKey{})
+	v2 := fp.GetContextValue[intKey](ctx)
 	assert.True(v2.IsEmpty())
 
-	v = fp.GetContextValue(ctx, otherStringKey{})
+	v = fp.GetContextValue[otherStringKey](ctx)
 	assert.True(v.IsEmpty())
 
 }
