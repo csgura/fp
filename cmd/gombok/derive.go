@@ -1681,6 +1681,11 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 
 	if result.IsDefined() {
 
+		tci := result.Get()
+		tci.RequiredInstance = seq.Map(tci.RequiredInstance, func(v metafp.RequiredInstance) metafp.RequiredInstance {
+			v.FieldOf = option.Some(sf.tpe)
+			return v
+		})
 		// tp := iterator.Map(typeArgs.Iterator(), func(v metafp.TypeInfo) string {
 		// 	return r.w.TypeName(ctx.working, v.Type)
 		// }).MakeString(",")
@@ -1692,7 +1697,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 			ToReprExpr:   sf.asTuple,
 			FromReprExpr: sf.fromTuple,
 			ReprExpr: func() SummonExpr {
-				return r.exprTypeClassInstance(ctx, result.Get())
+				return r.exprTypeClassInstance(ctx, tci)
 				//return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, option.Some(sf.tpe))
 			},
 		}
