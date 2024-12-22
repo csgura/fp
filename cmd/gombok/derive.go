@@ -437,17 +437,42 @@ func (r *TypeClassSummonContext) lookupTypeClassFunc(ctx CurrentContext, tc meta
 	}
 
 	ins := workingScope.FindFunc(nameWithTc)
-	if ins.IsDefined() {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
 		return ins
 	}
 
 	ins = primScope.FindFunc(nameWithTc)
-	if ins.IsDefined() {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
 		return ins
 	}
 
 	ins = primScope.FindFunc(name)
-	return ins
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+		return ins
+	}
+
+	return option.None[metafp.TypeClassInstance]()
+}
+
+func (r *TypeClassSummonContext) lookupTupleTypeClassFunc(ctx CurrentContext, tc metafp.TypeClass, name string, tupleArgs fp.Seq[metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
+	ret := r.lookupTypeClassFunc(ctx, tc, name)
+	if ret.IsDefined() {
+		tc := ret.Get()
+		tpType := tc.Result.TypeArgs.Head()
+		if tpType.IsDefined() {
+			tpt := tpType.Get()
+			tpt.TypeArgs = seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) metafp.TypeInfo {
+				return v.Type
+			})
+
+			checked := tc.Check(tpt)
+			fmt.Printf("checked = %v\n", checked.Get().ParamMapping)
+			return checked
+
+		}
+	}
+
+	return ret
 }
 
 func (r *TypeClassSummonContext) lookupTypeClassFuncMust(ctx CurrentContext, tc metafp.TypeClass, name string) metafp.TypeClassInstance {
@@ -680,7 +705,7 @@ func (r *TypeClassSummonContext) namedLookup(ctx CurrentContext, req metafp.Requ
 // }
 
 // 타입 추론이 가능한지 따지는 함수
-func (r *TypeClassSummonContext) typeParamString(ctx CurrentContext, lt lookupTarget) fp.Option[string] {
+func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx CurrentContext, lt lookupTarget) fp.Option[string] {
 
 	if lt.instance().IsDefined() {
 		ins := lt.instance().Get()
@@ -704,6 +729,27 @@ func (r *TypeClassSummonContext) typeParamString(ctx CurrentContext, lt lookupTa
 	}
 
 	return option.None[string]()
+}
+
+func (r *TypeClassSummonContext) typeParamString(ctx CurrentContext, ins metafp.TypeClassInstance) fp.Option[string] {
+
+	// 타입 추론이 가능하려면,  모든 타입 파라미터가, 아규먼트에서 사용되어야 한다.
+	possible := ins.TypeParam.ForAll(func(v metafp.TypeParam) bool {
+		return ins.UsedParam.Contains(v.Name)
+	})
+
+	// 전부 사용되지 않아 타입 추론이 불가능하다면
+	// 타입을 명시한다.
+	if !possible {
+		ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
+			return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+				return r.w.TypeName(ctx.working, v.Type)
+			}).OrElse(v.Name)
+		}).MakeString(",")
+		return option.Some(ret)
+	}
+	return option.None[string]()
+
 }
 
 func MergeSeqDistinct[T any](eqt fp.Eq[T]) fp.Monoid[fp.Seq[T]] {
@@ -747,14 +793,64 @@ func newSummonExpr(expr string, params ...fp.Seq[ParamInstance]) SummonExpr {
 	}
 }
 
-func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lookupTarget) SummonExpr {
+func instanceExprOfTypeClassInstance(r metafp.TypeClassInstance, w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
+	if r.Package == nil || r.Package.Path() == workingPkg.Path() {
+		return SummonExpr{
+			expr: r.Name,
+		}
+	}
+
+	pk := w.GetImportedName(genfp.FromTypesPackage(r.Package))
+
+	return SummonExpr{
+		expr: fmt.Sprintf("%s.%s", pk, r.Name),
+	}
+}
+
+func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt metafp.TypeClassInstance) SummonExpr {
+	//fmt.Printf("lt : %s, %v\n", lt.instance(), lt.required())
+
+	if len(lt.RequiredInstance) > 0 {
+		list := r.summonArgs(ctx, lt.RequiredInstance)
+
+		instanceExpr := instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
+		tpstr := r.typeParamString(ctx, lt)
+		if tpstr.IsDefined() {
+			//fmt.Printf("%s param infer not possible = %s \n", lt.name, lt.instance.Get().ParamMapping)
+
+			return newSummonExpr(fmt.Sprintf("%s[%s](%s)", instanceExpr.expr, tpstr.Get(), list.expr), instanceExpr.paramInstance, list.paramInstance)
+
+		} else {
+			return newSummonExpr(fmt.Sprintf("%s(%s)", instanceExpr.expr, list.expr), instanceExpr.paramInstance, list.paramInstance)
+
+		}
+	}
+
+	if !lt.Static && len(lt.RequiredInstance) == 0 {
+		instanceExpr := instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
+
+		tpstr := r.typeParamString(ctx, lt)
+		if tpstr.IsDefined() {
+			return newSummonExpr(fmt.Sprintf("%s[%s]()", instanceExpr, tpstr.Get()), instanceExpr.paramInstance)
+
+		} else {
+			return newSummonExpr(fmt.Sprintf("%s()", instanceExpr), instanceExpr.paramInstance)
+		}
+
+	}
+
+	return instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
+
+}
+
+func (r *TypeClassSummonContext) exprLookupTarget(ctx CurrentContext, lt lookupTarget) SummonExpr {
 	//fmt.Printf("lt : %s, %v\n", lt.instance(), lt.required())
 
 	if len(lt.required()) > 0 {
 		list := r.summonArgs(ctx, lt.required())
 
 		instanceExpr := lt.instanceExpr(r.w, ctx.working)
-		tpstr := r.typeParamString(ctx, lt)
+		tpstr := r.typeParamStringOfLookupTarget(ctx, lt)
 		if tpstr.IsDefined() {
 			//fmt.Printf("%s param infer not possible = %s \n", lt.name, lt.instance.Get().ParamMapping)
 
@@ -769,7 +865,7 @@ func (r *TypeClassSummonContext) exprTypeClassInstance(ctx CurrentContext, lt lo
 	if lt.isFunc() && len(lt.required()) == 0 {
 		instanceExpr := lt.instanceExpr(r.w, ctx.working)
 
-		tpstr := r.typeParamString(ctx, lt)
+		tpstr := r.typeParamStringOfLookupTarget(ctx, lt)
 		if tpstr.IsDefined() {
 			return newSummonExpr(fmt.Sprintf("%s[%s]()", instanceExpr, tpstr.Get()), instanceExpr.paramInstance)
 
@@ -1378,6 +1474,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx CurrentContext, named meta
 		pack:           named.Package,
 		tpe:            named.Info,
 		fields:         fields,
+		typeArgs:       typeArgs,
 		namedGenerated: hasAsLabelled,
 		asTuple:        tupleFuncExpr,
 		fromTuple:      applyFuncExpr,
@@ -1505,6 +1602,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx CurrentContext, tpe meta
 		pack:         ctx.working.Package(),
 		tpe:          tpe,
 		fields:       fields,
+		typeArgs:     typeArgs,
 		asTuple:      tupleFuncExpr,
 		fromTuple:    applyFuncExpr,
 		asLabelled:   asLabelledFuncExpr,
@@ -1528,6 +1626,7 @@ type structFunctions struct {
 	pack           *types.Package
 	tpe            metafp.TypeInfo
 	fields         fp.Seq[metafp.StructField]
+	typeArgs       fp.Seq[metafp.TypeInfoExpr]
 	namedGenerated bool
 
 	typeStr func(pk genfp.WorkingPackage) string
@@ -1561,7 +1660,7 @@ type structFunctions struct {
 //	--> untyped struct 인 경우
 func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc metafp.TypeClass, sf structFunctions) GenericRepr {
 	fields := sf.fields
-	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", fields.Size()))
+	result := r.lookupTupleTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", fields.Size()), sf.typeArgs)
 
 	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
 		return v.TypeInfoExpr(ctx.working)
@@ -1580,7 +1679,8 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 			ToReprExpr:   sf.asTuple,
 			FromReprExpr: sf.fromTuple,
 			ReprExpr: func() SummonExpr {
-				return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, option.Some(sf.tpe))
+				return r.exprTypeClassInstance(ctx, result.Get())
+				//return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, option.Some(sf.tpe))
 			},
 		}
 	}
@@ -1853,7 +1953,7 @@ func (r *TypeClassSummonContext) summonRequired(ctx CurrentContext, req metafp.R
 	result := r.lookupTypeClassInstance(ctx, req)
 
 	if result.target.IsRight() {
-		return r.exprTypeClassInstance(ctx, result)
+		return r.exprLookupTarget(ctx, result)
 	}
 
 	if ctx.recursiveGen && req.TypeClass.Id() == ctx.tc.TypeClass.Id() {
@@ -1878,10 +1978,10 @@ func (r *TypeClassSummonContext) summonRequired(ctx CurrentContext, req metafp.R
 				r.recursiveGen = append(r.recursiveGen, tc)
 				r.tcCache.WillGenerated(tc)
 			}
-			return r.exprTypeClassInstance(ctx, result)
+			return r.exprLookupTarget(ctx, result)
 		}
 	}
-	return r.exprTypeClassInstance(ctx, result)
+	return r.exprLookupTarget(ctx, result)
 
 }
 
