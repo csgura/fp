@@ -312,6 +312,7 @@ type ConstraintCheckResult struct {
 // func[T constraint]() Eq[Seq[T]]  같은 경우는 해당 사항 없음 .
 func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) ConstraintCheckResult {
 
+	//fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
 	// size 가 동일하지 않은 경우
 	if genericType.TypeArgs.Size() != typeArgs.Size() {
 		return ConstraintCheckResult{
@@ -368,7 +369,8 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 
 	if len(paramFound) == 0 {
 		return ConstraintCheckResult{
-			Ok: true,
+			Ok:           true,
+			ParamMapping: merge,
 		}
 	}
 

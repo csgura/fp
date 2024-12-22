@@ -8,7 +8,7 @@ import (
 
 func SplitNgapType() Split[NgapType] {
 	return IMap(
-		Tuple4[int, string,float64](),
+		Tuple4[int, string, float64](),
 		func(t fp.Tuple4[int, *int, *string, *float64]) NgapType {
 			return NgapType{
 				Present: t.I1,

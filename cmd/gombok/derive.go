@@ -461,13 +461,26 @@ func (r *TypeClassSummonContext) lookupTupleTypeClassFunc(ctx CurrentContext, tc
 		tpType := tc.Result.TypeArgs.Head()
 		if tpType.IsDefined() {
 			tpt := tpType.Get()
-			tpt.TypeArgs = seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) metafp.TypeInfo {
-				return v.Type
-			})
 
-			checked := tc.Check(tpt)
-			fmt.Printf("checked = %v\n", checked.Get().ParamMapping)
-			return checked
+			named := tpt.Type.(*types.Named)
+			//fmt.Printf("type = %v\n", named.Origin())
+
+			origin := named.Origin()
+			//fmt.Printf("tparms = %v\n", origin.TypeParams().At(0))
+
+			ctx := types.NewContext()
+
+			targs := seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) types.Type {
+				return v.Type.Type
+			})
+			it, err := types.Instantiate(ctx, origin, targs, false)
+			if err == nil {
+				//fmt.Printf("it= %v\n", it)
+
+				checked := tc.Check(metafp.GetTypeInfo(it))
+				//fmt.Printf("checked = %v, required = %v\n", checked.Get().ParamMapping, checked.Get().RequiredInstance)
+				return checked
+			}
 
 		}
 	}

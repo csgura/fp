@@ -635,7 +635,7 @@ func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType Type
 	}
 
 	ret := ConstraintCheck(typeParam, genericType, r.TypeArgs)
-	//	fmt.Printf("compare %s, %s  => %t\n", r, genericType, ret)
+	//fmt.Printf("compare %s, %s  => %t\n", r, genericType, ret)
 	return ret
 
 	// fmt.Printf("this args = %v\n", r.TypeArgs)
