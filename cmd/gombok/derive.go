@@ -1921,6 +1921,10 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 
 func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.TypeClass, typePkg *types.Package, name string, t metafp.TypeInfoExpr, genLabelled bool) SummonExpr {
 
+	// named := r.lookupTypeClassFunc(ctx, tc, "Named")
+	// if named.IsDefined() {
+	// 	return r.exprTypeClassInstance(ctx, named.Get())
+	// }
 	instance := r.lookupTypeClassFuncMust(ctx, tc, "Named")
 
 	expr := r.summonRequired(ctx, metafp.RequiredInstance{
@@ -1928,6 +1932,10 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.Typ
 		Type:      t.Type,
 	})
 
+	if instance.RequiredInstance.Size() == 0 {
+		return newSummonExpr(fmt.Sprintf("%s[%s[%s]]()", instance.PackagedName(r.w, ctx.working), namedOrRuntime(r.w, ctx.working, typePkg, name, genLabelled),
+			t.TypeName(r.w, ctx.working)), expr.paramInstance)
+	}
 	return newSummonExpr(fmt.Sprintf("%s[%s[%s]](%s)", instance.PackagedName(r.w, ctx.working), namedOrRuntime(r.w, ctx.working, typePkg, name, genLabelled),
 		t.TypeName(r.w, ctx.working), expr.expr), expr.paramInstance)
 
