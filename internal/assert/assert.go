@@ -26,6 +26,12 @@ func IsNil(a any) {
 	}
 }
 
+func NotNil(a any) {
+	if a == nil {
+		panic(fmt.Sprintf("expected not nil , actual %v", a))
+	}
+}
+
 func Success(err error) {
 	if err != nil {
 		panic(err)

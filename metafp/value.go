@@ -17,6 +17,7 @@ import (
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -646,6 +647,31 @@ func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType Type
 	// return true
 }
 
+// Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
+func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
+
+	// package가 동일해야 함
+	if !isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(genericType.Pkg)) {
+		return ConstraintCheckResult{}
+	}
+
+	// 타입 아규먼트 개수가 동일해야 함
+	if r.TypeArgs.Size() != genericType.TypeArgs.Size() {
+		return ConstraintCheckResult{}
+	}
+
+	ret := ConstraintCheck(typeParam, genericType, r.TypeArgs)
+	//fmt.Printf("compare %s, %s  => %t\n", r, genericType, ret)
+	return ret
+
+	// fmt.Printf("this args = %v\n", r.TypeArgs)
+	// fmt.Printf("that args = %v\n", hasTypeParam.TypeArgs)
+
+	// fmt.Printf("that type = %v\n", hasTypeParam.Type.String())
+
+	// return true
+}
+
 func (r TypeInfo) PkgName() string {
 	if r.Pkg != nil {
 		return r.Pkg.Name()
@@ -940,6 +966,29 @@ func (r TypeInfo) GenericType() TypeInfo {
 	return r
 }
 
+func (r TypeInfo) Instantiate(arg []TypeInfo) fp.Try[TypeInfo] {
+
+	switch nt := r.Type.(type) {
+	case *types.Named:
+		ctx := types.NewContext()
+
+		targs := seq.Map(arg, func(v TypeInfo) types.Type {
+			return v.Type
+		})
+
+		it, err := types.Instantiate(ctx, nt.Obj().Type(), targs, false)
+		if err != nil {
+			return try.Failure[TypeInfo](err)
+		}
+		return try.Success(typeInfo(it))
+	}
+	return try.Failure[TypeInfo](fp.Error(400, "type %s not named", r))
+}
+
+func (r TypeInfo) PtrType() TypeInfo {
+	return typeInfo(types.NewPointer(r.Type))
+}
+
 type StructField struct {
 	Name      string
 	FieldType TypeInfo
@@ -1147,4 +1196,8 @@ func FindNode(pk *packages.Package, pos token.Pos) ast.Node {
 		}
 	}
 	return nil
+}
+
+func BasicType(kind types.BasicKind) TypeInfo {
+	return typeInfo(types.Typ[kind])
 }

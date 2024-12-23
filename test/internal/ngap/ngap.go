@@ -98,8 +98,14 @@ func HConsLabelled[H fp.Named, T hlist.HList](hshow SplitTag[H], tshow SplitTag[
 	})
 }
 
-func Named[T fp.NamedField[*A], A any]() SplitTag[T] {
-	return NewSplitTag(func(t T) []string {
+func NamedInt[V fp.NamedField[int]]() SplitTag[V] {
+	return NewSplitTag(func(t V) []string {
+		return nil
+	})
+}
+
+func NamedPtr[V fp.NamedField[*A], A any]() SplitTag[V] {
+	return NewSplitTag(func(t V) []string {
 		if t.Value() != nil {
 			return seq.Of(t.Tag())
 		}

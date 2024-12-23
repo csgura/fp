@@ -303,6 +303,43 @@ type paramVar struct {
 type ConstraintCheckResult struct {
 	Ok           bool
 	ParamMapping fp.Map[string, TypeInfo]
+	Error        error
+}
+
+func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type {
+	switch tv := t.(type) {
+	case *types.TypeParam:
+		ti := mapping.Get(tv.Obj().Name())
+		if ti.IsDefined() {
+			return ti.Get().Type
+		}
+	case *types.Named:
+		//fmt.Printf("replaceTypeParam %s, params = %s, args = %s\n", t, tv.TypeParams(), tv.TypeArgs())
+
+		if tv.TypeArgs().Len() > 0 {
+			newargs := atLenToSeq(tv.TypeArgs()).Map(func(t types.Type) types.Type {
+				return replaceTypeArgs(t, mapping)
+			})
+			ctx := types.NewContext()
+			nt, err := types.Instantiate(ctx, tv.Origin(), newargs, true)
+			if err != nil {
+				fmt.Printf("instantiate error :%s\n", err)
+				return t
+			}
+			return nt
+		}
+	case *types.Map:
+		kt := replaceTypeArgs(tv.Key(), mapping)
+		vt := replaceTypeArgs(tv.Elem(), mapping)
+		return types.NewMap(kt, vt)
+	case *types.Slice:
+		nt := replaceTypeArgs(tv.Elem(), mapping)
+		return types.NewSlice(nt)
+	case *types.Pointer:
+		nt := replaceTypeArgs(tv.Elem(), mapping)
+		return types.NewPointer(nt)
+	}
+	return t
 }
 
 //	func[T constraint]() Eq[T]  에서
@@ -328,13 +365,37 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	})
 
 	// Eq[T] 가 아니고,  Eq[Seq[T]]  같은 경우는  체크 불가능
-	paramArgs, actualArgs := iterator.Partition(zipped, func(t typeCompare) bool {
+	paramArgsIt, actualArgs := iterator.Partition(zipped, func(t typeCompare) bool {
 		return t.genericType.IsTypeParam()
 	})
 
-	actualCheck := iterator.Map(actualArgs, func(v typeCompare) ConstraintCheckResult {
+	paramArgs := paramArgsIt.ToSeq()
+	paramCheck := seq.Map(paramArgs, func(v typeCompare) ConstraintCheckResult {
+		paramName := v.genericType.Name().Get()
+
+		paramCons := param.Filter(func(p TypeParam) bool {
+			return p.Name == paramName
+		}).Head()
+
+		if paramCons.IsDefined() {
+
+			if paramCons.Get().IsAny() {
+				return ConstraintCheckResult{
+					Ok: true,
+				}
+			}
+			consType := typeInfo(paramCons.Get().Constraint)
+			//fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
+			return v.actualType.IsConstrainedOf(param, consType)
+		}
+		return ConstraintCheckResult{
+			Ok: false,
+		}
+	})
+
+	actualCheck := paramCheck.Concat(iterator.Map(actualArgs, func(v typeCompare) ConstraintCheckResult {
 		return v.actualType.IsInstantiatedOf(param, v.genericType)
-	}).ToSeq()
+	}).ToSeq())
 
 	actualAllMatch := as.Seq(actualCheck).ForAll(func(v ConstraintCheckResult) bool {
 		return v.Ok
@@ -351,16 +412,16 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	}), monoid.MergeMap[string, TypeInfo]())
 
 	//fmt.Printf("merge = %s\n", merge)
-	paramFound := iterator.Map(paramArgs, func(v typeCompare) fp.Option[paramVar] {
+	paramFound := iterator.Map(iterator.FromSlice(paramArgs), func(v typeCompare) fp.Option[paramVar] {
 		paramName := v.genericType.Name().Get()
 
 		// func[T constraint]() Eq[A] 혹은 func() Eq[A] 처럼. type parameter 목록이 잘못된 경우도 불가능
 		paramCons := option.Map(param.Filter(func(p TypeParam) bool {
 			return p.Name == paramName
 		}).Head(), func(p TypeParam) paramVar {
-			//fmt.Printf("param %s -> %s\n", p.TypeName, v.actualType)
+			//fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
 			return paramVar{
-				typeParam:  types.NewTypeParam(p.TypeName, p.Constraint),
+				typeParam:  types.NewTypeParam(p.TypeName, replaceTypeArgs(p.Constraint, merge)),
 				actualType: v.actualType,
 			}
 		})
@@ -397,7 +458,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		false,
 	)
 
-	//fmt.Printf("sig = %s, paramIns = %s\n", sig, paramIns)
+	//fmt.Printf("sig = %s, paramCons = %s, paramIns = %s\n", sig, paramCons, paramIns)
 	ctx := types.NewContext()
 
 	_, err := types.Instantiate(ctx, sig, paramIns, true)
@@ -413,7 +474,8 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	}
 
 	return ConstraintCheckResult{
-		Ok: false,
+		Ok:    false,
+		Error: err,
 	}
 }
 

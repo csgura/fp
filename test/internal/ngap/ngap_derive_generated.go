@@ -26,13 +26,13 @@ func SplitNgapType() Split[NgapType] {
 func SplitTagNgapType() SplitTag[NgapType] {
 	return SplitTagContraMap(
 		HConsLabelled(
-			Named[fp.RuntimeNamed[int]](),
+			NamedInt[fp.RuntimeNamed[int]](),
 			HConsLabelled(
-				Named[fp.RuntimeNamed[*int]](),
+				NamedPtr[fp.RuntimeNamed[*int], int](),
 				HConsLabelled(
-					Named[fp.RuntimeNamed[*string]](),
+					NamedPtr[fp.RuntimeNamed[*string], string](),
 					HConsLabelled(
-						Named[fp.RuntimeNamed[*float64]](),
+						NamedPtr[fp.RuntimeNamed[*float64], float64](),
 						HNil,
 					),
 				),
@@ -51,13 +51,13 @@ func SplitTagNgapType() SplitTag[NgapType] {
 func SplitTagNgapValue() SplitTag[NgapValue] {
 	return SplitTagContraMap(
 		HConsLabelled(
-			Named[NamedPresent[int]](),
+			SplitTagNamed[NamedPresent[int]](),
 			HConsLabelled(
-				Named[NamedFirst[*int]](),
+				SplitTagNamed[NamedFirst[*int]](),
 				HConsLabelled(
-					Named[NamedSecond[*string]](),
+					SplitTagNamed[NamedSecond[*string]](),
 					HConsLabelled(
-						Named[NamedThird[*float64]](),
+						SplitTagNamed[NamedThird[*float64]](),
 						HNil,
 					),
 				),

@@ -1936,17 +1936,17 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 
 func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.TypeClass, typePkg *types.Package, name string, t metafp.TypeInfoExpr, genLabelled bool) SummonExpr {
 
-	// rtt := namedOrRuntimeType(r.fpPkg.Get(), ctx.working, typePkg, name, t.Type)
-	// fmt.Printf("tc = %s, type = %s, rtt = %s, %T\n", tc, t.Type, rtt, rtt)
-	// named := r.namedLookup(ctx, metafp.RequiredInstance{
-	// 	TypeClass: tc,
-	// 	Type:      rtt,
-	// }, "Named")
-	// // named := r.lookupTypeClassFunc(ctx, tc, "Named")
-	// if named.IsDefined() {
-	// 	fmt.Printf("find named\n")
-	// 	return r.exprTypeClassInstance(ctx, named.Get())
-	// }
+	rtt := namedOrRuntimeType(r.fpPkg.Get(), ctx.working, typePkg, name, t.Type)
+	//fmt.Printf("tc = %s, type = %s, rtt = %s, %T\n", tc, t.Type, rtt, rtt)
+	named := r.namedLookup(ctx, metafp.RequiredInstance{
+		TypeClass: tc,
+		Type:      rtt,
+	}, "Named")
+	// named := r.lookupTypeClassFunc(ctx, tc, "Named")
+	if named.IsDefined() {
+		//fmt.Printf("find named\n")
+		return r.exprTypeClassInstance(ctx, named.Get())
+	}
 	instance := r.lookupTypeClassFuncMust(ctx, tc, "Named")
 
 	expr := r.summonRequired(ctx, metafp.RequiredInstance{
