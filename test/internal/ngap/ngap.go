@@ -18,6 +18,15 @@ type NgapType struct {
 	Third   *float64 `aper:"id=40"`
 }
 
+// @fp.Value
+// @fp.GenLabelled
+type NgapValue struct {
+	present int
+	first   *int     `aper:"id=20"`
+	second  *string  `aper:"id=30"`
+	third   *float64 `aper:"id=40"`
+}
+
 type Split[T any] interface {
 	Split(t T) []T
 }
@@ -105,3 +114,6 @@ var _ Derives[Split[NgapType]]
 
 // @fp.Derive
 var _ Derives[SplitTag[NgapType]]
+
+// @fp.Derive
+var _ Derives[SplitTag[NgapValue]]

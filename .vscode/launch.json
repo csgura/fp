@@ -25,6 +25,17 @@
 				"GOPACKAGE": "gendebug"
 			},
 			"cwd": "${workspaceFolder}/test/internal/gendebug"
+		},
+		{
+			"name": "ngap",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/cmd/gombok",
+			"env": {
+				"GOPACKAGE": "ngap"
+			},
+			"cwd": "${workspaceFolder}/test/internal/ngap"
 		}
 	]
 }

@@ -350,6 +350,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		return v.ParamMapping
 	}), monoid.MergeMap[string, TypeInfo]())
 
+	//fmt.Printf("merge = %s\n", merge)
 	paramFound := iterator.Map(paramArgs, func(v typeCompare) fp.Option[paramVar] {
 		paramName := v.genericType.Name().Get()
 
@@ -396,6 +397,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		false,
 	)
 
+	//fmt.Printf("sig = %s, paramIns = %s\n", sig, paramIns)
 	ctx := types.NewContext()
 
 	_, err := types.Instantiate(ctx, sig, paramIns, true)
@@ -418,7 +420,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	//	fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
+	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
 	if argType.IsTypeParam() {
 
 		// func[T any]() Eq[T] 인 경우
@@ -696,7 +698,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 				fargs := insType.FuncArgs()
 				allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
 					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
-						if v.Name().Get() == "Evel" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
+						if v.Name().Get() == "Eval" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
 							realv := v.TypeArgs.Head().Get()
 							return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
 						}
