@@ -107,7 +107,7 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 	assert.IsNil(err)
 
 	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/show")
+		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/show")
 	}).NextOption()
 
 	assert.True(hashPkg.IsDefined())
@@ -115,11 +115,13 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 	nhash := hashPkg.Get().Scope().Lookup("TupleHCons")
 	assert.NotNil(nhash)
 	tp := metafp.GetTypeInfo(nhash.Type())
-	rtype := tp.ResultType()
+	rtype := tp.ResultType().TypeArgs.Head().Get()
 
-	rntp := metafp.BasicType(types.Int)
+	strtp := metafp.BasicType(types.String)
 
-	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(rntp))
+	hlisttp := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("Intlist").Type())
+
+	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(strtp, hlisttp))
 	fmt.Printf("err = %s\n", cr.Error)
 	assert.True(cr.Ok)
 

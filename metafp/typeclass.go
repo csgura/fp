@@ -386,7 +386,12 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 			}
 			consType := typeInfo(paramCons.Get().Constraint)
 			//fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
-			return v.actualType.IsConstrainedOf(param, consType)
+			ret := v.actualType.IsConstrainedOf(param, consType)
+			// if !ret.Ok {
+			// 	fmt.Printf("not constraint of actual = %s , generic = %s\n", v.actualType, consType)
+
+			// }
+			return ret
 		}
 		return ConstraintCheckResult{
 			Ok: false,
@@ -483,6 +488,10 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
 	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
+
+	// if r.Name == "TupleHCons" {
+	// 	fmt.Printf("TupleHCons\n")
+	// }
 	if argType.IsTypeParam() {
 
 		// func[T any]() Eq[T] 인 경우
@@ -648,6 +657,9 @@ type TypeClassScope struct {
 
 func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
 
+	// if name == "ShowHlistHCons" {
+	// 	fmt.Printf("find ShowHlistHCons\n")
+	// }
 	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindByName(name, t)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
