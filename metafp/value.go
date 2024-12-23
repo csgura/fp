@@ -650,11 +650,6 @@ func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType Type
 // Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
 func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
 
-	// package가 동일해야 함
-	if !isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(genericType.Pkg)) {
-		return ConstraintCheckResult{}
-	}
-
 	// 타입 아규먼트 개수가 동일해야 함
 	if r.TypeArgs.Size() != genericType.TypeArgs.Size() {
 		return ConstraintCheckResult{}

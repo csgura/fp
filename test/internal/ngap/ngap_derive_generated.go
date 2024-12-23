@@ -51,13 +51,13 @@ func SplitTagNgapType() SplitTag[NgapType] {
 func SplitTagNgapValue() SplitTag[NgapValue] {
 	return SplitTagContraMap(
 		HConsLabelled(
-			SplitTagNamed[NamedPresent[int]](),
+			NamedInt[NamedPresent[int]](),
 			HConsLabelled(
-				SplitTagNamed[NamedFirst[*int]](),
+				NamedPtr[NamedFirst[*int], int](),
 				HConsLabelled(
-					SplitTagNamed[NamedSecond[*string]](),
+					NamedPtr[NamedSecond[*string], string](),
 					HConsLabelled(
-						SplitTagNamed[NamedThird[*float64]](),
+						NamedPtr[NamedThird[*float64], float64](),
 						HNil,
 					),
 				),

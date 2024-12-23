@@ -21,7 +21,7 @@ func ShowHello() fp.Show[Hello] {
 				return Hello{A: t.I1.Value(), B: t.I2.Value(), AN: t.I3.Value(), World: t.I4.Value()}
 			},
 		),
-		show.Labelled4(show.Named[fp.RuntimeNamed[int]](show.Int[int]()), show.Named[fp.RuntimeNamed[string]](show.String), show.Named[fp.RuntimeNamed[any]](ShowAny[any]()), show.Named[fp.RuntimeNamed[World]](ShowWorld())),
+		show.Labelled4(show.Named[fp.RuntimeNamed[int], int](show.Int[int]()), show.Named[fp.RuntimeNamed[string], string](show.String), show.Named[fp.RuntimeNamed[any], any](ShowAny[any]()), show.Named[fp.RuntimeNamed[World], World](ShowWorld())),
 	)
 }
 
@@ -46,7 +46,7 @@ func ShowWorld() fp.Show[World] {
 			),
 		),
 		show.HConsLabelled(
-			show.Named[fp.RuntimeNamed[string]](show.String),
+			show.Named[fp.RuntimeNamed[string], string](show.String),
 			show.HNil,
 		),
 	)

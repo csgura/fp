@@ -16,16 +16,16 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func FindFpPackage(pk *types.Package) fp.Option[*types.Package] {
+func FindPackage(pk *types.Package, path string) fp.Option[*types.Package] {
 	ret := as.Seq(pk.Imports()).Find(func(v *types.Package) bool {
-		return v.Path() == "github.com/csgura/fp"
+		return v.Path() == path
 	})
 	if ret.IsDefined() {
 		return ret
 	}
 
 	for _, p := range pk.Imports() {
-		ret := FindFpPackage(p)
+		ret := FindPackage(p, path)
 		if ret.IsDefined() {
 			return ret
 		}
@@ -45,7 +45,7 @@ func TestCheckConstraint(t *testing.T) {
 	assert.IsNil(err)
 
 	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindFpPackage(v.Types)
+		return FindPackage(v.Types, "github.com/csgura/fp")
 	}).NextOption()
 
 	assert.True(fpPkg.IsDefined())
@@ -65,4 +65,62 @@ func TestCheckConstraint(t *testing.T) {
 	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(rntp.Get()))
 	fmt.Printf("err = %s\n", cr.Error)
 	assert.True(cr.Ok)
+}
+
+func TestCheckConstraintHashInt(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	assert.IsNil(err)
+
+	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+		return FindPackage(v.Types, "github.com/csgura/fp/hash")
+	}).NextOption()
+
+	assert.True(hashPkg.IsDefined())
+
+	nhash := hashPkg.Get().Scope().Lookup("Number")
+	assert.NotNil(nhash)
+	tp := metafp.GetTypeInfo(nhash.Type())
+	rtype := tp.ResultType()
+
+	rntp := metafp.BasicType(types.Int)
+
+	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(rntp))
+	fmt.Printf("err = %s\n", cr.Error)
+	assert.True(cr.Ok)
+
+}
+
+func TestCheckConstraintShowHCons(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	assert.IsNil(err)
+
+	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+		return FindPackage(v.Types, "github.com/csgura/fp/show")
+	}).NextOption()
+
+	assert.True(hashPkg.IsDefined())
+
+	nhash := hashPkg.Get().Scope().Lookup("TupleHCons")
+	assert.NotNil(nhash)
+	tp := metafp.GetTypeInfo(nhash.Type())
+	rtype := tp.ResultType()
+
+	rntp := metafp.BasicType(types.Int)
+
+	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(rntp))
+	fmt.Printf("err = %s\n", cr.Error)
+	assert.True(cr.Ok)
+
 }
