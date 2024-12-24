@@ -3,54 +3,14 @@ package testmeta
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/hlist"
-	"github.com/csgura/fp/product"
-	"github.com/csgura/fp/test/internal/show"
+	"github.com/csgura/fp/test/internal/js"
 )
 
-func ShowHasTuple() fp.Show[HasTuple] {
-	return show.Generic(
-		as.Generic(
-			"testmeta.HasTuple",
-			"Struct",
-			fp.Compose(
-				func(v HasTuple) fp.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
-					return as.Tuple2(v.Entry, v.HList)
-				},
-				as.HList2,
-			),
-
-			fp.Compose(
-				product.TupleFromHList2,
-				func(t fp.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]) HasTuple {
-					return HasTuple{
-						Entry: t.I1,
-						HList: t.I2,
-					}
-				},
-			),
-		),
-		show.StructHCons(
-			show.Generic(
-				as.Generic(
-					"fp.Tuple2",
-					"Tuple",
-					as.HList2,
-					product.TupleFromHList2[string, int],
-				),
-				show.TupleHCons(
-					show.String,
-					show.TupleHCons(
-						show.Int[int](),
-						show.HNil,
-					),
-				),
-			),
-			show.StructHCons(
-				show.HCons(show.String, show.HCons(show.Int[int](), show.HNil)),
-				show.HNil,
-			),
-		),
+func DecoderLocalPerson() js.Decoder[LocalPerson] {
+	return js.DecoderMap(
+		js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string], string](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]())),
+		func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) LocalPerson {
+			return LocalPerson{Name: t.I1.Value(), age: t.I2.Value()}
+		},
 	)
 }

@@ -126,3 +126,32 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 	assert.True(cr.Ok)
 
 }
+
+func TestCheckConstraintDecoder(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	assert.IsNil(err)
+
+	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
+	}).NextOption()
+
+	assert.True(hashPkg.IsDefined())
+
+	fntype := hashPkg.Get().Scope().Lookup("DecoderNamed")
+	assert.NotNil(fntype)
+	tp := metafp.GetTypeInfo(fntype.Type())
+	rtype := tp.ResultType()
+
+	argtype := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("StringNamed").Type())
+
+	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(argtype))
+	fmt.Printf("err = %s\n", cr.Error)
+	assert.True(cr.Ok)
+
+}

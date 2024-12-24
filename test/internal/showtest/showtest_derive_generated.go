@@ -24,7 +24,7 @@ func ShowPerson() fp.Show[Person] {
 				return Person{Name: t.I1.Value(), Age: t.I2.Value()}
 			},
 		),
-		show.Labelled2(show.Named[fp.RuntimeNamed[string]](show.String), show.Named[fp.RuntimeNamed[int]](show.Int[int]())),
+		show.Labelled2(show.Named[fp.RuntimeNamed[string], string](show.String), show.Named[fp.RuntimeNamed[int], int](show.Int[int]())),
 	)
 }
 
@@ -41,11 +41,11 @@ func ShowCollection() fp.Show[Collection] {
 				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value(), NoDerive: t.I6.Value(), Stringer: t.I7.Value(), BoolPtr: t.I8.Value(), NoMap: t.I9.Value(), Alias: t.I10.Value(), StringSeq: t.I11.Value()}
 			},
 		),
-		show.Labelled11(show.Named[fp.RuntimeNamed[map[string]Person]](show.GoMap(show.String, ShowPerson())), show.Named[fp.RuntimeNamed[[]Person]](show.Slice(ShowPerson())), show.Named[fp.RuntimeNamed[*string]](show.Ptr(lazy.Call(func() fp.Show[string] {
+		show.Labelled11(show.Named[fp.RuntimeNamed[map[string]Person], map[string]Person](show.GoMap(show.String, ShowPerson())), show.Named[fp.RuntimeNamed[[]Person], []Person](show.Slice(ShowPerson())), show.Named[fp.RuntimeNamed[*string], *string](show.Ptr(lazy.Call(func() fp.Show[string] {
 			return show.String
-		}))), show.Named[fp.RuntimeNamed[fp.Set[int]]](show.Set(show.Int[int]())), show.Named[fp.RuntimeNamed[fp.Option[Person]]](show.Option(ShowPerson())), show.Named[fp.RuntimeNamed[NoDerive]](ShowNoDerive()), show.Named[fp.RuntimeNamed[HasStringMethod]](show.Given[HasStringMethod]()), show.Named[fp.RuntimeNamed[*bool]](show.Ptr(lazy.Call(func() fp.Show[bool] {
+		}))), show.Named[fp.RuntimeNamed[fp.Set[int]], fp.Set[int]](show.Set(show.Int[int]())), show.Named[fp.RuntimeNamed[fp.Option[Person]], fp.Option[Person]](show.Option(ShowPerson())), show.Named[fp.RuntimeNamed[NoDerive], NoDerive](ShowNoDerive()), show.Named[fp.RuntimeNamed[HasStringMethod], HasStringMethod](show.Given[HasStringMethod]()), show.Named[fp.RuntimeNamed[*bool], *bool](show.Ptr(lazy.Call(func() fp.Show[bool] {
 			return show.Bool
-		}))), show.Named[fp.RuntimeNamed[map[string]NoDerive]](show.GoMap(show.String, ShowNoDerive())), show.Named[fp.RuntimeNamed[recursive.StringAlias]](ShowRecursiveStringAlias()), show.Named[fp.RuntimeNamed[fp.Seq[string]]](show.Seq(show.String))),
+		}))), show.Named[fp.RuntimeNamed[map[string]NoDerive], map[string]NoDerive](show.GoMap(show.String, ShowNoDerive())), show.Named[fp.RuntimeNamed[recursive.StringAlias], recursive.StringAlias](ShowRecursiveStringAlias()), show.Named[fp.RuntimeNamed[fp.Seq[string]], fp.Seq[string]](show.Seq(show.String))),
 	)
 }
 
@@ -62,7 +62,7 @@ func ShowDupGenerate() fp.Show[DupGenerate] {
 				return DupGenerate{NoDerive: t.I1.Value(), World: t.I2.Value()}
 			},
 		),
-		show.Labelled2(show.Named[fp.RuntimeNamed[NoDerive]](ShowNoDerive()), show.Named[fp.RuntimeNamed[string]](show.String)),
+		show.Labelled2(show.Named[fp.RuntimeNamed[NoDerive], NoDerive](ShowNoDerive()), show.Named[fp.RuntimeNamed[string], string](show.String)),
 	)
 }
 
@@ -79,7 +79,7 @@ func ShowHasTuple() fp.Show[HasTuple] {
 				return HasTuple{Entry: t.I1.Value(), HList: t.I2.Value()}
 			},
 		),
-		show.Labelled2(show.Named[fp.RuntimeNamed[fp.Tuple2[string, int]]](show.Generic(
+		show.Labelled2(show.Named[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.Tuple2[string, int]](show.Generic(
 			as.Generic(
 				"fp.Tuple2",
 				"Tuple",
@@ -93,7 +93,7 @@ func ShowHasTuple() fp.Show[HasTuple] {
 					show.HNil,
 				),
 			),
-		)), show.Named[fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]](show.TupleHCons(show.String, show.TupleHCons(show.Int[int](), show.HNil)))),
+		)), show.Named[fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]](show.TupleHCons(show.String, show.TupleHCons(show.Int[int](), show.HNil)))),
 	)
 }
 
@@ -116,10 +116,13 @@ func ShowEmbeddedStruct() fp.Show[EmbeddedStruct] {
 				return EmbeddedStructBuilder{}.Apply(t.I1.Value(), t.I2.Value()).Build()
 			},
 		),
-		show.Labelled2(show.Named[fp.RuntimeNamed[string]](show.String), show.Named[fp.RuntimeNamed[struct {
+		show.Labelled2(show.Named[fp.RuntimeNamed[string], string](show.String), show.Named[fp.RuntimeNamed[struct {
 			Level int
 			Stage string
-		}]](show.Generic(
+		}], struct {
+			Level int
+			Stage string
+		}](show.Generic(
 			as.Generic(
 				"struct",
 				"Struct",
@@ -140,7 +143,7 @@ func ShowEmbeddedStruct() fp.Show[EmbeddedStruct] {
 					}{Level: t.I1.Value(), Stage: t.I2.Value()}
 				},
 			),
-			show.Labelled2(show.Named[fp.RuntimeNamed[int]](show.Int[int]()), show.Named[fp.RuntimeNamed[string]](show.String)),
+			show.Labelled2(show.Named[fp.RuntimeNamed[int], int](show.Int[int]()), show.Named[fp.RuntimeNamed[string], string](show.String)),
 		))),
 	)
 }
@@ -164,10 +167,13 @@ func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypePa
 				return EmbeddedTypeParamStructBuilder[T]{}.Apply(t.I1.Value(), t.I2.Value()).Build()
 			},
 		),
-		show.Labelled2(show.Named[fp.RuntimeNamed[string]](show.String), show.Named[fp.RuntimeNamed[struct {
+		show.Labelled2(show.Named[fp.RuntimeNamed[string], string](show.String), show.Named[fp.RuntimeNamed[struct {
 			Level T
 			Stage string
-		}]](show.Generic(
+		}], struct {
+			Level T
+			Stage string
+		}](show.Generic(
 			as.Generic(
 				"struct",
 				"Struct",
@@ -188,7 +194,7 @@ func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypePa
 					}{Level: t.I1.Value(), Stage: t.I2.Value()}
 				},
 			),
-			show.Labelled2(show.Named[fp.RuntimeNamed[T]](showT), show.Named[fp.RuntimeNamed[string]](show.String)),
+			show.Labelled2(show.Named[fp.RuntimeNamed[T], T](showT), show.Named[fp.RuntimeNamed[string], string](show.String)),
 		))),
 	)
 }
@@ -214,7 +220,7 @@ func ShowNoDerive() fp.Show[NoDerive] {
 			),
 		),
 		show.HConsLabelled(
-			show.Named[fp.RuntimeNamed[string]](show.String),
+			show.Named[fp.RuntimeNamed[string], string](show.String),
 			show.HNil,
 		),
 	)

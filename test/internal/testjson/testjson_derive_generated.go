@@ -12,23 +12,23 @@ import (
 func EncoderRoot() js.Encoder[Root] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedA[int]](js.EncoderNumber[int]()),
+			js.EncoderNamed[NamedA[int], int](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedB[string]](js.EncoderString),
+				js.EncoderNamed[NamedB[string], string](js.EncoderString),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedC[float64]](js.EncoderNumber[float64]()),
+					js.EncoderNamed[NamedC[float64], float64](js.EncoderNumber[float64]()),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NamedD[bool]](js.EncoderBool),
+						js.EncoderNamed[NamedD[bool], bool](js.EncoderBool),
 						js.EncoderHConsLabelled(
-							js.EncoderNamed[NamedE[*int]](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
+							js.EncoderNamed[NamedE[*int], *int](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
 								return js.EncoderNumber[int]()
 							}))),
 							js.EncoderHConsLabelled(
-								js.EncoderNamed[NamedF[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+								js.EncoderNamed[NamedF[[]int], []int](js.EncoderSlice(js.EncoderNumber[int]())),
 								js.EncoderHConsLabelled(
-									js.EncoderNamed[NamedG[map[string]int]](js.EncoderGoMap(js.EncoderNumber[int]())),
+									js.EncoderNamed[NamedG[map[string]int], map[string]int](js.EncoderGoMap(js.EncoderNumber[int]())),
 									js.EncoderHConsLabelled(
-										js.EncoderNamed[NamedH[Child]](EncoderChild()),
+										js.EncoderNamed[NamedH[Child], Child](EncoderChild()),
 										js.EncoderHNil,
 									),
 								),
@@ -48,23 +48,23 @@ func EncoderRoot() js.Encoder[Root] {
 func DecoderRoot() js.Decoder[Root] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedA[int]](js.DecoderNumber[int]()),
+			js.DecoderNamed[NamedA[int], int](js.DecoderNumber[int]()),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedB[string]](js.DecoderString),
+				js.DecoderNamed[NamedB[string], string](js.DecoderString),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[NamedC[float64]](js.DecoderNumber[float64]()),
+					js.DecoderNamed[NamedC[float64], float64](js.DecoderNumber[float64]()),
 					js.DecoderHConsLabelled(
-						js.DecoderNamed[NamedD[bool]](js.DecoderBool),
+						js.DecoderNamed[NamedD[bool], bool](js.DecoderBool),
 						js.DecoderHConsLabelled(
-							js.DecoderNamed[NamedE[*int]](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
+							js.DecoderNamed[NamedE[*int], *int](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
 								return js.DecoderNumber[int]()
 							}))),
 							js.DecoderHConsLabelled(
-								js.DecoderNamed[NamedF[[]int]](js.DecoderSlice(js.DecoderNumber[int]())),
+								js.DecoderNamed[NamedF[[]int], []int](js.DecoderSlice(js.DecoderNumber[int]())),
 								js.DecoderHConsLabelled(
-									js.DecoderNamed[NamedG[map[string]int]](js.DecoderGoMap(js.DecoderNumber[int]())),
+									js.DecoderNamed[NamedG[map[string]int], map[string]int](js.DecoderGoMap(js.DecoderNumber[int]())),
 									js.DecoderHConsLabelled(
-										js.DecoderNamed[NamedH[Child]](DecoderChild()),
+										js.DecoderNamed[NamedH[Child], Child](DecoderChild()),
 										js.DecoderHNil,
 									),
 								),
@@ -87,14 +87,14 @@ func DecoderRoot() js.Decoder[Root] {
 
 func EncoderChild() js.Encoder[Child] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedA[map[string]any]](js.EncoderGoMapAny), js.EncoderNamed[NamedB[any]](js.EncoderGiven[any]())),
+		js.EncoderLabelled2(js.EncoderNamed[NamedA[map[string]any], map[string]any](js.EncoderGoMapAny), js.EncoderNamed[NamedB[any], any](js.EncoderGiven[any]())),
 		Child.AsLabelled,
 	)
 }
 
 func DecoderChild() js.Decoder[Child] {
 	return js.DecoderMap(
-		js.DecoderLabelled2(js.DecoderNamed[NamedA[map[string]any]](js.DecoderGoMapAny), js.DecoderNamed[NamedB[any]](js.DecoderGiven[any]())),
+		js.DecoderLabelled2(js.DecoderNamed[NamedA[map[string]any], map[string]any](js.DecoderGoMapAny), js.DecoderNamed[NamedB[any], any](js.DecoderGiven[any]())),
 		fp.Compose(
 			as.Curried2(ChildBuilder.FromLabelled)(ChildBuilder{}),
 			ChildBuilder.Build,
@@ -105,13 +105,13 @@ func DecoderChild() js.Decoder[Child] {
 func EncoderNode() js.Encoder[Node] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedName[string]](js.EncoderString),
+			js.EncoderNamed[NamedName[string], string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedLeft[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+				js.EncoderNamed[NamedLeft[*Node], *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
 					return EncoderNode()
 				}))),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedRight[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+					js.EncoderNamed[NamedRight[*Node], *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
 						return EncoderNode()
 					}))),
 					js.EncoderHNil,
@@ -127,7 +127,7 @@ func EncoderNode() js.Encoder[Node] {
 
 func EncoderTree() js.Encoder[Tree] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled1(js.EncoderNamed[NamedRoot[*Node]](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+		js.EncoderLabelled1(js.EncoderNamed[NamedRoot[*Node], *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
 			return EncoderNode()
 		})))),
 		Tree.AsLabelled,
@@ -136,14 +136,14 @@ func EncoderTree() js.Encoder[Tree] {
 
 func EncoderEntry[V any](encoderV js.Encoder[V]) js.Encoder[Entry[V]] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedName[string]](js.EncoderString), js.EncoderNamed[NamedValue[V]](encoderV)),
+		js.EncoderLabelled2(js.EncoderNamed[NamedName[string], string](js.EncoderString), js.EncoderNamed[NamedValue[V], V](encoderV)),
 		Entry[V].AsLabelled,
 	)
 }
 
 func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUsedParam[K, V]] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedParam[string]](js.EncoderString), js.EncoderNamed[NamedValue[V]](encoderV)),
+		js.EncoderLabelled2(js.EncoderNamed[NamedParam[string], string](js.EncoderString), js.EncoderNamed[NamedValue[V], V](encoderV)),
 		NotUsedParam[K, V].AsLabelled,
 	)
 }
@@ -151,11 +151,11 @@ func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUse
 func EncoderMovie() js.Encoder[Movie] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedName[string]](js.EncoderString),
+			js.EncoderNamed[NamedName[string], string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedCasting[Entry[string]]](EncoderEntry(js.EncoderString)),
+				js.EncoderNamed[NamedCasting[Entry[string]], Entry[string]](EncoderEntry(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedNotUsed[NotUsedParam[int, string]]](EncoderNotUsedParam[int, string](js.EncoderString)),
+					js.EncoderNamed[NamedNotUsed[NotUsedParam[int, string]], NotUsedParam[int, string]](EncoderNotUsedParam[int, string](js.EncoderString)),
 					js.EncoderHNil,
 				),
 			),
@@ -169,7 +169,7 @@ func EncoderMovie() js.Encoder[Movie] {
 
 func EncoderNoPrivate() js.Encoder[NoPrivate] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled1(js.EncoderNamed[PubNamedRoot[string]](js.EncoderString)),
+		js.EncoderLabelled1(js.EncoderNamed[PubNamedRoot[string], string](js.EncoderString)),
 		NoPrivate.AsLabelled,
 	)
 }
@@ -177,7 +177,7 @@ func EncoderNoPrivate() js.Encoder[NoPrivate] {
 func DecoderNoPrivate() js.Decoder[NoPrivate] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[PubNamedRoot[string]](js.DecoderString),
+			js.DecoderNamed[PubNamedRoot[string], string](js.DecoderString),
 			js.DecoderHNil,
 		),
 

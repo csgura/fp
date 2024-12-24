@@ -314,7 +314,7 @@ func Reduce[T any](r fp.Iterator[T], m fp.Monoid[T]) T {
 	ret := m.Empty()
 	for r.HasNext() {
 		v := r.Next()
-		m.Combine(ret, v)
+		ret = m.Combine(ret, v)
 	}
 	return ret
 }

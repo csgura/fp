@@ -27,11 +27,11 @@ func EqWorld() fp.Eq[World] {
 func EncoderWorld() js.Encoder[World] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedMessage[string]](js.EncoderString),
+			js.EncoderNamed[NamedMessage[string], string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedTimestamp[time.Time]](js.EncoderTime),
+				js.EncoderNamed[NamedTimestamp[time.Time], time.Time](js.EncoderTime),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[PubNamedPub[string]](js.EncoderString),
+					js.EncoderNamed[PubNamedPub[string], string](js.EncoderString),
 					js.EncoderHNil,
 				),
 			),
@@ -46,11 +46,11 @@ func EncoderWorld() js.Encoder[World] {
 func DecoderWorld() js.Decoder[World] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedMessage[string]](js.DecoderString),
+			js.DecoderNamed[NamedMessage[string], string](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedTimestamp[time.Time]](js.DecoderTime),
+				js.DecoderNamed[NamedTimestamp[time.Time], time.Time](js.DecoderTime),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[PubNamedPub[string]](js.DecoderString),
+					js.DecoderNamed[PubNamedPub[string], string](js.DecoderString),
 					js.DecoderHNil,
 				),
 			),
@@ -100,13 +100,13 @@ func ShowWorld() fp.Show[World] {
 func EncoderHasOption() js.Encoder[HasOption] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedMessage[string]](js.EncoderString),
+			js.EncoderNamed[NamedMessage[string], string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedAddr[fp.Option[string]]](js.EncoderOption(js.EncoderString)),
+				js.EncoderNamed[NamedAddr[fp.Option[string]], fp.Option[string]](js.EncoderOption(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedPhone[[]string]](js.EncoderSlice(js.EncoderString)),
+					js.EncoderNamed[NamedPhone[[]string], []string](js.EncoderSlice(js.EncoderString)),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NamedEmptySeq[[]int]](js.EncoderSlice(js.EncoderNumber[int]())),
+						js.EncoderNamed[NamedEmptySeq[[]int], []int](js.EncoderSlice(js.EncoderNumber[int]())),
 						js.EncoderHNil,
 					),
 				),
@@ -887,65 +887,65 @@ func ReadOver21() read.Read[Over21] {
 func EncoderOver21() js.Encoder[Over21] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+			js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+				js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+					js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+						js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 						js.EncoderHConsLabelled(
-							js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+							js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 							js.EncoderHConsLabelled(
-								js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+								js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 								js.EncoderHConsLabelled(
-									js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+									js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 									js.EncoderHConsLabelled(
-										js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+										js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 										js.EncoderHConsLabelled(
-											js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+											js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 											js.EncoderHConsLabelled(
-												js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+												js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 												js.EncoderHConsLabelled(
-													js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+													js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 													js.EncoderHConsLabelled(
-														js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+														js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 														js.EncoderHConsLabelled(
-															js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+															js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 															js.EncoderHConsLabelled(
-																js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																js.EncoderHConsLabelled(
-																	js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																	js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																	js.EncoderHConsLabelled(
-																		js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																		js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																		js.EncoderHConsLabelled(
-																			js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																			js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																			js.EncoderHConsLabelled(
-																				js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																				js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																				js.EncoderHConsLabelled(
-																					js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																					js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																					js.EncoderHConsLabelled(
-																						js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																						js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																						js.EncoderHConsLabelled(
-																							js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																							js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																							js.EncoderHConsLabelled(
-																								js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																								js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																								js.EncoderHConsLabelled(
-																									js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																									js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																									js.EncoderHConsLabelled(
-																										js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																										js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																										js.EncoderHConsLabelled(
-																											js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																											js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																											js.EncoderHConsLabelled(
-																												js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																												js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																												js.EncoderHConsLabelled(
-																													js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																													js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																													js.EncoderHConsLabelled(
-																														js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																														js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																														js.EncoderHConsLabelled(
-																															js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																															js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																															js.EncoderHConsLabelled(
-																																js.EncoderNamed[fp.RuntimeNamed[int]](js.EncoderNumber[int]()),
+																																js.EncoderNamed[fp.RuntimeNamed[int], int](js.EncoderNumber[int]()),
 																																js.EncoderHNil,
 																															),
 																														),
@@ -1047,65 +1047,65 @@ func EncoderOver21() js.Encoder[Over21] {
 func DecoderOver21() js.Decoder[Over21] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+			js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+				js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+					js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 					js.DecoderHConsLabelled(
-						js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+						js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 						js.DecoderHConsLabelled(
-							js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+							js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 							js.DecoderHConsLabelled(
-								js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+								js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 								js.DecoderHConsLabelled(
-									js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+									js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 									js.DecoderHConsLabelled(
-										js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+										js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 										js.DecoderHConsLabelled(
-											js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+											js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 											js.DecoderHConsLabelled(
-												js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+												js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 												js.DecoderHConsLabelled(
-													js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+													js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 													js.DecoderHConsLabelled(
-														js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+														js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 														js.DecoderHConsLabelled(
-															js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+															js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 															js.DecoderHConsLabelled(
-																js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																js.DecoderHConsLabelled(
-																	js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																	js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																	js.DecoderHConsLabelled(
-																		js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																		js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																		js.DecoderHConsLabelled(
-																			js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																			js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																			js.DecoderHConsLabelled(
-																				js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																				js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																				js.DecoderHConsLabelled(
-																					js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																					js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																					js.DecoderHConsLabelled(
-																						js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																						js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																						js.DecoderHConsLabelled(
-																							js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																							js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																							js.DecoderHConsLabelled(
-																								js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																								js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																								js.DecoderHConsLabelled(
-																									js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																									js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																									js.DecoderHConsLabelled(
-																										js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																										js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																										js.DecoderHConsLabelled(
-																											js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																											js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																											js.DecoderHConsLabelled(
-																												js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																												js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																												js.DecoderHConsLabelled(
-																													js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																													js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																													js.DecoderHConsLabelled(
-																														js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																														js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																														js.DecoderHConsLabelled(
-																															js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																															js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																															js.DecoderHConsLabelled(
-																																js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+																																js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 																																js.DecoderHNil,
 																															),
 																														),
@@ -1196,17 +1196,20 @@ func EqLegacyStruct() fp.Eq[LegacyStruct] {
 func DecoderLegacyStruct() js.Decoder[LegacyStruct] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+			js.DecoderNamed[fp.RuntimeNamed[string], string](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]()),
+				js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]()),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString),
+					js.DecoderNamed[fp.RuntimeNamed[string], string](js.DecoderString),
 					js.DecoderHConsLabelled(
 						js.DecoderNamed[fp.RuntimeNamed[struct {
 							Hello string
 							World int
-						}]](js.DecoderMap(
-							js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
+						}], struct {
+							Hello string
+							World int
+						}](js.DecoderMap(
+							js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string], string](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]())),
 							func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) struct {
 								Hello string
 								World int

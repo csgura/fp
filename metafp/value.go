@@ -647,24 +647,108 @@ func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType Type
 	// return true
 }
 
-// Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
-func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
+var MonoidConstrainCheck = monoid.New(func() ConstraintCheckResult {
+	return ConstraintCheckResult{
+		Ok: true,
+	}
+}, func(a, b ConstraintCheckResult) ConstraintCheckResult {
+	merged := a.ParamMapping.Concat(b.ParamMapping)
+	return ConstraintCheckResult{
+		Ok:           a.Ok && b.Ok,
+		ParamMapping: merged,
+		Error:        seq.FoldError(seq.Of(a.Error, b.Error), fp.Id),
+	}
+})
 
-	if genericType.TypeParam.Size() > 0 {
+func noNamedInterfaceTypeArgs(intf *types.Interface) fp.Seq[TypeInfo] {
+	embedArgs := seq.Flatten(iterate(intf.NumEmbeddeds(), intf.EmbeddedType, func(i int, t types.Type) fp.Seq[TypeInfo] {
+		ret := typeInfo(t)
+		return ret.TypeArgs.Filter(func(v TypeInfo) bool {
+			return v.IsTypeParam()
+		})
+	}))
+
+	methodArgs := seq.Flatten(iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Seq[TypeInfo] {
+		p := t.Signature().Params()
+		r := t.Signature().Results()
+
+		check := func(i int, t *types.Var) fp.Seq[TypeInfo] {
+			ret := typeInfo(t.Type())
+			if ret.IsTypeParam() {
+				return seq.Of(ret)
+			}
+			return seq.Empty[TypeInfo]()
+		}
+
+		return seq.Flatten(iterate(p.Len(), p.At, check)).Concat(seq.Flatten(iterate(r.Len(), r.At, check)))
+	}))
+
+	merged := seq.Fold(embedArgs.Concat(methodArgs), seq.Empty[TypeInfo](), func(b fp.Seq[TypeInfo], a TypeInfo) fp.Seq[TypeInfo] {
+		if b.Exists(func(v TypeInfo) bool {
+			return v.ID == a.ID
+		}) {
+			return b
+		}
+		return b.Add(a)
+	})
+
+	// fmt.Printf("embedArgs = %s\n", embedArgs)
+	// fmt.Printf("methodArgs = %s\n", methodArgs)
+	// fmt.Printf("merged = %s\n", merged)
+
+	return merged
+}
+
+func (r TypeInfo) HasMethod(typeParam fp.Seq[TypeParam], fn *types.Func) ConstraintCheckResult {
+	rfn := r.Method.Get(fn.Name())
+	if rfn.IsEmpty() {
+		return ConstraintCheckResult{}
+	}
+
+	// TODO : signature check
+
+	return ConstraintCheckResult{
+		Ok: true,
+	}
+}
+
+// typeParam 은 [T []A, A ] 같은 것
+// r 은  []int 같은 것
+// genericType 은 []A 같은 constraint
+func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], constraint TypeInfo) ConstraintCheckResult {
+
+	// constraint 가 named가 아닌 interface 이면  typeParam 이 없음.
+	if constraint.IsInterface() {
+		it := constraint.Type.(*types.Interface)
+		embeds := iterate(it.NumEmbeddeds(), it.EmbeddedType, func(i int, t types.Type) ConstraintCheckResult {
+			return r.IsConstrainedOf(typeParam, typeInfo(t))
+		})
+
+		methods := iterate(it.NumExplicitMethods(), it.ExplicitMethod, func(i int, t *types.Func) ConstraintCheckResult {
+			return r.HasMethod(typeParam, t)
+		})
+		return iterator.Reduce(iterator.FromSlice(embeds).Concat(iterator.FromSlice(methods)), MonoidConstrainCheck)
+	}
+
+	if constraint.TypeParam.Size() > 0 {
+
+		// generic 타입이 []A 처럼  type parameter 를 포함하고 있다면 A 가 뭔지 알아내야함.
+
 		// 타입 아규먼트 개수가 동일해야 함
-		if r.TypeArgs.Size() != genericType.TypeArgs.Size() {
+		if r.TypeArgs.Size() != constraint.TypeParam.Size() {
 			return ConstraintCheckResult{}
 		}
 
-		ret := ConstraintCheck(typeParam, genericType, r.TypeArgs)
-		//fmt.Printf("compare %s, %s  => %t\n", r, genericType, ret)
+		// r 이 []int 같은 경우면 r.TypeArgs 는 int
+		// TODO: 여기 아무리 봐도 잘못된 것 같은데.. 일단 잘 되니까 나두자.
+		ret := ConstraintCheck(typeParam, constraint, r.TypeArgs)
+		//fmt.Printf("compare %s, %s  => %t\n", r, constraint, ret)
 		return ret
-	} else if intf, ok := genericType.Underlying().Type.(*types.Interface); ok {
-		impl := types.Implements(r.Type, intf)
+	} else if intf, ok := constraint.Underlying().Type.(*types.Interface); ok {
+		impl := types.Satisfies(r.Type, intf)
 		return ConstraintCheckResult{
 			Ok: impl,
 		}
-
 	}
 	return ConstraintCheckResult{}
 
@@ -843,6 +927,14 @@ func (r TypeInfo) IsBasic() bool {
 func (r TypeInfo) IsSlice() bool {
 	switch r.Type.(type) {
 	case *types.Slice:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsInterface() bool {
+	switch r.Type.(type) {
+	case *types.Interface:
 		return true
 	}
 	return false

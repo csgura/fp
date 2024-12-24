@@ -1034,33 +1034,35 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx CurrentContext, named fp.Op
 	return fmt.Sprintf(`%s{%s}`, valuereceiver, argslist)
 }
 
-func namedOrRuntimeType(fpPkg *types.Package, working genfp.WorkingPackage, typePkg *types.Package, name string, vtype metafp.TypeInfo) metafp.TypeInfo {
+func namedOrRuntimeType(fpPkg *types.Package, working genfp.WorkingPackage, typePkg *types.Package, name string, vtype metafp.TypeInfo, genLabelled bool) metafp.TypeInfo {
 
-	ret := publicName(name)
-	if ret == name {
-		ret = fmt.Sprintf("PubNamed%s", ret)
-	} else {
-		ret = fmt.Sprintf("Named%s", ret)
-	}
-
-	if isSamePkg(working, genfp.FromTypesPackage(typePkg)) {
-		obj := working.Scope().Lookup(ret)
-		if tpe, ok := obj.(*types.TypeName); ok {
-			ctx := types.NewContext()
-			targs := []types.Type{vtype.Type}
-			it, err := types.Instantiate(ctx, tpe.Type(), targs, false)
-			if err == nil {
-				return metafp.GetTypeInfo(it)
-			}
+	if genLabelled {
+		ret := publicName(name)
+		if ret == name {
+			ret = fmt.Sprintf("PubNamed%s", ret)
+		} else {
+			ret = fmt.Sprintf("Named%s", ret)
 		}
-	} else {
-		obj := typePkg.Scope().Lookup(ret)
-		if tpe, ok := obj.(*types.TypeName); ok {
-			ctx := types.NewContext()
-			targs := []types.Type{vtype.Type}
-			it, err := types.Instantiate(ctx, tpe.Type(), targs, false)
-			if err == nil {
-				return metafp.GetTypeInfo(it)
+
+		if isSamePkg(working, genfp.FromTypesPackage(typePkg)) {
+			obj := working.Scope().Lookup(ret)
+			if tpe, ok := obj.(*types.TypeName); ok {
+				ctx := types.NewContext()
+				targs := []types.Type{vtype.Type}
+				it, err := types.Instantiate(ctx, tpe.Type(), targs, false)
+				if err == nil {
+					return metafp.GetTypeInfo(it)
+				}
+			}
+		} else {
+			obj := typePkg.Scope().Lookup(ret)
+			if tpe, ok := obj.(*types.TypeName); ok {
+				ctx := types.NewContext()
+				targs := []types.Type{vtype.Type}
+				it, err := types.Instantiate(ctx, tpe.Type(), targs, false)
+				if err == nil {
+					return metafp.GetTypeInfo(it)
+				}
 			}
 		}
 	}
@@ -1936,7 +1938,7 @@ func (r *TypeClassSummonContext) summonTuple(ctx CurrentContext, tc metafp.TypeC
 
 func (r *TypeClassSummonContext) summonFpNamed(ctx CurrentContext, tc metafp.TypeClass, typePkg *types.Package, name string, t metafp.TypeInfoExpr, genLabelled bool) SummonExpr {
 
-	rtt := namedOrRuntimeType(r.fpPkg.Get(), ctx.working, typePkg, name, t.Type)
+	rtt := namedOrRuntimeType(r.fpPkg.Get(), ctx.working, typePkg, name, t.Type, genLabelled)
 	//fmt.Printf("tc = %s, type = %s, rtt = %s, %T\n", tc, t.Type, rtt, rtt)
 	named := r.namedLookup(ctx, metafp.RequiredInstance{
 		TypeClass: tc,

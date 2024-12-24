@@ -3,6 +3,7 @@ package metafp
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 
@@ -308,6 +309,40 @@ type ConstraintCheckResult struct {
 
 func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type {
 	switch tv := t.(type) {
+	case *types.Interface:
+		embeds := iterate(tv.NumEmbeddeds(), tv.EmbeddedType, func(i int, t types.Type) types.Type {
+			return replaceTypeArgs(t, mapping)
+		})
+
+		method := iterate(tv.NumExplicitMethods(), tv.ExplicitMethod, func(i int, t *types.Func) *types.Func {
+			ns := replaceTypeArgs(t.Signature(), mapping)
+			return types.NewFunc(token.NoPos, t.Pkg(), t.Name(), ns.(*types.Signature))
+		})
+
+		return types.NewInterfaceType(method, embeds)
+	case *types.Signature:
+		params := tv.Params()
+		nparams := iterate(params.Len(), params.At, func(i int, t *types.Var) *types.Var {
+			rt := replaceTypeArgs(t.Type(), mapping)
+			return types.NewVar(token.NoPos, t.Pkg(), t.Name(), rt)
+		})
+
+		result := tv.Results()
+		nresult := iterate(result.Len(), result.At, func(i int, t *types.Var) *types.Var {
+			rt := replaceTypeArgs(t.Type(), mapping)
+			return types.NewVar(token.NoPos, t.Pkg(), t.Name(), rt)
+		})
+
+		rp := iterate(tv.RecvTypeParams().Len(), tv.RecvTypeParams().At, func(i int, t *types.TypeParam) *types.TypeParam {
+			return t
+		})
+
+		tp := iterate(tv.TypeParams().Len(), tv.TypeParams().At, func(i int, t *types.TypeParam) *types.TypeParam {
+			return t
+		})
+
+		return types.NewSignatureType(tv.Recv(), rp, tp, types.NewTuple(nparams...), types.NewTuple(nresult...), tv.Variadic())
+
 	case *types.TypeParam:
 		ti := mapping.Get(tv.Obj().Name())
 		if ti.IsDefined() {
@@ -347,6 +382,12 @@ func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type 
 // instanceType 이 T 자리에 들어갈 수 있는지 체크하는 함수
 //
 // func[T constraint]() Eq[Seq[T]]  같은 경우는 해당 사항 없음 .
+
+// param : [T []A, A any] 같은 것
+// genericType :  Eq[T] 같은 것
+// typeArgs  :  []int  같은 것
+// 이경우  결과로  T : []int , A : int 가 나와야 함.
+// param 개수는 더 많을 수 있고,  genericType의  param 개수와 typeArgs 의 개수는 같아야 함.
 func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) ConstraintCheckResult {
 
 	//fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
@@ -357,6 +398,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		}
 	}
 
+	// genericType 아규먼트만 비교
 	zipped := iterator.Map(iterator.Zip(seq.Iterator(genericType.TypeArgs), seq.Iterator(typeArgs)), func(t fp.Tuple2[TypeInfo, TypeInfo]) typeCompare {
 		return typeCompare{
 			genericType: t.I1,
@@ -365,10 +407,13 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	})
 
 	// Eq[T] 가 아니고,  Eq[Seq[T]]  같은 경우는  체크 불가능
+	// Eq[T] 와 Eq[int] 케이스 분리
 	paramArgsIt, actualArgs := iterator.Partition(zipped, func(t typeCompare) bool {
 		return t.genericType.IsTypeParam()
 	})
 
+	// Eq[T] 처럼 param 인것
+	// T => int
 	paramArgs := paramArgsIt.ToSeq()
 	paramCheck := seq.Map(paramArgs, func(v typeCompare) ConstraintCheckResult {
 		paramName := v.genericType.Name().Get()
@@ -386,6 +431,9 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 			}
 			consType := typeInfo(paramCons.Get().Constraint)
 			//fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
+
+			// [T []A, A] 인데  typeArgs 가 []int 라면
+			// T 가 []A 를 만족하는지 확인해야 함.
 			ret := v.actualType.IsConstrainedOf(param, consType)
 			// if !ret.Ok {
 			// 	fmt.Printf("not constraint of actual = %s , generic = %s\n", v.actualType, consType)
@@ -415,6 +463,10 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	merge := seq.Reduce(seq.Map(actualCheck, func(v ConstraintCheckResult) fp.Map[string, TypeInfo] {
 		return v.ParamMapping
 	}), monoid.MergeMap[string, TypeInfo]())
+
+	for _, p := range paramArgs {
+		merge = merge.Updated(p.genericType.TypeName, p.actualType)
+	}
 
 	//fmt.Printf("merge = %s\n", merge)
 	paramFound := iterator.Map(iterator.FromSlice(paramArgs), func(v typeCompare) fp.Option[paramVar] {
