@@ -65,6 +65,10 @@ func TestCheckConstraint(t *testing.T) {
 	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(rntp.Get()))
 	fmt.Printf("err = %s\n", cr.Error)
 	assert.True(cr.Ok)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	assert.True(cr.ParamMapping.Get("A").IsDefined()) // int
+	assert.True(cr.ParamMapping.Get("V").IsDefined()) // fp.RuntimeNamed[*int]
+
 }
 
 func TestCheckConstraintHashInt(t *testing.T) {
@@ -93,6 +97,8 @@ func TestCheckConstraintHashInt(t *testing.T) {
 	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(rntp))
 	fmt.Printf("err = %s\n", cr.Error)
 	assert.True(cr.Ok)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	assert.True(cr.ParamMapping.Get("T").IsDefined()) // int
 
 }
 
@@ -124,6 +130,9 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(strtp, hlisttp))
 	fmt.Printf("err = %s\n", cr.Error)
 	assert.True(cr.Ok)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	assert.True(cr.ParamMapping.Get("H").IsDefined()) // string
+	assert.True(cr.ParamMapping.Get("T").IsDefined()) // hlist.Cons(int, hlist.Nil)
 
 }
 
@@ -153,5 +162,8 @@ func TestCheckConstraintDecoder(t *testing.T) {
 	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(argtype))
 	fmt.Printf("err = %s\n", cr.Error)
 	assert.True(cr.Ok)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	assert.True(cr.ParamMapping.Get("T").IsDefined())
+	assert.True(cr.ParamMapping.Get("A").IsDefined()) // string
 
 }
