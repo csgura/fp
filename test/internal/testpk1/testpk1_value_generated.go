@@ -61,6 +61,9 @@ func (r NamedMessageOfWorld[T]) Value() T {
 func (r NamedMessageOfWorld[T]) Tag() string {
 	return `hello:"message"`
 }
+func (r NamedMessageOfWorld[T]) Static() bool {
+	return true
+}
 func (r NamedMessageOfWorld[T]) WithValue(v T) NamedMessageOfWorld[T] {
 	r.I1 = v
 	return r
@@ -77,6 +80,9 @@ func (r NamedTimestampOfWorld[T]) Value() T {
 func (r NamedTimestampOfWorld[T]) Tag() string {
 	return ``
 }
+func (r NamedTimestampOfWorld[T]) Static() bool {
+	return true
+}
 func (r NamedTimestampOfWorld[T]) WithValue(v T) NamedTimestampOfWorld[T] {
 	r.I1 = v
 	return r
@@ -92,6 +98,9 @@ func (r PubNamedPubOfWorld[T]) Value() T {
 }
 func (r PubNamedPubOfWorld[T]) Tag() string {
 	return ``
+}
+func (r PubNamedPubOfWorld[T]) Static() bool {
+	return true
 }
 func (r PubNamedPubOfWorld[T]) WithValue(v T) PubNamedPubOfWorld[T] {
 	r.I1 = v
@@ -280,6 +289,9 @@ func (r NamedMessageOfHasOption[T]) Value() T {
 func (r NamedMessageOfHasOption[T]) Tag() string {
 	return ``
 }
+func (r NamedMessageOfHasOption[T]) Static() bool {
+	return true
+}
 func (r NamedMessageOfHasOption[T]) WithValue(v T) NamedMessageOfHasOption[T] {
 	r.I1 = v
 	return r
@@ -295,6 +307,9 @@ func (r NamedAddrOfHasOption[T]) Value() T {
 }
 func (r NamedAddrOfHasOption[T]) Tag() string {
 	return ``
+}
+func (r NamedAddrOfHasOption[T]) Static() bool {
+	return true
 }
 func (r NamedAddrOfHasOption[T]) WithValue(v T) NamedAddrOfHasOption[T] {
 	r.I1 = v
@@ -312,6 +327,9 @@ func (r NamedPhoneOfHasOption[T]) Value() T {
 func (r NamedPhoneOfHasOption[T]) Tag() string {
 	return ``
 }
+func (r NamedPhoneOfHasOption[T]) Static() bool {
+	return true
+}
 func (r NamedPhoneOfHasOption[T]) WithValue(v T) NamedPhoneOfHasOption[T] {
 	r.I1 = v
 	return r
@@ -327,6 +345,9 @@ func (r NamedEmptySeqOfHasOption[T]) Value() T {
 }
 func (r NamedEmptySeqOfHasOption[T]) Tag() string {
 	return ``
+}
+func (r NamedEmptySeqOfHasOption[T]) Static() bool {
+	return true
 }
 func (r NamedEmptySeqOfHasOption[T]) WithValue(v T) NamedEmptySeqOfHasOption[T] {
 	r.I1 = v
@@ -1865,6 +1886,9 @@ func (r NamedI1OfOver21[T]) Value() T {
 func (r NamedI1OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI1OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI1OfOver21[T]) WithValue(v T) NamedI1OfOver21[T] {
 	r.I1 = v
 	return r
@@ -1880,6 +1904,9 @@ func (r NamedI2OfOver21[T]) Value() T {
 }
 func (r NamedI2OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI2OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI2OfOver21[T]) WithValue(v T) NamedI2OfOver21[T] {
 	r.I1 = v
@@ -1897,6 +1924,9 @@ func (r NamedI3OfOver21[T]) Value() T {
 func (r NamedI3OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI3OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI3OfOver21[T]) WithValue(v T) NamedI3OfOver21[T] {
 	r.I1 = v
 	return r
@@ -1912,6 +1942,9 @@ func (r NamedI4OfOver21[T]) Value() T {
 }
 func (r NamedI4OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI4OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI4OfOver21[T]) WithValue(v T) NamedI4OfOver21[T] {
 	r.I1 = v
@@ -1929,6 +1962,9 @@ func (r NamedI5OfOver21[T]) Value() T {
 func (r NamedI5OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI5OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI5OfOver21[T]) WithValue(v T) NamedI5OfOver21[T] {
 	r.I1 = v
 	return r
@@ -1944,6 +1980,9 @@ func (r NamedI6OfOver21[T]) Value() T {
 }
 func (r NamedI6OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI6OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI6OfOver21[T]) WithValue(v T) NamedI6OfOver21[T] {
 	r.I1 = v
@@ -1961,6 +2000,9 @@ func (r NamedI7OfOver21[T]) Value() T {
 func (r NamedI7OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI7OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI7OfOver21[T]) WithValue(v T) NamedI7OfOver21[T] {
 	r.I1 = v
 	return r
@@ -1976,6 +2018,9 @@ func (r NamedI8OfOver21[T]) Value() T {
 }
 func (r NamedI8OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI8OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI8OfOver21[T]) WithValue(v T) NamedI8OfOver21[T] {
 	r.I1 = v
@@ -1993,6 +2038,9 @@ func (r NamedI9OfOver21[T]) Value() T {
 func (r NamedI9OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI9OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI9OfOver21[T]) WithValue(v T) NamedI9OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2008,6 +2056,9 @@ func (r NamedI10OfOver21[T]) Value() T {
 }
 func (r NamedI10OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI10OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI10OfOver21[T]) WithValue(v T) NamedI10OfOver21[T] {
 	r.I1 = v
@@ -2025,6 +2076,9 @@ func (r NamedI11OfOver21[T]) Value() T {
 func (r NamedI11OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI11OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI11OfOver21[T]) WithValue(v T) NamedI11OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2040,6 +2094,9 @@ func (r NamedI12OfOver21[T]) Value() T {
 }
 func (r NamedI12OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI12OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI12OfOver21[T]) WithValue(v T) NamedI12OfOver21[T] {
 	r.I1 = v
@@ -2057,6 +2114,9 @@ func (r NamedI13OfOver21[T]) Value() T {
 func (r NamedI13OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI13OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI13OfOver21[T]) WithValue(v T) NamedI13OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2072,6 +2132,9 @@ func (r NamedI14OfOver21[T]) Value() T {
 }
 func (r NamedI14OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI14OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI14OfOver21[T]) WithValue(v T) NamedI14OfOver21[T] {
 	r.I1 = v
@@ -2089,6 +2152,9 @@ func (r NamedI15OfOver21[T]) Value() T {
 func (r NamedI15OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI15OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI15OfOver21[T]) WithValue(v T) NamedI15OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2104,6 +2170,9 @@ func (r NamedI16OfOver21[T]) Value() T {
 }
 func (r NamedI16OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI16OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI16OfOver21[T]) WithValue(v T) NamedI16OfOver21[T] {
 	r.I1 = v
@@ -2121,6 +2190,9 @@ func (r NamedI17OfOver21[T]) Value() T {
 func (r NamedI17OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI17OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI17OfOver21[T]) WithValue(v T) NamedI17OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2136,6 +2208,9 @@ func (r NamedI18OfOver21[T]) Value() T {
 }
 func (r NamedI18OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI18OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI18OfOver21[T]) WithValue(v T) NamedI18OfOver21[T] {
 	r.I1 = v
@@ -2153,6 +2228,9 @@ func (r NamedI19OfOver21[T]) Value() T {
 func (r NamedI19OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI19OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI19OfOver21[T]) WithValue(v T) NamedI19OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2168,6 +2246,9 @@ func (r NamedI20OfOver21[T]) Value() T {
 }
 func (r NamedI20OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI20OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI20OfOver21[T]) WithValue(v T) NamedI20OfOver21[T] {
 	r.I1 = v
@@ -2185,6 +2266,9 @@ func (r NamedI21OfOver21[T]) Value() T {
 func (r NamedI21OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI21OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI21OfOver21[T]) WithValue(v T) NamedI21OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2200,6 +2284,9 @@ func (r NamedI22OfOver21[T]) Value() T {
 }
 func (r NamedI22OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI22OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI22OfOver21[T]) WithValue(v T) NamedI22OfOver21[T] {
 	r.I1 = v
@@ -2217,6 +2304,9 @@ func (r NamedI23OfOver21[T]) Value() T {
 func (r NamedI23OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI23OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI23OfOver21[T]) WithValue(v T) NamedI23OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2232,6 +2322,9 @@ func (r NamedI24OfOver21[T]) Value() T {
 }
 func (r NamedI24OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI24OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI24OfOver21[T]) WithValue(v T) NamedI24OfOver21[T] {
 	r.I1 = v
@@ -2249,6 +2342,9 @@ func (r NamedI25OfOver21[T]) Value() T {
 func (r NamedI25OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI25OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI25OfOver21[T]) WithValue(v T) NamedI25OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2264,6 +2360,9 @@ func (r NamedI26OfOver21[T]) Value() T {
 }
 func (r NamedI26OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI26OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI26OfOver21[T]) WithValue(v T) NamedI26OfOver21[T] {
 	r.I1 = v
@@ -2281,6 +2380,9 @@ func (r NamedI27OfOver21[T]) Value() T {
 func (r NamedI27OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI27OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI27OfOver21[T]) WithValue(v T) NamedI27OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2296,6 +2398,9 @@ func (r NamedI28OfOver21[T]) Value() T {
 }
 func (r NamedI28OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI28OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI28OfOver21[T]) WithValue(v T) NamedI28OfOver21[T] {
 	r.I1 = v
@@ -2313,6 +2418,9 @@ func (r NamedI29OfOver21[T]) Value() T {
 func (r NamedI29OfOver21[T]) Tag() string {
 	return ``
 }
+func (r NamedI29OfOver21[T]) Static() bool {
+	return true
+}
 func (r NamedI29OfOver21[T]) WithValue(v T) NamedI29OfOver21[T] {
 	r.I1 = v
 	return r
@@ -2328,6 +2436,9 @@ func (r NamedI30OfOver21[T]) Value() T {
 }
 func (r NamedI30OfOver21[T]) Tag() string {
 	return ``
+}
+func (r NamedI30OfOver21[T]) Static() bool {
+	return true
 }
 func (r NamedI30OfOver21[T]) WithValue(v T) NamedI30OfOver21[T] {
 	r.I1 = v

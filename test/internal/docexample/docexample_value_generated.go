@@ -311,6 +311,9 @@ func (r NamedCompanyOfCar[T]) Value() T {
 func (r NamedCompanyOfCar[T]) Tag() string {
 	return `column:"company"`
 }
+func (r NamedCompanyOfCar[T]) Static() bool {
+	return true
+}
 func (r NamedCompanyOfCar[T]) WithValue(v T) NamedCompanyOfCar[T] {
 	r.I1 = v
 	return r
@@ -327,6 +330,9 @@ func (r NamedModelOfCar[T]) Value() T {
 func (r NamedModelOfCar[T]) Tag() string {
 	return ``
 }
+func (r NamedModelOfCar[T]) Static() bool {
+	return true
+}
 func (r NamedModelOfCar[T]) WithValue(v T) NamedModelOfCar[T] {
 	r.I1 = v
 	return r
@@ -342,6 +348,9 @@ func (r NamedYearOfCar[T]) Value() T {
 }
 func (r NamedYearOfCar[T]) Tag() string {
 	return ``
+}
+func (r NamedYearOfCar[T]) Static() bool {
+	return true
 }
 func (r NamedYearOfCar[T]) WithValue(v T) NamedYearOfCar[T] {
 	r.I1 = v

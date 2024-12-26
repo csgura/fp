@@ -75,6 +75,9 @@ func (r NamedPresentOfNgapValue[T]) Value() T {
 func (r NamedPresentOfNgapValue[T]) Tag() string {
 	return ``
 }
+func (r NamedPresentOfNgapValue[T]) Static() bool {
+	return true
+}
 func (r NamedPresentOfNgapValue[T]) WithValue(v T) NamedPresentOfNgapValue[T] {
 	r.I1 = v
 	return r
@@ -90,6 +93,9 @@ func (r NamedFirstOfNgapValue[T]) Value() T {
 }
 func (r NamedFirstOfNgapValue[T]) Tag() string {
 	return `aper:"id=20"`
+}
+func (r NamedFirstOfNgapValue[T]) Static() bool {
+	return true
 }
 func (r NamedFirstOfNgapValue[T]) WithValue(v T) NamedFirstOfNgapValue[T] {
 	r.I1 = v
@@ -107,6 +113,9 @@ func (r NamedSecondOfNgapValue[T]) Value() T {
 func (r NamedSecondOfNgapValue[T]) Tag() string {
 	return `aper:"id=30"`
 }
+func (r NamedSecondOfNgapValue[T]) Static() bool {
+	return true
+}
 func (r NamedSecondOfNgapValue[T]) WithValue(v T) NamedSecondOfNgapValue[T] {
 	r.I1 = v
 	return r
@@ -122,6 +131,9 @@ func (r NamedThirdOfNgapValue[T]) Value() T {
 }
 func (r NamedThirdOfNgapValue[T]) Tag() string {
 	return `aper:"id=40"`
+}
+func (r NamedThirdOfNgapValue[T]) Static() bool {
+	return true
 }
 func (r NamedThirdOfNgapValue[T]) WithValue(v T) NamedThirdOfNgapValue[T] {
 	r.I1 = v

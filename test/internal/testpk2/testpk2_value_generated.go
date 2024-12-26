@@ -1532,6 +1532,9 @@ func (r NamedHelloOfGreeting[T]) Value() T {
 func (r NamedHelloOfGreeting[T]) Tag() string {
 	return ``
 }
+func (r NamedHelloOfGreeting[T]) Static() bool {
+	return true
+}
 func (r NamedHelloOfGreeting[T]) WithValue(v T) NamedHelloOfGreeting[T] {
 	r.I1 = v
 	return r
@@ -1547,6 +1550,9 @@ func (r NamedLanguageOfGreeting[T]) Value() T {
 }
 func (r NamedLanguageOfGreeting[T]) Tag() string {
 	return ``
+}
+func (r NamedLanguageOfGreeting[T]) Static() bool {
+	return true
 }
 func (r NamedLanguageOfGreeting[T]) WithValue(v T) NamedLanguageOfGreeting[T] {
 	r.I1 = v
@@ -1702,6 +1708,9 @@ func (r NamedOneOfThree[T]) Value() T {
 func (r NamedOneOfThree[T]) Tag() string {
 	return ``
 }
+func (r NamedOneOfThree[T]) Static() bool {
+	return true
+}
 func (r NamedOneOfThree[T]) WithValue(v T) NamedOneOfThree[T] {
 	r.I1 = v
 	return r
@@ -1718,6 +1727,9 @@ func (r NamedTwoOfThree[T]) Value() T {
 func (r NamedTwoOfThree[T]) Tag() string {
 	return ``
 }
+func (r NamedTwoOfThree[T]) Static() bool {
+	return true
+}
 func (r NamedTwoOfThree[T]) WithValue(v T) NamedTwoOfThree[T] {
 	r.I1 = v
 	return r
@@ -1733,6 +1745,9 @@ func (r NamedThreeOfThree[T]) Value() T {
 }
 func (r NamedThreeOfThree[T]) Tag() string {
 	return ``
+}
+func (r NamedThreeOfThree[T]) Static() bool {
+	return true
 }
 func (r NamedThreeOfThree[T]) WithValue(v T) NamedThreeOfThree[T] {
 	r.I1 = v

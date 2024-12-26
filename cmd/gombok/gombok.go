@@ -1328,28 +1328,33 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 				typename := namedName(w, workingPackage, workingPackage, ts.Name, v.Name)
 				name := v.Name
 				fmt.Fprintf(w, `type %s[T any] fp.Tuple1[T]
-			`, typename)
+				`, typename)
 
 				fmt.Fprintf(w, `func (r %s[T]) Name() string {
-				return "%s"
-			}
-			`, typename, name)
+					return "%s"
+				}
+				`, typename, name)
 
 				fmt.Fprintf(w, `func (r %s[T]) Value() T {
-				return r.I1
-			}
-			`, typename)
+					return r.I1
+				}
+				`, typename)
 
 				fmt.Fprintf(w, `func (r %s[T]) Tag() string {
-				return %s
-			}
-			`, typename, "`"+v.Tag+"`")
+					return %s
+				}
+				`, typename, "`"+v.Tag+"`")
+
+				fmt.Fprintf(w, `func (r %s[T]) Static() bool {
+					return true
+				}
+				`, typename)
 
 				fmt.Fprintf(w, `func (r %s[T]) WithValue(v T) %s[T] {
-				r.I1 = v
-				return r
-			}
-			`, typename, typename)
+					r.I1 = v
+					return r
+				}
+				`, typename, typename)
 			})
 
 			if allFields.Size() < max.Product {

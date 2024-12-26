@@ -41,6 +41,8 @@ func (r Tuple1[T1]) Tail() Unit {
 
 type Named interface {
 	Name() string
+	Tag() string
+	Static() bool
 }
 
 type NamedField[T any] interface {
@@ -69,6 +71,10 @@ func (r RuntimeNamed[T]) Tag() string {
 
 func (r RuntimeNamed[T]) WithTag(v string) RuntimeNamed[T] {
 	return RuntimeNamed[T]{r.I1, r.I2, v}
+}
+
+func (r RuntimeNamed[T]) Static() bool {
+	return false
 }
 
 type Labelled1[T1 Named] struct {

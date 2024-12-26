@@ -115,6 +115,9 @@ func (r NamedAOfRoot[T]) Value() T {
 func (r NamedAOfRoot[T]) Tag() string {
 	return ``
 }
+func (r NamedAOfRoot[T]) Static() bool {
+	return true
+}
 func (r NamedAOfRoot[T]) WithValue(v T) NamedAOfRoot[T] {
 	r.I1 = v
 	return r
@@ -130,6 +133,9 @@ func (r NamedBOfRoot[T]) Value() T {
 }
 func (r NamedBOfRoot[T]) Tag() string {
 	return ``
+}
+func (r NamedBOfRoot[T]) Static() bool {
+	return true
 }
 func (r NamedBOfRoot[T]) WithValue(v T) NamedBOfRoot[T] {
 	r.I1 = v
@@ -147,6 +153,9 @@ func (r NamedCOfRoot[T]) Value() T {
 func (r NamedCOfRoot[T]) Tag() string {
 	return ``
 }
+func (r NamedCOfRoot[T]) Static() bool {
+	return true
+}
 func (r NamedCOfRoot[T]) WithValue(v T) NamedCOfRoot[T] {
 	r.I1 = v
 	return r
@@ -162,6 +171,9 @@ func (r NamedDOfRoot[T]) Value() T {
 }
 func (r NamedDOfRoot[T]) Tag() string {
 	return ``
+}
+func (r NamedDOfRoot[T]) Static() bool {
+	return true
 }
 func (r NamedDOfRoot[T]) WithValue(v T) NamedDOfRoot[T] {
 	r.I1 = v
@@ -179,6 +191,9 @@ func (r NamedEOfRoot[T]) Value() T {
 func (r NamedEOfRoot[T]) Tag() string {
 	return ``
 }
+func (r NamedEOfRoot[T]) Static() bool {
+	return true
+}
 func (r NamedEOfRoot[T]) WithValue(v T) NamedEOfRoot[T] {
 	r.I1 = v
 	return r
@@ -194,6 +209,9 @@ func (r NamedFOfRoot[T]) Value() T {
 }
 func (r NamedFOfRoot[T]) Tag() string {
 	return ``
+}
+func (r NamedFOfRoot[T]) Static() bool {
+	return true
 }
 func (r NamedFOfRoot[T]) WithValue(v T) NamedFOfRoot[T] {
 	r.I1 = v
@@ -211,6 +229,9 @@ func (r NamedGOfRoot[T]) Value() T {
 func (r NamedGOfRoot[T]) Tag() string {
 	return ``
 }
+func (r NamedGOfRoot[T]) Static() bool {
+	return true
+}
 func (r NamedGOfRoot[T]) WithValue(v T) NamedGOfRoot[T] {
 	r.I1 = v
 	return r
@@ -226,6 +247,9 @@ func (r NamedHOfRoot[T]) Value() T {
 }
 func (r NamedHOfRoot[T]) Tag() string {
 	return ``
+}
+func (r NamedHOfRoot[T]) Static() bool {
+	return true
 }
 func (r NamedHOfRoot[T]) WithValue(v T) NamedHOfRoot[T] {
 	r.I1 = v
@@ -444,6 +468,9 @@ func (r NamedAOfChild[T]) Value() T {
 func (r NamedAOfChild[T]) Tag() string {
 	return ``
 }
+func (r NamedAOfChild[T]) Static() bool {
+	return true
+}
 func (r NamedAOfChild[T]) WithValue(v T) NamedAOfChild[T] {
 	r.I1 = v
 	return r
@@ -459,6 +486,9 @@ func (r NamedBOfChild[T]) Value() T {
 }
 func (r NamedBOfChild[T]) Tag() string {
 	return ``
+}
+func (r NamedBOfChild[T]) Static() bool {
+	return true
 }
 func (r NamedBOfChild[T]) WithValue(v T) NamedBOfChild[T] {
 	r.I1 = v
@@ -597,6 +627,9 @@ func (r NamedNameOfNode[T]) Value() T {
 func (r NamedNameOfNode[T]) Tag() string {
 	return ``
 }
+func (r NamedNameOfNode[T]) Static() bool {
+	return true
+}
 func (r NamedNameOfNode[T]) WithValue(v T) NamedNameOfNode[T] {
 	r.I1 = v
 	return r
@@ -613,6 +646,9 @@ func (r NamedLeftOfNode[T]) Value() T {
 func (r NamedLeftOfNode[T]) Tag() string {
 	return ``
 }
+func (r NamedLeftOfNode[T]) Static() bool {
+	return true
+}
 func (r NamedLeftOfNode[T]) WithValue(v T) NamedLeftOfNode[T] {
 	r.I1 = v
 	return r
@@ -628,6 +664,9 @@ func (r NamedRightOfNode[T]) Value() T {
 }
 func (r NamedRightOfNode[T]) Tag() string {
 	return ``
+}
+func (r NamedRightOfNode[T]) Static() bool {
+	return true
 }
 func (r NamedRightOfNode[T]) WithValue(v T) NamedRightOfNode[T] {
 	r.I1 = v
@@ -761,6 +800,9 @@ func (r NamedRootOfTree[T]) Value() T {
 func (r NamedRootOfTree[T]) Tag() string {
 	return ``
 }
+func (r NamedRootOfTree[T]) Static() bool {
+	return true
+}
 func (r NamedRootOfTree[T]) WithValue(v T) NamedRootOfTree[T] {
 	r.I1 = v
 	return r
@@ -873,6 +915,9 @@ func (r NamedNameOfEntry[T]) Value() T {
 func (r NamedNameOfEntry[T]) Tag() string {
 	return ``
 }
+func (r NamedNameOfEntry[T]) Static() bool {
+	return true
+}
 func (r NamedNameOfEntry[T]) WithValue(v T) NamedNameOfEntry[T] {
 	r.I1 = v
 	return r
@@ -888,6 +933,9 @@ func (r NamedValueOfEntry[T]) Value() T {
 }
 func (r NamedValueOfEntry[T]) Tag() string {
 	return ``
+}
+func (r NamedValueOfEntry[T]) Static() bool {
+	return true
 }
 func (r NamedValueOfEntry[T]) WithValue(v T) NamedValueOfEntry[T] {
 	r.I1 = v
@@ -1016,6 +1064,9 @@ func (r NamedParamOfNotUsedParam[T]) Value() T {
 func (r NamedParamOfNotUsedParam[T]) Tag() string {
 	return ``
 }
+func (r NamedParamOfNotUsedParam[T]) Static() bool {
+	return true
+}
 func (r NamedParamOfNotUsedParam[T]) WithValue(v T) NamedParamOfNotUsedParam[T] {
 	r.I1 = v
 	return r
@@ -1031,6 +1082,9 @@ func (r NamedValueOfNotUsedParam[T]) Value() T {
 }
 func (r NamedValueOfNotUsedParam[T]) Tag() string {
 	return ``
+}
+func (r NamedValueOfNotUsedParam[T]) Static() bool {
+	return true
 }
 func (r NamedValueOfNotUsedParam[T]) WithValue(v T) NamedValueOfNotUsedParam[T] {
 	r.I1 = v
@@ -1169,6 +1223,9 @@ func (r NamedNameOfMovie[T]) Value() T {
 func (r NamedNameOfMovie[T]) Tag() string {
 	return ``
 }
+func (r NamedNameOfMovie[T]) Static() bool {
+	return true
+}
 func (r NamedNameOfMovie[T]) WithValue(v T) NamedNameOfMovie[T] {
 	r.I1 = v
 	return r
@@ -1185,6 +1242,9 @@ func (r NamedCastingOfMovie[T]) Value() T {
 func (r NamedCastingOfMovie[T]) Tag() string {
 	return ``
 }
+func (r NamedCastingOfMovie[T]) Static() bool {
+	return true
+}
 func (r NamedCastingOfMovie[T]) WithValue(v T) NamedCastingOfMovie[T] {
 	r.I1 = v
 	return r
@@ -1200,6 +1260,9 @@ func (r NamedNotUsedOfMovie[T]) Value() T {
 }
 func (r NamedNotUsedOfMovie[T]) Tag() string {
 	return ``
+}
+func (r NamedNotUsedOfMovie[T]) Static() bool {
+	return true
 }
 func (r NamedNotUsedOfMovie[T]) WithValue(v T) NamedNotUsedOfMovie[T] {
 	r.I1 = v
@@ -1323,6 +1386,9 @@ func (r PubNamedRootOfNoPrivate[T]) Value() T {
 }
 func (r PubNamedRootOfNoPrivate[T]) Tag() string {
 	return ``
+}
+func (r PubNamedRootOfNoPrivate[T]) Static() bool {
+	return true
 }
 func (r PubNamedRootOfNoPrivate[T]) WithValue(v T) PubNamedRootOfNoPrivate[T] {
 	r.I1 = v
