@@ -821,15 +821,25 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[st
 
 		allFields := applyFields(ts)
 
+		valueType := ts.Info.TypeStr(w, workingPackage)
+
 		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
-			return fmt.Sprintf("%s %s", v.Name, v.TypeName(w, workingPackage))
+			argName := v.Name
+			if argName == valueType {
+				argName = "v" + argName
+			}
+			return fmt.Sprintf("%s %s", argName, v.TypeName(w, workingPackage))
 		}).MakeString(",")
 
 		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
-			return fmt.Sprintf("%s : %s", f.I2.Name, f.I2.Name)
+			argName := f.I2.Name
+			if argName == valueType {
+				argName = "v" + argName
+			}
+
+			return fmt.Sprintf("%s : %s", f.I2.Name, argName)
 		}).MakeString(",\n")
 
-		valueType := ts.Info.TypeStr(w, workingPackage)
 		fmt.Fprintf(w, `
 			func %s%s(%s) %s {
 				return %s {
@@ -858,15 +868,26 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.S
 			return v.FieldType.IsPtr() || v.FieldType.IsOption()
 		})
 
+		valueType := ts.Info.TypeStr(w, workingPackage)
+
 		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
-			return fmt.Sprintf("%s %s", v.Name, v.TypeName(w, workingPackage))
+			argName := v.Name
+			if argName == valueType {
+				argName = "v" + argName
+			}
+
+			return fmt.Sprintf("%s %s", argName, v.TypeName(w, workingPackage))
 		}).MakeString(",")
 
 		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
-			return fmt.Sprintf("%s : %s", f.I2.Name, f.I2.Name)
+			argName := f.I2.Name
+			if argName == valueType {
+				argName = "v" + argName
+			}
+
+			return fmt.Sprintf("%s : %s", f.I2.Name, argName)
 		}).MakeString(",\n")
 
-		valueType := ts.Info.TypeStr(w, workingPackage)
 		fmt.Fprintf(w, `
 			func %s%s(%s) %s {
 				return %s {

@@ -2261,11 +2261,12 @@ func (r DefinedOtherPackageMutable) AsImmutable() DefinedOtherPackage {
 	}
 }
 
-func NewExplicitTag(ctx context.Context, hello string, world int) ExplicitTag {
+func NewExplicitTag(ctx context.Context, hello string, world int, vExplicitTag string) ExplicitTag {
 	return ExplicitTag{
-		ctx:   ctx,
-		hello: hello,
-		world: world,
+		ctx:         ctx,
+		hello:       hello,
+		world:       world,
+		ExplicitTag: vExplicitTag,
 	}
 }
 
@@ -2297,7 +2298,7 @@ func (r ExplicitTag) WithWorld(v int) ExplicitTag {
 }
 
 func (r ExplicitTag) String() string {
-	return fmt.Sprintf("testpk1.ExplicitTag{hello:%v, world:%v}", r.hello, r.world)
+	return fmt.Sprintf("testpk1.ExplicitTag{hello:%v, world:%v, ExplicitTag:%v}", r.hello, r.world, r.ExplicitTag)
 }
 
 func NewGenericExplicitTag[T any](hello string, world int, message T) GenericExplicitTag[T] {

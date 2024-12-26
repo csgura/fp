@@ -329,9 +329,10 @@ var _ eq.Derives[fp.Eq[LocalEmbedPrivate]]
 // @fp.String
 // @fp.AllArgsConstructor
 type ExplicitTag struct {
-	ctx   context.Context `fp:"String.Exclude"`
-	hello string
-	world int
+	ctx         context.Context `fp:"String.Exclude"`
+	hello       string
+	world       int
+	ExplicitTag string
 }
 
 // @fp.Getter
