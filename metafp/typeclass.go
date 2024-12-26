@@ -384,7 +384,7 @@ func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type 
 // func[T constraint]() Eq[Seq[T]]  같은 경우는 해당 사항 없음 .
 
 // param : [T []A, A any] 같은 것
-// genericType :  Eq[T] 같은 것
+// genericType :  Eq[T] 같은 것, 여기서 비교대상은 Eq[T] 가 아니고 T 임
 // typeArgs  :  []int  같은 것
 // 이경우  결과로  T : []int , A : int 가 나와야 함.
 // param 개수는 더 많을 수 있고,  genericType의  param 개수와 typeArgs 의 개수는 같아야 함.

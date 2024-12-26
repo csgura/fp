@@ -705,7 +705,17 @@ func (r TypeInfo) HasMethod(typeParam fp.Seq[TypeParam], fn *types.Func) Constra
 		return ConstraintCheckResult{}
 	}
 
-	// TODO : signature check
+	if rfn.Get().Signature().Params().Len() != fn.Signature().Params().Len() {
+		return ConstraintCheckResult{}
+	}
+
+	// TODO : signature param type check
+
+	if rfn.Get().Signature().Results().Len() != fn.Signature().Results().Len() {
+		return ConstraintCheckResult{}
+	}
+
+	// TODO: signature result type check
 
 	return ConstraintCheckResult{
 		Ok: true,
@@ -730,6 +740,9 @@ func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], constraint TypeIn
 		return iterator.Reduce(iterator.FromSlice(embeds).Concat(iterator.FromSlice(methods)), MonoidConstrainCheck)
 	}
 
+	// constraint 가 Some[T] 같은 타입이고
+	// r 이  Other[int] 같은 타입이면
+	// int 와 T 를 비교해야 함.
 	if constraint.TypeParam.Size() > 0 {
 
 		// generic 타입이 []A 처럼  type parameter 를 포함하고 있다면 A 가 뭔지 알아내야함.
@@ -740,7 +753,8 @@ func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], constraint TypeIn
 		}
 
 		// r 이 []int 같은 경우면 r.TypeArgs 는 int
-		// TODO: 여기 아무리 봐도 잘못된 것 같은데.. 일단 잘 되니까 나두자.
+		// constraint(Some[T]) 를 그대로 넘겨주면 , ConstrantCheck는 T 와 r.TypeArgs 를 비교함.
+		// TODO:  Other <: Some 인지 비교하는 코드는 없음.
 		ret := ConstraintCheck(typeParam, constraint, r.TypeArgs)
 		//fmt.Printf("compare %s, %s  => %t\n", r, constraint, ret)
 		return ret
