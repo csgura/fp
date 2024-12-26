@@ -202,7 +202,9 @@ func (r *writer) Render(templateStr string, funcs map[string]any, param map[stri
 
 	tpl, err := template.New("write").Funcs(defaultFunc).Funcs(funcs).Parse(templateStr)
 	if err == nil {
-		param["N"] = 1
+		if param["N"] == nil {
+			param["N"] = 1
+		}
 		err := tpl.Execute(r, param)
 		if err != nil {
 			fmt.Printf("template = %s\n", templateStr)

@@ -308,6 +308,7 @@ func genGenerate() {
 
 	filelist := iterator.ToGoSet(
 		mutable.MapOf(gentemplate).Keys().
+			Concat(mutable.MapOf(genlist).Keys()).
 			Concat(mutable.MapOf(genadaptor).Keys()).
 			Concat(mutable.MapOf(monadf).Keys()).
 			Concat(mutable.MapOf(traversef).Keys()).

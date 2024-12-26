@@ -6,6 +6,28 @@ import (
 	"github.com/csgura/fp/as"
 )
 
+func SplitTagNgapValue() SplitTag[NgapValue] {
+	return SplitTagContraMap(
+		HConsLabelled(
+			NamedInt[NamedPresentOfNgapValue[int]](),
+			HConsLabelled(
+				NamedPtr[NamedFirstOfNgapValue[*int], int](),
+				HConsLabelled(
+					NamedPtr[NamedSecondOfNgapValue[*string], string](),
+					HConsLabelled(
+						NamedPtr[NamedThirdOfNgapValue[*float64], float64](),
+						HNil,
+					),
+				),
+			),
+		),
+		fp.Compose(
+			NgapValue.AsLabelled,
+			as.HList4Labelled,
+		),
+	)
+}
+
 func SplitNgapType() Split[NgapType] {
 	return IMap(
 		Tuple4[int, string, float64](),
@@ -43,28 +65,6 @@ func SplitTagNgapType() SplitTag[NgapType] {
 				i0, i1, i2, i3 := v.Present, v.First, v.Second, v.Third
 				return as.Labelled4(as.NamedWithTag("Present", i0, ``), as.NamedWithTag("First", i1, `aper:"id=20"`), as.NamedWithTag("Second", i2, `aper:"id=30"`), as.NamedWithTag("Third", i3, `aper:"id=40"`))
 			},
-			as.HList4Labelled,
-		),
-	)
-}
-
-func SplitTagNgapValue() SplitTag[NgapValue] {
-	return SplitTagContraMap(
-		HConsLabelled(
-			NamedInt[NamedPresentOfNgapValue[int]](),
-			HConsLabelled(
-				NamedPtr[NamedFirstOfNgapValue[*int], int](),
-				HConsLabelled(
-					NamedPtr[NamedSecondOfNgapValue[*string], string](),
-					HConsLabelled(
-						NamedPtr[NamedThirdOfNgapValue[*float64], float64](),
-						HNil,
-					),
-				),
-			),
-		),
-		fp.Compose(
-			NgapValue.AsLabelled,
 			as.HList4Labelled,
 		),
 	)

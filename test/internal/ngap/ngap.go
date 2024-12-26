@@ -3,6 +3,7 @@ package ngap
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/seq"
 )
@@ -116,10 +117,17 @@ func NamedPtr[V fp.NamedField[*A], A any]() SplitTag[V] {
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Derive
-var _ Derives[Split[NgapType]]
-
-// @fp.Derive
-var _ Derives[SplitTag[NgapType]]
-
-// @fp.Derive
 var _ Derives[SplitTag[NgapValue]]
+
+// @fp.Generate
+var _ = genfp.GenerateFromList{
+	File: "tools.go",
+	List: []string{"NgapType"},
+	Template: `
+		// @fp.Derive
+		var _ Derives[Split[{{.N}}]]
+
+		// @fp.Derive
+		var _ Derives[SplitTag[{{.N}}]]
+	`,
+}
