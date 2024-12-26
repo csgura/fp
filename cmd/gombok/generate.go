@@ -299,6 +299,8 @@ func genGenerate() {
 	}
 
 	gentemplate := generator.FindGenerateFromUntil(pkgs, "@fp.Generate")
+	genlist := generator.FindGenerateFromList(pkgs, "@fp.Generate")
+
 	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
 	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
 	traversef := generator.FindGenerateTraverseFunctions(pkgs, "@fp.Generate")
@@ -334,6 +336,18 @@ func genGenerate() {
 	}
 	for file := range filelist {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range genlist[file] {
+				for _, im := range gfu.Imports {
+					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
+				}
+
+				for _, v := range gfu.List {
+					w.Render(gfu.Template, map[string]any{}, map[string]any{
+						"N": v,
+					})
+				}
+			}
+
 			for _, gfu := range gentemplate[file] {
 				for _, im := range gfu.Imports {
 					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))

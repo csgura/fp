@@ -83,6 +83,13 @@ type GenerateFromUntil struct {
 	Template string
 }
 
+type GenerateFromList struct {
+	File     string
+	Imports  []ImportPackage
+	List     []string
+	Template string
+}
+
 type GenerateAdaptor[T any] struct {
 	// 생성될 file 이름
 	File string

@@ -298,6 +298,51 @@ func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
 
 }
 
+func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
+
+	lit := tagged.Lit
+	ret := genfp.GenerateFromList{}
+
+	names := []string{"File", "Imports", "List", "Template"}
+	for idx, e := range lit.Elts {
+		if idx >= len(names) {
+			return genfp.GenerateFromList{}, fmt.Errorf("invalid number of literals")
+		}
+
+		name := names[idx]
+		name, value := asKeyValue(e, name)
+		switch name {
+		case "File":
+			v, err := evalStringValue(tagged.Package, value)
+			if err != nil {
+				return genfp.GenerateFromList{}, err
+			}
+			ret.File = v
+		case "Imports":
+			v, err := evalArray(tagged.Package, value, evalImport)
+			if err != nil {
+				return genfp.GenerateFromList{}, err
+			}
+			ret.Imports = v
+		case "List":
+			v, err := evalArray(tagged.Package, value, evalStringValue)
+			if err != nil {
+				return genfp.GenerateFromList{}, err
+			}
+			ret.List = v
+		case "Template":
+			v, err := evalStringValue(tagged.Package, value)
+			if err != nil {
+				return genfp.GenerateFromList{}, err
+			}
+			ret.Template = v
+		}
+	}
+
+	return ret, nil
+
+}
+
 type DelegateDirective struct {
 	TypeOf genfp.TypeReference
 	Field  string
