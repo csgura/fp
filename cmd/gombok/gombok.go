@@ -14,7 +14,6 @@ import (
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
-	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
@@ -33,13 +32,13 @@ func isSamePkg(p1 genfp.WorkingPackage, p2 genfp.PackageId) bool {
 	return p1.Path() == p2.Path()
 }
 
-func namedName(w genfp.Writer, working genfp.WorkingPackage, typePkg genfp.WorkingPackage, name string) string {
+func namedName(w genfp.Writer, working genfp.WorkingPackage, typePkg genfp.WorkingPackage, structName string, name string) string {
 
 	ret := publicName(name)
 	if ret == name {
-		ret = fmt.Sprintf("PubNamed%s", ret)
+		ret = fmt.Sprintf("PubNamed%sOf%s", ret, structName)
 	} else {
-		ret = fmt.Sprintf("Named%s", ret)
+		ret = fmt.Sprintf("Named%sOf%s", ret, structName)
 	}
 
 	if isSamePkg(working, typePkg) {
@@ -660,7 +659,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 				fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), v.TypeName(w, workingPackage))
+					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, ts.Name, v.Name), v.TypeName(w, workingPackage))
 				}).MakeString(",")
 
 				fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
@@ -923,7 +922,6 @@ type TaggedStructContext struct {
 }
 
 func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext) {
-	keyTags := mutable.EmptySet[string]()
 
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := fp.Set[string]{}
@@ -940,7 +938,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 		}
 		genMethod = processAllArgsCons(ctx, genMethod)
 
-		genMethod, keyTags = processValue(ctx, genMethod, keyTags)
+		genMethod = processValue(ctx, genMethod)
 
 		genMethod = processGetter(ctx, genMethod)
 		genMethod = processWith(ctx, genMethod)
@@ -952,38 +950,6 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 
 	})
 
-	klist := keyTags.Iterator().ToSeq()
-	seq.Sort(klist, ord.Given[string]()).Foreach(func(name string) {
-		fmt.Fprintf(w, `type %s[T any] fp.Tuple2[T,string]
-			`, namedName(w, workingPackage, workingPackage, name))
-
-		fmt.Fprintf(w, `func (r %s[T]) Name() string {
-				return "%s"
-			}
-			`, namedName(w, workingPackage, workingPackage, name), name)
-
-		fmt.Fprintf(w, `func (r %s[T]) Value() T {
-				return r.I1
-			}
-			`, namedName(w, workingPackage, workingPackage, name))
-
-		fmt.Fprintf(w, `func (r %s[T]) Tag() string {
-				return r.I2
-			}
-			`, namedName(w, workingPackage, workingPackage, name))
-
-		fmt.Fprintf(w, `func (r %s[T]) WithValue(v T) %s[T] {
-				r.I1 = v
-				return r
-			}
-			`, namedName(w, workingPackage, workingPackage, name), namedName(w, workingPackage, workingPackage, name))
-
-		fmt.Fprintf(w, `func (r %s[T]) WithTag(v string) %s[T] {
-				r.I2 = v
-				return r
-			}
-			`, namedName(w, workingPackage, workingPackage, name), namedName(w, workingPackage, workingPackage, name))
-	})
 }
 
 func genPrivateGetters(ctx TaggedStructContext, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {
@@ -1305,7 +1271,7 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	return genMethod
 }
 
-func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.Set[string]) (fp.Set[string], fp.Set[string]) {
+func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
 
 	ts := ctx.ts
 	w := ctx.w
@@ -1317,7 +1283,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 		allFields := applyFields(ts)
 
 		if allFields.Size() == 0 {
-			return genMethod, keyTags
+			return genMethod
 		}
 
 		valuetp := ts.Info.TypeParamIns(w, workingPackage)
@@ -1359,7 +1325,31 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 
 		if ts.Tags.Contains("@fp.GenLabelled") {
 			allFields.Foreach(func(v metafp.StructField) {
-				keyTags = keyTags.Incl(v.Name)
+				typename := namedName(w, workingPackage, workingPackage, ts.Name, v.Name)
+				name := v.Name
+				fmt.Fprintf(w, `type %s[T any] fp.Tuple1[T]
+			`, typename)
+
+				fmt.Fprintf(w, `func (r %s[T]) Name() string {
+				return "%s"
+			}
+			`, typename, name)
+
+				fmt.Fprintf(w, `func (r %s[T]) Value() T {
+				return r.I1
+			}
+			`, typename)
+
+				fmt.Fprintf(w, `func (r %s[T]) Tag() string {
+				return %s
+			}
+			`, typename, "`"+v.Tag+"`")
+
+				fmt.Fprintf(w, `func (r %s[T]) WithValue(v T) %s[T] {
+				r.I1 = v
+				return r
+			}
+			`, typename, typename)
 			})
 
 			if allFields.Size() < max.Product {
@@ -1370,11 +1360,11 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 
 				if ts.Info.Method.Get("AsLabelled").IsEmpty() {
 					tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-						return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, v.Name), v.TypeName(w, workingPackage))
+						return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, ts.Name, v.Name), v.TypeName(w, workingPackage))
 					}).MakeString(",")
 
 					fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-						return fmt.Sprintf(`%s[%s]{r.%s, %s}`, namedName(w, workingPackage, workingPackage, f.Name), f.TypeName(w, workingPackage), f.Name, "`"+f.Tag+"`")
+						return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, ts.Name, f.Name), f.TypeName(w, workingPackage), f.Name)
 					}).Take(arity).MakeString(",")
 
 					fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
@@ -1439,7 +1429,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string], keyTags fp.
 		genMethod = genMutable(ctx, genMethod)
 
 	}
-	return genMethod, keyTags
+	return genMethod
 }
 
 func genValueAndGetter() {

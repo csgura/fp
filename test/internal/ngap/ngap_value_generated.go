@@ -64,8 +64,72 @@ func (r NgapValue) AsMap() map[string]any {
 	return m
 }
 
-func (r NgapValue) AsLabelled() fp.Labelled4[NamedPresent[int], NamedFirst[*int], NamedSecond[*string], NamedThird[*float64]] {
-	return as.Labelled4(NamedPresent[int]{r.present, ``}, NamedFirst[*int]{r.first, `aper:"id=20"`}, NamedSecond[*string]{r.second, `aper:"id=30"`}, NamedThird[*float64]{r.third, `aper:"id=40"`})
+type NamedPresentOfNgapValue[T any] fp.Tuple1[T]
+
+func (r NamedPresentOfNgapValue[T]) Name() string {
+	return "present"
+}
+func (r NamedPresentOfNgapValue[T]) Value() T {
+	return r.I1
+}
+func (r NamedPresentOfNgapValue[T]) Tag() string {
+	return ``
+}
+func (r NamedPresentOfNgapValue[T]) WithValue(v T) NamedPresentOfNgapValue[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedFirstOfNgapValue[T any] fp.Tuple1[T]
+
+func (r NamedFirstOfNgapValue[T]) Name() string {
+	return "first"
+}
+func (r NamedFirstOfNgapValue[T]) Value() T {
+	return r.I1
+}
+func (r NamedFirstOfNgapValue[T]) Tag() string {
+	return `aper:"id=20"`
+}
+func (r NamedFirstOfNgapValue[T]) WithValue(v T) NamedFirstOfNgapValue[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedSecondOfNgapValue[T any] fp.Tuple1[T]
+
+func (r NamedSecondOfNgapValue[T]) Name() string {
+	return "second"
+}
+func (r NamedSecondOfNgapValue[T]) Value() T {
+	return r.I1
+}
+func (r NamedSecondOfNgapValue[T]) Tag() string {
+	return `aper:"id=30"`
+}
+func (r NamedSecondOfNgapValue[T]) WithValue(v T) NamedSecondOfNgapValue[T] {
+	r.I1 = v
+	return r
+}
+
+type NamedThirdOfNgapValue[T any] fp.Tuple1[T]
+
+func (r NamedThirdOfNgapValue[T]) Name() string {
+	return "third"
+}
+func (r NamedThirdOfNgapValue[T]) Value() T {
+	return r.I1
+}
+func (r NamedThirdOfNgapValue[T]) Tag() string {
+	return `aper:"id=40"`
+}
+func (r NamedThirdOfNgapValue[T]) WithValue(v T) NamedThirdOfNgapValue[T] {
+	r.I1 = v
+	return r
+}
+
+func (r NgapValue) AsLabelled() fp.Labelled4[NamedPresentOfNgapValue[int], NamedFirstOfNgapValue[*int], NamedSecondOfNgapValue[*string], NamedThirdOfNgapValue[*float64]] {
+	return as.Labelled4(NamedPresentOfNgapValue[int]{r.present}, NamedFirstOfNgapValue[*int]{r.first}, NamedSecondOfNgapValue[*string]{r.second}, NamedThirdOfNgapValue[*float64]{r.third})
 }
 
 type NgapValueBuilder NgapValue
@@ -135,7 +199,7 @@ func (r NgapValueBuilder) FromMap(m map[string]any) NgapValueBuilder {
 	return r
 }
 
-func (r NgapValueBuilder) FromLabelled(t fp.Labelled4[NamedPresent[int], NamedFirst[*int], NamedSecond[*string], NamedThird[*float64]]) NgapValueBuilder {
+func (r NgapValueBuilder) FromLabelled(t fp.Labelled4[NamedPresentOfNgapValue[int], NamedFirstOfNgapValue[*int], NamedSecondOfNgapValue[*string], NamedThirdOfNgapValue[*float64]]) NgapValueBuilder {
 	r.present = t.I1.Value()
 	r.first = t.I2.Value()
 	r.second = t.I3.Value()
@@ -166,84 +230,4 @@ func (r NgapValueMutable) AsImmutable() NgapValue {
 		second:  r.Second,
 		third:   r.Third,
 	}
-}
-
-type NamedFirst[T any] fp.Tuple2[T, string]
-
-func (r NamedFirst[T]) Name() string {
-	return "first"
-}
-func (r NamedFirst[T]) Value() T {
-	return r.I1
-}
-func (r NamedFirst[T]) Tag() string {
-	return r.I2
-}
-func (r NamedFirst[T]) WithValue(v T) NamedFirst[T] {
-	r.I1 = v
-	return r
-}
-func (r NamedFirst[T]) WithTag(v string) NamedFirst[T] {
-	r.I2 = v
-	return r
-}
-
-type NamedPresent[T any] fp.Tuple2[T, string]
-
-func (r NamedPresent[T]) Name() string {
-	return "present"
-}
-func (r NamedPresent[T]) Value() T {
-	return r.I1
-}
-func (r NamedPresent[T]) Tag() string {
-	return r.I2
-}
-func (r NamedPresent[T]) WithValue(v T) NamedPresent[T] {
-	r.I1 = v
-	return r
-}
-func (r NamedPresent[T]) WithTag(v string) NamedPresent[T] {
-	r.I2 = v
-	return r
-}
-
-type NamedSecond[T any] fp.Tuple2[T, string]
-
-func (r NamedSecond[T]) Name() string {
-	return "second"
-}
-func (r NamedSecond[T]) Value() T {
-	return r.I1
-}
-func (r NamedSecond[T]) Tag() string {
-	return r.I2
-}
-func (r NamedSecond[T]) WithValue(v T) NamedSecond[T] {
-	r.I1 = v
-	return r
-}
-func (r NamedSecond[T]) WithTag(v string) NamedSecond[T] {
-	r.I2 = v
-	return r
-}
-
-type NamedThird[T any] fp.Tuple2[T, string]
-
-func (r NamedThird[T]) Name() string {
-	return "third"
-}
-func (r NamedThird[T]) Value() T {
-	return r.I1
-}
-func (r NamedThird[T]) Tag() string {
-	return r.I2
-}
-func (r NamedThird[T]) WithValue(v T) NamedThird[T] {
-	r.I1 = v
-	return r
-}
-func (r NamedThird[T]) WithTag(v string) NamedThird[T] {
-	r.I2 = v
-	return r
 }

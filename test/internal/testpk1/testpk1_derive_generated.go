@@ -27,11 +27,11 @@ func EqWorld() fp.Eq[World] {
 func EncoderWorld() js.Encoder[World] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedMessage[string], string](js.EncoderString),
+			js.EncoderNamed[NamedMessageOfWorld[string], string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedTimestamp[time.Time], time.Time](js.EncoderTime),
+				js.EncoderNamed[NamedTimestampOfWorld[time.Time], time.Time](js.EncoderTime),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[PubNamedPub[string], string](js.EncoderString),
+					js.EncoderNamed[PubNamedPubOfWorld[string], string](js.EncoderString),
 					js.EncoderHNil,
 				),
 			),
@@ -46,11 +46,11 @@ func EncoderWorld() js.Encoder[World] {
 func DecoderWorld() js.Decoder[World] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedMessage[string], string](js.DecoderString),
+			js.DecoderNamed[NamedMessageOfWorld[string], string](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedTimestamp[time.Time], time.Time](js.DecoderTime),
+				js.DecoderNamed[NamedTimestampOfWorld[time.Time], time.Time](js.DecoderTime),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[PubNamedPub[string], string](js.DecoderString),
+					js.DecoderNamed[PubNamedPubOfWorld[string], string](js.DecoderString),
 					js.DecoderHNil,
 				),
 			),
@@ -100,13 +100,13 @@ func ShowWorld() fp.Show[World] {
 func EncoderHasOption() js.Encoder[HasOption] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedMessage[string], string](js.EncoderString),
+			js.EncoderNamed[NamedMessageOfHasOption[string], string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedAddr[fp.Option[string]], fp.Option[string]](js.EncoderOption(js.EncoderString)),
+				js.EncoderNamed[NamedAddrOfHasOption[fp.Option[string]], fp.Option[string]](js.EncoderOption(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedPhone[[]string], []string](js.EncoderSlice(js.EncoderString)),
+					js.EncoderNamed[NamedPhoneOfHasOption[[]string], []string](js.EncoderSlice(js.EncoderString)),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NamedEmptySeq[[]int], []int](js.EncoderSlice(js.EncoderNumber[int]())),
+						js.EncoderNamed[NamedEmptySeqOfHasOption[[]int], []int](js.EncoderSlice(js.EncoderNumber[int]())),
 						js.EncoderHNil,
 					),
 				),

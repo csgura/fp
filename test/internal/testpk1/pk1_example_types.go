@@ -24,7 +24,7 @@ import (
 // @fp.Json
 // @fp.GenLabelled
 type World struct {
-	message    string
+	message    string `hello:"message"`
 	timestamp  time.Time
 	Pub        string
 	_notExport string
