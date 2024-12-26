@@ -1044,7 +1044,6 @@ func namedOrRuntimeType(fpPkg *types.Package, working genfp.WorkingPackage, type
 			ret = fmt.Sprintf("Named%sOf%s", ret, structName)
 		}
 
-		fmt.Printf("lookup named %s\n", ret)
 		if isSamePkg(working, genfp.FromTypesPackage(typePkg)) {
 			obj := working.Scope().Lookup(ret)
 			if tpe, ok := obj.(*types.TypeName); ok {
