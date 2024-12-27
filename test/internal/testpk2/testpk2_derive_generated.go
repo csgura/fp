@@ -191,7 +191,7 @@ func ReadThree() read.Read[Three] {
 				read.String,
 				read.TupleHCons(
 					read.Float[float64](),
-					read.TupleHNill,
+					read.TupleHNil,
 				),
 			),
 		),

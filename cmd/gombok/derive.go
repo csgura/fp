@@ -394,7 +394,7 @@ func (r *TypeClassSummonContext) lookupHNilMust(ctx CurrentContext, tc metafp.Ty
 		return ret.Get()
 	}
 
-	ret = r.lookupTypeClassFunc(ctx, tc, "HlistNil")
+	ret = r.lookupTypeClassFunc(ctx, tc, "HListNil")
 	if ret.IsDefined() {
 		return ret.Get()
 	}
@@ -407,6 +407,13 @@ func (r *TypeClassSummonContext) lookupHNilMust(ctx CurrentContext, tc metafp.Ty
 	}
 }
 
+// TODO: 사용을 줄이고,  typecheck 를 할 필요 있음
+// 현재 사용하는 경우
+// HCons, HListCons, HNil, HListNil ,
+// Tuple%d , Labelled%d, HConsLabelled%d ,
+// StructHCons, StructHNil
+// TupleHCons, TupleHNil
+// Generic , IMap, Map
 func (r *TypeClassSummonContext) lookupTypeClassFunc(ctx CurrentContext, tc metafp.TypeClass, name string) fp.Option[metafp.TypeClassInstance] {
 	nameWithTc := tc.Name + name
 
@@ -1818,7 +1825,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx CurrentContext, tc 
 		ReprExpr: func() SummonExpr {
 			return option.Map(r.lookupTypeClassFunc(ctx, tc, "StructHCons"), func(hcons metafp.TypeClassInstance) SummonExpr {
 				arity := typeArgs.Size()
-				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
+				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNil").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
 					instance := r.summonRequired(ctx, metafp.RequiredInstance{
 						TypeClass: ctx.tc.TypeClass,
@@ -1907,7 +1914,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 
 			hcons := r.lookupTypeClassFunc(ctx, tc, "TupleHCons").OrElseGet(as.Supplier2(r.lookupHConsMust, ctx, tc))
 
-			hnil := r.lookupTypeClassFunc(ctx, tc, "TupleHNill").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
+			hnil := r.lookupTypeClassFunc(ctx, tc, "TupleHNil").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 
 			hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(hnil.PackagedName(r.w, ctx.working)), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
 				instance := r.summonRequired(ctx, metafp.RequiredInstance{

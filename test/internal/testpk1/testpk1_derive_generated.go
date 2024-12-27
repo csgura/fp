@@ -201,7 +201,7 @@ func ReadHListInsideHList() read.Read[HListInsideHList] {
 					read.String,
 					read.TupleHCons(
 						read.Int[int](),
-						read.TupleHNill,
+						read.TupleHNil,
 					),
 				),
 			),
@@ -209,7 +209,7 @@ func ReadHListInsideHList() read.Read[HListInsideHList] {
 				read.String,
 				read.TupleHCons(
 					ReadWorld(),
-					read.TupleHNill,
+					read.TupleHNil,
 				),
 			),
 		),
@@ -240,7 +240,7 @@ func ReadWorld() read.Read[World] {
 				read.Time,
 				read.TupleHCons(
 					read.String,
-					read.TupleHNill,
+					read.TupleHNil,
 				),
 			),
 		),
@@ -850,7 +850,7 @@ func ReadOver21() read.Read[Over21] {
 																															read.Int[int](),
 																															read.TupleHCons(
 																																read.Int[int](),
-																																read.TupleHNill,
+																																read.TupleHNil,
 																															),
 																														),
 																													),

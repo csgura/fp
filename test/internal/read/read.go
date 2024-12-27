@@ -209,7 +209,7 @@ func Float[T fp.ImplicitFloat]() Read[T] {
 	})
 }
 
-var TupleHNill = New(func(s string) fp.Try[Result[hlist.Nil]] {
+var TupleHNil = New(func(s string) fp.Try[Result[hlist.Nil]] {
 	return try.Success(ResultMutable[hlist.Nil]{
 		Value:   hlist.Empty(),
 		Remains: s,
