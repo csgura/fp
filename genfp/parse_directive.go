@@ -50,7 +50,24 @@ var defaultFunc = map[string]any{
 	"TypeClassArgs":     TypeClassArgs,
 	"CurriedFunc":       CurriedType,
 	"RecursiveType":     RecursiveType,
-
+	"EmptyMap": func() map[string]any {
+		return map[string]any{}
+	},
+	"CloneMap": func(m map[string]any) map[string]any {
+		ret := map[string]any{}
+		for k, v := range m {
+			ret[k] = v
+		}
+		return ret
+	},
+	"DeleteMap": func(delkey string, target map[string]any) map[string]any {
+		delete(target, delkey)
+		return target
+	},
+	"PutMap": func(addk string, addv any, target map[string]any) map[string]any {
+		target[addk] = addv
+		return target
+	},
 	"Range": func(start, until int) []int {
 		var ret = make([]int, until-start+1)
 		for i := start; i <= until; i++ {
@@ -66,6 +83,12 @@ var defaultFunc = map[string]any{
 	},
 	"TupleType": func(n int) string {
 		return fmt.Sprintf("Tuple%d[%s]", n, FuncTypeArgs(1, n))
+	},
+	"add": func(a, b int) int {
+		return a + b
+	},
+	"sub": func(a, b int) int {
+		return a - b
 	},
 	"dec": func(n int) int {
 		return n - 1
