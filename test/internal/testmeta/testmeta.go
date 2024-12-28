@@ -42,6 +42,10 @@ var _ js.Derives[js.Decoder[LocalPerson]]
 
 var StringNamed = as.NamedWithTag[string]("hello", "world", "")
 
+var carOpt = NamedOptOfCar[int]{}
+
+var _ fp.NamedField[fp.Option[int]] = NamedOptOfCar[int]{}
+
 type NamedOptOfCar[T comparable] fp.Tuple1[fp.Option[T]]
 
 func (r NamedOptOfCar[T]) Name() string {

@@ -203,7 +203,7 @@ func TestCheckConstraintEncoderOption(t *testing.T) {
 	tp := metafp.GetTypeInfo(fntype.Type())
 	rtype := tp.ResultType()
 
-	argtype := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("NamedOptOfCar").Type())
+	argtype := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("carOpt").Type())
 
 	cr := metafp.ConstraintCheck(tp.TypeParam, rtype, seq.Of(argtype))
 	fmt.Printf("err = %s\n", cr.Error)
