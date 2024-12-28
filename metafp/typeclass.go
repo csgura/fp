@@ -390,7 +390,7 @@ func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type 
 // param 개수는 더 많을 수 있고,  genericType의  param 개수와 typeArgs 의 개수는 같아야 함.
 func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) ConstraintCheckResult {
 
-	//fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
+	fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
 	// size 가 동일하지 않은 경우
 	if genericType.TypeArgs.Size() != typeArgs.Size() {
 		return ConstraintCheckResult{
@@ -515,7 +515,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		false,
 	)
 
-	//fmt.Printf("sig = %s, paramCons = %s, paramIns = %s\n", sig, paramCons, paramIns)
+	fmt.Printf("sig = %s, paramCons = %s, paramIns = %s\n", sig, paramCons, paramIns)
 	ctx := types.NewContext()
 
 	_, err := types.Instantiate(ctx, sig, paramIns, true)

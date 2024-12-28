@@ -41,3 +41,18 @@ type LocalPerson struct {
 var _ js.Derives[js.Decoder[LocalPerson]]
 
 var StringNamed = as.NamedWithTag[string]("hello", "world", "")
+
+type NamedOptOfCar[T comparable] fp.Tuple1[fp.Option[T]]
+
+func (r NamedOptOfCar[T]) Name() string {
+	return "opt"
+}
+func (r NamedOptOfCar[T]) Value() fp.Option[T] {
+	return r.I1
+}
+func (r NamedOptOfCar[T]) Tag() string {
+	return ``
+}
+func (r NamedOptOfCar[T]) Static() bool {
+	return true
+}
