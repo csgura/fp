@@ -922,6 +922,21 @@ func (r TypeInfo) IsPrintable() bool {
 	return true
 }
 
+func (r TypeInfo) NotInstantiatedParams() fp.Seq[TypeParam] {
+	if r.IsTypeParam() {
+		tp := r.Type.(*types.TypeParam)
+		return seq.Of(TypeParam{
+			Name:       tp.Obj().Name(),
+			Constraint: tp.Constraint(),
+			TypeName:   tp.Obj(),
+		})
+	}
+
+	return seq.FlatMap(r.TypeArgs, func(v TypeInfo) fp.Seq[TypeParam] {
+		return v.NotInstantiatedParams()
+	})
+}
+
 func (r TypeInfo) IsTypeParam() bool {
 	switch r.Type.(type) {
 	case *types.TypeParam:

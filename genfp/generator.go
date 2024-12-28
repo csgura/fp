@@ -356,7 +356,7 @@ func (r *importSet) TypeName(pk WorkingPackage, tpe types.Type) string {
 			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
 		}
 
-		if realtp.TypeArgs() != nil {
+		if realtp.TypeParams().Len() > 0 && realtp.TypeArgs() != nil {
 			args := []string{}
 			for i := 0; i < realtp.TypeArgs().Len(); i++ {
 				args = append(args, r.TypeName(pk, realtp.TypeArgs().At(i)))

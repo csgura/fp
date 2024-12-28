@@ -49,6 +49,18 @@ func namedName(w genfp.Writer, working genfp.WorkingPackage, typePkg genfp.Worki
 
 }
 
+func namedNameType(w genfp.Writer, working genfp.WorkingPackage, typePkg genfp.WorkingPackage, structName string, sf metafp.StructField) string {
+
+	name := namedName(w, working, typePkg, structName, sf.Name)
+
+	params := sf.FieldType.NotInstantiatedParams()
+
+	// type arguement [T]
+	ta := typeParamArg(w, working, params)
+	return name + ta
+
+}
+
 func publicName(name string) string {
 	return strings.ToUpper(name[:1]) + name[1:]
 }
@@ -659,7 +671,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 				fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-					return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, ts.Name, v.Name), v.TypeName(w, workingPackage))
+					return namedNameType(w, workingPackage, workingPackage, ts.Name, v)
 				}).MakeString(",")
 
 				fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
@@ -1271,6 +1283,24 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	return genMethod
 }
 
+func typeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage, p fp.Seq[metafp.TypeParam]) string {
+	if len(p) > 0 {
+		return "[" + iterator.Map(seq.Iterator(p), func(v metafp.TypeParam) string {
+			tn := w.TypeName(cwd, v.Constraint)
+			return fmt.Sprintf("%s %s", v.Name, tn)
+		}).MakeString(",") + "]"
+	}
+	return ""
+}
+
+func typeParamArg(w genfp.ImportSet, cwd genfp.WorkingPackage, p fp.Seq[metafp.TypeParam]) string {
+	if len(p) > 0 {
+		return "[" + iterator.Map(seq.Iterator(p), func(v metafp.TypeParam) string {
+			return v.Name
+		}).MakeString(",") + "]"
+	}
+	return ""
+}
 func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
 
 	ts := ctx.ts
@@ -1325,36 +1355,48 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 
 		if ts.Tags.Contains("@fp.GenLabelled") {
 			allFields.Foreach(func(v metafp.StructField) {
-				typename := namedName(w, workingPackage, workingPackage, ts.Name, v.Name)
-				name := v.Name
-				fmt.Fprintf(w, `type %s[T any] fp.Tuple1[T]
-				`, typename)
+				labelled := namedName(w, workingPackage, workingPackage, ts.Name, v.Name)
 
-				fmt.Fprintf(w, `func (r %s[T]) Name() string {
+				params := v.FieldType.NotInstantiatedParams()
+				// type parameter [T any]
+				tp := typeParamDecl(w, workingPackage, params)
+
+				// type arguement [T]
+				ta := typeParamArg(w, workingPackage, params)
+
+				// field type name
+				ftp := v.TypeName(w, workingPackage)
+
+				typename := labelled + ta
+				name := v.Name
+				fmt.Fprintf(w, `type %s%s fp.Tuple1[%s]
+				`, labelled, tp, ftp)
+
+				fmt.Fprintf(w, `func (r %s) Name() string {
 					return "%s"
 				}
 				`, typename, name)
 
-				fmt.Fprintf(w, `func (r %s[T]) Value() T {
+				fmt.Fprintf(w, `func (r %s) Value() %s {
 					return r.I1
 				}
-				`, typename)
+				`, typename, ftp)
 
-				fmt.Fprintf(w, `func (r %s[T]) Tag() string {
+				fmt.Fprintf(w, `func (r %s) Tag() string {
 					return %s
 				}
 				`, typename, "`"+v.Tag+"`")
 
-				fmt.Fprintf(w, `func (r %s[T]) Static() bool {
+				fmt.Fprintf(w, `func (r %s) Static() bool {
 					return true
 				}
 				`, typename)
 
-				fmt.Fprintf(w, `func (r %s[T]) WithValue(v T) %s[T] {
+				fmt.Fprintf(w, `func (r %s) WithValue(v %s) %s {
 					r.I1 = v
 					return r
 				}
-				`, typename, typename)
+				`, typename, ftp, typename)
 			})
 
 			if allFields.Size() < max.Product {
@@ -1365,11 +1407,11 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 
 				if ts.Info.Method.Get("AsLabelled").IsEmpty() {
 					tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
-						return fmt.Sprintf("%s[%s]", namedName(w, workingPackage, workingPackage, ts.Name, v.Name), v.TypeName(w, workingPackage))
+						return namedNameType(w, workingPackage, workingPackage, ts.Name, v)
 					}).MakeString(",")
 
 					fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-						return fmt.Sprintf(`%s[%s]{r.%s}`, namedName(w, workingPackage, workingPackage, ts.Name, f.Name), f.TypeName(w, workingPackage), f.Name)
+						return fmt.Sprintf(`%s{r.%s}`, namedNameType(w, workingPackage, workingPackage, ts.Name, f), f.Name)
 					}).Take(arity).MakeString(",")
 
 					fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
