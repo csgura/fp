@@ -1362,7 +1362,7 @@ func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint
 	)
 }
 
-func EncoderCar[S any, T comparable](encoderT js.Encoder[T]) js.Encoder[Car[S, T]] {
+func EncoderCar[S any, T comparable](encoderS js.Encoder[S], encoderT js.Encoder[T]) js.Encoder[Car[S, T]] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
 			js.EncoderNamed[NamedCompanyOfCar, string](js.EncoderString),
@@ -1371,7 +1371,7 @@ func EncoderCar[S any, T comparable](encoderT js.Encoder[T]) js.Encoder[Car[S, T
 				js.EncoderHConsLabelled(
 					js.EncoderNamed[NamedYearOfCar, int](js.EncoderNumber[int]()),
 					js.EncoderHConsLabelled(
-						js.EncoderGiven[NamedSpecOfCar[S]](),
+						js.EncoderNamed[NamedSpecOfCar[S], S](encoderS),
 						js.EncoderHConsLabelled(
 							js.EncoderNamed[NamedOptOfCar[T], fp.Option[T]](js.EncoderOption(encoderT)),
 							js.EncoderHNil,

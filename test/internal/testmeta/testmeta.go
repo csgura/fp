@@ -60,6 +60,22 @@ func (r NamedOptOfCar[T]) Tag() string {
 }
 func (r NamedOptOfCar[T]) Static() bool {
 	return true
+
+}
+
+type NamedTypeParam[S any] fp.Tuple1[S]
+
+func (r NamedTypeParam[S]) Name() string {
+	return "opt"
+}
+func (r NamedTypeParam[S]) Value() S {
+	return r.I1
+}
+func (r NamedTypeParam[S]) Tag() string {
+	return ``
+}
+func (r NamedTypeParam[S]) Static() bool {
+	return true
 }
 
 var fp4fn = ngap.Tuple4[*int, *string, *float64]

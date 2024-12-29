@@ -289,3 +289,32 @@ func TestCheckConstraintNgapSplit(t *testing.T) {
 	fptest.True(t, cr.ParamMapping.Get("A3").IsDefined()) // hlist.Cons(int, hlist.Nil)
 
 }
+
+func TestCheckConstraintTypeParam(t *testing.T) {
+
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	fptest.IsNil(t, err)
+
+	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
+	}).NextOption()
+
+	fptest.True(t, fpPkg.IsDefined())
+
+	ft := metafp.GetTypeInfo(fpPkg.Get().Scope().Lookup("EncoderNamed").Type())
+
+	tnamed := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("NamedTypeParam").Type())
+
+	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, ft.TypeParam, ft.ResultType(), seq.Of(tnamed))
+	fmt.Printf("err = %s\n", cr.Error)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	fptest.True(t, cr.Ok)
+	fptest.True(t, cr.ParamMapping.Get("T").IsDefined())
+
+}

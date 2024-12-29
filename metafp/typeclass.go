@@ -397,6 +397,19 @@ func CompareTypeAndInferParam(ctx ConstraintCheckResult, param fp.Seq[TypeParam]
 	if a.IsTypeParam() {
 		if b.IsTypeParam() {
 			// TODO : check constraint is same
+			aisp := param.Find(func(v TypeParam) bool {
+				return v.Name == a.TypeName
+			})
+			if aisp.IsDefined() {
+				ctx.ParamMapping = ctx.ParamMapping.Updated(a.TypeName, b)
+			}
+
+			bisp := param.Find(func(v TypeParam) bool {
+				return v.Name == b.TypeName
+			})
+			if bisp.IsDefined() {
+				ctx.ParamMapping = ctx.ParamMapping.Updated(b.TypeName, a)
+			}
 			return ctx
 		}
 
@@ -591,7 +604,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
+	fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
 
 	// if r.Name == "TupleHCons" {
 	// 	fmt.Printf("TupleHCons\n")

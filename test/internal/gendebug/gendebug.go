@@ -13,8 +13,8 @@ type Car[S any, T comparable] struct {
 	company string `column:"company"`
 	model   string
 	year    int
-	spec    S
 	opt     fp.Option[T]
+	spec    S
 }
 
 // @fp.Derive

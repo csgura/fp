@@ -194,7 +194,7 @@ func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypePa
 					}{Level: t.I1.Value(), Stage: t.I2.Value()}
 				},
 			),
-			show.Labelled2(show.Named[fp.RuntimeNamed[T]](showT), show.Named[fp.RuntimeNamed[string], string](show.String)),
+			show.Labelled2(show.Named[fp.RuntimeNamed[T], T](showT), show.Named[fp.RuntimeNamed[string], string](show.String)),
 		))),
 	)
 }

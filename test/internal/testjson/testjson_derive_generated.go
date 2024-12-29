@@ -134,16 +134,16 @@ func EncoderTree() js.Encoder[Tree] {
 	)
 }
 
-func EncoderEntry[V any]() js.Encoder[Entry[V]] {
+func EncoderEntry[V any](encoderV js.Encoder[V]) js.Encoder[Entry[V]] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedNameOfEntry, string](js.EncoderString), js.EncoderGiven[NamedValueOfEntry[V]]()),
+		js.EncoderLabelled2(js.EncoderNamed[NamedNameOfEntry, string](js.EncoderString), js.EncoderNamed[NamedValueOfEntry[V], V](encoderV)),
 		Entry[V].AsLabelled,
 	)
 }
 
-func EncoderNotUsedParam[K any, V any]() js.Encoder[NotUsedParam[K, V]] {
+func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUsedParam[K, V]] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedParamOfNotUsedParam, string](js.EncoderString), js.EncoderGiven[NamedValueOfNotUsedParam[V]]()),
+		js.EncoderLabelled2(js.EncoderNamed[NamedParamOfNotUsedParam, string](js.EncoderString), js.EncoderNamed[NamedValueOfNotUsedParam[V], V](encoderV)),
 		NotUsedParam[K, V].AsLabelled,
 	)
 }
@@ -153,9 +153,9 @@ func EncoderMovie() js.Encoder[Movie] {
 		js.EncoderHConsLabelled(
 			js.EncoderNamed[NamedNameOfMovie, string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedCastingOfMovie, Entry[string]](EncoderEntry[string]()),
+				js.EncoderNamed[NamedCastingOfMovie, Entry[string]](EncoderEntry(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedNotUsedOfMovie, NotUsedParam[int, string]](EncoderNotUsedParam[int, string]()),
+					js.EncoderNamed[NamedNotUsedOfMovie, NotUsedParam[int, string]](EncoderNotUsedParam[int, string](js.EncoderString)),
 					js.EncoderHNil,
 				),
 			),
