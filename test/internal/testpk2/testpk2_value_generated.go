@@ -1521,46 +1521,46 @@ func (r Greeting) AsMap() map[string]any {
 	return m
 }
 
-type NamedHelloOfGreeting[T any] fp.Tuple1[T]
+type NamedHelloOfGreeting fp.Tuple1[testpk1.World]
 
-func (r NamedHelloOfGreeting[T]) Name() string {
+func (r NamedHelloOfGreeting) Name() string {
 	return "hello"
 }
-func (r NamedHelloOfGreeting[T]) Value() T {
+func (r NamedHelloOfGreeting) Value() testpk1.World {
 	return r.I1
 }
-func (r NamedHelloOfGreeting[T]) Tag() string {
+func (r NamedHelloOfGreeting) Tag() string {
 	return ``
 }
-func (r NamedHelloOfGreeting[T]) Static() bool {
+func (r NamedHelloOfGreeting) Static() bool {
 	return true
 }
-func (r NamedHelloOfGreeting[T]) WithValue(v T) NamedHelloOfGreeting[T] {
+func (r NamedHelloOfGreeting) WithValue(v testpk1.World) NamedHelloOfGreeting {
 	r.I1 = v
 	return r
 }
 
-type NamedLanguageOfGreeting[T any] fp.Tuple1[T]
+type NamedLanguageOfGreeting fp.Tuple1[string]
 
-func (r NamedLanguageOfGreeting[T]) Name() string {
+func (r NamedLanguageOfGreeting) Name() string {
 	return "language"
 }
-func (r NamedLanguageOfGreeting[T]) Value() T {
+func (r NamedLanguageOfGreeting) Value() string {
 	return r.I1
 }
-func (r NamedLanguageOfGreeting[T]) Tag() string {
+func (r NamedLanguageOfGreeting) Tag() string {
 	return ``
 }
-func (r NamedLanguageOfGreeting[T]) Static() bool {
+func (r NamedLanguageOfGreeting) Static() bool {
 	return true
 }
-func (r NamedLanguageOfGreeting[T]) WithValue(v T) NamedLanguageOfGreeting[T] {
+func (r NamedLanguageOfGreeting) WithValue(v string) NamedLanguageOfGreeting {
 	r.I1 = v
 	return r
 }
 
-func (r Greeting) AsLabelled() fp.Labelled2[NamedHelloOfGreeting[testpk1.World], NamedLanguageOfGreeting[string]] {
-	return as.Labelled2(NamedHelloOfGreeting[testpk1.World]{r.hello}, NamedLanguageOfGreeting[string]{r.language})
+func (r Greeting) AsLabelled() fp.Labelled2[NamedHelloOfGreeting, NamedLanguageOfGreeting] {
+	return as.Labelled2(NamedHelloOfGreeting{r.hello}, NamedLanguageOfGreeting{r.language})
 }
 
 func (r Greeting) MarshalJSON() ([]byte, error) {
@@ -1625,7 +1625,7 @@ func (r GreetingBuilder) FromMap(m map[string]any) GreetingBuilder {
 	return r
 }
 
-func (r GreetingBuilder) FromLabelled(t fp.Labelled2[NamedHelloOfGreeting[testpk1.World], NamedLanguageOfGreeting[string]]) GreetingBuilder {
+func (r GreetingBuilder) FromLabelled(t fp.Labelled2[NamedHelloOfGreeting, NamedLanguageOfGreeting]) GreetingBuilder {
 	r.hello = t.I1.Value()
 	r.language = t.I2.Value()
 	return r
@@ -1697,65 +1697,65 @@ func (r Three) AsMap() map[string]any {
 	return m
 }
 
-type NamedOneOfThree[T any] fp.Tuple1[T]
+type NamedOneOfThree fp.Tuple1[int]
 
-func (r NamedOneOfThree[T]) Name() string {
+func (r NamedOneOfThree) Name() string {
 	return "one"
 }
-func (r NamedOneOfThree[T]) Value() T {
+func (r NamedOneOfThree) Value() int {
 	return r.I1
 }
-func (r NamedOneOfThree[T]) Tag() string {
+func (r NamedOneOfThree) Tag() string {
 	return ``
 }
-func (r NamedOneOfThree[T]) Static() bool {
+func (r NamedOneOfThree) Static() bool {
 	return true
 }
-func (r NamedOneOfThree[T]) WithValue(v T) NamedOneOfThree[T] {
+func (r NamedOneOfThree) WithValue(v int) NamedOneOfThree {
 	r.I1 = v
 	return r
 }
 
-type NamedTwoOfThree[T any] fp.Tuple1[T]
+type NamedTwoOfThree fp.Tuple1[string]
 
-func (r NamedTwoOfThree[T]) Name() string {
+func (r NamedTwoOfThree) Name() string {
 	return "two"
 }
-func (r NamedTwoOfThree[T]) Value() T {
+func (r NamedTwoOfThree) Value() string {
 	return r.I1
 }
-func (r NamedTwoOfThree[T]) Tag() string {
+func (r NamedTwoOfThree) Tag() string {
 	return ``
 }
-func (r NamedTwoOfThree[T]) Static() bool {
+func (r NamedTwoOfThree) Static() bool {
 	return true
 }
-func (r NamedTwoOfThree[T]) WithValue(v T) NamedTwoOfThree[T] {
+func (r NamedTwoOfThree) WithValue(v string) NamedTwoOfThree {
 	r.I1 = v
 	return r
 }
 
-type NamedThreeOfThree[T any] fp.Tuple1[T]
+type NamedThreeOfThree fp.Tuple1[float64]
 
-func (r NamedThreeOfThree[T]) Name() string {
+func (r NamedThreeOfThree) Name() string {
 	return "three"
 }
-func (r NamedThreeOfThree[T]) Value() T {
+func (r NamedThreeOfThree) Value() float64 {
 	return r.I1
 }
-func (r NamedThreeOfThree[T]) Tag() string {
+func (r NamedThreeOfThree) Tag() string {
 	return ``
 }
-func (r NamedThreeOfThree[T]) Static() bool {
+func (r NamedThreeOfThree) Static() bool {
 	return true
 }
-func (r NamedThreeOfThree[T]) WithValue(v T) NamedThreeOfThree[T] {
+func (r NamedThreeOfThree) WithValue(v float64) NamedThreeOfThree {
 	r.I1 = v
 	return r
 }
 
-func (r Three) AsLabelled() fp.Labelled3[NamedOneOfThree[int], NamedTwoOfThree[string], NamedThreeOfThree[float64]] {
-	return as.Labelled3(NamedOneOfThree[int]{r.one}, NamedTwoOfThree[string]{r.two}, NamedThreeOfThree[float64]{r.three})
+func (r Three) AsLabelled() fp.Labelled3[NamedOneOfThree, NamedTwoOfThree, NamedThreeOfThree] {
+	return as.Labelled3(NamedOneOfThree{r.one}, NamedTwoOfThree{r.two}, NamedThreeOfThree{r.three})
 }
 
 type ThreeBuilder Three
@@ -1814,7 +1814,7 @@ func (r ThreeBuilder) FromMap(m map[string]any) ThreeBuilder {
 	return r
 }
 
-func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NamedOneOfThree[int], NamedTwoOfThree[string], NamedThreeOfThree[float64]]) ThreeBuilder {
+func (r ThreeBuilder) FromLabelled(t fp.Labelled3[NamedOneOfThree, NamedTwoOfThree, NamedThreeOfThree]) ThreeBuilder {
 	r.one = t.I1.Value()
 	r.two = t.I2.Value()
 	r.three = t.I3.Value()

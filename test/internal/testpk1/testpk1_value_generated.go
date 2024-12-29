@@ -50,65 +50,65 @@ func (r World) AsMap() map[string]any {
 	return m
 }
 
-type NamedMessageOfWorld[T any] fp.Tuple1[T]
+type NamedMessageOfWorld fp.Tuple1[string]
 
-func (r NamedMessageOfWorld[T]) Name() string {
+func (r NamedMessageOfWorld) Name() string {
 	return "message"
 }
-func (r NamedMessageOfWorld[T]) Value() T {
+func (r NamedMessageOfWorld) Value() string {
 	return r.I1
 }
-func (r NamedMessageOfWorld[T]) Tag() string {
+func (r NamedMessageOfWorld) Tag() string {
 	return `hello:"message"`
 }
-func (r NamedMessageOfWorld[T]) Static() bool {
+func (r NamedMessageOfWorld) Static() bool {
 	return true
 }
-func (r NamedMessageOfWorld[T]) WithValue(v T) NamedMessageOfWorld[T] {
+func (r NamedMessageOfWorld) WithValue(v string) NamedMessageOfWorld {
 	r.I1 = v
 	return r
 }
 
-type NamedTimestampOfWorld[T any] fp.Tuple1[T]
+type NamedTimestampOfWorld fp.Tuple1[time.Time]
 
-func (r NamedTimestampOfWorld[T]) Name() string {
+func (r NamedTimestampOfWorld) Name() string {
 	return "timestamp"
 }
-func (r NamedTimestampOfWorld[T]) Value() T {
+func (r NamedTimestampOfWorld) Value() time.Time {
 	return r.I1
 }
-func (r NamedTimestampOfWorld[T]) Tag() string {
+func (r NamedTimestampOfWorld) Tag() string {
 	return ``
 }
-func (r NamedTimestampOfWorld[T]) Static() bool {
+func (r NamedTimestampOfWorld) Static() bool {
 	return true
 }
-func (r NamedTimestampOfWorld[T]) WithValue(v T) NamedTimestampOfWorld[T] {
+func (r NamedTimestampOfWorld) WithValue(v time.Time) NamedTimestampOfWorld {
 	r.I1 = v
 	return r
 }
 
-type PubNamedPubOfWorld[T any] fp.Tuple1[T]
+type PubNamedPubOfWorld fp.Tuple1[string]
 
-func (r PubNamedPubOfWorld[T]) Name() string {
+func (r PubNamedPubOfWorld) Name() string {
 	return "Pub"
 }
-func (r PubNamedPubOfWorld[T]) Value() T {
+func (r PubNamedPubOfWorld) Value() string {
 	return r.I1
 }
-func (r PubNamedPubOfWorld[T]) Tag() string {
+func (r PubNamedPubOfWorld) Tag() string {
 	return ``
 }
-func (r PubNamedPubOfWorld[T]) Static() bool {
+func (r PubNamedPubOfWorld) Static() bool {
 	return true
 }
-func (r PubNamedPubOfWorld[T]) WithValue(v T) PubNamedPubOfWorld[T] {
+func (r PubNamedPubOfWorld) WithValue(v string) PubNamedPubOfWorld {
 	r.I1 = v
 	return r
 }
 
-func (r World) AsLabelled() fp.Labelled3[NamedMessageOfWorld[string], NamedTimestampOfWorld[time.Time], PubNamedPubOfWorld[string]] {
-	return as.Labelled3(NamedMessageOfWorld[string]{r.message}, NamedTimestampOfWorld[time.Time]{r.timestamp}, PubNamedPubOfWorld[string]{r.Pub})
+func (r World) AsLabelled() fp.Labelled3[NamedMessageOfWorld, NamedTimestampOfWorld, PubNamedPubOfWorld] {
+	return as.Labelled3(NamedMessageOfWorld{r.message}, NamedTimestampOfWorld{r.timestamp}, PubNamedPubOfWorld{r.Pub})
 }
 
 func (r World) MarshalJSON() ([]byte, error) {
@@ -179,7 +179,7 @@ func (r WorldBuilder) FromMap(m map[string]any) WorldBuilder {
 	return r
 }
 
-func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessageOfWorld[string], NamedTimestampOfWorld[time.Time], PubNamedPubOfWorld[string]]) WorldBuilder {
+func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessageOfWorld, NamedTimestampOfWorld, PubNamedPubOfWorld]) WorldBuilder {
 	r.message = t.I1.Value()
 	r.timestamp = t.I2.Value()
 	r.Pub = t.I3.Value()
@@ -278,84 +278,84 @@ func (r HasOption) AsMap() map[string]any {
 	return m
 }
 
-type NamedMessageOfHasOption[T any] fp.Tuple1[T]
+type NamedMessageOfHasOption fp.Tuple1[string]
 
-func (r NamedMessageOfHasOption[T]) Name() string {
+func (r NamedMessageOfHasOption) Name() string {
 	return "message"
 }
-func (r NamedMessageOfHasOption[T]) Value() T {
+func (r NamedMessageOfHasOption) Value() string {
 	return r.I1
 }
-func (r NamedMessageOfHasOption[T]) Tag() string {
+func (r NamedMessageOfHasOption) Tag() string {
 	return ``
 }
-func (r NamedMessageOfHasOption[T]) Static() bool {
+func (r NamedMessageOfHasOption) Static() bool {
 	return true
 }
-func (r NamedMessageOfHasOption[T]) WithValue(v T) NamedMessageOfHasOption[T] {
+func (r NamedMessageOfHasOption) WithValue(v string) NamedMessageOfHasOption {
 	r.I1 = v
 	return r
 }
 
-type NamedAddrOfHasOption[T any] fp.Tuple1[T]
+type NamedAddrOfHasOption fp.Tuple1[fp.Option[string]]
 
-func (r NamedAddrOfHasOption[T]) Name() string {
+func (r NamedAddrOfHasOption) Name() string {
 	return "addr"
 }
-func (r NamedAddrOfHasOption[T]) Value() T {
+func (r NamedAddrOfHasOption) Value() fp.Option[string] {
 	return r.I1
 }
-func (r NamedAddrOfHasOption[T]) Tag() string {
+func (r NamedAddrOfHasOption) Tag() string {
 	return ``
 }
-func (r NamedAddrOfHasOption[T]) Static() bool {
+func (r NamedAddrOfHasOption) Static() bool {
 	return true
 }
-func (r NamedAddrOfHasOption[T]) WithValue(v T) NamedAddrOfHasOption[T] {
+func (r NamedAddrOfHasOption) WithValue(v fp.Option[string]) NamedAddrOfHasOption {
 	r.I1 = v
 	return r
 }
 
-type NamedPhoneOfHasOption[T any] fp.Tuple1[T]
+type NamedPhoneOfHasOption fp.Tuple1[[]string]
 
-func (r NamedPhoneOfHasOption[T]) Name() string {
+func (r NamedPhoneOfHasOption) Name() string {
 	return "phone"
 }
-func (r NamedPhoneOfHasOption[T]) Value() T {
+func (r NamedPhoneOfHasOption) Value() []string {
 	return r.I1
 }
-func (r NamedPhoneOfHasOption[T]) Tag() string {
+func (r NamedPhoneOfHasOption) Tag() string {
 	return ``
 }
-func (r NamedPhoneOfHasOption[T]) Static() bool {
+func (r NamedPhoneOfHasOption) Static() bool {
 	return true
 }
-func (r NamedPhoneOfHasOption[T]) WithValue(v T) NamedPhoneOfHasOption[T] {
+func (r NamedPhoneOfHasOption) WithValue(v []string) NamedPhoneOfHasOption {
 	r.I1 = v
 	return r
 }
 
-type NamedEmptySeqOfHasOption[T any] fp.Tuple1[T]
+type NamedEmptySeqOfHasOption fp.Tuple1[[]int]
 
-func (r NamedEmptySeqOfHasOption[T]) Name() string {
+func (r NamedEmptySeqOfHasOption) Name() string {
 	return "emptySeq"
 }
-func (r NamedEmptySeqOfHasOption[T]) Value() T {
+func (r NamedEmptySeqOfHasOption) Value() []int {
 	return r.I1
 }
-func (r NamedEmptySeqOfHasOption[T]) Tag() string {
+func (r NamedEmptySeqOfHasOption) Tag() string {
 	return ``
 }
-func (r NamedEmptySeqOfHasOption[T]) Static() bool {
+func (r NamedEmptySeqOfHasOption) Static() bool {
 	return true
 }
-func (r NamedEmptySeqOfHasOption[T]) WithValue(v T) NamedEmptySeqOfHasOption[T] {
+func (r NamedEmptySeqOfHasOption) WithValue(v []int) NamedEmptySeqOfHasOption {
 	r.I1 = v
 	return r
 }
 
-func (r HasOption) AsLabelled() fp.Labelled4[NamedMessageOfHasOption[string], NamedAddrOfHasOption[fp.Option[string]], NamedPhoneOfHasOption[[]string], NamedEmptySeqOfHasOption[[]int]] {
-	return as.Labelled4(NamedMessageOfHasOption[string]{r.message}, NamedAddrOfHasOption[fp.Option[string]]{r.addr}, NamedPhoneOfHasOption[[]string]{r.phone}, NamedEmptySeqOfHasOption[[]int]{r.emptySeq})
+func (r HasOption) AsLabelled() fp.Labelled4[NamedMessageOfHasOption, NamedAddrOfHasOption, NamedPhoneOfHasOption, NamedEmptySeqOfHasOption] {
+	return as.Labelled4(NamedMessageOfHasOption{r.message}, NamedAddrOfHasOption{r.addr}, NamedPhoneOfHasOption{r.phone}, NamedEmptySeqOfHasOption{r.emptySeq})
 }
 
 type HasOptionBuilder HasOption
@@ -437,7 +437,7 @@ func (r HasOptionBuilder) FromMap(m map[string]any) HasOptionBuilder {
 	return r
 }
 
-func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NamedMessageOfHasOption[string], NamedAddrOfHasOption[fp.Option[string]], NamedPhoneOfHasOption[[]string], NamedEmptySeqOfHasOption[[]int]]) HasOptionBuilder {
+func (r HasOptionBuilder) FromLabelled(t fp.Labelled4[NamedMessageOfHasOption, NamedAddrOfHasOption, NamedPhoneOfHasOption, NamedEmptySeqOfHasOption]) HasOptionBuilder {
 	r.message = t.I1.Value()
 	r.addr = t.I2.Value()
 	r.phone = t.I3.Value()
@@ -1875,572 +1875,572 @@ func (r Over21) AsMap() map[string]any {
 	return m
 }
 
-type NamedI1OfOver21[T any] fp.Tuple1[T]
+type NamedI1OfOver21 fp.Tuple1[int]
 
-func (r NamedI1OfOver21[T]) Name() string {
+func (r NamedI1OfOver21) Name() string {
 	return "i1"
 }
-func (r NamedI1OfOver21[T]) Value() T {
+func (r NamedI1OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI1OfOver21[T]) Tag() string {
+func (r NamedI1OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI1OfOver21[T]) Static() bool {
+func (r NamedI1OfOver21) Static() bool {
 	return true
 }
-func (r NamedI1OfOver21[T]) WithValue(v T) NamedI1OfOver21[T] {
+func (r NamedI1OfOver21) WithValue(v int) NamedI1OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI2OfOver21[T any] fp.Tuple1[T]
+type NamedI2OfOver21 fp.Tuple1[int]
 
-func (r NamedI2OfOver21[T]) Name() string {
+func (r NamedI2OfOver21) Name() string {
 	return "i2"
 }
-func (r NamedI2OfOver21[T]) Value() T {
+func (r NamedI2OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI2OfOver21[T]) Tag() string {
+func (r NamedI2OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI2OfOver21[T]) Static() bool {
+func (r NamedI2OfOver21) Static() bool {
 	return true
 }
-func (r NamedI2OfOver21[T]) WithValue(v T) NamedI2OfOver21[T] {
+func (r NamedI2OfOver21) WithValue(v int) NamedI2OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI3OfOver21[T any] fp.Tuple1[T]
+type NamedI3OfOver21 fp.Tuple1[int]
 
-func (r NamedI3OfOver21[T]) Name() string {
+func (r NamedI3OfOver21) Name() string {
 	return "i3"
 }
-func (r NamedI3OfOver21[T]) Value() T {
+func (r NamedI3OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI3OfOver21[T]) Tag() string {
+func (r NamedI3OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI3OfOver21[T]) Static() bool {
+func (r NamedI3OfOver21) Static() bool {
 	return true
 }
-func (r NamedI3OfOver21[T]) WithValue(v T) NamedI3OfOver21[T] {
+func (r NamedI3OfOver21) WithValue(v int) NamedI3OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI4OfOver21[T any] fp.Tuple1[T]
+type NamedI4OfOver21 fp.Tuple1[int]
 
-func (r NamedI4OfOver21[T]) Name() string {
+func (r NamedI4OfOver21) Name() string {
 	return "i4"
 }
-func (r NamedI4OfOver21[T]) Value() T {
+func (r NamedI4OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI4OfOver21[T]) Tag() string {
+func (r NamedI4OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI4OfOver21[T]) Static() bool {
+func (r NamedI4OfOver21) Static() bool {
 	return true
 }
-func (r NamedI4OfOver21[T]) WithValue(v T) NamedI4OfOver21[T] {
+func (r NamedI4OfOver21) WithValue(v int) NamedI4OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI5OfOver21[T any] fp.Tuple1[T]
+type NamedI5OfOver21 fp.Tuple1[int]
 
-func (r NamedI5OfOver21[T]) Name() string {
+func (r NamedI5OfOver21) Name() string {
 	return "i5"
 }
-func (r NamedI5OfOver21[T]) Value() T {
+func (r NamedI5OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI5OfOver21[T]) Tag() string {
+func (r NamedI5OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI5OfOver21[T]) Static() bool {
+func (r NamedI5OfOver21) Static() bool {
 	return true
 }
-func (r NamedI5OfOver21[T]) WithValue(v T) NamedI5OfOver21[T] {
+func (r NamedI5OfOver21) WithValue(v int) NamedI5OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI6OfOver21[T any] fp.Tuple1[T]
+type NamedI6OfOver21 fp.Tuple1[int]
 
-func (r NamedI6OfOver21[T]) Name() string {
+func (r NamedI6OfOver21) Name() string {
 	return "i6"
 }
-func (r NamedI6OfOver21[T]) Value() T {
+func (r NamedI6OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI6OfOver21[T]) Tag() string {
+func (r NamedI6OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI6OfOver21[T]) Static() bool {
+func (r NamedI6OfOver21) Static() bool {
 	return true
 }
-func (r NamedI6OfOver21[T]) WithValue(v T) NamedI6OfOver21[T] {
+func (r NamedI6OfOver21) WithValue(v int) NamedI6OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI7OfOver21[T any] fp.Tuple1[T]
+type NamedI7OfOver21 fp.Tuple1[int]
 
-func (r NamedI7OfOver21[T]) Name() string {
+func (r NamedI7OfOver21) Name() string {
 	return "i7"
 }
-func (r NamedI7OfOver21[T]) Value() T {
+func (r NamedI7OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI7OfOver21[T]) Tag() string {
+func (r NamedI7OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI7OfOver21[T]) Static() bool {
+func (r NamedI7OfOver21) Static() bool {
 	return true
 }
-func (r NamedI7OfOver21[T]) WithValue(v T) NamedI7OfOver21[T] {
+func (r NamedI7OfOver21) WithValue(v int) NamedI7OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI8OfOver21[T any] fp.Tuple1[T]
+type NamedI8OfOver21 fp.Tuple1[int]
 
-func (r NamedI8OfOver21[T]) Name() string {
+func (r NamedI8OfOver21) Name() string {
 	return "i8"
 }
-func (r NamedI8OfOver21[T]) Value() T {
+func (r NamedI8OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI8OfOver21[T]) Tag() string {
+func (r NamedI8OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI8OfOver21[T]) Static() bool {
+func (r NamedI8OfOver21) Static() bool {
 	return true
 }
-func (r NamedI8OfOver21[T]) WithValue(v T) NamedI8OfOver21[T] {
+func (r NamedI8OfOver21) WithValue(v int) NamedI8OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI9OfOver21[T any] fp.Tuple1[T]
+type NamedI9OfOver21 fp.Tuple1[int]
 
-func (r NamedI9OfOver21[T]) Name() string {
+func (r NamedI9OfOver21) Name() string {
 	return "i9"
 }
-func (r NamedI9OfOver21[T]) Value() T {
+func (r NamedI9OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI9OfOver21[T]) Tag() string {
+func (r NamedI9OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI9OfOver21[T]) Static() bool {
+func (r NamedI9OfOver21) Static() bool {
 	return true
 }
-func (r NamedI9OfOver21[T]) WithValue(v T) NamedI9OfOver21[T] {
+func (r NamedI9OfOver21) WithValue(v int) NamedI9OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI10OfOver21[T any] fp.Tuple1[T]
+type NamedI10OfOver21 fp.Tuple1[int]
 
-func (r NamedI10OfOver21[T]) Name() string {
+func (r NamedI10OfOver21) Name() string {
 	return "i10"
 }
-func (r NamedI10OfOver21[T]) Value() T {
+func (r NamedI10OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI10OfOver21[T]) Tag() string {
+func (r NamedI10OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI10OfOver21[T]) Static() bool {
+func (r NamedI10OfOver21) Static() bool {
 	return true
 }
-func (r NamedI10OfOver21[T]) WithValue(v T) NamedI10OfOver21[T] {
+func (r NamedI10OfOver21) WithValue(v int) NamedI10OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI11OfOver21[T any] fp.Tuple1[T]
+type NamedI11OfOver21 fp.Tuple1[int]
 
-func (r NamedI11OfOver21[T]) Name() string {
+func (r NamedI11OfOver21) Name() string {
 	return "i11"
 }
-func (r NamedI11OfOver21[T]) Value() T {
+func (r NamedI11OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI11OfOver21[T]) Tag() string {
+func (r NamedI11OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI11OfOver21[T]) Static() bool {
+func (r NamedI11OfOver21) Static() bool {
 	return true
 }
-func (r NamedI11OfOver21[T]) WithValue(v T) NamedI11OfOver21[T] {
+func (r NamedI11OfOver21) WithValue(v int) NamedI11OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI12OfOver21[T any] fp.Tuple1[T]
+type NamedI12OfOver21 fp.Tuple1[int]
 
-func (r NamedI12OfOver21[T]) Name() string {
+func (r NamedI12OfOver21) Name() string {
 	return "i12"
 }
-func (r NamedI12OfOver21[T]) Value() T {
+func (r NamedI12OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI12OfOver21[T]) Tag() string {
+func (r NamedI12OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI12OfOver21[T]) Static() bool {
+func (r NamedI12OfOver21) Static() bool {
 	return true
 }
-func (r NamedI12OfOver21[T]) WithValue(v T) NamedI12OfOver21[T] {
+func (r NamedI12OfOver21) WithValue(v int) NamedI12OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI13OfOver21[T any] fp.Tuple1[T]
+type NamedI13OfOver21 fp.Tuple1[int]
 
-func (r NamedI13OfOver21[T]) Name() string {
+func (r NamedI13OfOver21) Name() string {
 	return "i13"
 }
-func (r NamedI13OfOver21[T]) Value() T {
+func (r NamedI13OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI13OfOver21[T]) Tag() string {
+func (r NamedI13OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI13OfOver21[T]) Static() bool {
+func (r NamedI13OfOver21) Static() bool {
 	return true
 }
-func (r NamedI13OfOver21[T]) WithValue(v T) NamedI13OfOver21[T] {
+func (r NamedI13OfOver21) WithValue(v int) NamedI13OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI14OfOver21[T any] fp.Tuple1[T]
+type NamedI14OfOver21 fp.Tuple1[int]
 
-func (r NamedI14OfOver21[T]) Name() string {
+func (r NamedI14OfOver21) Name() string {
 	return "i14"
 }
-func (r NamedI14OfOver21[T]) Value() T {
+func (r NamedI14OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI14OfOver21[T]) Tag() string {
+func (r NamedI14OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI14OfOver21[T]) Static() bool {
+func (r NamedI14OfOver21) Static() bool {
 	return true
 }
-func (r NamedI14OfOver21[T]) WithValue(v T) NamedI14OfOver21[T] {
+func (r NamedI14OfOver21) WithValue(v int) NamedI14OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI15OfOver21[T any] fp.Tuple1[T]
+type NamedI15OfOver21 fp.Tuple1[int]
 
-func (r NamedI15OfOver21[T]) Name() string {
+func (r NamedI15OfOver21) Name() string {
 	return "i15"
 }
-func (r NamedI15OfOver21[T]) Value() T {
+func (r NamedI15OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI15OfOver21[T]) Tag() string {
+func (r NamedI15OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI15OfOver21[T]) Static() bool {
+func (r NamedI15OfOver21) Static() bool {
 	return true
 }
-func (r NamedI15OfOver21[T]) WithValue(v T) NamedI15OfOver21[T] {
+func (r NamedI15OfOver21) WithValue(v int) NamedI15OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI16OfOver21[T any] fp.Tuple1[T]
+type NamedI16OfOver21 fp.Tuple1[int]
 
-func (r NamedI16OfOver21[T]) Name() string {
+func (r NamedI16OfOver21) Name() string {
 	return "i16"
 }
-func (r NamedI16OfOver21[T]) Value() T {
+func (r NamedI16OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI16OfOver21[T]) Tag() string {
+func (r NamedI16OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI16OfOver21[T]) Static() bool {
+func (r NamedI16OfOver21) Static() bool {
 	return true
 }
-func (r NamedI16OfOver21[T]) WithValue(v T) NamedI16OfOver21[T] {
+func (r NamedI16OfOver21) WithValue(v int) NamedI16OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI17OfOver21[T any] fp.Tuple1[T]
+type NamedI17OfOver21 fp.Tuple1[int]
 
-func (r NamedI17OfOver21[T]) Name() string {
+func (r NamedI17OfOver21) Name() string {
 	return "i17"
 }
-func (r NamedI17OfOver21[T]) Value() T {
+func (r NamedI17OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI17OfOver21[T]) Tag() string {
+func (r NamedI17OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI17OfOver21[T]) Static() bool {
+func (r NamedI17OfOver21) Static() bool {
 	return true
 }
-func (r NamedI17OfOver21[T]) WithValue(v T) NamedI17OfOver21[T] {
+func (r NamedI17OfOver21) WithValue(v int) NamedI17OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI18OfOver21[T any] fp.Tuple1[T]
+type NamedI18OfOver21 fp.Tuple1[int]
 
-func (r NamedI18OfOver21[T]) Name() string {
+func (r NamedI18OfOver21) Name() string {
 	return "i18"
 }
-func (r NamedI18OfOver21[T]) Value() T {
+func (r NamedI18OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI18OfOver21[T]) Tag() string {
+func (r NamedI18OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI18OfOver21[T]) Static() bool {
+func (r NamedI18OfOver21) Static() bool {
 	return true
 }
-func (r NamedI18OfOver21[T]) WithValue(v T) NamedI18OfOver21[T] {
+func (r NamedI18OfOver21) WithValue(v int) NamedI18OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI19OfOver21[T any] fp.Tuple1[T]
+type NamedI19OfOver21 fp.Tuple1[int]
 
-func (r NamedI19OfOver21[T]) Name() string {
+func (r NamedI19OfOver21) Name() string {
 	return "i19"
 }
-func (r NamedI19OfOver21[T]) Value() T {
+func (r NamedI19OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI19OfOver21[T]) Tag() string {
+func (r NamedI19OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI19OfOver21[T]) Static() bool {
+func (r NamedI19OfOver21) Static() bool {
 	return true
 }
-func (r NamedI19OfOver21[T]) WithValue(v T) NamedI19OfOver21[T] {
+func (r NamedI19OfOver21) WithValue(v int) NamedI19OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI20OfOver21[T any] fp.Tuple1[T]
+type NamedI20OfOver21 fp.Tuple1[int]
 
-func (r NamedI20OfOver21[T]) Name() string {
+func (r NamedI20OfOver21) Name() string {
 	return "i20"
 }
-func (r NamedI20OfOver21[T]) Value() T {
+func (r NamedI20OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI20OfOver21[T]) Tag() string {
+func (r NamedI20OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI20OfOver21[T]) Static() bool {
+func (r NamedI20OfOver21) Static() bool {
 	return true
 }
-func (r NamedI20OfOver21[T]) WithValue(v T) NamedI20OfOver21[T] {
+func (r NamedI20OfOver21) WithValue(v int) NamedI20OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI21OfOver21[T any] fp.Tuple1[T]
+type NamedI21OfOver21 fp.Tuple1[int]
 
-func (r NamedI21OfOver21[T]) Name() string {
+func (r NamedI21OfOver21) Name() string {
 	return "i21"
 }
-func (r NamedI21OfOver21[T]) Value() T {
+func (r NamedI21OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI21OfOver21[T]) Tag() string {
+func (r NamedI21OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI21OfOver21[T]) Static() bool {
+func (r NamedI21OfOver21) Static() bool {
 	return true
 }
-func (r NamedI21OfOver21[T]) WithValue(v T) NamedI21OfOver21[T] {
+func (r NamedI21OfOver21) WithValue(v int) NamedI21OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI22OfOver21[T any] fp.Tuple1[T]
+type NamedI22OfOver21 fp.Tuple1[int]
 
-func (r NamedI22OfOver21[T]) Name() string {
+func (r NamedI22OfOver21) Name() string {
 	return "i22"
 }
-func (r NamedI22OfOver21[T]) Value() T {
+func (r NamedI22OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI22OfOver21[T]) Tag() string {
+func (r NamedI22OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI22OfOver21[T]) Static() bool {
+func (r NamedI22OfOver21) Static() bool {
 	return true
 }
-func (r NamedI22OfOver21[T]) WithValue(v T) NamedI22OfOver21[T] {
+func (r NamedI22OfOver21) WithValue(v int) NamedI22OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI23OfOver21[T any] fp.Tuple1[T]
+type NamedI23OfOver21 fp.Tuple1[int]
 
-func (r NamedI23OfOver21[T]) Name() string {
+func (r NamedI23OfOver21) Name() string {
 	return "i23"
 }
-func (r NamedI23OfOver21[T]) Value() T {
+func (r NamedI23OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI23OfOver21[T]) Tag() string {
+func (r NamedI23OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI23OfOver21[T]) Static() bool {
+func (r NamedI23OfOver21) Static() bool {
 	return true
 }
-func (r NamedI23OfOver21[T]) WithValue(v T) NamedI23OfOver21[T] {
+func (r NamedI23OfOver21) WithValue(v int) NamedI23OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI24OfOver21[T any] fp.Tuple1[T]
+type NamedI24OfOver21 fp.Tuple1[int]
 
-func (r NamedI24OfOver21[T]) Name() string {
+func (r NamedI24OfOver21) Name() string {
 	return "i24"
 }
-func (r NamedI24OfOver21[T]) Value() T {
+func (r NamedI24OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI24OfOver21[T]) Tag() string {
+func (r NamedI24OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI24OfOver21[T]) Static() bool {
+func (r NamedI24OfOver21) Static() bool {
 	return true
 }
-func (r NamedI24OfOver21[T]) WithValue(v T) NamedI24OfOver21[T] {
+func (r NamedI24OfOver21) WithValue(v int) NamedI24OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI25OfOver21[T any] fp.Tuple1[T]
+type NamedI25OfOver21 fp.Tuple1[int]
 
-func (r NamedI25OfOver21[T]) Name() string {
+func (r NamedI25OfOver21) Name() string {
 	return "i25"
 }
-func (r NamedI25OfOver21[T]) Value() T {
+func (r NamedI25OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI25OfOver21[T]) Tag() string {
+func (r NamedI25OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI25OfOver21[T]) Static() bool {
+func (r NamedI25OfOver21) Static() bool {
 	return true
 }
-func (r NamedI25OfOver21[T]) WithValue(v T) NamedI25OfOver21[T] {
+func (r NamedI25OfOver21) WithValue(v int) NamedI25OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI26OfOver21[T any] fp.Tuple1[T]
+type NamedI26OfOver21 fp.Tuple1[int]
 
-func (r NamedI26OfOver21[T]) Name() string {
+func (r NamedI26OfOver21) Name() string {
 	return "i26"
 }
-func (r NamedI26OfOver21[T]) Value() T {
+func (r NamedI26OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI26OfOver21[T]) Tag() string {
+func (r NamedI26OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI26OfOver21[T]) Static() bool {
+func (r NamedI26OfOver21) Static() bool {
 	return true
 }
-func (r NamedI26OfOver21[T]) WithValue(v T) NamedI26OfOver21[T] {
+func (r NamedI26OfOver21) WithValue(v int) NamedI26OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI27OfOver21[T any] fp.Tuple1[T]
+type NamedI27OfOver21 fp.Tuple1[int]
 
-func (r NamedI27OfOver21[T]) Name() string {
+func (r NamedI27OfOver21) Name() string {
 	return "i27"
 }
-func (r NamedI27OfOver21[T]) Value() T {
+func (r NamedI27OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI27OfOver21[T]) Tag() string {
+func (r NamedI27OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI27OfOver21[T]) Static() bool {
+func (r NamedI27OfOver21) Static() bool {
 	return true
 }
-func (r NamedI27OfOver21[T]) WithValue(v T) NamedI27OfOver21[T] {
+func (r NamedI27OfOver21) WithValue(v int) NamedI27OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI28OfOver21[T any] fp.Tuple1[T]
+type NamedI28OfOver21 fp.Tuple1[int]
 
-func (r NamedI28OfOver21[T]) Name() string {
+func (r NamedI28OfOver21) Name() string {
 	return "i28"
 }
-func (r NamedI28OfOver21[T]) Value() T {
+func (r NamedI28OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI28OfOver21[T]) Tag() string {
+func (r NamedI28OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI28OfOver21[T]) Static() bool {
+func (r NamedI28OfOver21) Static() bool {
 	return true
 }
-func (r NamedI28OfOver21[T]) WithValue(v T) NamedI28OfOver21[T] {
+func (r NamedI28OfOver21) WithValue(v int) NamedI28OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI29OfOver21[T any] fp.Tuple1[T]
+type NamedI29OfOver21 fp.Tuple1[int]
 
-func (r NamedI29OfOver21[T]) Name() string {
+func (r NamedI29OfOver21) Name() string {
 	return "i29"
 }
-func (r NamedI29OfOver21[T]) Value() T {
+func (r NamedI29OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI29OfOver21[T]) Tag() string {
+func (r NamedI29OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI29OfOver21[T]) Static() bool {
+func (r NamedI29OfOver21) Static() bool {
 	return true
 }
-func (r NamedI29OfOver21[T]) WithValue(v T) NamedI29OfOver21[T] {
+func (r NamedI29OfOver21) WithValue(v int) NamedI29OfOver21 {
 	r.I1 = v
 	return r
 }
 
-type NamedI30OfOver21[T any] fp.Tuple1[T]
+type NamedI30OfOver21 fp.Tuple1[int]
 
-func (r NamedI30OfOver21[T]) Name() string {
+func (r NamedI30OfOver21) Name() string {
 	return "i30"
 }
-func (r NamedI30OfOver21[T]) Value() T {
+func (r NamedI30OfOver21) Value() int {
 	return r.I1
 }
-func (r NamedI30OfOver21[T]) Tag() string {
+func (r NamedI30OfOver21) Tag() string {
 	return ``
 }
-func (r NamedI30OfOver21[T]) Static() bool {
+func (r NamedI30OfOver21) Static() bool {
 	return true
 }
-func (r NamedI30OfOver21[T]) WithValue(v T) NamedI30OfOver21[T] {
+func (r NamedI30OfOver21) WithValue(v int) NamedI30OfOver21 {
 	r.I1 = v
 	return r
 }
@@ -3239,5 +3239,310 @@ func (r ShowConstraint[T]) String() string {
 }
 
 func (r ShowConstraintExplicit[T]) String() string {
-	return ShowShowConstraintExplicit[T]().Show(r)
+	return fmt.Sprintf("testpk1.ShowConstraintExplicit{hello:%v, world:%v, message:%v}", r.hello, r.world, r.message)
+}
+
+func (r Car[S, T]) Company() string {
+	return r.company
+}
+
+func (r Car[S, T]) Model() string {
+	return r.model
+}
+
+func (r Car[S, T]) Year() int {
+	return r.year
+}
+
+func (r Car[S, T]) Spec() S {
+	return r.spec
+}
+
+func (r Car[S, T]) Opt() fp.Option[T] {
+	return r.opt
+}
+
+func (r Car[S, T]) WithCompany(v string) Car[S, T] {
+	r.company = v
+	return r
+}
+
+func (r Car[S, T]) WithModel(v string) Car[S, T] {
+	r.model = v
+	return r
+}
+
+func (r Car[S, T]) WithYear(v int) Car[S, T] {
+	r.year = v
+	return r
+}
+
+func (r Car[S, T]) WithSpec(v S) Car[S, T] {
+	r.spec = v
+	return r
+}
+
+func (r Car[S, T]) WithOpt(v fp.Option[T]) Car[S, T] {
+	r.opt = v
+	return r
+}
+
+func (r Car[S, T]) WithSomeOpt(v T) Car[S, T] {
+	r.opt = option.Some(v)
+	return r
+}
+
+func (r Car[S, T]) WithNoneOpt() Car[S, T] {
+	r.opt = option.None[T]()
+	return r
+}
+
+func (r Car[S, T]) String() string {
+	return fmt.Sprintf("testpk1.Car{company:%v, model:%v, year:%v, spec:%v, opt:%v}", r.company, r.model, r.year, r.spec, r.opt)
+}
+
+func (r Car[S, T]) AsTuple() fp.Tuple5[string, string, int, S, fp.Option[T]] {
+	return as.Tuple5(r.company, r.model, r.year, r.spec, r.opt)
+}
+
+func (r Car[S, T]) Unapply() (string, string, int, S, fp.Option[T]) {
+	return r.company, r.model, r.year, r.spec, r.opt
+}
+
+func (r Car[S, T]) AsMap() map[string]any {
+	m := map[string]any{}
+	m["company"] = r.company
+	m["model"] = r.model
+	m["year"] = r.year
+	m["spec"] = r.spec
+	if r.opt.IsDefined() {
+		m["opt"] = r.opt.Get()
+	}
+	return m
+}
+
+type NamedCompanyOfCar fp.Tuple1[string]
+
+func (r NamedCompanyOfCar) Name() string {
+	return "company"
+}
+func (r NamedCompanyOfCar) Value() string {
+	return r.I1
+}
+func (r NamedCompanyOfCar) Tag() string {
+	return `column:"company"`
+}
+func (r NamedCompanyOfCar) Static() bool {
+	return true
+}
+func (r NamedCompanyOfCar) WithValue(v string) NamedCompanyOfCar {
+	r.I1 = v
+	return r
+}
+
+type NamedModelOfCar fp.Tuple1[string]
+
+func (r NamedModelOfCar) Name() string {
+	return "model"
+}
+func (r NamedModelOfCar) Value() string {
+	return r.I1
+}
+func (r NamedModelOfCar) Tag() string {
+	return ``
+}
+func (r NamedModelOfCar) Static() bool {
+	return true
+}
+func (r NamedModelOfCar) WithValue(v string) NamedModelOfCar {
+	r.I1 = v
+	return r
+}
+
+type NamedYearOfCar fp.Tuple1[int]
+
+func (r NamedYearOfCar) Name() string {
+	return "year"
+}
+func (r NamedYearOfCar) Value() int {
+	return r.I1
+}
+func (r NamedYearOfCar) Tag() string {
+	return ``
+}
+func (r NamedYearOfCar) Static() bool {
+	return true
+}
+func (r NamedYearOfCar) WithValue(v int) NamedYearOfCar {
+	r.I1 = v
+	return r
+}
+
+type NamedSpecOfCar[S any] fp.Tuple1[S]
+
+func (r NamedSpecOfCar[S]) Name() string {
+	return "spec"
+}
+func (r NamedSpecOfCar[S]) Value() S {
+	return r.I1
+}
+func (r NamedSpecOfCar[S]) Tag() string {
+	return ``
+}
+func (r NamedSpecOfCar[S]) Static() bool {
+	return true
+}
+func (r NamedSpecOfCar[S]) WithValue(v S) NamedSpecOfCar[S] {
+	r.I1 = v
+	return r
+}
+
+type NamedOptOfCar[T comparable] fp.Tuple1[fp.Option[T]]
+
+func (r NamedOptOfCar[T]) Name() string {
+	return "opt"
+}
+func (r NamedOptOfCar[T]) Value() fp.Option[T] {
+	return r.I1
+}
+func (r NamedOptOfCar[T]) Tag() string {
+	return ``
+}
+func (r NamedOptOfCar[T]) Static() bool {
+	return true
+}
+func (r NamedOptOfCar[T]) WithValue(v fp.Option[T]) NamedOptOfCar[T] {
+	r.I1 = v
+	return r
+}
+
+func (r Car[S, T]) AsLabelled() fp.Labelled5[NamedCompanyOfCar, NamedModelOfCar, NamedYearOfCar, NamedSpecOfCar[S], NamedOptOfCar[T]] {
+	return as.Labelled5(NamedCompanyOfCar{r.company}, NamedModelOfCar{r.model}, NamedYearOfCar{r.year}, NamedSpecOfCar[S]{r.spec}, NamedOptOfCar[T]{r.opt})
+}
+
+type CarBuilder[S any, T comparable] Car[S, T]
+
+func (r CarBuilder[S, T]) Build() Car[S, T] {
+	return Car[S, T](r)
+}
+
+func (r Car[S, T]) Builder() CarBuilder[S, T] {
+	return CarBuilder[S, T](r)
+}
+
+func (r CarBuilder[S, T]) Company(v string) CarBuilder[S, T] {
+	r.company = v
+	return r
+}
+
+func (r CarBuilder[S, T]) Model(v string) CarBuilder[S, T] {
+	r.model = v
+	return r
+}
+
+func (r CarBuilder[S, T]) Year(v int) CarBuilder[S, T] {
+	r.year = v
+	return r
+}
+
+func (r CarBuilder[S, T]) Spec(v S) CarBuilder[S, T] {
+	r.spec = v
+	return r
+}
+
+func (r CarBuilder[S, T]) Opt(v fp.Option[T]) CarBuilder[S, T] {
+	r.opt = v
+	return r
+}
+
+func (r CarBuilder[S, T]) SomeOpt(v T) CarBuilder[S, T] {
+	r.opt = option.Some(v)
+	return r
+}
+
+func (r CarBuilder[S, T]) NoneOpt() CarBuilder[S, T] {
+	r.opt = option.None[T]()
+	return r
+}
+
+func (r CarBuilder[S, T]) FromTuple(t fp.Tuple5[string, string, int, S, fp.Option[T]]) CarBuilder[S, T] {
+	r.company = t.I1
+	r.model = t.I2
+	r.year = t.I3
+	r.spec = t.I4
+	r.opt = t.I5
+	return r
+}
+
+func (r CarBuilder[S, T]) Apply(company string, model string, year int, spec S, opt fp.Option[T]) CarBuilder[S, T] {
+	r.company = company
+	r.model = model
+	r.year = year
+	r.spec = spec
+	r.opt = opt
+	return r
+}
+
+func (r CarBuilder[S, T]) FromMap(m map[string]any) CarBuilder[S, T] {
+
+	if v, ok := m["company"].(string); ok {
+		r.company = v
+	}
+
+	if v, ok := m["model"].(string); ok {
+		r.model = v
+	}
+
+	if v, ok := m["year"].(int); ok {
+		r.year = v
+	}
+
+	if v, ok := m["spec"].(S); ok {
+		r.spec = v
+	}
+
+	if v, ok := m["opt"].(fp.Option[T]); ok {
+		r.opt = v
+	} else if v, ok := m["opt"].(T); ok {
+		r.opt = option.Some(v)
+	}
+
+	return r
+}
+
+func (r CarBuilder[S, T]) FromLabelled(t fp.Labelled5[NamedCompanyOfCar, NamedModelOfCar, NamedYearOfCar, NamedSpecOfCar[S], NamedOptOfCar[T]]) CarBuilder[S, T] {
+	r.company = t.I1.Value()
+	r.model = t.I2.Value()
+	r.year = t.I3.Value()
+	r.spec = t.I4.Value()
+	r.opt = t.I5.Value()
+	return r
+}
+
+type CarMutable[S any, T comparable] struct {
+	Company string `column:"company"`
+	Model   string
+	Year    int
+	Spec    S
+	Opt     fp.Option[T]
+}
+
+func (r Car[S, T]) AsMutable() CarMutable[S, T] {
+	return CarMutable[S, T]{
+		Company: r.company,
+		Model:   r.model,
+		Year:    r.year,
+		Spec:    r.spec,
+		Opt:     r.opt,
+	}
+}
+
+func (r CarMutable[S, T]) AsImmutable() Car[S, T] {
+	return Car[S, T]{
+		company: r.Company,
+		model:   r.Model,
+		year:    r.Year,
+		spec:    r.Spec,
+		opt:     r.Opt,
+	}
 }

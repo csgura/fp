@@ -81,11 +81,11 @@ func ShowAddress() fp.Show[Address] {
 func EncoderCar() js.Encoder[Car] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedCompanyOfCar[string], string](js.EncoderString),
+			js.EncoderNamed[NamedCompanyOfCar, string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedModelOfCar[string], string](js.EncoderString),
+				js.EncoderNamed[NamedModelOfCar, string](js.EncoderString),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedYearOfCar[int], int](js.EncoderNumber[int]()),
+					js.EncoderNamed[NamedYearOfCar, int](js.EncoderNumber[int]()),
 					js.EncoderHNil,
 				),
 			),

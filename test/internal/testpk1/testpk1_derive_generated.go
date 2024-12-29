@@ -27,11 +27,11 @@ func EqWorld() fp.Eq[World] {
 func EncoderWorld() js.Encoder[World] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedMessageOfWorld[string], string](js.EncoderString),
+			js.EncoderNamed[NamedMessageOfWorld, string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedTimestampOfWorld[time.Time], time.Time](js.EncoderTime),
+				js.EncoderNamed[NamedTimestampOfWorld, time.Time](js.EncoderTime),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[PubNamedPubOfWorld[string], string](js.EncoderString),
+					js.EncoderNamed[PubNamedPubOfWorld, string](js.EncoderString),
 					js.EncoderHNil,
 				),
 			),
@@ -46,11 +46,11 @@ func EncoderWorld() js.Encoder[World] {
 func DecoderWorld() js.Decoder[World] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedMessageOfWorld[string], string](js.DecoderString),
+			js.DecoderNamed[NamedMessageOfWorld, string](js.DecoderString),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedTimestampOfWorld[time.Time], time.Time](js.DecoderTime),
+				js.DecoderNamed[NamedTimestampOfWorld, time.Time](js.DecoderTime),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[PubNamedPubOfWorld[string], string](js.DecoderString),
+					js.DecoderNamed[PubNamedPubOfWorld, string](js.DecoderString),
 					js.DecoderHNil,
 				),
 			),
@@ -100,13 +100,13 @@ func ShowWorld() fp.Show[World] {
 func EncoderHasOption() js.Encoder[HasOption] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedMessageOfHasOption[string], string](js.EncoderString),
+			js.EncoderNamed[NamedMessageOfHasOption, string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedAddrOfHasOption[fp.Option[string]], fp.Option[string]](js.EncoderOption(js.EncoderString)),
+				js.EncoderNamed[NamedAddrOfHasOption, fp.Option[string]](js.EncoderOption(js.EncoderString)),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedPhoneOfHasOption[[]string], []string](js.EncoderSlice(js.EncoderString)),
+					js.EncoderNamed[NamedPhoneOfHasOption, []string](js.EncoderSlice(js.EncoderString)),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NamedEmptySeqOfHasOption[[]int], []int](js.EncoderSlice(js.EncoderNumber[int]())),
+						js.EncoderNamed[NamedEmptySeqOfHasOption, []int](js.EncoderSlice(js.EncoderNumber[int]())),
 						js.EncoderHNil,
 					),
 				),
@@ -1358,6 +1358,31 @@ func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint
 					show.HNil,
 				),
 			),
+		),
+	)
+}
+
+func EncoderCar[S any, T comparable](encoderT js.Encoder[T]) js.Encoder[Car[S, T]] {
+	return js.EncoderContraMap(
+		js.EncoderHConsLabelled(
+			js.EncoderNamed[NamedCompanyOfCar, string](js.EncoderString),
+			js.EncoderHConsLabelled(
+				js.EncoderNamed[NamedModelOfCar, string](js.EncoderString),
+				js.EncoderHConsLabelled(
+					js.EncoderNamed[NamedYearOfCar, int](js.EncoderNumber[int]()),
+					js.EncoderHConsLabelled(
+						js.EncoderGiven[NamedSpecOfCar[S]](),
+						js.EncoderHConsLabelled(
+							js.EncoderNamed[NamedOptOfCar[T], fp.Option[T]](js.EncoderOption(encoderT)),
+							js.EncoderHNil,
+						),
+					),
+				),
+			),
+		),
+		fp.Compose(
+			Car[S, T].AsLabelled,
+			as.HList5Labelled,
 		),
 	)
 }

@@ -64,84 +64,84 @@ func (r NgapValue) AsMap() map[string]any {
 	return m
 }
 
-type NamedPresentOfNgapValue[T any] fp.Tuple1[T]
+type NamedPresentOfNgapValue fp.Tuple1[int]
 
-func (r NamedPresentOfNgapValue[T]) Name() string {
+func (r NamedPresentOfNgapValue) Name() string {
 	return "present"
 }
-func (r NamedPresentOfNgapValue[T]) Value() T {
+func (r NamedPresentOfNgapValue) Value() int {
 	return r.I1
 }
-func (r NamedPresentOfNgapValue[T]) Tag() string {
+func (r NamedPresentOfNgapValue) Tag() string {
 	return ``
 }
-func (r NamedPresentOfNgapValue[T]) Static() bool {
+func (r NamedPresentOfNgapValue) Static() bool {
 	return true
 }
-func (r NamedPresentOfNgapValue[T]) WithValue(v T) NamedPresentOfNgapValue[T] {
+func (r NamedPresentOfNgapValue) WithValue(v int) NamedPresentOfNgapValue {
 	r.I1 = v
 	return r
 }
 
-type NamedFirstOfNgapValue[T any] fp.Tuple1[T]
+type NamedFirstOfNgapValue fp.Tuple1[*int]
 
-func (r NamedFirstOfNgapValue[T]) Name() string {
+func (r NamedFirstOfNgapValue) Name() string {
 	return "first"
 }
-func (r NamedFirstOfNgapValue[T]) Value() T {
+func (r NamedFirstOfNgapValue) Value() *int {
 	return r.I1
 }
-func (r NamedFirstOfNgapValue[T]) Tag() string {
+func (r NamedFirstOfNgapValue) Tag() string {
 	return `aper:"id=20"`
 }
-func (r NamedFirstOfNgapValue[T]) Static() bool {
+func (r NamedFirstOfNgapValue) Static() bool {
 	return true
 }
-func (r NamedFirstOfNgapValue[T]) WithValue(v T) NamedFirstOfNgapValue[T] {
+func (r NamedFirstOfNgapValue) WithValue(v *int) NamedFirstOfNgapValue {
 	r.I1 = v
 	return r
 }
 
-type NamedSecondOfNgapValue[T any] fp.Tuple1[T]
+type NamedSecondOfNgapValue fp.Tuple1[*string]
 
-func (r NamedSecondOfNgapValue[T]) Name() string {
+func (r NamedSecondOfNgapValue) Name() string {
 	return "second"
 }
-func (r NamedSecondOfNgapValue[T]) Value() T {
+func (r NamedSecondOfNgapValue) Value() *string {
 	return r.I1
 }
-func (r NamedSecondOfNgapValue[T]) Tag() string {
+func (r NamedSecondOfNgapValue) Tag() string {
 	return `aper:"id=30"`
 }
-func (r NamedSecondOfNgapValue[T]) Static() bool {
+func (r NamedSecondOfNgapValue) Static() bool {
 	return true
 }
-func (r NamedSecondOfNgapValue[T]) WithValue(v T) NamedSecondOfNgapValue[T] {
+func (r NamedSecondOfNgapValue) WithValue(v *string) NamedSecondOfNgapValue {
 	r.I1 = v
 	return r
 }
 
-type NamedThirdOfNgapValue[T any] fp.Tuple1[T]
+type NamedThirdOfNgapValue fp.Tuple1[*float64]
 
-func (r NamedThirdOfNgapValue[T]) Name() string {
+func (r NamedThirdOfNgapValue) Name() string {
 	return "third"
 }
-func (r NamedThirdOfNgapValue[T]) Value() T {
+func (r NamedThirdOfNgapValue) Value() *float64 {
 	return r.I1
 }
-func (r NamedThirdOfNgapValue[T]) Tag() string {
+func (r NamedThirdOfNgapValue) Tag() string {
 	return `aper:"id=40"`
 }
-func (r NamedThirdOfNgapValue[T]) Static() bool {
+func (r NamedThirdOfNgapValue) Static() bool {
 	return true
 }
-func (r NamedThirdOfNgapValue[T]) WithValue(v T) NamedThirdOfNgapValue[T] {
+func (r NamedThirdOfNgapValue) WithValue(v *float64) NamedThirdOfNgapValue {
 	r.I1 = v
 	return r
 }
 
-func (r NgapValue) AsLabelled() fp.Labelled4[NamedPresentOfNgapValue[int], NamedFirstOfNgapValue[*int], NamedSecondOfNgapValue[*string], NamedThirdOfNgapValue[*float64]] {
-	return as.Labelled4(NamedPresentOfNgapValue[int]{r.present}, NamedFirstOfNgapValue[*int]{r.first}, NamedSecondOfNgapValue[*string]{r.second}, NamedThirdOfNgapValue[*float64]{r.third})
+func (r NgapValue) AsLabelled() fp.Labelled4[NamedPresentOfNgapValue, NamedFirstOfNgapValue, NamedSecondOfNgapValue, NamedThirdOfNgapValue] {
+	return as.Labelled4(NamedPresentOfNgapValue{r.present}, NamedFirstOfNgapValue{r.first}, NamedSecondOfNgapValue{r.second}, NamedThirdOfNgapValue{r.third})
 }
 
 type NgapValueBuilder NgapValue
@@ -211,7 +211,7 @@ func (r NgapValueBuilder) FromMap(m map[string]any) NgapValueBuilder {
 	return r
 }
 
-func (r NgapValueBuilder) FromLabelled(t fp.Labelled4[NamedPresentOfNgapValue[int], NamedFirstOfNgapValue[*int], NamedSecondOfNgapValue[*string], NamedThirdOfNgapValue[*float64]]) NgapValueBuilder {
+func (r NgapValueBuilder) FromLabelled(t fp.Labelled4[NamedPresentOfNgapValue, NamedFirstOfNgapValue, NamedSecondOfNgapValue, NamedThirdOfNgapValue]) NgapValueBuilder {
 	r.present = t.I1.Value()
 	r.first = t.I2.Value()
 	r.second = t.I3.Value()

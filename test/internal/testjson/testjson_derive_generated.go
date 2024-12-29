@@ -12,23 +12,23 @@ import (
 func EncoderRoot() js.Encoder[Root] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedAOfRoot[int], int](js.EncoderNumber[int]()),
+			js.EncoderNamed[NamedAOfRoot, int](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedBOfRoot[string], string](js.EncoderString),
+				js.EncoderNamed[NamedBOfRoot, string](js.EncoderString),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedCOfRoot[float64], float64](js.EncoderNumber[float64]()),
+					js.EncoderNamed[NamedCOfRoot, float64](js.EncoderNumber[float64]()),
 					js.EncoderHConsLabelled(
-						js.EncoderNamed[NamedDOfRoot[bool], bool](js.EncoderBool),
+						js.EncoderNamed[NamedDOfRoot, bool](js.EncoderBool),
 						js.EncoderHConsLabelled(
-							js.EncoderNamed[NamedEOfRoot[*int], *int](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
+							js.EncoderNamed[NamedEOfRoot, *int](js.EncoderPtr(lazy.Call(func() js.Encoder[int] {
 								return js.EncoderNumber[int]()
 							}))),
 							js.EncoderHConsLabelled(
-								js.EncoderNamed[NamedFOfRoot[[]int], []int](js.EncoderSlice(js.EncoderNumber[int]())),
+								js.EncoderNamed[NamedFOfRoot, []int](js.EncoderSlice(js.EncoderNumber[int]())),
 								js.EncoderHConsLabelled(
-									js.EncoderNamed[NamedGOfRoot[map[string]int], map[string]int](js.EncoderGoMap(js.EncoderNumber[int]())),
+									js.EncoderNamed[NamedGOfRoot, map[string]int](js.EncoderGoMap(js.EncoderNumber[int]())),
 									js.EncoderHConsLabelled(
-										js.EncoderNamed[NamedHOfRoot[Child], Child](EncoderChild()),
+										js.EncoderNamed[NamedHOfRoot, Child](EncoderChild()),
 										js.EncoderHNil,
 									),
 								),
@@ -48,23 +48,23 @@ func EncoderRoot() js.Encoder[Root] {
 func DecoderRoot() js.Decoder[Root] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedAOfRoot[int], int](js.DecoderNumber[int]()),
+			js.DecoderNamed[NamedAOfRoot, int](js.DecoderNumber[int]()),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedBOfRoot[string], string](js.DecoderString),
+				js.DecoderNamed[NamedBOfRoot, string](js.DecoderString),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[NamedCOfRoot[float64], float64](js.DecoderNumber[float64]()),
+					js.DecoderNamed[NamedCOfRoot, float64](js.DecoderNumber[float64]()),
 					js.DecoderHConsLabelled(
-						js.DecoderNamed[NamedDOfRoot[bool], bool](js.DecoderBool),
+						js.DecoderNamed[NamedDOfRoot, bool](js.DecoderBool),
 						js.DecoderHConsLabelled(
-							js.DecoderNamed[NamedEOfRoot[*int], *int](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
+							js.DecoderNamed[NamedEOfRoot, *int](js.DecoderPtr(lazy.Call(func() js.Decoder[int] {
 								return js.DecoderNumber[int]()
 							}))),
 							js.DecoderHConsLabelled(
-								js.DecoderNamed[NamedFOfRoot[[]int], []int](js.DecoderSlice(js.DecoderNumber[int]())),
+								js.DecoderNamed[NamedFOfRoot, []int](js.DecoderSlice(js.DecoderNumber[int]())),
 								js.DecoderHConsLabelled(
-									js.DecoderNamed[NamedGOfRoot[map[string]int], map[string]int](js.DecoderGoMap(js.DecoderNumber[int]())),
+									js.DecoderNamed[NamedGOfRoot, map[string]int](js.DecoderGoMap(js.DecoderNumber[int]())),
 									js.DecoderHConsLabelled(
-										js.DecoderNamed[NamedHOfRoot[Child], Child](DecoderChild()),
+										js.DecoderNamed[NamedHOfRoot, Child](DecoderChild()),
 										js.DecoderHNil,
 									),
 								),
@@ -87,14 +87,14 @@ func DecoderRoot() js.Decoder[Root] {
 
 func EncoderChild() js.Encoder[Child] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedAOfChild[map[string]any], map[string]any](js.EncoderGoMapAny), js.EncoderNamed[NamedBOfChild[any], any](js.EncoderGiven[any]())),
+		js.EncoderLabelled2(js.EncoderNamed[NamedAOfChild, map[string]any](js.EncoderGoMapAny), js.EncoderNamed[NamedBOfChild, any](js.EncoderGiven[any]())),
 		Child.AsLabelled,
 	)
 }
 
 func DecoderChild() js.Decoder[Child] {
 	return js.DecoderMap(
-		js.DecoderLabelled2(js.DecoderNamed[NamedAOfChild[map[string]any], map[string]any](js.DecoderGoMapAny), js.DecoderNamed[NamedBOfChild[any], any](js.DecoderGiven[any]())),
+		js.DecoderLabelled2(js.DecoderNamed[NamedAOfChild, map[string]any](js.DecoderGoMapAny), js.DecoderNamed[NamedBOfChild, any](js.DecoderGiven[any]())),
 		fp.Compose(
 			as.Curried2(ChildBuilder.FromLabelled)(ChildBuilder{}),
 			ChildBuilder.Build,
@@ -105,13 +105,13 @@ func DecoderChild() js.Decoder[Child] {
 func EncoderNode() js.Encoder[Node] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedNameOfNode[string], string](js.EncoderString),
+			js.EncoderNamed[NamedNameOfNode, string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedLeftOfNode[*Node], *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+				js.EncoderNamed[NamedLeftOfNode, *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
 					return EncoderNode()
 				}))),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedRightOfNode[*Node], *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+					js.EncoderNamed[NamedRightOfNode, *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
 						return EncoderNode()
 					}))),
 					js.EncoderHNil,
@@ -127,23 +127,23 @@ func EncoderNode() js.Encoder[Node] {
 
 func EncoderTree() js.Encoder[Tree] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled1(js.EncoderNamed[NamedRootOfTree[*Node], *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
+		js.EncoderLabelled1(js.EncoderNamed[NamedRootOfTree, *Node](js.EncoderPtr(lazy.Call(func() js.Encoder[Node] {
 			return EncoderNode()
 		})))),
 		Tree.AsLabelled,
 	)
 }
 
-func EncoderEntry[V any](encoderV js.Encoder[V]) js.Encoder[Entry[V]] {
+func EncoderEntry[V any]() js.Encoder[Entry[V]] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedNameOfEntry[string], string](js.EncoderString), js.EncoderNamed[NamedValueOfEntry[V], V](encoderV)),
+		js.EncoderLabelled2(js.EncoderNamed[NamedNameOfEntry, string](js.EncoderString), js.EncoderGiven[NamedValueOfEntry[V]]()),
 		Entry[V].AsLabelled,
 	)
 }
 
-func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUsedParam[K, V]] {
+func EncoderNotUsedParam[K any, V any]() js.Encoder[NotUsedParam[K, V]] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedParamOfNotUsedParam[string], string](js.EncoderString), js.EncoderNamed[NamedValueOfNotUsedParam[V], V](encoderV)),
+		js.EncoderLabelled2(js.EncoderNamed[NamedParamOfNotUsedParam, string](js.EncoderString), js.EncoderGiven[NamedValueOfNotUsedParam[V]]()),
 		NotUsedParam[K, V].AsLabelled,
 	)
 }
@@ -151,11 +151,11 @@ func EncoderNotUsedParam[K any, V any](encoderV js.Encoder[V]) js.Encoder[NotUse
 func EncoderMovie() js.Encoder[Movie] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedNameOfMovie[string], string](js.EncoderString),
+			js.EncoderNamed[NamedNameOfMovie, string](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedCastingOfMovie[Entry[string]], Entry[string]](EncoderEntry(js.EncoderString)),
+				js.EncoderNamed[NamedCastingOfMovie, Entry[string]](EncoderEntry[string]()),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedNotUsedOfMovie[NotUsedParam[int, string]], NotUsedParam[int, string]](EncoderNotUsedParam[int, string](js.EncoderString)),
+					js.EncoderNamed[NamedNotUsedOfMovie, NotUsedParam[int, string]](EncoderNotUsedParam[int, string]()),
 					js.EncoderHNil,
 				),
 			),
@@ -169,7 +169,7 @@ func EncoderMovie() js.Encoder[Movie] {
 
 func EncoderNoPrivate() js.Encoder[NoPrivate] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled1(js.EncoderNamed[PubNamedRootOfNoPrivate[string], string](js.EncoderString)),
+		js.EncoderLabelled1(js.EncoderNamed[PubNamedRootOfNoPrivate, string](js.EncoderString)),
 		NoPrivate.AsLabelled,
 	)
 }
@@ -177,7 +177,7 @@ func EncoderNoPrivate() js.Encoder[NoPrivate] {
 func DecoderNoPrivate() js.Decoder[NoPrivate] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[PubNamedRootOfNoPrivate[string], string](js.DecoderString),
+			js.DecoderNamed[PubNamedRootOfNoPrivate, string](js.DecoderString),
 			js.DecoderHNil,
 		),
 

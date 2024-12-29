@@ -300,65 +300,65 @@ func (r Car) AsMap() map[string]any {
 	return m
 }
 
-type NamedCompanyOfCar[T any] fp.Tuple1[T]
+type NamedCompanyOfCar fp.Tuple1[string]
 
-func (r NamedCompanyOfCar[T]) Name() string {
+func (r NamedCompanyOfCar) Name() string {
 	return "company"
 }
-func (r NamedCompanyOfCar[T]) Value() T {
+func (r NamedCompanyOfCar) Value() string {
 	return r.I1
 }
-func (r NamedCompanyOfCar[T]) Tag() string {
+func (r NamedCompanyOfCar) Tag() string {
 	return `column:"company"`
 }
-func (r NamedCompanyOfCar[T]) Static() bool {
+func (r NamedCompanyOfCar) Static() bool {
 	return true
 }
-func (r NamedCompanyOfCar[T]) WithValue(v T) NamedCompanyOfCar[T] {
+func (r NamedCompanyOfCar) WithValue(v string) NamedCompanyOfCar {
 	r.I1 = v
 	return r
 }
 
-type NamedModelOfCar[T any] fp.Tuple1[T]
+type NamedModelOfCar fp.Tuple1[string]
 
-func (r NamedModelOfCar[T]) Name() string {
+func (r NamedModelOfCar) Name() string {
 	return "model"
 }
-func (r NamedModelOfCar[T]) Value() T {
+func (r NamedModelOfCar) Value() string {
 	return r.I1
 }
-func (r NamedModelOfCar[T]) Tag() string {
+func (r NamedModelOfCar) Tag() string {
 	return ``
 }
-func (r NamedModelOfCar[T]) Static() bool {
+func (r NamedModelOfCar) Static() bool {
 	return true
 }
-func (r NamedModelOfCar[T]) WithValue(v T) NamedModelOfCar[T] {
+func (r NamedModelOfCar) WithValue(v string) NamedModelOfCar {
 	r.I1 = v
 	return r
 }
 
-type NamedYearOfCar[T any] fp.Tuple1[T]
+type NamedYearOfCar fp.Tuple1[int]
 
-func (r NamedYearOfCar[T]) Name() string {
+func (r NamedYearOfCar) Name() string {
 	return "year"
 }
-func (r NamedYearOfCar[T]) Value() T {
+func (r NamedYearOfCar) Value() int {
 	return r.I1
 }
-func (r NamedYearOfCar[T]) Tag() string {
+func (r NamedYearOfCar) Tag() string {
 	return ``
 }
-func (r NamedYearOfCar[T]) Static() bool {
+func (r NamedYearOfCar) Static() bool {
 	return true
 }
-func (r NamedYearOfCar[T]) WithValue(v T) NamedYearOfCar[T] {
+func (r NamedYearOfCar) WithValue(v int) NamedYearOfCar {
 	r.I1 = v
 	return r
 }
 
-func (r Car) AsLabelled() fp.Labelled3[NamedCompanyOfCar[string], NamedModelOfCar[string], NamedYearOfCar[int]] {
-	return as.Labelled3(NamedCompanyOfCar[string]{r.company}, NamedModelOfCar[string]{r.model}, NamedYearOfCar[int]{r.year})
+func (r Car) AsLabelled() fp.Labelled3[NamedCompanyOfCar, NamedModelOfCar, NamedYearOfCar] {
+	return as.Labelled3(NamedCompanyOfCar{r.company}, NamedModelOfCar{r.model}, NamedYearOfCar{r.year})
 }
 
 type CarBuilder Car
@@ -417,7 +417,7 @@ func (r CarBuilder) FromMap(m map[string]any) CarBuilder {
 	return r
 }
 
-func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompanyOfCar[string], NamedModelOfCar[string], NamedYearOfCar[int]]) CarBuilder {
+func (r CarBuilder) FromLabelled(t fp.Labelled3[NamedCompanyOfCar, NamedModelOfCar, NamedYearOfCar]) CarBuilder {
 	r.company = t.I1.Value()
 	r.model = t.I2.Value()
 	r.year = t.I3.Value()
