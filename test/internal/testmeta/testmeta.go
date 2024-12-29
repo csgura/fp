@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/test/internal/ngap"
 	"github.com/csgura/fp/test/internal/show"
 )
 
@@ -60,3 +61,6 @@ func (r NamedOptOfCar[T]) Tag() string {
 func (r NamedOptOfCar[T]) Static() bool {
 	return true
 }
+
+var fp4fn = ngap.Tuple4[*int, *string, *float64]
+var tp4 = fp.Tuple4[int, *int, *string, *float64]{}

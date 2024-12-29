@@ -501,9 +501,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 		if paramCons.IsDefined() {
 
 			if paramCons.Get().IsAny() {
-				return ConstraintCheckResult{
-					Ok: true,
-				}
+				return ctx
 			}
 			consType := typeInfo(paramCons.Get().Constraint)
 			fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)

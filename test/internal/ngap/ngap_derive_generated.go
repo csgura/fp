@@ -9,13 +9,13 @@ import (
 func SplitTagNgapValue() SplitTag[NgapValue] {
 	return SplitTagContraMap(
 		HConsLabelled(
-			NamedInt[NamedPresentOfNgapValue[int]](),
+			NamedInt[NamedPresentOfNgapValue](),
 			HConsLabelled(
-				NamedPtr[NamedFirstOfNgapValue[*int], int](),
+				NamedPtr[NamedFirstOfNgapValue, int](),
 				HConsLabelled(
-					NamedPtr[NamedSecondOfNgapValue[*string], string](),
+					NamedPtr[NamedSecondOfNgapValue, string](),
 					HConsLabelled(
-						NamedPtr[NamedThirdOfNgapValue[*float64], float64](),
+						NamedPtr[NamedThirdOfNgapValue, float64](),
 						HNil,
 					),
 				),

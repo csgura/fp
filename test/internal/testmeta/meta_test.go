@@ -256,3 +256,36 @@ func TestCheckConstraintInterface(t *testing.T) {
 	fptest.True(t, cr.ParamMapping.Get("T").IsDefined())
 
 }
+
+func TestCheckConstraintNgapSplit(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	fptest.IsNil(t, err)
+
+	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/ngap")
+	}).NextOption()
+
+	fptest.True(t, hashPkg.IsDefined())
+
+	tp4fn := hashPkg.Get().Scope().Lookup("Tuple4")
+	fptest.NotNil(t, tp4fn)
+	tp := metafp.GetTypeInfo(tp4fn.Type())
+	rtype := tp.ResultType().TypeArgs.Head().Get()
+
+	tp4 := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("tp4").Type())
+
+	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, tp4.TypeArgs)
+	fmt.Printf("err = %s\n", cr.Error)
+	fptest.True(t, cr.Ok)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	fptest.True(t, cr.ParamMapping.Get("A1").IsDefined()) // string
+	fptest.True(t, cr.ParamMapping.Get("A2").IsDefined()) // hlist.Cons(int, hlist.Nil)
+	fptest.True(t, cr.ParamMapping.Get("A3").IsDefined()) // hlist.Cons(int, hlist.Nil)
+
+}
