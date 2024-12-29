@@ -48,7 +48,6 @@ type Named interface {
 type NamedField[T any] interface {
 	Named
 	Value() T
-	Tag() string
 }
 
 type RuntimeNamed[T any] Tuple3[string, T, string]

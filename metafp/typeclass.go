@@ -11,7 +11,6 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
-	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
@@ -302,11 +301,27 @@ type paramVar struct {
 }
 
 type ConstraintCheckResult struct {
-	Ok           bool
-	ParamMapping fp.Map[string, TypeInfo]
-	Error        error
+	Ok bool
+
+	CheckConstrainedOf fp.Set[fp.Tuple2[string, string]]
+	ParamMapping       fp.Map[string, TypeInfo]
+	Error              error
 }
 
+func (r ConstraintCheckResult) IsConstraintChecked(t TypeInfo, constraint TypeInfo) bool {
+	return r.CheckConstrainedOf.Contains(as.Tuple2(t.ID, constraint.ID))
+}
+
+func (r ConstraintCheckResult) ConstraintChecked(t TypeInfo, constraint TypeInfo) ConstraintCheckResult {
+	r.CheckConstrainedOf = r.CheckConstrainedOf.Incl(as.Tuple2(t.ID, constraint.ID))
+	return r
+}
+
+func (r ConstraintCheckResult) Failed(err error) ConstraintCheckResult {
+	r.Ok = false
+	r.Error = err
+	return r
+}
 func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type {
 	switch tv := t.(type) {
 	case *types.Interface:
@@ -377,6 +392,69 @@ func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type 
 	return t
 }
 
+func CompareTypeAndInferParam(ctx ConstraintCheckResult, param fp.Seq[TypeParam], a TypeInfo, b TypeInfo) ConstraintCheckResult {
+	fmt.Printf("compare %s <-> %s\n", a, b)
+	if a.IsTypeParam() {
+		if b.IsTypeParam() {
+			// TODO : check constraint is same
+			return ctx
+		}
+
+		if !ctx.ParamMapping.Contains(a.TypeName) {
+			p := param.Find(func(v TypeParam) bool {
+				return v.Name == a.TypeName
+			})
+
+			ccheck := b.IsConstrainedOf(ctx, param, GetTypeInfo(p.Get().Constraint))
+			if ccheck.Ok {
+				ccheck.ParamMapping = ccheck.ParamMapping.Updated(b.TypeName, b)
+			}
+			return ccheck
+		}
+		return ctx
+	}
+
+	if b.IsTypeParam() {
+		if !ctx.ParamMapping.Contains(b.TypeName) {
+
+			p := param.Find(func(v TypeParam) bool {
+				return v.Name == b.TypeName
+			})
+			if p.IsEmpty() {
+				return ConstraintCheckResult{
+					Error: fp.Error(400, "param %s not found", b.TypeName),
+				}
+			}
+
+			ccheck := a.IsConstrainedOf(ctx, param, GetTypeInfo(p.Get().Constraint))
+			if ccheck.Ok {
+				ccheck.ParamMapping = ccheck.ParamMapping.Updated(b.TypeName, a)
+			}
+			return ccheck
+		}
+		return ctx
+	}
+
+	// a : fp.Option[int]
+	// b : fp.Option[T]
+
+	if a.TypeArgs.Size() > 0 && a.TypeArgs.Size() == b.TypeArgs.Size() {
+		argChecked := seq.Fold(seq.Zip(a.TypeArgs, b.TypeArgs), ctx, func(prev ConstraintCheckResult, t fp.Tuple2[TypeInfo, TypeInfo]) ConstraintCheckResult {
+			return CompareTypeAndInferParam(prev, param, t.I1, t.I2)
+		})
+		return argChecked
+	}
+
+	// TODO : T[int] <-> fp.Option[int] ??
+
+	if a.ID == b.ID {
+		return ctx
+	}
+
+	return ctx.Failed(fp.Error(400, "type not equal %s with %s", a, b))
+
+}
+
 //	func[T constraint]() Eq[T]  에서
 //
 // instanceType 이 T 자리에 들어갈 수 있는지 체크하는 함수
@@ -388,14 +466,12 @@ func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type 
 // typeArgs  :  []int  같은 것
 // 이경우  결과로  T : []int , A : int 가 나와야 함.
 // param 개수는 더 많을 수 있고,  genericType의  param 개수와 typeArgs 의 개수는 같아야 함.
-func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) ConstraintCheckResult {
+func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) ConstraintCheckResult {
 
 	fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
 	// size 가 동일하지 않은 경우
 	if genericType.TypeArgs.Size() != typeArgs.Size() {
-		return ConstraintCheckResult{
-			Ok: false,
-		}
+		return ctx.Failed(fp.Error(400, "type args size not same %s <-> %s", genericType, typeArgs))
 	}
 
 	// genericType 아규먼트만 비교
@@ -415,7 +491,7 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	// Eq[T] 처럼 param 인것
 	// T => int
 	paramArgs := paramArgsIt.ToSeq()
-	paramCheck := seq.Map(paramArgs, func(v typeCompare) ConstraintCheckResult {
+	ctx = seq.Fold(paramArgs, ctx, func(c ConstraintCheckResult, v typeCompare) ConstraintCheckResult {
 		paramName := v.genericType.Name().Get()
 
 		paramCons := param.Filter(func(p TypeParam) bool {
@@ -430,42 +506,30 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 				}
 			}
 			consType := typeInfo(paramCons.Get().Constraint)
-			//fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
+			fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
 
 			// [T []A, A] 인데  typeArgs 가 []int 라면
 			// T 가 []A 를 만족하는지 확인해야 함.
-			ret := v.actualType.IsConstrainedOf(param, consType)
+			ret := v.actualType.IsConstrainedOf(c, param, consType)
 			// if !ret.Ok {
 			// 	fmt.Printf("not constraint of actual = %s , generic = %s\n", v.actualType, consType)
 
 			// }
 			return ret
 		}
-		return ConstraintCheckResult{
-			Ok: false,
-		}
+		return c.Failed(fp.Error(400, "type param %s not exists", paramName))
 	})
 
-	actualCheck := paramCheck.Concat(iterator.Map(actualArgs, func(v typeCompare) ConstraintCheckResult {
-		return v.actualType.IsInstantiatedOf(param, v.genericType)
-	}).ToSeq())
-
-	actualAllMatch := as.Seq(actualCheck).ForAll(func(v ConstraintCheckResult) bool {
-		return v.Ok
+	ctx = iterator.Fold(actualArgs, ctx, func(c ConstraintCheckResult, v typeCompare) ConstraintCheckResult {
+		return v.actualType.IsInstantiatedOf(c, param, v.genericType)
 	})
 
-	if !actualAllMatch {
-		return ConstraintCheckResult{
-			Ok: false,
-		}
+	if !ctx.Ok {
+		return ctx
 	}
 
-	merge := seq.Reduce(seq.Map(actualCheck, func(v ConstraintCheckResult) fp.Map[string, TypeInfo] {
-		return v.ParamMapping
-	}), monoid.MergeMap[string, TypeInfo]())
-
 	for _, p := range paramArgs {
-		merge = merge.Updated(p.genericType.TypeName, p.actualType)
+		ctx.ParamMapping = ctx.ParamMapping.Updated(p.genericType.TypeName, p.actualType)
 	}
 
 	//fmt.Printf("merge = %s\n", merge)
@@ -476,9 +540,9 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 		paramCons := option.Map(param.Filter(func(p TypeParam) bool {
 			return p.Name == paramName
 		}).Head(), func(p TypeParam) paramVar {
-			//fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
+			fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
 			return paramVar{
-				typeParam:  types.NewTypeParam(p.TypeName, replaceTypeArgs(p.Constraint, merge)),
+				typeParam:  types.NewTypeParam(p.TypeName, replaceTypeArgs(p.Constraint, ctx.ParamMapping)),
 				actualType: v.actualType,
 			}
 		})
@@ -487,16 +551,11 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	}).ToSeq()
 
 	if len(paramFound) == 0 {
-		return ConstraintCheckResult{
-			Ok:           true,
-			ParamMapping: merge,
-		}
+		return ctx
 	}
 
 	if !as.Seq(paramFound).ForAll(fp.Option[paramVar].IsDefined) {
-		return ConstraintCheckResult{
-			Ok: false,
-		}
+		return ctx.Failed(fp.Error(400, "all param not found"))
 	}
 
 	paramCons := seq.Map(paramFound, func(v fp.Option[paramVar]) *types.TypeParam {
@@ -516,24 +575,19 @@ func ConstraintCheck(param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.
 	)
 
 	fmt.Printf("sig = %s, paramCons = %s, paramIns = %s\n", sig, paramCons, paramIns)
-	ctx := types.NewContext()
+	tctx := types.NewContext()
 
-	_, err := types.Instantiate(ctx, sig, paramIns, true)
+	_, err := types.Instantiate(tctx, sig, paramIns, true)
 	if err == nil {
 		mapping := seq.ToGoMap(seq.Map(seq.Map(paramFound, fp.Option[paramVar].Get), func(v paramVar) fp.Tuple2[string, TypeInfo] {
 			return as.Tuple2(v.typeParam.Obj().Name(), v.actualType)
 		}))
 
-		return ConstraintCheckResult{
-			Ok:           true,
-			ParamMapping: merge.Concat(mutable.MapOf(mapping)),
-		}
+		ctx.ParamMapping = ctx.ParamMapping.Concat(mutable.MapOf(mapping))
+		return ctx
 	}
 
-	return ConstraintCheckResult{
-		Ok:    false,
-		Error: err,
-	}
+	return ctx.Failed(err)
 }
 
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
@@ -548,7 +602,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 		// func[T any]() Eq[T] 인 경우
 		// t 가 T constraint 인지 체크해야 함
-		check := ConstraintCheck(r.Type.TypeParam, r.Result, seq.Of(t))
+		check := ConstraintCheck(ConstraintCheckResult{Ok: true}, r.Type.TypeParam, r.Result, seq.Of(t))
 		if check.Ok {
 
 			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
@@ -568,7 +622,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 	// Tuple[T] 와  t 를 비교해야 함
 	if argType.TypeArgs.Size() > 0 {
 
-		check := t.IsInstantiatedOf(r.Type.TypeParam, argType)
+		check := t.IsInstantiatedOf(ConstraintCheckResult{Ok: true}, r.Type.TypeParam, argType)
 		if check.Ok {
 			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
 				res := v.Type.ReplaceTypeParam(check.ParamMapping)

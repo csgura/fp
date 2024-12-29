@@ -402,6 +402,14 @@ func iterate[T, R any](len int, getter func(idx int) T, fn func(int, T) R) []R {
 	return ret
 }
 
+func fold[T, ACC any](len int, getter func(idx int) T, zero ACC, fn func(ACC, T) ACC) ACC {
+	ret := zero
+	for i := 0; i < len; i++ {
+		ret = fn(ret, getter(i))
+	}
+	return ret
+}
+
 func typeId(tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:
@@ -617,25 +625,25 @@ func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 }
 
 // Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
-func (r TypeInfo) IsInstantiatedOf(typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
+func (r TypeInfo) IsInstantiatedOf(ctx ConstraintCheckResult, typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
 
 	// package가 동일해야 함
 	if !isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(genericType.Pkg)) {
-		return ConstraintCheckResult{}
+		return ctx.Failed(fp.Error(400, "not same package %s, %s", r, genericType))
 	}
 
 	// 타입 이름이 동일해야 함
 	//	fmt.Printf("compare %s(%s), %s(%s)\n", r, r.TypeName, genericType, genericType.TypeName)
 	if r.TypeName != genericType.TypeName {
-		return ConstraintCheckResult{}
+		return ctx.Failed(fp.Error(400, "not same typename %s, %s", r, genericType))
 	}
 
 	// 타입 아규먼트 개수가 동일해야 함
 	if r.TypeArgs.Size() != genericType.TypeArgs.Size() {
-		return ConstraintCheckResult{}
+		return ctx.Failed(fp.Error(400, "not same type arg size %s, %s", r, genericType))
 	}
 
-	ret := ConstraintCheck(typeParam, genericType, r.TypeArgs)
+	ret := ConstraintCheck(ctx, typeParam, genericType, r.TypeArgs)
 	//fmt.Printf("compare %s, %s  => %t\n", r, genericType, ret)
 	return ret
 
@@ -699,72 +707,110 @@ func noNamedInterfaceTypeArgs(intf *types.Interface) fp.Seq[TypeInfo] {
 	return merged
 }
 
-func (r TypeInfo) HasMethod(typeParam fp.Seq[TypeParam], fn *types.Func) ConstraintCheckResult {
+func (r TypeInfo) HasMethod(ctx ConstraintCheckResult, typeParam fp.Seq[TypeParam], fn *types.Func) ConstraintCheckResult {
 	rfn := r.Method.Get(fn.Name())
 	if rfn.IsEmpty() {
 		return ConstraintCheckResult{}
 	}
 
-	if rfn.Get().Signature().Params().Len() != fn.Signature().Params().Len() {
+	rargs := rfn.Get().Signature().Params()
+	fargs := fn.Signature().Params()
+	if rargs.Len() != fargs.Len() {
 		return ConstraintCheckResult{}
 	}
 
-	// TODO : signature param type check
+	ctx = seq.Fold(seq.Zip(atLenToSeq(rargs), atLenToSeq(fargs)), ctx, func(c ConstraintCheckResult, t fp.Tuple2[*types.Var, *types.Var]) ConstraintCheckResult {
+		return CompareTypeAndInferParam(c, typeParam, GetTypeInfo(t.I1.Type()), GetTypeInfo(t.I2.Type()))
+	})
 
-	if rfn.Get().Signature().Results().Len() != fn.Signature().Results().Len() {
+	rresult := rfn.Get().Signature().Results()
+	fresult := fn.Signature().Results()
+	if rresult.Len() != fresult.Len() {
 		return ConstraintCheckResult{}
 	}
 
-	// TODO: signature result type check
+	ctx = seq.Fold(seq.Zip(atLenToSeq(rresult), atLenToSeq(fresult)), ctx, func(c ConstraintCheckResult, t fp.Tuple2[*types.Var, *types.Var]) ConstraintCheckResult {
+		return CompareTypeAndInferParam(c, typeParam, GetTypeInfo(t.I1.Type()), GetTypeInfo(t.I2.Type()))
+	})
 
-	return ConstraintCheckResult{
-		Ok: true,
-	}
+	return ctx
+
 }
 
 // typeParam 은 [T []A, A ] 같은 것
 // r 은  []int 같은 것
 // genericType 은 []A 같은 constraint
-func (r TypeInfo) IsConstrainedOf(typeParam fp.Seq[TypeParam], constraint TypeInfo) ConstraintCheckResult {
+func (r TypeInfo) IsConstrainedOf(ctx ConstraintCheckResult, typeParam fp.Seq[TypeParam], constraint TypeInfo) ConstraintCheckResult {
 
-	// constraint 가 named가 아닌 interface 이면  typeParam 이 없음.
-	if constraint.IsInterface() {
-		it := constraint.Type.(*types.Interface)
-		embeds := iterate(it.NumEmbeddeds(), it.EmbeddedType, func(i int, t types.Type) ConstraintCheckResult {
-			return r.IsConstrainedOf(typeParam, typeInfo(t))
-		})
+	if ctx.IsConstraintChecked(r, constraint) {
+		return ctx
+	}
 
-		methods := iterate(it.NumExplicitMethods(), it.ExplicitMethod, func(i int, t *types.Func) ConstraintCheckResult {
-			return r.HasMethod(typeParam, t)
-		})
-		return iterator.Reduce(iterator.FromSlice(embeds).Concat(iterator.FromSlice(methods)), MonoidConstrainCheck)
+	ctx = ctx.ConstraintChecked(r, constraint)
+
+	if constraint.IsAny() {
+		return ctx
 	}
 
 	// constraint 가 Some[T] 같은 타입이고
 	// r 이  Other[int] 같은 타입이면
 	// int 와 T 를 비교해야 함.
-	if constraint.TypeParam.Size() > 0 {
 
+	// constraint 가 named가 아닌 interface 이면  typeParam 이 없음.
+	if constraint.IsInterface() {
+		it := constraint.Type.(*types.Interface)
+		ctx = fold(it.NumEmbeddeds(), it.EmbeddedType, ctx, func(c ConstraintCheckResult, t types.Type) ConstraintCheckResult {
+			return r.IsConstrainedOf(c, typeParam, typeInfo(t))
+		})
+		if !ctx.Ok {
+			return ctx
+		}
+
+		ctx = fold(it.NumExplicitMethods(), it.ExplicitMethod, ctx, func(c ConstraintCheckResult, t *types.Func) ConstraintCheckResult {
+			return r.HasMethod(c, typeParam, t)
+		})
+		return ctx
+	} else if underlying := constraint.Underlying(); underlying.IsInterface() {
+		it := underlying.Type.(*types.Interface)
+		ctx = fold(it.NumEmbeddeds(), it.EmbeddedType, ctx, func(c ConstraintCheckResult, t types.Type) ConstraintCheckResult {
+			return r.IsConstrainedOf(c, typeParam, typeInfo(t))
+		})
+		if !ctx.Ok {
+			return ctx
+		}
+
+		ctx = fold(it.NumExplicitMethods(), it.ExplicitMethod, ctx, func(c ConstraintCheckResult, t *types.Func) ConstraintCheckResult {
+			return r.HasMethod(c, typeParam, t)
+		})
+		return ctx
+	} else if constraint.TypeParam.Size() > 0 {
 		// generic 타입이 []A 처럼  type parameter 를 포함하고 있다면 A 가 뭔지 알아내야함.
 
 		// 타입 아규먼트 개수가 동일해야 함
 		if r.TypeArgs.Size() != constraint.TypeParam.Size() {
-			return ConstraintCheckResult{}
+			return ctx.Failed(fp.Error(400, "type args size not equal %s <-> %s", r, constraint))
 		}
 
 		// r 이 []int 같은 경우면 r.TypeArgs 는 int
 		// constraint(Some[T]) 를 그대로 넘겨주면 , ConstrantCheck는 T 와 r.TypeArgs 를 비교함.
 		// TODO:  Other <: Some 인지 비교하는 코드는 없음.
-		ret := ConstraintCheck(typeParam, constraint, r.TypeArgs)
+
+		// typeParam: [T Named[A],A] ,
+		// constraint:  NamedField[A] ,
+		// r : NamedCar[int] ( Option[int])
+		// r.TypeArgs : int
+		// ===>  A => Option[int]
+		ret := ConstraintCheck(ctx, typeParam, constraint, r.TypeArgs)
 		//fmt.Printf("compare %s, %s  => %t\n", r, constraint, ret)
 		return ret
-	} else if intf, ok := constraint.Underlying().Type.(*types.Interface); ok {
-		impl := types.Satisfies(r.Type, intf)
-		return ConstraintCheckResult{
-			Ok: impl,
+	} else if constraint.IsUnion() {
+		impl := types.Satisfies(r.Type, types.NewInterfaceType(nil, []types.Type{constraint.Type}))
+		if impl {
+			return ctx
 		}
 	}
-	return ConstraintCheckResult{}
+
+	return ctx.Failed(fp.Error(400, "type %s not constrained %s ", r, constraint))
 
 	// fmt.Printf("this args = %v\n", r.TypeArgs)
 	// fmt.Printf("that args = %v\n", hasTypeParam.TypeArgs)
@@ -964,6 +1010,14 @@ func (r TypeInfo) IsSlice() bool {
 func (r TypeInfo) IsInterface() bool {
 	switch r.Type.(type) {
 	case *types.Interface:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) IsUnion() bool {
+	switch r.Type.(type) {
+	case *types.Union:
 		return true
 	}
 	return false
