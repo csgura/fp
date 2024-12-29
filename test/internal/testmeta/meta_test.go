@@ -8,11 +8,11 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/fptest"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/should"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -42,21 +42,21 @@ func TestCheckConstraint(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp")
 	}).NextOption()
 
-	fptest.True(t, fpPkg.IsDefined())
+	should.BeTrue(t, fpPkg.IsDefined())
 
 	named := pkgs[0].Types.Scope().Lookup("Named")
-	fptest.NotNil(t, named)
+	should.NotBeNil(t, named)
 	tp := metafp.GetTypeInfo(named.Type())
 	fmt.Printf("tp = %s\n", tp)
 
 	rnt := fpPkg.Get().Scope().Lookup("RuntimeNamed")
-	fptest.NotNil(t, rnt)
+	should.NotBeNil(t, rnt)
 
 	rntp := metafp.GetTypeInfo(rnt.Type()).Instantiate(seq.Of(metafp.BasicType(types.Int).PtrType()))
 	fmt.Printf("tp = %s\n", rntp)
@@ -64,10 +64,10 @@ func TestCheckConstraint(t *testing.T) {
 	rtype := tp.ResultType()
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, seq.Of(rntp.Get()))
 	fmt.Printf("err = %s\n", cr.Error)
-	fptest.True(t, cr.Ok)
+	should.BeTrue(t, cr.Ok)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.ParamMapping.Get("A").IsDefined()) // int
-	fptest.True(t, cr.ParamMapping.Get("V").IsDefined()) // fp.RuntimeNamed[*int]
+	should.BeTrue(t, cr.ParamMapping.Get("A").IsDefined()) // int
+	should.BeTrue(t, cr.ParamMapping.Get("V").IsDefined()) // fp.RuntimeNamed[*int]
 
 }
 
@@ -79,16 +79,16 @@ func TestCheckConstraintHashInt(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp/hash")
 	}).NextOption()
 
-	fptest.True(t, hashPkg.IsDefined())
+	should.BeTrue(t, hashPkg.IsDefined())
 
 	nhash := hashPkg.Get().Scope().Lookup("Number")
-	fptest.NotNil(t, nhash)
+	should.NotBeNil(t, nhash)
 	tp := metafp.GetTypeInfo(nhash.Type())
 	rtype := tp.ResultType()
 
@@ -96,9 +96,9 @@ func TestCheckConstraintHashInt(t *testing.T) {
 
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, seq.Of(rntp))
 	fmt.Printf("err = %s\n", cr.Error)
-	fptest.True(t, cr.Ok)
+	should.BeTrue(t, cr.Ok)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.ParamMapping.Get("T").IsDefined()) // int
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined()) // int
 
 }
 
@@ -110,16 +110,16 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/show")
 	}).NextOption()
 
-	fptest.True(t, hashPkg.IsDefined())
+	should.BeTrue(t, hashPkg.IsDefined())
 
 	nhash := hashPkg.Get().Scope().Lookup("TupleHCons")
-	fptest.NotNil(t, nhash)
+	should.NotBeNil(t, nhash)
 	tp := metafp.GetTypeInfo(nhash.Type())
 	rtype := tp.ResultType().TypeArgs.Head().Get()
 
@@ -129,10 +129,10 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, seq.Of(strtp, hlisttp))
 	fmt.Printf("err = %s\n", cr.Error)
-	fptest.True(t, cr.Ok)
+	should.BeTrue(t, cr.Ok)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.ParamMapping.Get("H").IsDefined()) // string
-	fptest.True(t, cr.ParamMapping.Get("T").IsDefined()) // hlist.Cons(int, hlist.Nil)
+	should.BeTrue(t, cr.ParamMapping.Get("H").IsDefined()) // string
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined()) // hlist.Cons(int, hlist.Nil)
 
 }
 
@@ -144,16 +144,16 @@ func TestCheckConstraintDecoder(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
 	}).NextOption()
 
-	fptest.True(t, hashPkg.IsDefined())
+	should.BeTrue(t, hashPkg.IsDefined())
 
 	fntype := hashPkg.Get().Scope().Lookup("DecoderNamed")
-	fptest.NotNil(t, fntype)
+	should.NotBeNil(t, fntype)
 	tp := metafp.GetTypeInfo(fntype.Type())
 	rtype := tp.ResultType()
 
@@ -161,10 +161,10 @@ func TestCheckConstraintDecoder(t *testing.T) {
 
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, seq.Of(argtype))
 	fmt.Printf("err = %s\n", cr.Error)
-	fptest.True(t, cr.Ok)
+	should.BeTrue(t, cr.Ok)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.ParamMapping.Get("T").IsDefined())
-	fptest.True(t, cr.ParamMapping.Get("A").IsDefined()) // string
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
+	should.BeTrue(t, cr.ParamMapping.Get("A").IsDefined()) // string
 
 }
 
@@ -190,16 +190,16 @@ func TestCheckConstraintEncoderOption(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
 	}).NextOption()
 
-	fptest.True(t, hashPkg.IsDefined())
+	should.BeTrue(t, hashPkg.IsDefined())
 
 	fntype := hashPkg.Get().Scope().Lookup("EncoderNamed")
-	fptest.NotNil(t, fntype)
+	should.NotBeNil(t, fntype)
 	tp := metafp.GetTypeInfo(fntype.Type())
 	rtype := tp.ResultType()
 
@@ -207,12 +207,12 @@ func TestCheckConstraintEncoderOption(t *testing.T) {
 
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, seq.Of(argtype))
 	fmt.Printf("err = %s\n", cr.Error)
-	fptest.True(t, cr.Ok)
+	should.BeTrue(t, cr.Ok)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.ParamMapping.Get("T").IsDefined())
-	fptest.True(t, cr.ParamMapping.Get("A").IsDefined()) // string
-	fptest.Equal(t, cr.ParamMapping.Get("A").Get().String(), "fp.Option[T any](int)")
-	fptest.Equal(t, cr.ParamMapping.Get("T").Get().String(), "testmeta.NamedOptOfCar[T comparable](int)")
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
+	should.BeTrue(t, cr.ParamMapping.Get("A").IsDefined()) // string
+	should.Equal(t, cr.ParamMapping.Get("A").Get().String(), "fp.Option[T any](int)")
+	should.Equal(t, cr.ParamMapping.Get("T").Get().String(), "testmeta.NamedOptOfCar[T comparable](int)")
 
 }
 
@@ -238,13 +238,13 @@ func TestCheckConstraintInterface(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp")
 	}).NextOption()
 
-	fptest.True(t, fpPkg.IsDefined())
+	should.BeTrue(t, fpPkg.IsDefined())
 
 	fpNamed := metafp.GetTypeInfo(fpPkg.Get().Scope().Lookup("NamedField").Type())
 
@@ -252,8 +252,8 @@ func TestCheckConstraintInterface(t *testing.T) {
 
 	cr := tnamed.HasMethod(metafp.ConstraintCheckResult{Ok: true}, fpNamed.TypeParam, fpNamed.Method.Get("Value").Get())
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.Ok)
-	fptest.True(t, cr.ParamMapping.Get("T").IsDefined())
+	should.BeTrue(t, cr.Ok)
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
 
 }
 
@@ -265,16 +265,16 @@ func TestCheckConstraintNgapSplit(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/ngap")
 	}).NextOption()
 
-	fptest.True(t, hashPkg.IsDefined())
+	should.BeTrue(t, hashPkg.IsDefined())
 
 	tp4fn := hashPkg.Get().Scope().Lookup("Tuple4")
-	fptest.NotNil(t, tp4fn)
+	should.NotBeNil(t, tp4fn)
 	tp := metafp.GetTypeInfo(tp4fn.Type())
 	rtype := tp.ResultType().TypeArgs.Head().Get()
 
@@ -282,11 +282,11 @@ func TestCheckConstraintNgapSplit(t *testing.T) {
 
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, tp.TypeParam, rtype, tp4.TypeArgs)
 	fmt.Printf("err = %s\n", cr.Error)
-	fptest.True(t, cr.Ok)
+	should.BeTrue(t, cr.Ok)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.ParamMapping.Get("A1").IsDefined()) // string
-	fptest.True(t, cr.ParamMapping.Get("A2").IsDefined()) // hlist.Cons(int, hlist.Nil)
-	fptest.True(t, cr.ParamMapping.Get("A3").IsDefined()) // hlist.Cons(int, hlist.Nil)
+	should.BeTrue(t, cr.ParamMapping.Get("A1").IsDefined()) // string
+	should.BeTrue(t, cr.ParamMapping.Get("A2").IsDefined()) // hlist.Cons(int, hlist.Nil)
+	should.BeTrue(t, cr.ParamMapping.Get("A3").IsDefined()) // hlist.Cons(int, hlist.Nil)
 
 }
 
@@ -299,13 +299,13 @@ func TestCheckConstraintTypeParam(t *testing.T) {
 	}
 
 	pkgs, err := packages.Load(cfg, cwd)
-	fptest.IsNil(t, err)
+	should.BeNil(t, err)
 
 	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
 		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
 	}).NextOption()
 
-	fptest.True(t, fpPkg.IsDefined())
+	should.BeTrue(t, fpPkg.IsDefined())
 
 	ft := metafp.GetTypeInfo(fpPkg.Get().Scope().Lookup("EncoderNamed").Type())
 
@@ -314,7 +314,7 @@ func TestCheckConstraintTypeParam(t *testing.T) {
 	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, ft.TypeParam, ft.ResultType(), seq.Of(tnamed))
 	fmt.Printf("err = %s\n", cr.Error)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
-	fptest.True(t, cr.Ok)
-	fptest.True(t, cr.ParamMapping.Get("T").IsDefined())
+	should.BeTrue(t, cr.Ok)
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
 
 }

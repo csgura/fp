@@ -393,7 +393,7 @@ func replaceTypeArgs(t types.Type, mapping fp.Map[string, TypeInfo]) types.Type 
 }
 
 func CompareTypeAndInferParam(ctx ConstraintCheckResult, param fp.Seq[TypeParam], a TypeInfo, b TypeInfo) ConstraintCheckResult {
-	fmt.Printf("compare %s <-> %s\n", a, b)
+	//fmt.Printf("compare %s <-> %s\n", a, b)
 	if a.IsTypeParam() {
 		if b.IsTypeParam() {
 			// TODO : check constraint is same
@@ -481,7 +481,7 @@ func CompareTypeAndInferParam(ctx ConstraintCheckResult, param fp.Seq[TypeParam]
 // param 개수는 더 많을 수 있고,  genericType의  param 개수와 typeArgs 의 개수는 같아야 함.
 func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], genericType TypeInfo, typeArgs fp.Seq[TypeInfo]) ConstraintCheckResult {
 
-	fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
+	//fmt.Printf("param = %v, genericType =%v, typeArgs = %v\n", param, genericType, typeArgs)
 	// size 가 동일하지 않은 경우
 	if genericType.TypeArgs.Size() != typeArgs.Size() {
 		return ctx.Failed(fp.Error(400, "type args size not same %s <-> %s", genericType, typeArgs))
@@ -517,7 +517,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 				return ctx
 			}
 			consType := typeInfo(paramCons.Get().Constraint)
-			fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
+			//fmt.Printf("actual = %s , generic = %s\n", v.actualType, consType)
 
 			// [T []A, A] 인데  typeArgs 가 []int 라면
 			// T 가 []A 를 만족하는지 확인해야 함.
@@ -551,7 +551,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 		paramCons := option.Map(param.Filter(func(p TypeParam) bool {
 			return p.Name == paramName
 		}).Head(), func(p TypeParam) paramVar {
-			fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
+			//fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
 			return paramVar{
 				typeParam:  types.NewTypeParam(p.TypeName, replaceTypeArgs(p.Constraint, ctx.ParamMapping)),
 				actualType: v.actualType,
@@ -585,7 +585,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 		false,
 	)
 
-	fmt.Printf("sig = %s, paramCons = %s, paramIns = %s\n", sig, paramCons, paramIns)
+	//fmt.Printf("sig = %s, paramCons = %s, paramIns = %s\n", sig, paramCons, paramIns)
 	tctx := types.NewContext()
 
 	_, err := types.Instantiate(tctx, sig, paramIns, true)
@@ -604,7 +604,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
+	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
 
 	// if r.Name == "TupleHCons" {
 	// 	fmt.Printf("TupleHCons\n")
