@@ -1051,26 +1051,23 @@ func namedOrRuntimeType(fpPkg *types.Package, working genfp.WorkingPackage, type
 			ret = fmt.Sprintf("Named%sOf%s", ret, structName)
 		}
 
-		if isSamePkg(working, genfp.FromTypesPackage(typePkg)) {
-			obj := working.Scope().Lookup(ret)
-			if tpe, ok := obj.(*types.TypeName); ok {
-				ctx := types.NewContext()
-				targs := []types.Type{vtype.Type}
-				it, err := types.Instantiate(ctx, tpe.Type(), targs, false)
-				if err == nil {
-					return metafp.GetTypeInfo(it)
-				}
+		obj := typePkg.Scope().Lookup(ret)
+		ti := metafp.GetTypeInfo(obj.Type())
+		if ti.TypeParam.Size() > 0 {
+			ctx := types.NewContext()
+			targs := seq.Map(ti.TypeParam, func(v metafp.TypeParam) types.Type {
+				return types.NewTypeParam(v.TypeName, v.Constraint)
+			})
+
+			// ti : NamedOptOfCar[T comparable] fp.Tuple1[fp.Option[T]]
+			// targs : fp.Option[T]
+
+			it, err := types.Instantiate(ctx, ti.Type, targs, false)
+			if err == nil {
+				return metafp.GetTypeInfo(it)
 			}
 		} else {
-			obj := typePkg.Scope().Lookup(ret)
-			if tpe, ok := obj.(*types.TypeName); ok {
-				ctx := types.NewContext()
-				targs := []types.Type{vtype.Type}
-				it, err := types.Instantiate(ctx, tpe.Type(), targs, false)
-				if err == nil {
-					return metafp.GetTypeInfo(it)
-				}
-			}
+			return ti
 		}
 	}
 

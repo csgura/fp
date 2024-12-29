@@ -439,3 +439,16 @@ func ShowShowConstraintExplicit[T fmt.Stringer]() fp.Show[ShowConstraintExplicit
 }
 
 type Pk1Context = context.Context
+
+// @fp.Value
+// @fp.GenLabelled
+type Car[S any, T comparable] struct {
+	company string `column:"company"`
+	model   string
+	year    int
+	spec    S
+	opt     fp.Option[T]
+}
+
+// @fp.Derive
+var _ js.Derives[js.Encoder[Car[any, any]]]
