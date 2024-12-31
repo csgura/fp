@@ -68,6 +68,9 @@ func (r NamedMessageOfWorld) WithValue(v string) NamedMessageOfWorld {
 	r.I1 = v
 	return r
 }
+func (r NamedMessageOfWorld) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedTimestampOfWorld fp.Tuple1[time.Time]
 
@@ -87,6 +90,9 @@ func (r NamedTimestampOfWorld) WithValue(v time.Time) NamedTimestampOfWorld {
 	r.I1 = v
 	return r
 }
+func (r NamedTimestampOfWorld) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type PubNamedPubOfWorld fp.Tuple1[string]
 
@@ -105,6 +111,9 @@ func (r PubNamedPubOfWorld) Static() bool {
 func (r PubNamedPubOfWorld) WithValue(v string) PubNamedPubOfWorld {
 	r.I1 = v
 	return r
+}
+func (r PubNamedPubOfWorld) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r World) AsLabelled() fp.Labelled3[NamedMessageOfWorld, NamedTimestampOfWorld, PubNamedPubOfWorld] {
@@ -296,6 +305,9 @@ func (r NamedMessageOfHasOption) WithValue(v string) NamedMessageOfHasOption {
 	r.I1 = v
 	return r
 }
+func (r NamedMessageOfHasOption) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedAddrOfHasOption fp.Tuple1[fp.Option[string]]
 
@@ -314,6 +326,9 @@ func (r NamedAddrOfHasOption) Static() bool {
 func (r NamedAddrOfHasOption) WithValue(v fp.Option[string]) NamedAddrOfHasOption {
 	r.I1 = v
 	return r
+}
+func (r NamedAddrOfHasOption) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedPhoneOfHasOption fp.Tuple1[[]string]
@@ -334,6 +349,9 @@ func (r NamedPhoneOfHasOption) WithValue(v []string) NamedPhoneOfHasOption {
 	r.I1 = v
 	return r
 }
+func (r NamedPhoneOfHasOption) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedEmptySeqOfHasOption fp.Tuple1[[]int]
 
@@ -352,6 +370,9 @@ func (r NamedEmptySeqOfHasOption) Static() bool {
 func (r NamedEmptySeqOfHasOption) WithValue(v []int) NamedEmptySeqOfHasOption {
 	r.I1 = v
 	return r
+}
+func (r NamedEmptySeqOfHasOption) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r HasOption) AsLabelled() fp.Labelled4[NamedMessageOfHasOption, NamedAddrOfHasOption, NamedPhoneOfHasOption, NamedEmptySeqOfHasOption] {
@@ -1893,6 +1914,9 @@ func (r NamedI1OfOver21) WithValue(v int) NamedI1OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI1OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI2OfOver21 fp.Tuple1[int]
 
@@ -1911,6 +1935,9 @@ func (r NamedI2OfOver21) Static() bool {
 func (r NamedI2OfOver21) WithValue(v int) NamedI2OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI2OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI3OfOver21 fp.Tuple1[int]
@@ -1931,6 +1958,9 @@ func (r NamedI3OfOver21) WithValue(v int) NamedI3OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI3OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI4OfOver21 fp.Tuple1[int]
 
@@ -1949,6 +1979,9 @@ func (r NamedI4OfOver21) Static() bool {
 func (r NamedI4OfOver21) WithValue(v int) NamedI4OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI4OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI5OfOver21 fp.Tuple1[int]
@@ -1969,6 +2002,9 @@ func (r NamedI5OfOver21) WithValue(v int) NamedI5OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI5OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI6OfOver21 fp.Tuple1[int]
 
@@ -1987,6 +2023,9 @@ func (r NamedI6OfOver21) Static() bool {
 func (r NamedI6OfOver21) WithValue(v int) NamedI6OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI6OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI7OfOver21 fp.Tuple1[int]
@@ -2007,6 +2046,9 @@ func (r NamedI7OfOver21) WithValue(v int) NamedI7OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI7OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI8OfOver21 fp.Tuple1[int]
 
@@ -2025,6 +2067,9 @@ func (r NamedI8OfOver21) Static() bool {
 func (r NamedI8OfOver21) WithValue(v int) NamedI8OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI8OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI9OfOver21 fp.Tuple1[int]
@@ -2045,6 +2090,9 @@ func (r NamedI9OfOver21) WithValue(v int) NamedI9OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI9OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI10OfOver21 fp.Tuple1[int]
 
@@ -2063,6 +2111,9 @@ func (r NamedI10OfOver21) Static() bool {
 func (r NamedI10OfOver21) WithValue(v int) NamedI10OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI10OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI11OfOver21 fp.Tuple1[int]
@@ -2083,6 +2134,9 @@ func (r NamedI11OfOver21) WithValue(v int) NamedI11OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI11OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI12OfOver21 fp.Tuple1[int]
 
@@ -2101,6 +2155,9 @@ func (r NamedI12OfOver21) Static() bool {
 func (r NamedI12OfOver21) WithValue(v int) NamedI12OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI12OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI13OfOver21 fp.Tuple1[int]
@@ -2121,6 +2178,9 @@ func (r NamedI13OfOver21) WithValue(v int) NamedI13OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI13OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI14OfOver21 fp.Tuple1[int]
 
@@ -2139,6 +2199,9 @@ func (r NamedI14OfOver21) Static() bool {
 func (r NamedI14OfOver21) WithValue(v int) NamedI14OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI14OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI15OfOver21 fp.Tuple1[int]
@@ -2159,6 +2222,9 @@ func (r NamedI15OfOver21) WithValue(v int) NamedI15OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI15OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI16OfOver21 fp.Tuple1[int]
 
@@ -2177,6 +2243,9 @@ func (r NamedI16OfOver21) Static() bool {
 func (r NamedI16OfOver21) WithValue(v int) NamedI16OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI16OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI17OfOver21 fp.Tuple1[int]
@@ -2197,6 +2266,9 @@ func (r NamedI17OfOver21) WithValue(v int) NamedI17OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI17OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI18OfOver21 fp.Tuple1[int]
 
@@ -2215,6 +2287,9 @@ func (r NamedI18OfOver21) Static() bool {
 func (r NamedI18OfOver21) WithValue(v int) NamedI18OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI18OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI19OfOver21 fp.Tuple1[int]
@@ -2235,6 +2310,9 @@ func (r NamedI19OfOver21) WithValue(v int) NamedI19OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI19OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI20OfOver21 fp.Tuple1[int]
 
@@ -2253,6 +2331,9 @@ func (r NamedI20OfOver21) Static() bool {
 func (r NamedI20OfOver21) WithValue(v int) NamedI20OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI20OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI21OfOver21 fp.Tuple1[int]
@@ -2273,6 +2354,9 @@ func (r NamedI21OfOver21) WithValue(v int) NamedI21OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI21OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI22OfOver21 fp.Tuple1[int]
 
@@ -2291,6 +2375,9 @@ func (r NamedI22OfOver21) Static() bool {
 func (r NamedI22OfOver21) WithValue(v int) NamedI22OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI22OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI23OfOver21 fp.Tuple1[int]
@@ -2311,6 +2398,9 @@ func (r NamedI23OfOver21) WithValue(v int) NamedI23OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI23OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI24OfOver21 fp.Tuple1[int]
 
@@ -2329,6 +2419,9 @@ func (r NamedI24OfOver21) Static() bool {
 func (r NamedI24OfOver21) WithValue(v int) NamedI24OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI24OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI25OfOver21 fp.Tuple1[int]
@@ -2349,6 +2442,9 @@ func (r NamedI25OfOver21) WithValue(v int) NamedI25OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI25OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI26OfOver21 fp.Tuple1[int]
 
@@ -2367,6 +2463,9 @@ func (r NamedI26OfOver21) Static() bool {
 func (r NamedI26OfOver21) WithValue(v int) NamedI26OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI26OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI27OfOver21 fp.Tuple1[int]
@@ -2387,6 +2486,9 @@ func (r NamedI27OfOver21) WithValue(v int) NamedI27OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI27OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI28OfOver21 fp.Tuple1[int]
 
@@ -2405,6 +2507,9 @@ func (r NamedI28OfOver21) Static() bool {
 func (r NamedI28OfOver21) WithValue(v int) NamedI28OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI28OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedI29OfOver21 fp.Tuple1[int]
@@ -2425,6 +2530,9 @@ func (r NamedI29OfOver21) WithValue(v int) NamedI29OfOver21 {
 	r.I1 = v
 	return r
 }
+func (r NamedI29OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedI30OfOver21 fp.Tuple1[int]
 
@@ -2443,6 +2551,9 @@ func (r NamedI30OfOver21) Static() bool {
 func (r NamedI30OfOver21) WithValue(v int) NamedI30OfOver21 {
 	r.I1 = v
 	return r
+}
+func (r NamedI30OfOver21) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type Over21Builder Over21
@@ -3339,6 +3450,9 @@ func (r NamedCompanyOfCar) WithValue(v string) NamedCompanyOfCar {
 	r.I1 = v
 	return r
 }
+func (r NamedCompanyOfCar) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedModelOfCar fp.Tuple1[string]
 
@@ -3357,6 +3471,9 @@ func (r NamedModelOfCar) Static() bool {
 func (r NamedModelOfCar) WithValue(v string) NamedModelOfCar {
 	r.I1 = v
 	return r
+}
+func (r NamedModelOfCar) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedYearOfCar fp.Tuple1[int]
@@ -3377,6 +3494,9 @@ func (r NamedYearOfCar) WithValue(v int) NamedYearOfCar {
 	r.I1 = v
 	return r
 }
+func (r NamedYearOfCar) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedSpecOfCar[S any] fp.Tuple1[S]
 
@@ -3396,6 +3516,9 @@ func (r NamedSpecOfCar[S]) WithValue(v S) NamedSpecOfCar[S] {
 	r.I1 = v
 	return r
 }
+func (r NamedSpecOfCar[S]) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedOptOfCar[T comparable] fp.Tuple1[fp.Option[T]]
 
@@ -3414,6 +3537,9 @@ func (r NamedOptOfCar[T]) Static() bool {
 func (r NamedOptOfCar[T]) WithValue(v fp.Option[T]) NamedOptOfCar[T] {
 	r.I1 = v
 	return r
+}
+func (r NamedOptOfCar[T]) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Car[S, T]) AsLabelled() fp.Labelled5[NamedCompanyOfCar, NamedModelOfCar, NamedYearOfCar, NamedSpecOfCar[S], NamedOptOfCar[T]] {

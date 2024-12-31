@@ -1397,6 +1397,15 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 					return r
 				}
 				`, typename, ftp, typename)
+
+				fmt.Fprintf(w, `func (r %s) String() string`, typename)
+
+				line := `{
+					return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+				}`
+
+				fmt.Fprintln(w, line)
+
 			})
 
 			if allFields.Size() < max.Product {

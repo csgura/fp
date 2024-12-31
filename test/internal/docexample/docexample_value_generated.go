@@ -318,6 +318,9 @@ func (r NamedCompanyOfCar) WithValue(v string) NamedCompanyOfCar {
 	r.I1 = v
 	return r
 }
+func (r NamedCompanyOfCar) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedModelOfCar fp.Tuple1[string]
 
@@ -337,6 +340,9 @@ func (r NamedModelOfCar) WithValue(v string) NamedModelOfCar {
 	r.I1 = v
 	return r
 }
+func (r NamedModelOfCar) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedYearOfCar fp.Tuple1[int]
 
@@ -355,6 +361,9 @@ func (r NamedYearOfCar) Static() bool {
 func (r NamedYearOfCar) WithValue(v int) NamedYearOfCar {
 	r.I1 = v
 	return r
+}
+func (r NamedYearOfCar) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Car) AsLabelled() fp.Labelled3[NamedCompanyOfCar, NamedModelOfCar, NamedYearOfCar] {

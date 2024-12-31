@@ -1539,6 +1539,9 @@ func (r NamedHelloOfGreeting) WithValue(v testpk1.World) NamedHelloOfGreeting {
 	r.I1 = v
 	return r
 }
+func (r NamedHelloOfGreeting) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedLanguageOfGreeting fp.Tuple1[string]
 
@@ -1557,6 +1560,9 @@ func (r NamedLanguageOfGreeting) Static() bool {
 func (r NamedLanguageOfGreeting) WithValue(v string) NamedLanguageOfGreeting {
 	r.I1 = v
 	return r
+}
+func (r NamedLanguageOfGreeting) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Greeting) AsLabelled() fp.Labelled2[NamedHelloOfGreeting, NamedLanguageOfGreeting] {
@@ -1715,6 +1721,9 @@ func (r NamedOneOfThree) WithValue(v int) NamedOneOfThree {
 	r.I1 = v
 	return r
 }
+func (r NamedOneOfThree) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedTwoOfThree fp.Tuple1[string]
 
@@ -1734,6 +1743,9 @@ func (r NamedTwoOfThree) WithValue(v string) NamedTwoOfThree {
 	r.I1 = v
 	return r
 }
+func (r NamedTwoOfThree) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedThreeOfThree fp.Tuple1[float64]
 
@@ -1752,6 +1764,9 @@ func (r NamedThreeOfThree) Static() bool {
 func (r NamedThreeOfThree) WithValue(v float64) NamedThreeOfThree {
 	r.I1 = v
 	return r
+}
+func (r NamedThreeOfThree) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Three) AsLabelled() fp.Labelled3[NamedOneOfThree, NamedTwoOfThree, NamedThreeOfThree] {

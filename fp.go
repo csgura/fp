@@ -39,6 +39,10 @@ func (r Tuple1[T1]) Tail() Unit {
 	return Unit{}
 }
 
+func (r Tuple1[T1]) String() string {
+	return fmt.Sprintf("(%v)", r.I1)
+}
+
 type Named interface {
 	Name() string
 	Tag() string
@@ -76,6 +80,10 @@ func (r RuntimeNamed[T]) Static() bool {
 	return false
 }
 
+func (r RuntimeNamed[T]) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
+
 type Labelled1[T1 Named] struct {
 	I1 T1
 }
@@ -86,6 +94,10 @@ func (r Labelled1[T1]) Head() T1 {
 
 func (r Labelled1[T1]) Tail() Unit {
 	return Unit{}
+}
+
+func (r Labelled1[T1]) String() string {
+	return fmt.Sprintf("(%v)", r.I1)
 }
 
 type Supplier[R any] func() R

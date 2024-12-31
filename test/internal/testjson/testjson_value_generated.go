@@ -122,6 +122,9 @@ func (r NamedAOfRoot) WithValue(v int) NamedAOfRoot {
 	r.I1 = v
 	return r
 }
+func (r NamedAOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedBOfRoot fp.Tuple1[string]
 
@@ -140,6 +143,9 @@ func (r NamedBOfRoot) Static() bool {
 func (r NamedBOfRoot) WithValue(v string) NamedBOfRoot {
 	r.I1 = v
 	return r
+}
+func (r NamedBOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedCOfRoot fp.Tuple1[float64]
@@ -160,6 +166,9 @@ func (r NamedCOfRoot) WithValue(v float64) NamedCOfRoot {
 	r.I1 = v
 	return r
 }
+func (r NamedCOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedDOfRoot fp.Tuple1[bool]
 
@@ -178,6 +187,9 @@ func (r NamedDOfRoot) Static() bool {
 func (r NamedDOfRoot) WithValue(v bool) NamedDOfRoot {
 	r.I1 = v
 	return r
+}
+func (r NamedDOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedEOfRoot fp.Tuple1[*int]
@@ -198,6 +210,9 @@ func (r NamedEOfRoot) WithValue(v *int) NamedEOfRoot {
 	r.I1 = v
 	return r
 }
+func (r NamedEOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedFOfRoot fp.Tuple1[[]int]
 
@@ -216,6 +231,9 @@ func (r NamedFOfRoot) Static() bool {
 func (r NamedFOfRoot) WithValue(v []int) NamedFOfRoot {
 	r.I1 = v
 	return r
+}
+func (r NamedFOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedGOfRoot fp.Tuple1[map[string]int]
@@ -236,6 +254,9 @@ func (r NamedGOfRoot) WithValue(v map[string]int) NamedGOfRoot {
 	r.I1 = v
 	return r
 }
+func (r NamedGOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedHOfRoot fp.Tuple1[Child]
 
@@ -254,6 +275,9 @@ func (r NamedHOfRoot) Static() bool {
 func (r NamedHOfRoot) WithValue(v Child) NamedHOfRoot {
 	r.I1 = v
 	return r
+}
+func (r NamedHOfRoot) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Root) AsLabelled() fp.Labelled8[NamedAOfRoot, NamedBOfRoot, NamedCOfRoot, NamedDOfRoot, NamedEOfRoot, NamedFOfRoot, NamedGOfRoot, NamedHOfRoot] {
@@ -475,6 +499,9 @@ func (r NamedAOfChild) WithValue(v map[string]any) NamedAOfChild {
 	r.I1 = v
 	return r
 }
+func (r NamedAOfChild) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedBOfChild fp.Tuple1[any]
 
@@ -493,6 +520,9 @@ func (r NamedBOfChild) Static() bool {
 func (r NamedBOfChild) WithValue(v any) NamedBOfChild {
 	r.I1 = v
 	return r
+}
+func (r NamedBOfChild) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Child) AsLabelled() fp.Labelled2[NamedAOfChild, NamedBOfChild] {
@@ -634,6 +664,9 @@ func (r NamedNameOfNode) WithValue(v string) NamedNameOfNode {
 	r.I1 = v
 	return r
 }
+func (r NamedNameOfNode) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedLeftOfNode fp.Tuple1[*Node]
 
@@ -653,6 +686,9 @@ func (r NamedLeftOfNode) WithValue(v *Node) NamedLeftOfNode {
 	r.I1 = v
 	return r
 }
+func (r NamedLeftOfNode) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedRightOfNode fp.Tuple1[*Node]
 
@@ -671,6 +707,9 @@ func (r NamedRightOfNode) Static() bool {
 func (r NamedRightOfNode) WithValue(v *Node) NamedRightOfNode {
 	r.I1 = v
 	return r
+}
+func (r NamedRightOfNode) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Node) AsLabelled() fp.Labelled3[NamedNameOfNode, NamedLeftOfNode, NamedRightOfNode] {
@@ -807,6 +846,9 @@ func (r NamedRootOfTree) WithValue(v *Node) NamedRootOfTree {
 	r.I1 = v
 	return r
 }
+func (r NamedRootOfTree) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 func (r Tree) AsLabelled() fp.Labelled1[NamedRootOfTree] {
 	return as.Labelled1(NamedRootOfTree{r.root})
@@ -922,6 +964,9 @@ func (r NamedNameOfEntry) WithValue(v string) NamedNameOfEntry {
 	r.I1 = v
 	return r
 }
+func (r NamedNameOfEntry) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedValueOfEntry[V any] fp.Tuple1[V]
 
@@ -940,6 +985,9 @@ func (r NamedValueOfEntry[V]) Static() bool {
 func (r NamedValueOfEntry[V]) WithValue(v V) NamedValueOfEntry[V] {
 	r.I1 = v
 	return r
+}
+func (r NamedValueOfEntry[V]) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Entry[V]) AsLabelled() fp.Labelled2[NamedNameOfEntry, NamedValueOfEntry[V]] {
@@ -1071,6 +1119,9 @@ func (r NamedParamOfNotUsedParam) WithValue(v string) NamedParamOfNotUsedParam {
 	r.I1 = v
 	return r
 }
+func (r NamedParamOfNotUsedParam) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedValueOfNotUsedParam[V any] fp.Tuple1[V]
 
@@ -1089,6 +1140,9 @@ func (r NamedValueOfNotUsedParam[V]) Static() bool {
 func (r NamedValueOfNotUsedParam[V]) WithValue(v V) NamedValueOfNotUsedParam[V] {
 	r.I1 = v
 	return r
+}
+func (r NamedValueOfNotUsedParam[V]) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r NotUsedParam[K, V]) AsLabelled() fp.Labelled2[NamedParamOfNotUsedParam, NamedValueOfNotUsedParam[V]] {
@@ -1230,6 +1284,9 @@ func (r NamedNameOfMovie) WithValue(v string) NamedNameOfMovie {
 	r.I1 = v
 	return r
 }
+func (r NamedNameOfMovie) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedCastingOfMovie fp.Tuple1[Entry[string]]
 
@@ -1249,6 +1306,9 @@ func (r NamedCastingOfMovie) WithValue(v Entry[string]) NamedCastingOfMovie {
 	r.I1 = v
 	return r
 }
+func (r NamedCastingOfMovie) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedNotUsedOfMovie fp.Tuple1[NotUsedParam[int, string]]
 
@@ -1267,6 +1327,9 @@ func (r NamedNotUsedOfMovie) Static() bool {
 func (r NamedNotUsedOfMovie) WithValue(v NotUsedParam[int, string]) NamedNotUsedOfMovie {
 	r.I1 = v
 	return r
+}
+func (r NamedNotUsedOfMovie) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r Movie) AsLabelled() fp.Labelled3[NamedNameOfMovie, NamedCastingOfMovie, NamedNotUsedOfMovie] {
@@ -1393,6 +1456,9 @@ func (r PubNamedRootOfNoPrivate) Static() bool {
 func (r PubNamedRootOfNoPrivate) WithValue(v string) PubNamedRootOfNoPrivate {
 	r.I1 = v
 	return r
+}
+func (r PubNamedRootOfNoPrivate) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r NoPrivate) AsLabelled() fp.Labelled1[PubNamedRootOfNoPrivate] {

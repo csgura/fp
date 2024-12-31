@@ -82,6 +82,9 @@ func (r NamedPresentOfNgapValue) WithValue(v int) NamedPresentOfNgapValue {
 	r.I1 = v
 	return r
 }
+func (r NamedPresentOfNgapValue) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedFirstOfNgapValue fp.Tuple1[*int]
 
@@ -100,6 +103,9 @@ func (r NamedFirstOfNgapValue) Static() bool {
 func (r NamedFirstOfNgapValue) WithValue(v *int) NamedFirstOfNgapValue {
 	r.I1 = v
 	return r
+}
+func (r NamedFirstOfNgapValue) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 type NamedSecondOfNgapValue fp.Tuple1[*string]
@@ -120,6 +126,9 @@ func (r NamedSecondOfNgapValue) WithValue(v *string) NamedSecondOfNgapValue {
 	r.I1 = v
 	return r
 }
+func (r NamedSecondOfNgapValue) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
+}
 
 type NamedThirdOfNgapValue fp.Tuple1[*float64]
 
@@ -138,6 +147,9 @@ func (r NamedThirdOfNgapValue) Static() bool {
 func (r NamedThirdOfNgapValue) WithValue(v *float64) NamedThirdOfNgapValue {
 	r.I1 = v
 	return r
+}
+func (r NamedThirdOfNgapValue) String() string {
+	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
 func (r NgapValue) AsLabelled() fp.Labelled4[NamedPresentOfNgapValue, NamedFirstOfNgapValue, NamedSecondOfNgapValue, NamedThirdOfNgapValue] {
