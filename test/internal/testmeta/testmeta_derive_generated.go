@@ -8,7 +8,7 @@ import (
 
 func DecoderLocalPerson() js.Decoder[LocalPerson] {
 	return js.DecoderMap(
-		js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string], string](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int], int](js.DecoderNumber[int]())),
+		js.DecoderLabelled2(js.DecoderNamed[fp.RuntimeNamed[string]](js.DecoderString), js.DecoderNamed[fp.RuntimeNamed[int]](js.DecoderNumber[int]())),
 		func(t fp.Labelled2[fp.RuntimeNamed[string], fp.RuntimeNamed[int]]) LocalPerson {
 			return LocalPerson{Name: t.I1.Value(), age: t.I2.Value()}
 		},

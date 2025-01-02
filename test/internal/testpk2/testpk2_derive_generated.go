@@ -13,7 +13,6 @@ import (
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
 	"github.com/csgura/fp/test/internal/testpk1"
-	"time"
 )
 
 func EqPerson() fp.Eq[Person] {
@@ -79,14 +78,14 @@ func EqGreeting() fp.Eq[Greeting] {
 
 func EncoderGreeting() js.Encoder[Greeting] {
 	return js.EncoderContraMap(
-		js.EncoderLabelled2(js.EncoderNamed[NamedHelloOfGreeting, testpk1.World](EncoderTestpk1World()), js.EncoderNamed[NamedLanguageOfGreeting, string](js.EncoderString)),
+		js.EncoderLabelled2(js.EncoderNamed[NamedHelloOfGreeting](EncoderTestpk1World()), js.EncoderNamed[NamedLanguageOfGreeting](js.EncoderString)),
 		Greeting.AsLabelled,
 	)
 }
 
 func DecoderGreeting() js.Decoder[Greeting] {
 	return js.DecoderMap(
-		js.DecoderLabelled2(js.DecoderNamed[NamedHelloOfGreeting, testpk1.World](testpk1.DecoderWorld()), js.DecoderNamed[NamedLanguageOfGreeting, string](js.DecoderString)),
+		js.DecoderLabelled2(js.DecoderNamed[NamedHelloOfGreeting](testpk1.DecoderWorld()), js.DecoderNamed[NamedLanguageOfGreeting](js.DecoderString)),
 		fp.Compose(
 			as.Curried2(GreetingBuilder.FromLabelled)(GreetingBuilder{}),
 			GreetingBuilder.Build,
@@ -97,11 +96,11 @@ func DecoderGreeting() js.Decoder[Greeting] {
 func EncoderThree() js.Encoder[Three] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[NamedOneOfThree, int](js.EncoderNumber[int]()),
+			js.EncoderNamed[NamedOneOfThree](js.EncoderNumber[int]()),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[NamedTwoOfThree, string](js.EncoderString),
+				js.EncoderNamed[NamedTwoOfThree](js.EncoderString),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[NamedThreeOfThree, float64](js.EncoderNumber[float64]()),
+					js.EncoderNamed[NamedThreeOfThree](js.EncoderNumber[float64]()),
 					js.EncoderHNil,
 				),
 			),
@@ -116,11 +115,11 @@ func EncoderThree() js.Encoder[Three] {
 func DecoderThree() js.Decoder[Three] {
 	return js.DecoderMap(
 		js.DecoderHConsLabelled(
-			js.DecoderNamed[NamedOneOfThree, int](js.DecoderNumber[int]()),
+			js.DecoderNamed[NamedOneOfThree](js.DecoderNumber[int]()),
 			js.DecoderHConsLabelled(
-				js.DecoderNamed[NamedTwoOfThree, string](js.DecoderString),
+				js.DecoderNamed[NamedTwoOfThree](js.DecoderString),
 				js.DecoderHConsLabelled(
-					js.DecoderNamed[NamedThreeOfThree, float64](js.DecoderNumber[float64]()),
+					js.DecoderNamed[NamedThreeOfThree](js.DecoderNumber[float64]()),
 					js.DecoderHNil,
 				),
 			),
@@ -222,11 +221,11 @@ func EqTree() fp.Eq[Tree] {
 func EncoderTestpk1World() js.Encoder[testpk1.World] {
 	return js.EncoderContraMap(
 		js.EncoderHConsLabelled(
-			js.EncoderNamed[testpk1.NamedMessageOfWorld, string](js.EncoderString),
+			js.EncoderNamed[testpk1.NamedMessageOfWorld](js.EncoderString),
 			js.EncoderHConsLabelled(
-				js.EncoderNamed[testpk1.NamedTimestampOfWorld, time.Time](js.EncoderTime),
+				js.EncoderNamed[testpk1.NamedTimestampOfWorld](js.EncoderTime),
 				js.EncoderHConsLabelled(
-					js.EncoderNamed[testpk1.PubNamedPubOfWorld, string](js.EncoderString),
+					js.EncoderNamed[testpk1.PubNamedPubOfWorld](js.EncoderString),
 					js.EncoderHNil,
 				),
 			),

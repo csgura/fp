@@ -695,20 +695,27 @@ func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx CurrentContex
 		ins := lt.instance().Get()
 
 		// 타입 추론이 가능하려면,  모든 타입 파라미터가, 아규먼트에서 사용되어야 한다.
-		possible := ins.TypeParam.ForAll(func(v metafp.TypeParam) bool {
+		possible := seq.Map(ins.TypeParam, func(v metafp.TypeParam) bool {
 			return ins.UsedParam.Contains(v.Name)
 		})
 
+		if possible.ForAll(fp.Id) {
+			return option.None[string]()
+		}
 		// 전부 사용되지 않아 타입 추론이 불가능하다면
 		// 타입을 명시한다.
-		if !possible {
-			ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
-				return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
-					return r.w.TypeName(ctx.working, v.Type)
-				}).OrElse(v.Name)
-			}).MakeString(",")
-			return option.Some(ret)
+
+		_, notPossible := seq.Span(possible.Reverse(), fp.Id)
+		if !r.implicitTypeInference {
+			notPossible = possible
 		}
+
+		ret := seq.Map(ins.TypeParam.Take(notPossible.Size()), func(v metafp.TypeParam) string {
+			return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+				return r.w.TypeName(ctx.working, v.Type)
+			}).OrElse(v.Name)
+		}).MakeString(",")
+		return option.Some(ret)
 
 	}
 
@@ -718,21 +725,27 @@ func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx CurrentContex
 func (r *TypeClassSummonContext) typeParamString(ctx CurrentContext, ins metafp.TypeClassInstance) fp.Option[string] {
 
 	// 타입 추론이 가능하려면,  모든 타입 파라미터가, 아규먼트에서 사용되어야 한다.
-	possible := ins.TypeParam.ForAll(func(v metafp.TypeParam) bool {
+	possible := seq.Map(ins.TypeParam, func(v metafp.TypeParam) bool {
 		return ins.UsedParam.Contains(v.Name)
 	})
 
+	if possible.ForAll(fp.Id) {
+		return option.None[string]()
+	}
+
+	_, notPossible := seq.Span(possible.Reverse(), fp.Id)
+	if !r.implicitTypeInference {
+		notPossible = possible
+	}
+
 	// 전부 사용되지 않아 타입 추론이 불가능하다면
 	// 타입을 명시한다.
-	if !possible {
-		ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
-			return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
-				return r.w.TypeName(ctx.working, v.Type)
-			}).OrElse(v.Name)
-		}).MakeString(",")
-		return option.Some(ret)
-	}
-	return option.None[string]()
+	ret := seq.Map(ins.TypeParam.Take(notPossible.Size()), func(v metafp.TypeParam) string {
+		return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+			return r.w.TypeName(ctx.working, v.Type)
+		}).OrElse(v.Name)
+	}).MakeString(",")
+	return option.Some(ret)
 
 }
 
@@ -1168,10 +1181,6 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
-						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
-							return namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, f.I1.I1, sf.namedGenerated, f.I2.TypeName(r.w, ctx.working))
-						}).Take(arity).MakeString(",")
-
 						if r.implicitTypeInference {
 							return fmt.Sprintf(`%s.Compose(
 								%s,
@@ -1181,6 +1190,10 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 								aspk, arity,
 							)
 						} else {
+							tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
+								return namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, f.I1.I1, sf.namedGenerated, f.I2.TypeName(r.w, ctx.working))
+							}).Take(arity).MakeString(",")
+
 							return fmt.Sprintf(`%s.Compose(
 								%s,
 								%s.HList%dLabelled[%s],
@@ -1251,10 +1264,6 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 
 						namedTypeArgs := seq.Zip(names, typeArgs)
 
-						tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
-							return namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, f.I1.I1, sf.namedGenerated, f.I2.TypeName(r.w, ctx.working))
-						}).Take(arity).MakeString(",")
-
 						hlistToTuple := func() string {
 							if r.implicitTypeInference {
 								return fmt.Sprintf(`%s.LabelledFromHList%d`,
@@ -1262,6 +1271,10 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx CurrentContext, t
 									arity,
 								)
 							} else {
+								tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
+									return namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, f.I1.I1, sf.namedGenerated, f.I2.TypeName(r.w, ctx.working))
+								}).Take(arity).MakeString(",")
+
 								return fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
 									productpk,
 									arity, tp,
@@ -1859,15 +1872,15 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
 
-			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-				return f.TypeName(r.w, ctx.working)
-			}).Take(arity).MakeString(",")
-
 			if r.implicitTypeInference {
 				return fmt.Sprintf(`%s.HList%d`,
 					aspk, arity,
 				)
 			}
+			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+				return f.TypeName(r.w, ctx.working)
+			}).Take(arity).MakeString(",")
+
 			return fmt.Sprintf(`%s.HList%d[%s]`,
 				aspk, arity, tp,
 			)
@@ -1879,16 +1892,17 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx CurrentContext, tc m
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
 
-			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-				return f.TypeName(r.w, ctx.working)
-			}).Take(arity).MakeString(",")
-
 			hlistToTuple := func() string {
 				if r.implicitTypeInference && !explicit {
 					return fmt.Sprintf(`%s.TupleFromHList%d`,
 						productpk, arity,
 					)
 				} else {
+
+					tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+						return f.TypeName(r.w, ctx.working)
+					}).Take(arity).MakeString(",")
+
 					return fmt.Sprintf(`%s.TupleFromHList%d[%s]`,
 						productpk, arity, tp,
 					)
