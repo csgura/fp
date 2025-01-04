@@ -12,6 +12,7 @@ import (
 	"github.com/csgura/fp/either"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/genfp/generator"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
@@ -31,9 +32,10 @@ type TypeClassSummonContext struct {
 	w                     genfp.ImportSet
 	fpPkg                 fp.Option[*types.Package]
 	tcCache               *metafp.TypeClassInstanceCache
-	summoned              fp.Map[string, TypeClassInstanceGenerated]
+	derived               fp.Map[string, TypeClassInstanceGenerated]
 	loopCheck             fp.Set[string]
 	recursiveGen          fp.Seq[metafp.TypeClassDerive]
+	initVars              fp.Seq[generator.TaggedVar]
 	implicitTypeInference bool
 }
 
@@ -354,6 +356,13 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Curren
 	}
 
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+		isInitVar := r.initVars.Exists(func(v generator.TaggedVar) bool {
+			return v.Name == tci.Name
+		})
+
+		if isInitVar {
+			return false
+		}
 
 		if tci.IsGivenAny() && ctx.recursiveGen && isRecursiveDerivable(req) {
 			return false
@@ -2245,7 +2254,7 @@ func (r *TypeClassSummonContext) _summonVar(tc metafp.TypeClassDerive) SummonExp
 
 func (r *TypeClassSummonContext) summonVar(tc metafp.TypeClassDerive) fp.Option[SummonExpr] {
 
-	retOpt := r.summoned.Get(tc.GeneratedInstanceName())
+	retOpt := r.derived.Get(tc.GeneratedInstanceName())
 	if retOpt.IsDefined() {
 		return option.Some(retOpt.Get().Expr)
 	}
@@ -2258,7 +2267,7 @@ func (r *TypeClassSummonContext) summonVar(tc metafp.TypeClassDerive) fp.Option[
 	r.loopCheck = r.loopCheck.Incl(tc.GeneratedInstanceName())
 
 	ret := r._summonVar(tc)
-	r.summoned = r.summoned.Updated(tc.GeneratedInstanceName(), TypeClassInstanceGenerated{
+	r.derived = r.derived.Updated(tc.GeneratedInstanceName(), TypeClassInstanceGenerated{
 		Derive: tc,
 		Expr:   ret,
 	})
@@ -2297,6 +2306,8 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 	}).NextOption()
 
 	derives := metafp.FindTypeClassDerive(pkgs)
+	summons := generator.FindTaggedNotInitalizedVariable(pkgs, "@fp.Summon")
+
 	tccache := metafp.TypeClassInstanceCache{}
 
 	metafp.FindTypeClassImport(pkgs).Foreach(func(v metafp.TypeClassDirective) {
@@ -2322,6 +2333,7 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 		tcCache:               &tccache,
 		recursiveGen:          derives,
 		implicitTypeInference: implicitTypeInference && moduleInf,
+		initVars:              summons,
 	}
 }
 
@@ -2359,6 +2371,14 @@ func genDerive() {
 					fmt.Fprintf(w, "%s\n", v.expr)
 				})
 			})
+		}
+
+		for _, v := range summonCtx.initVars {
+			rq, ok := metafp.AsRequiredInstance(metafp.GetTypeInfo(v.Type)).Unapply()
+			if ok {
+
+				fmt.Printf("var = %s, rq = %v\n", v.Name, rq)
+			}
 		}
 
 	})

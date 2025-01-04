@@ -854,6 +854,14 @@ func asRequired(v TypeInfo) RequiredInstance {
 	}
 }
 
+func AsRequiredInstance(v TypeInfo) fp.Option[RequiredInstance] {
+	if v.TypeArgs.IsEmpty() {
+		return option.None[RequiredInstance]()
+	}
+
+	return option.Some(asRequired(v))
+}
+
 func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInstance] {
 	insType := typeInfo(ins.Type())
 	rType := insType.ResultType()

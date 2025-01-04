@@ -33,6 +33,9 @@ type World struct {
 // @fp.Derive
 var _ eq.Derives[fp.Eq[World]]
 
+// @fp.Summon
+var eqPtrWorld fp.Eq[*World]
+
 // @fp.Derive
 var _ js.Derives[js.Encoder[World]]
 
