@@ -340,3 +340,71 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 
 	})
 }
+
+type TaggedVar struct {
+	Package *packages.Package
+	Name    string
+	Type    *types.Named
+}
+
+func FindTaggedNotInitalizedVariable(p []*packages.Package, tags ...string) []TaggedVar {
+	tagSeq := tags
+	return seqFlatMap(p, func(pk *packages.Package) []TaggedVar {
+		s2 := seqFlatMap(pk.Syntax, func(v *ast.File) []ast.Decl {
+
+			return v.Decls
+		})
+
+		s3 := seqFlatMap(s2, func(v ast.Decl) []*ast.GenDecl {
+			switch r := v.(type) {
+			case *ast.GenDecl:
+				return []*ast.GenDecl{r}
+			}
+			return []*ast.GenDecl{}
+		})
+
+		return seqFlatMap(s3, func(gd *ast.GenDecl) []TaggedVar {
+
+			return varFromGenDecl(pk, gd, tagSeq)
+
+		})
+
+	})
+}
+
+func varFromGenDecl(pk *packages.Package, gd *ast.GenDecl, tagSeq []string) []TaggedVar {
+	gdDoc := gd.Doc
+
+	return seqFlatMap(gd.Specs, func(v ast.Spec) []TaggedVar {
+		if ts, ok := v.(*ast.ValueSpec); ok && ts.Type != nil {
+			comment := func() string {
+				if ts.Doc != nil {
+					return ts.Doc.Text()
+				}
+				if gdDoc != nil {
+					return gdDoc.Text()
+				}
+
+				return ""
+			}()
+
+			tpe := checkType(pk, ts.Type)
+
+			if comment != "" && tpe != nil && seqExists(tagSeq, func(tag string) bool { return strings.Contains(comment, tag) }) {
+				return seqFlatMap(ts.Names, func(v *ast.Ident) []TaggedVar {
+
+					tags := extractTag(comment)
+
+					if !seqExists(tagSeq, tags.Contains) {
+						return nil
+					}
+
+					return []TaggedVar{
+						{Package: pk, Name: v.Name, Type: tpe},
+					}
+				})
+			}
+		}
+		return nil
+	})
+}

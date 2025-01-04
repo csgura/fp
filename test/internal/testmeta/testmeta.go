@@ -80,3 +80,6 @@ func (r NamedTypeParam[S]) Static() bool {
 
 var fp4fn = ngap.Tuple4[*int, *string, *float64]
 var tp4 = fp.Tuple4[int, *int, *string, *float64]{}
+
+// @test.Summon
+var hello js.Encoder[string]
