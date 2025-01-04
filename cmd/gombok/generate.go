@@ -304,7 +304,7 @@ func genGenerate() {
 	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
 	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
 	traversef := generator.FindGenerateTraverseFunctions(pkgs, "@fp.Generate")
-	monadt := generator.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
+	monadt := generator.FindGenerateMonadTransfomers(pkgs, "@fp.Generate")
 
 	filelist := iterator.ToGoSet(
 		mutable.MapOf(gentemplate).Keys().
