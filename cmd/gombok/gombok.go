@@ -21,7 +21,7 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func isSamePkg(p1 genfp.WorkingPackage, p2 genfp.PackageId) bool {
+func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 	if p1 == nil && p2 == nil {
 		return true
 	}

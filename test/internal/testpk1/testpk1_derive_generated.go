@@ -1382,3 +1382,9 @@ func EncoderCar[S any, T comparable](encoderS js.Encoder[S], encoderT js.Encoder
 		),
 	)
 }
+
+func init() {
+	eqPtrWorld = eq.Ptr(lazy.Call(func() fp.Eq[World] {
+		return EqWorld()
+	}))
+}

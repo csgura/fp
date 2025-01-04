@@ -1,21 +1,26 @@
 package gendebug
 
 import (
+	"time"
+
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/test/internal/js"
+	"github.com/csgura/fp/eq"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Value
+// @fp.Json
 // @fp.GenLabelled
-type Car[S any, T comparable] struct {
-	company string `column:"company"`
-	model   string
-	year    int
-	opt     fp.Option[T]
-	spec    S
+type World struct {
+	message    string `hello:"message"`
+	timestamp  time.Time
+	Pub        string
+	_notExport string
 }
 
 // @fp.Derive
-var _ js.Derives[js.Encoder[Car[any, any]]]
+var _ eq.Derives[fp.Eq[World]]
+
+// @fp.Summon
+var eqPtrWorld fp.Eq[*World]

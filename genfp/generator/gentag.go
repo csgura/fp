@@ -342,7 +342,7 @@ func FindTaggedCompositeVariable(p []*packages.Package, typeName string, tags ..
 }
 
 type TaggedVar struct {
-	Package *packages.Package
+	Package genfp.WorkingPackage
 	Name    string
 	Type    *types.Named
 }
@@ -400,7 +400,10 @@ func varFromGenDecl(pk *packages.Package, gd *ast.GenDecl, tagSeq []string) []Ta
 					}
 
 					return []TaggedVar{
-						{Package: pk, Name: v.Name, Type: tpe},
+						{
+							Package: genfp.NewWorkingPackage(pk.Types, pk.Fset, pk.Syntax),
+							Name:    v.Name,
+							Type:    tpe},
 					}
 				})
 			}

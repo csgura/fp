@@ -50,7 +50,7 @@ type DeriveContext struct {
 type SummonContext struct {
 	working       genfp.WorkingPackage
 	typeClass     metafp.TypeClass
-	summonFor     metafp.NamedTypeInfo
+	summonFor     string
 	deriveContext fp.Option[DeriveContext]
 }
 
@@ -648,6 +648,17 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 	}
 
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+
+		if isSamePkg(ctx.working, genfp.FromTypesPackage(tci.Package)) {
+			isInitVar := r.initVars.Exists(func(v generator.TaggedVar) bool {
+				return v.Name == tci.Name
+			})
+
+			if isInitVar {
+				return false
+			}
+		}
+
 		//fmt.Printf("result for %s[%s] is %s, is given %t\n", req.TypeClass.Name, req.Type, tci.Name, tci.IsGivenAny())
 
 		if tci.IsGivenAny() && ctx.recursiveGen() && isRecursiveDerivable(req) {
@@ -984,7 +995,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 		}
 		return r.namedLookupMust(ctx, req, at.Obj().Name())
 	case *types.Array:
-		panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", req.TypeClass.Name, ctx.summonFor.Name))
+		panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", req.TypeClass.Name, ctx.summonFor))
 		//return r.namedLookup(f, "Array")
 	case *types.Slice:
 		if at.Elem().String() == "byte" {
@@ -1021,16 +1032,16 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 			}
 		} else {
 			fmt.Printf("fieldOf = %v\n", req.FieldOf)
-			panic(fmt.Sprintf("can't summon unnamed struct type %v containing private field, while deriving %s[%s]", f.Type, ctx.typeClass.Name, ctx.summonFor.Name))
+			panic(fmt.Sprintf("can't summon unnamed struct type %v containing private field, while deriving %s[%s]", f.Type, ctx.typeClass.Name, ctx.summonFor))
 		}
 
 	case *types.Interface:
 		if f.IsAny() {
 			return r.namedLookupMust(ctx, req, "Given")
 		}
-		panic(fmt.Sprintf("can't summon unnamed interface type %v, while deriving %s[%s]", f.Type, ctx.typeClass.Name, ctx.summonFor.Name))
+		panic(fmt.Sprintf("can't summon unnamed interface type %v, while deriving %s[%s]", f.Type, ctx.typeClass.Name, ctx.summonFor))
 	case *types.Chan:
-		panic(fmt.Sprintf("can't summon unnamed chan type, while deriving %s[%s]", ctx.typeClass.Name, ctx.summonFor.Name))
+		panic(fmt.Sprintf("can't summon unnamed chan type, while deriving %s[%s]", ctx.typeClass.Name, ctx.summonFor))
 
 	}
 	return r.namedLookupMust(ctx, req, f.Type.String())
@@ -2064,7 +2075,7 @@ func asSummonContext(ctx DeriveContext) SummonContext {
 	return SummonContext{
 		working:       ctx.working,
 		typeClass:     ctx.tc.TypeClass,
-		summonFor:     ctx.tc.DeriveFor,
+		summonFor:     ctx.tc.DeriveFor.Name,
 		deriveContext: option.Some(ctx),
 	}
 }
@@ -2400,12 +2411,24 @@ func genDerive() {
 			})
 		}
 
-		for _, v := range summonCtx.initVars {
-			rq, ok := metafp.AsRequiredInstance(metafp.GetTypeInfo(v.Type)).Unapply()
-			if ok {
+		if len(summonCtx.initVars) > 0 {
+			fmt.Fprint(w, `func init() {
+			`)
+			for _, v := range summonCtx.initVars {
+				rq, ok := metafp.AsRequiredInstance(metafp.GetTypeInfo(v.Type)).Unapply()
+				if ok {
 
-				fmt.Printf("var = %s, rq = %v\n", v.Name, rq)
+					ctx := SummonContext{
+						working:   v.Package,
+						typeClass: rq.TypeClass,
+						summonFor: rq.Type.String(),
+					}
+
+					expr := summonCtx.summonRequired(ctx, rq)
+					fmt.Fprintf(w, "%s = %s\n", v.Name, expr.expr)
+				}
 			}
+			fmt.Fprint(w, `}`)
 		}
 
 	})
