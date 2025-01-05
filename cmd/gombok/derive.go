@@ -17,6 +17,7 @@ import (
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/xtr"
@@ -35,6 +36,7 @@ type TypeClassSummonContext struct {
 	derived               fp.Map[string, TypeClassInstanceGenerated]
 	loopCheck             fp.Set[string]
 	recursiveGen          fp.Seq[metafp.TypeClassDerive]
+	initVarSet            mutable.Set[string]
 	initVars              fp.Seq[generator.TaggedVar]
 	implicitTypeInference bool
 }
@@ -417,11 +419,8 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 	}
 
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
-		isInitVar := r.initVars.Exists(func(v generator.TaggedVar) bool {
-			return v.Name == tci.Name
-		})
 
-		if isInitVar {
+		if r.initVarSet.Contains(tci.Name) {
 			return false
 		}
 
@@ -650,11 +649,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
 
 		if isSamePkg(ctx.working, genfp.FromTypesPackage(tci.Package)) {
-			isInitVar := r.initVars.Exists(func(v generator.TaggedVar) bool {
-				return v.Name == tci.Name
-			})
-
-			if isInitVar {
+			if r.initVarSet.Contains(tci.Name) {
 				return false
 			}
 		}
@@ -2365,6 +2360,9 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 		),
 	).OrElse(true)
 
+	initSet := seq.ToGoSet(seq.Map(summons, func(v generator.TaggedVar) string {
+		return v.Name
+	}))
 	return &TypeClassSummonContext{
 		w:                     importSet,
 		fpPkg:                 fpPkg,
@@ -2372,6 +2370,7 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 		recursiveGen:          derives,
 		implicitTypeInference: implicitTypeInference && moduleInf,
 		initVars:              summons,
+		initVarSet:            initSet,
 	}
 }
 
