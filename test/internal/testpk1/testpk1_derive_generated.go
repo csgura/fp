@@ -1387,4 +1387,7 @@ func init() {
 	eqPtrWorld = eq.Ptr(lazy.Call(func() fp.Eq[World] {
 		return EqWorld()
 	}))
+	eqworld = EqWorld()
+	eqMySeqInt = EqMySeq(eq.Given[int]())
+	kcar = EncoderCar(js.EncoderString, js.EncoderNumber[int]())
 }

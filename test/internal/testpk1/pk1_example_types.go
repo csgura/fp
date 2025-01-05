@@ -36,6 +36,9 @@ var _ eq.Derives[fp.Eq[World]]
 // @fp.Summon
 var eqPtrWorld fp.Eq[*World]
 
+// @fp.Summon
+var eqworld fp.Eq[World]
+
 // @fp.Derive
 var _ js.Derives[js.Encoder[World]]
 
@@ -172,6 +175,9 @@ var _ eq.Derives[fp.Eq[MyInt]]
 
 // @fp.Derive
 var _ eq.Derives[fp.Eq[MySeq[any]]]
+
+// @fp.Summon
+var eqMySeqInt fp.Eq[MySeq[int]]
 
 // @fp.Derive
 var _ monoid.Derives[fp.Monoid[MySeq[any]]]
@@ -455,3 +461,6 @@ type Car[S any, T comparable] struct {
 
 // @fp.Derive
 var _ js.Derives[js.Encoder[Car[any, any]]]
+
+// @fp.Summon
+var kcar js.Encoder[Car[string, int]]
