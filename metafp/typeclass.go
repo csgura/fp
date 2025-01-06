@@ -660,7 +660,15 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 func (r TypeClassInstancesOfPackage) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Option[TypeClassInstance] {
 	return r.Find(t).Filter(func(v TypeClassInstance) bool {
-		return strings.HasPrefix(v.Name, namePrefix)
+		if strings.HasPrefix(v.Name, namePrefix) {
+			return true
+		}
+
+		if strings.HasPrefix(v.Name, r.TypeClass.Name+namePrefix) {
+			return true
+		}
+
+		return false
 	}).Head()
 }
 

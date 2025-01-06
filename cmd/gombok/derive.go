@@ -509,17 +509,11 @@ func (r *TypeClassSummonContext) lookupTypeClassFunc(ctx SummonContext, tc metaf
 }
 
 func (r *TypeClassSummonContext) lookupTypeClassFuncCheckType(ctx SummonContext, tc metafp.TypeClass, name string, argType metafp.TypeInfo) fp.Option[metafp.TypeClassInstance] {
-	nameWithTc := tc.Name + name
 
 	workingScope := ctx.workingScope(r.tcCache, tc)
 	primScope := ctx.primScope(r.tcCache, tc)
 
-	ins := workingScope.FindByNamePrefix(nameWithTc, argType)
-	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
-		return ins
-	}
-
-	ins = primScope.FindByNamePrefix(nameWithTc, argType)
+	ins := workingScope.FindByNamePrefix(name, argType)
 	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
 		return ins
 	}
