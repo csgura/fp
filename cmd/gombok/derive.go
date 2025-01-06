@@ -554,37 +554,6 @@ func (r *TypeClassSummonContext) lookupTupleTypeClassFunc(ctx SummonContext, tc 
 	}
 
 	return none
-	// ret := r.lookupTypeClassFunc(ctx, tc, name)
-	// if ret.IsDefined() {
-	// 	tc := ret.Get()
-	// 	tpType := tc.Result.TypeArgs.Head()
-	// 	if tpType.IsDefined() {
-	// 		tpt := tpType.Get()
-
-	// 		named := tpt.Type.(*types.Named)
-	// 		//fmt.Printf("type = %v\n", named.Origin())
-
-	// 		origin := named.Origin()
-	// 		//fmt.Printf("tparms = %v\n", origin.TypeParams().At(0))
-
-	// 		ctx := types.NewContext()
-
-	// 		targs := seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) types.Type {
-	// 			return v.Type.Type
-	// 		})
-	// 		it, err := types.Instantiate(ctx, origin, targs, false)
-	// 		if err == nil {
-	// 			//fmt.Printf("it= %v\n", it)
-
-	// 			checked := tc.Check(metafp.GetTypeInfo(it))
-	// 			//fmt.Printf("checked = %v, required = %v\n", checked.Get().ParamMapping, checked.Get().RequiredInstance)
-	// 			return checked
-	// 		}
-
-	// 	}
-	// }
-
-	// return ret
 }
 
 func (r *TypeClassSummonContext) lookupTypeClassFuncMust(ctx SummonContext, tc metafp.TypeClass, name string) metafp.TypeClassInstance {
@@ -1251,10 +1220,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 
 	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
 		return GenericRepr{
-			Kind: fp.GenericKindStruct,
-			// ReprType: func() string {
-			// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
-			// },
+			Kind:         fp.GenericKindStruct,
 			ToReprExpr:   sf.asLabelled,
 			FromReprExpr: sf.fromLabelled,
 			ReprExpr: func() SummonExpr {
@@ -1265,9 +1231,6 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 		return option.Map(r.lookupTypeClassFunc(ctx, tc, "HConsLabelled"), func(hcons metafp.TypeClassInstance) GenericRepr {
 			return GenericRepr{
 				Kind: fp.GenericKindStruct,
-				// ReprType: func() string {
-				// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
-				// },
 				ToReprExpr: func() string {
 
 					if typeArgs.Size() == 0 {
@@ -1831,10 +1794,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 		// 	return r.w.TypeName(ctx.working, v.Type)
 		// }).MakeString(",")
 		return GenericRepr{
-			Kind: fp.GenericKindStruct,
-			// ReprType: func() string {
-			// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
-			// },
+			Kind:         fp.GenericKindStruct,
 			ToReprExpr:   sf.asTuple,
 			FromReprExpr: sf.fromTuple,
 			ReprExpr: func() SummonExpr {
@@ -1848,10 +1808,6 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 
 	return GenericRepr{
 		Kind: fp.GenericKindStruct,
-
-		// ReprType: func() string {
-		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
-		// },
 		ToReprExpr: func() string {
 
 			if typeArgs.Size() >= max.Product {
@@ -1967,9 +1923,6 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfoExpr], fieldOf fp.Option[metafp.TypeInfo], explicit bool) GenericRepr {
 	return GenericRepr{
 		Kind: fp.GenericKindTuple,
-		// ReprType: func() string {
-		// 	return fmt.Sprintf("Tuple%d[%s]", typeArgs.Size(), tp)
-		// },
 		ToReprExpr: func() string {
 			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
@@ -2013,14 +1966,6 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc me
 				}
 			}()
 
-			// hlistToTuple := fmt.Sprintf(`%s.Func2(
-			// 		%s.Case%d[%s,%s.Nil,fp.Tuple%d[%s]],
-			// 	).ApplyLast(
-			// 		%s.Tuple%d[%s] ,
-			// 	)`,
-			// 	aspk, hlistpk, typeArgs.Size(), tp, hlistpk, typeArgs.Size(), tp, aspk, typeArgs.Size(), tp,
-			// )
-
 			return hlistToTuple
 		},
 		ReprExpr: func() SummonExpr {
@@ -2048,7 +1993,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc me
 
 func (r *TypeClassSummonContext) summonTuple(ctx SummonContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfoExpr]) SummonExpr {
 
-	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", typeArgs.Size()))
+	result := r.lookupTupleTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", typeArgs.Size()), typeArgs)
 
 	if result.IsDefined() {
 		return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, fp.Option[metafp.TypeInfo]{})
