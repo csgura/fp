@@ -192,7 +192,6 @@ type RequiredInstance struct {
 	TypeClass TypeClass
 	Type      TypeInfo
 	Lazy      bool
-	FieldOf   fp.Option[TypeInfo]
 }
 
 func (r RequiredInstance) String() string {
@@ -659,6 +658,12 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 }
 
+func (r TypeClassInstancesOfPackage) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Option[TypeClassInstance] {
+	return r.Find(t).Filter(func(v TypeClassInstance) bool {
+		return strings.HasPrefix(v.Name, namePrefix)
+	}).Head()
+}
+
 // t 는 Eq 쌓이지 않은 타입
 // Eq[T] 여서는 안됨
 func (r TypeClassInstancesOfPackage) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
@@ -779,6 +784,18 @@ func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassI
 	// }
 	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindByName(name, t)
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
+
+	return option.Flatten(ret)
+}
+
+func (r TypeClassScope) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Option[TypeClassInstance] {
+
+	// if name == "ShowHlistHCons" {
+	// 	fmt.Printf("find ShowHlistHCons\n")
+	// }
+	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+		return p.FindByNamePrefix(namePrefix, t)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
 	return option.Flatten(ret)

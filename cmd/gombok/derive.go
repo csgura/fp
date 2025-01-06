@@ -508,38 +508,83 @@ func (r *TypeClassSummonContext) lookupTypeClassFunc(ctx SummonContext, tc metaf
 	return option.None[metafp.TypeClassInstance]()
 }
 
-func (r *TypeClassSummonContext) lookupTupleTypeClassFunc(ctx SummonContext, tc metafp.TypeClass, name string, tupleArgs fp.Seq[metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
-	ret := r.lookupTypeClassFunc(ctx, tc, name)
-	if ret.IsDefined() {
-		tc := ret.Get()
-		tpType := tc.Result.TypeArgs.Head()
-		if tpType.IsDefined() {
-			tpt := tpType.Get()
+func (r *TypeClassSummonContext) lookupTypeClassFuncCheckType(ctx SummonContext, tc metafp.TypeClass, name string, argType metafp.TypeInfo) fp.Option[metafp.TypeClassInstance] {
+	nameWithTc := tc.Name + name
 
-			named := tpt.Type.(*types.Named)
-			//fmt.Printf("type = %v\n", named.Origin())
+	workingScope := ctx.workingScope(r.tcCache, tc)
+	primScope := ctx.primScope(r.tcCache, tc)
 
-			origin := named.Origin()
-			//fmt.Printf("tparms = %v\n", origin.TypeParams().At(0))
-
-			ctx := types.NewContext()
-
-			targs := seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) types.Type {
-				return v.Type.Type
-			})
-			it, err := types.Instantiate(ctx, origin, targs, false)
-			if err == nil {
-				//fmt.Printf("it= %v\n", it)
-
-				checked := tc.Check(metafp.GetTypeInfo(it))
-				//fmt.Printf("checked = %v, required = %v\n", checked.Get().ParamMapping, checked.Get().RequiredInstance)
-				return checked
-			}
-
-		}
+	ins := workingScope.FindByNamePrefix(nameWithTc, argType)
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+		return ins
 	}
 
-	return ret
+	ins = primScope.FindByNamePrefix(nameWithTc, argType)
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+		return ins
+	}
+
+	ins = primScope.FindByNamePrefix(name, argType)
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+		return ins
+	}
+
+	return option.None[metafp.TypeClassInstance]()
+}
+
+func (r *TypeClassSummonContext) lookupTupleTypeClassFunc(ctx SummonContext, tc metafp.TypeClass, name string, tupleArgs fp.Seq[metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
+	none := option.None[metafp.TypeClassInstance]()
+	if r.fpPkg.IsDefined() {
+		tupleDef := r.fpPkg.Get().Scope().Lookup(fmt.Sprintf("Tuple%d", tupleArgs.Size()))
+		if tupleDef == nil {
+			return none
+		}
+		tupleType := metafp.GetTypeInfo(tupleDef.Type())
+		targs := seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) metafp.TypeInfo {
+			return v.Type
+		})
+
+		it, err := tupleType.Instantiate(targs).Unapply()
+		if err != nil {
+			return none
+		}
+
+		return r.lookupTypeClassFuncCheckType(ctx, tc, name, it)
+
+	}
+
+	return none
+	// ret := r.lookupTypeClassFunc(ctx, tc, name)
+	// if ret.IsDefined() {
+	// 	tc := ret.Get()
+	// 	tpType := tc.Result.TypeArgs.Head()
+	// 	if tpType.IsDefined() {
+	// 		tpt := tpType.Get()
+
+	// 		named := tpt.Type.(*types.Named)
+	// 		//fmt.Printf("type = %v\n", named.Origin())
+
+	// 		origin := named.Origin()
+	// 		//fmt.Printf("tparms = %v\n", origin.TypeParams().At(0))
+
+	// 		ctx := types.NewContext()
+
+	// 		targs := seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) types.Type {
+	// 			return v.Type.Type
+	// 		})
+	// 		it, err := types.Instantiate(ctx, origin, targs, false)
+	// 		if err == nil {
+	// 			//fmt.Printf("it= %v\n", it)
+
+	// 			checked := tc.Check(metafp.GetTypeInfo(it))
+	// 			//fmt.Printf("checked = %v, required = %v\n", checked.Get().ParamMapping, checked.Get().RequiredInstance)
+	// 			return checked
+	// 		}
+
+	// 	}
+	// }
+
+	// return ret
 }
 
 func (r *TypeClassSummonContext) lookupTypeClassFuncMust(ctx SummonContext, tc metafp.TypeClass, name string) metafp.TypeClassInstance {
@@ -937,7 +982,6 @@ func (r *TypeClassSummonContext) exprTypeClassMember(ctx SummonContext, tc metaf
 			return metafp.RequiredInstance{
 				TypeClass: tc,
 				Type:      t.Type,
-				FieldOf:   fieldOf,
 			}
 		}))
 
@@ -1018,8 +1062,14 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 		return r.namedLookupMust(ctx, req, at.Name())
 	case *types.Struct:
 		fields := f.Fields()
+		samePkg := func() bool {
+			if at.NumFields() > 0 {
+				return isSamePkg(ctx.working, genfp.FromTypesPackage(at.Field(0).Pkg()))
+			}
+			return true
+		}()
 
-		if fields.ForAll(metafp.StructField.Public) || req.FieldOf.Exists(fp.Test(metafp.TypeInfo.IsSamePkg, ctx.working)) {
+		if fields.ForAll(metafp.StructField.Public) || samePkg {
 			ret := func(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
 				return r.summonUntypedStruct(ctx, req.TypeClass, f, fields)
 			}
@@ -1027,7 +1077,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 				target: either.Right[NotDefinedInstance](either.NotRight[fp.Either[ArgumentInstance, DefinedInstance]](SummonExprInstance{ret})),
 			}
 		} else {
-			fmt.Printf("fieldOf = %v\n", req.FieldOf)
+			//fmt.Printf("fieldOf = %v\n", req.FieldOf)
 			panic(fmt.Sprintf("can't summon unnamed struct type %v containing private field, while deriving %s[%s]", f.Type, ctx.typeClass.Name, ctx.summonFor))
 		}
 
@@ -1773,10 +1823,10 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 	if result.IsDefined() {
 
 		tci := result.Get()
-		tci.RequiredInstance = seq.Map(tci.RequiredInstance, func(v metafp.RequiredInstance) metafp.RequiredInstance {
-			v.FieldOf = option.Some(sf.tpe)
-			return v
-		})
+		// tci.RequiredInstance = seq.Map(tci.RequiredInstance, func(v metafp.RequiredInstance) metafp.RequiredInstance {
+		// 	v.FieldOf = option.Some(sf.tpe)
+		// 	return v
+		// })
 		// tp := iterator.Map(typeArgs.Iterator(), func(v metafp.TypeInfo) string {
 		// 	return r.w.TypeName(ctx.working, v.Type)
 		// }).MakeString(",")
@@ -1895,7 +1945,6 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 					instance := r.summonRequired(ctx, metafp.RequiredInstance{
 						TypeClass: ctx.typeClass,
 						Type:      ti.Type,
-						FieldOf:   option.Some(sf.tpe),
 					})
 					return newSummonExpr(fmt.Sprintf(`%s(
 					%s,
@@ -1986,7 +2035,6 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc me
 				instance := r.summonRequired(ctx, metafp.RequiredInstance{
 					TypeClass: ctx.typeClass,
 					Type:      ti.Type,
-					FieldOf:   fieldOf,
 				})
 				return newSummonExpr(fmt.Sprintf(`%s(
 					%s,
