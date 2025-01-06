@@ -6,33 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
-	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/should"
 	"golang.org/x/tools/go/packages"
 )
-
-func FindPackage(pk *types.Package, path string) fp.Option[*types.Package] {
-	ret := as.Seq(pk.Imports()).Find(func(v *types.Package) bool {
-		return v.Path() == path
-	})
-	if ret.IsDefined() {
-		return ret
-	}
-
-	for _, p := range pk.Imports() {
-		ret := FindPackage(p, path)
-		if ret.IsDefined() {
-			return ret
-		}
-	}
-
-	return option.None[*types.Package]()
-}
 
 func TestCheckConstraint(t *testing.T) {
 	cwd, _ := os.Getwd()
@@ -44,9 +22,7 @@ func TestCheckConstraint(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp")
-	}).NextOption()
+	fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp")
 
 	should.BeTrue(t, fpPkg.IsDefined())
 
@@ -81,9 +57,7 @@ func TestCheckConstraintHashInt(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/hash")
-	}).NextOption()
+	hashPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/hash")
 
 	should.BeTrue(t, hashPkg.IsDefined())
 
@@ -112,9 +86,7 @@ func TestCheckConstraintShowHCons(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/show")
-	}).NextOption()
+	hashPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/test/internal/show")
 
 	should.BeTrue(t, hashPkg.IsDefined())
 
@@ -146,9 +118,7 @@ func TestCheckConstraintDecoder(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
-	}).NextOption()
+	hashPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/test/internal/js")
 
 	should.BeTrue(t, hashPkg.IsDefined())
 
@@ -192,9 +162,7 @@ func TestCheckConstraintEncoderOption(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
-	}).NextOption()
+	hashPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/test/internal/js")
 
 	should.BeTrue(t, hashPkg.IsDefined())
 
@@ -240,9 +208,7 @@ func TestCheckConstraintInterface(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp")
-	}).NextOption()
+	fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp")
 
 	should.BeTrue(t, fpPkg.IsDefined())
 
@@ -267,9 +233,7 @@ func TestCheckConstraintNgapSplit(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	hashPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/ngap")
-	}).NextOption()
+	hashPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/test/internal/ngap")
 
 	should.BeTrue(t, hashPkg.IsDefined())
 
@@ -301,9 +265,7 @@ func TestCheckConstraintTypeParam(t *testing.T) {
 	pkgs, err := packages.Load(cfg, cwd)
 	should.BeNil(t, err)
 
-	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindPackage(v.Types, "github.com/csgura/fp/test/internal/js")
-	}).NextOption()
+	fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/test/internal/js")
 
 	should.BeTrue(t, fpPkg.IsDefined())
 

@@ -1380,3 +1380,26 @@ func FindNode(pk *packages.Package, pos token.Pos) ast.Node {
 func BasicType(kind types.BasicKind) TypeInfo {
 	return typeInfo(types.Typ[kind])
 }
+
+func FindPackage(pkgs []*packages.Package, path string) fp.Option[*types.Package] {
+	return iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+		return findPackage(v.Types, path)
+	}).NextOption()
+}
+
+func findPackage(pk *types.Package, path string) fp.Option[*types.Package] {
+	ret := as.Seq(pk.Imports()).Find(func(v *types.Package) bool {
+		return v.Path() == path
+	})
+	if ret.IsDefined() {
+		return ret
+	}
+
+	for _, p := range pk.Imports() {
+		ret := findPackage(p, path)
+		if ret.IsDefined() {
+			return ret
+		}
+	}
+	return option.None[*types.Package]()
+}
