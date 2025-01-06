@@ -5,9 +5,10 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
-// Sealed is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
-// but go does not support existential type
+// HList is contraints interface type to force some argument type to be one of Cons[_,_] | Nil
+// but go does not support existential or wildcard type
 type HList interface {
+	// Cons[_,_] | Nil
 }
 
 // Header is constrains interface type,  enforce Head type of Cons is HT

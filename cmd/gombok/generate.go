@@ -120,7 +120,7 @@ func fillOption(ret generator.GenerateAdaptorDirective, intf *types.Interface) (
 	return ret, nil
 }
 
-func typeDecl(pk genfp.WorkingPackage, w genfp.Writer, t genfp.TypeReference) string {
+func typeDecl(pk genfp.WorkingPackage, w genfp.Writer, t generator.TypeReference) string {
 	if t.Type != nil {
 		return w.TypeName(pk, t.Type)
 	}
@@ -134,7 +134,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 		adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
 	}
 
-	fieldSet := fp.Map[string, genfp.TypeReference]{}
+	fieldSet := fp.Map[string, generator.TypeReference]{}
 	var fieldList []string
 	methodSet := fp.Set[string]{}
 
@@ -181,7 +181,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 	})
 
 	for _, d := range gad.Delegate {
-		exists := as.Seq(gad.ImplementsWith).Exists(func(v genfp.TypeReference) bool {
+		exists := as.Seq(gad.ImplementsWith).Exists(func(v generator.TypeReference) bool {
 			return v.StringExpr == d.TypeOf.StringExpr
 		})
 		if !exists {
@@ -378,7 +378,7 @@ func genGenerate() {
 }
 
 func isEmbeddingField(gad generator.GenerateAdaptorDirective, field string) bool {
-	is := func(e []genfp.TypeReference) bool {
+	is := func(e []generator.TypeReference) bool {
 		for _, e := range e {
 			if seq.Last(strings.Split(e.StringExpr, ".")) == option.Some(field) {
 				return true
@@ -406,7 +406,7 @@ type implContext struct {
 	argTypeStr      string
 	resstr          string
 	implArgs        string
-	fieldMap        fp.Map[string, genfp.TypeReference]
+	fieldMap        fp.Map[string, generator.TypeReference]
 }
 
 func (r *implContext) withReturn(lastPos bool, fmtstr string, args ...any) string {
@@ -874,7 +874,7 @@ func argName(i int, t *types.Var) string {
 	return name
 }
 
-func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
+func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
 	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
 
@@ -965,7 +965,7 @@ func elemTypeExpr(w genfp.ImportSet, wp genfp.WorkingPackage, t *types.Var) stri
 	return w.TypeName(wp, st.Elem())
 }
 
-func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, genfp.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
+func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
 	if opt.Delegate != nil && opt.Private {
 		if isEmbeddingField(gad, opt.Delegate.Field) {
 			if !gad.Self || !gad.ExtendsByEmbedding {

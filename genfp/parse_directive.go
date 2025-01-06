@@ -2,8 +2,6 @@ package genfp
 
 import (
 	"fmt"
-	"go/ast"
-	"go/types"
 	"reflect"
 )
 
@@ -163,13 +161,6 @@ func ZeroReturn() {
 
 }
 
-type TypeReference struct {
-	Expr       ast.Expr
-	StringExpr string
-	Type       types.Type
-	Imports    []ImportPackage
-}
-
 type GenerateMonadFunctions[T any] struct {
 	// 생성될 file 이름
 	File     string
@@ -180,15 +171,6 @@ type GenerateTraverseFunctions[T any] struct {
 	// 생성될 file 이름
 	File     string
 	TypeParm TypeTag
-}
-
-type MethodReference struct {
-	Receiver TypeReference
-	Name     string
-}
-
-func (r MethodReference) GetName() string {
-	return r.Name
 }
 
 type GenerateMonadTransformer[T any] struct {

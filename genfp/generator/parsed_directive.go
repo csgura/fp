@@ -62,8 +62,21 @@ func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
 // 	return "", fmt.Errorf("can't eval %T as selector expr", e)
 // }
 
-type MethodReference = genfp.MethodReference
-type TypeReference = genfp.TypeReference
+type TypeReference struct {
+	Expr       ast.Expr
+	StringExpr string
+	Type       types.Type
+	Imports    []genfp.ImportPackage
+}
+
+type MethodReference struct {
+	Receiver TypeReference
+	Name     string
+}
+
+func (r MethodReference) GetName() string {
+	return r.Name
+}
 
 func asMethodRef(p *packages.Package, receiver ast.Expr, name string) MethodReference {
 	return MethodReference{
@@ -344,7 +357,7 @@ func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
 }
 
 type DelegateDirective struct {
-	TypeOf genfp.TypeReference
+	TypeOf TypeReference
 	Field  string
 }
 
@@ -356,10 +369,10 @@ type GenerateAdaptorDirective struct {
 	Extends             bool
 	Self                bool
 	ExtendsSelfCheck    bool
-	ImplementsWith      []genfp.TypeReference
-	ExtendsWith         map[string]genfp.TypeReference
-	Embedding           []genfp.TypeReference
-	EmbeddingInterface  []genfp.TypeReference
+	ImplementsWith      []TypeReference
+	ExtendsWith         map[string]TypeReference
+	Embedding           []TypeReference
+	EmbeddingInterface  []TypeReference
 	ExtendsByEmbedding  bool
 	Delegate            []DelegateDirective
 	Getter              []string
@@ -372,8 +385,8 @@ type GenerateAdaptorDirective struct {
 
 type FuncReference struct {
 	Name          string
-	TypeParams    []genfp.TypeReference
-	TypeReference genfp.TypeReference
+	TypeParams    []TypeReference
+	TypeReference TypeReference
 }
 
 func evalTypeReference(pk *packages.Package, exp ast.Expr) TypeReference {
