@@ -32,6 +32,7 @@ type TypeClassInstanceGenerated struct {
 type TypeClassSummonContext struct {
 	w                     genfp.ImportSet
 	fpPkg                 fp.Option[*types.Package]
+	hlistPkg              fp.Option[*types.Package]
 	tcCache               *metafp.TypeClassInstanceCache
 	derived               fp.Map[string, TypeClassInstanceGenerated]
 	loopCheck             fp.Set[string]
@@ -2012,17 +2013,20 @@ func (r *TypeClassSummonContext) summonTuple(ctx SummonContext, tc metafp.TypeCl
 
 func (r *TypeClassSummonContext) summonFpNamed(ctx SummonContext, tc metafp.TypeClass, typePkg *types.Package, structName string, name string, t metafp.TypeInfoExpr, genLabelled bool) SummonExpr {
 
-	rtt := namedOrRuntimeType(r.fpPkg.Get(), ctx.working, typePkg, structName, name, t.Type, genLabelled)
-	//fmt.Printf("tc = %s, type = %s, rtt = %s, %T\n", tc, t.Type, rtt, rtt)
-	named := r.namedLookup(ctx, metafp.RequiredInstance{
-		TypeClass: tc,
-		Type:      rtt,
-	}, "Named")
-	// named := r.lookupTypeClassFunc(ctx, tc, "Named")
-	if named.IsDefined() {
-		//fmt.Printf("find named\n")
-		return r.exprTypeClassInstance(ctx, named.Get())
+	if r.fpPkg.IsDefined() {
+		rtt := namedOrRuntimeType(r.fpPkg.Get(), ctx.working, typePkg, structName, name, t.Type, genLabelled)
+		//fmt.Printf("tc = %s, type = %s, rtt = %s, %T\n", tc, t.Type, rtt, rtt)
+		named := r.namedLookup(ctx, metafp.RequiredInstance{
+			TypeClass: tc,
+			Type:      rtt,
+		}, "Named")
+		// named := r.lookupTypeClassFunc(ctx, tc, "Named")
+		if named.IsDefined() {
+			//fmt.Printf("find named\n")
+			return r.exprTypeClassInstance(ctx, named.Get())
+		}
 	}
+
 	instance := r.lookupTypeClassFuncMust(ctx, tc, "Named")
 
 	expr := r.summonRequired(ctx, metafp.RequiredInstance{
@@ -2316,7 +2320,7 @@ func (r *TypeClassSummonContext) deriveFuncExpr(tc metafp.TypeClassDerive) fp.Op
 
 func FindFpPackage(pk *types.Package) fp.Option[*types.Package] {
 	ret := as.Seq(pk.Imports()).Find(func(v *types.Package) bool {
-		return v.Path() == "github.com/csgura/fp"
+		return v.Path() == ""
 	})
 	if ret.IsDefined() {
 		return ret
@@ -2334,9 +2338,8 @@ func FindFpPackage(pk *types.Package) fp.Option[*types.Package] {
 
 func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportSet) *TypeClassSummonContext {
 
-	fpPkg := iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
-		return FindFpPackage(v.Types)
-	}).NextOption()
+	fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp")
+	hlistPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/hlist")
 
 	derives := metafp.FindTypeClassDerive(pkgs)
 	summons := generator.FindTaggedNotInitalizedVariable(pkgs, "@fp.Summon")
@@ -2366,6 +2369,7 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 	return &TypeClassSummonContext{
 		w:                     importSet,
 		fpPkg:                 fpPkg,
+		hlistPkg:              hlistPkg,
 		tcCache:               &tccache,
 		recursiveGen:          derives,
 		implicitTypeInference: implicitTypeInference && moduleInf,
