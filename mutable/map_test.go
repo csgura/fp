@@ -90,7 +90,7 @@ func TestMapIterator(t *testing.T) {
 		"4": true,
 	}
 
-	itr := fp.IteratorOfGoMap(m).Filter(func(t fp.Tuple2[string, bool]) bool {
+	itr := fp.IteratorOfGoMap(m).Filter(func(t fp.Entry[bool]) bool {
 		return t.Last()
 	})
 

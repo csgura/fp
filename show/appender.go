@@ -78,15 +78,15 @@ func appendMap(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 	}
 }
 
-func FormatStruct(typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, Appender]) string {
+func FormatStruct(typeName string, opt fp.ShowOption, fields ...fp.Entry[Appender]) string {
 	return strings.Join(AppendStruct(nil, typeName, opt, fields...), "")
 }
 
-func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Tuple2[string, Appender]) []string {
+func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Entry[Appender]) []string {
 
 	childOpt := opt.IncreaseIndent()
 
-	itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Tuple2[string, Appender]) []string {
+	itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Entry[Appender]) []string {
 		valuestr := t.I2(nil, childOpt)
 		if isEmptyString(valuestr) {
 			return nil
@@ -98,11 +98,11 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 
 }
 
-func StructAppender(typeName string, fields ...fp.Tuple2[string, Appender]) Appender {
+func StructAppender(typeName string, fields ...fp.Entry[Appender]) Appender {
 	return func(buf []string, opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
 
-		itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Tuple2[string, Appender]) []string {
+		itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Entry[Appender]) []string {
 			valuestr := t.I2(nil, childOpt)
 			if isEmptyString(valuestr) {
 				return nil

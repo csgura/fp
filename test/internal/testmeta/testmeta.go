@@ -25,7 +25,7 @@ var _ hash.Derives[fp.Hashable[Person]]
 var _ show.Derives[fp.Show[Person]]
 
 type HasTuple struct {
-	Entry fp.Tuple2[string, int]
+	Entry fp.Entry[int]
 	HList hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
 }
 

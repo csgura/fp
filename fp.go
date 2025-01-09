@@ -43,6 +43,8 @@ func (r Tuple1[T1]) String() string {
 	return fmt.Sprintf("(%v)", r.I1)
 }
 
+type Entry[V any] = Tuple2[string, V]
+
 type Named interface {
 	Name() string
 	Tag() string
@@ -86,7 +88,7 @@ func (r RuntimeNamed[T]) String() string {
 
 type Labelled1[T1 Named] = Tuple1[T1]
 
-type Supplier[R any] func() R
+type Supplier[R any] = func() R
 
 type Predicate[T any] func(T) bool
 

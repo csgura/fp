@@ -1095,7 +1095,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Opt
 	names := seq.Map(fields, func(v metafp.StructField) string {
 		return v.Name
 	})
-	argslist := seq.Map(seq.Zip(names, args), func(v fp.Tuple2[string, string]) string {
+	argslist := seq.Map(seq.Zip(names, args), func(v fp.Entry[string]) string {
 		return fmt.Sprintf("%s: %s", v.I1, v.I2)
 	}).MakeString(",")
 
@@ -1200,7 +1200,7 @@ var implicitTypeInference = option.Of(runtime.Version()).Filter(func(v string) b
 
 func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc metafp.TypeClass, sf structFunctions) fp.Option[GenericRepr] {
 
-	type fieldName = fp.Tuple2[string, string]
+	type fieldName = fp.Entry[string]
 	fields := sf.fields
 	names := seq.Map(fields, func(v metafp.StructField) fieldName {
 		return as.Tuple(v.Name, v.Tag)
@@ -1425,7 +1425,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 		return v.TypeInfoExpr(ctx.working)
 	})
 
-	type fieldName = fp.Tuple2[string, string]
+	type fieldName = fp.Entry[string]
 	names := seq.Map(fields, func(v metafp.StructField) fieldName {
 		return as.Tuple(v.Name, v.Tag)
 	})
@@ -1618,7 +1618,7 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx SummonContext, tpe metaf
 		return v.TypeInfoExpr(ctx.working)
 	})
 
-	type fieldName = fp.Tuple2[string, string]
+	type fieldName = fp.Entry[string]
 	names := seq.Map(fields, func(v metafp.StructField) fieldName {
 		return as.Tuple2(v.Name, v.Tag)
 	})

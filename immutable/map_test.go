@@ -23,7 +23,7 @@ func TestMap(t *testing.T) {
 	fmt.Println(m.Get("hello"))
 	fmt.Println(m.Get("world"))
 
-	m.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
+	m.Iterator().Foreach(fp.Println[fp.Entry[int]])
 
 	s := immutable.Set(hash.String, "hello", "world")
 	s2 := s.Incl("kkk")
@@ -33,10 +33,10 @@ func TestMap(t *testing.T) {
 	m2 := mutable.Map[string, int]{"gura": 100, "hello": 200}
 	m2["world"] = 200
 
-	m2.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
+	m2.Iterator().Foreach(fp.Println[fp.Entry[int]])
 
 	m3 := immutable.MapBuilder[string, int](hash.String).Add("hello", 10).Add("world", 20).Build()
-	m3.Iterator().Foreach(fp.Println[fp.Tuple2[string, int]])
+	m3.Iterator().Foreach(fp.Println[fp.Entry[int]])
 
 }
 

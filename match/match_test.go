@@ -32,7 +32,7 @@ func TestMatch(t *testing.T) {
 		match.Case(match.Tuple2(match.Some[string](), match.Some[int]()), as.Tupled2(func(v1 string, v2 int) string {
 			return "some,some"
 		})),
-		match.Case(match.Tuple2(match.Some[string](), match.None[int]()), func(t fp.Tuple2[string, fp.Unit]) string {
+		match.Case(match.Tuple2(match.Some[string](), match.None[int]()), func(t fp.Entry[fp.Unit]) string {
 			return "some,none"
 
 		}),

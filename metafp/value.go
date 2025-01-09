@@ -117,7 +117,7 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	return option.None[TaggedStruct]()
 }
 
-func parseKeyValue(s string) fp.Tuple2[string, string] {
+func parseKeyValue(s string) fp.Entry[string] {
 	s = strings.TrimSpace(s)
 	idx := strings.Index(s, "=")
 	if idx > 0 && len(s) > idx+1 {
@@ -126,7 +126,7 @@ func parseKeyValue(s string) fp.Tuple2[string, string] {
 	return as.Tuple2(s, "true")
 }
 
-func parseAnnotation(s string) fp.Tuple2[string, Annotation] {
+func parseAnnotation(s string) fp.Entry[Annotation] {
 	pstart := strings.Index(s, "(")
 	if pstart > 0 {
 		pend := strings.LastIndex(s, ")")
@@ -1257,14 +1257,14 @@ func typeInfo(tpe types.Type) TypeInfo {
 		methodMap := func() fp.Map[string, *types.Func] {
 			if realtp.NumMethods() == 0 {
 				if underIntf, ok := realtp.Underlying().(*types.Interface); ok {
-					method := iterator.Map(iterator.Range(0, underIntf.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+					method := iterator.Map(iterator.Range(0, underIntf.NumMethods()), func(v int) fp.Entry[*types.Func] {
 						m := underIntf.Method(v)
 						return as.Tuple2(m.Name(), m)
 					})
 					return mutable.MapOf(iterator.ToGoMap(method))
 				}
 			}
-			method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+			method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Entry[*types.Func] {
 				m := realtp.Method(v)
 				return as.Tuple2(m.Name(), m)
 			})

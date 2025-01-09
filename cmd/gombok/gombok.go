@@ -141,9 +141,9 @@ func processDeref(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 				)
 			}
 
-			sorted := seq.Sort(rhs.Method.Iterator().ToSeq(), ord.ContraMap(ord.Given[string](), fp.Tuple2[string, *types.Func].Head))
+			sorted := seq.Sort(rhs.Method.Iterator().ToSeq(), ord.ContraMap(ord.Given[string](), fp.Entry[*types.Func].Head))
 
-			sorted.Foreach(func(t fp.Tuple2[string, *types.Func]) {
+			sorted.Foreach(func(t fp.Entry[*types.Func]) {
 				name, f := t.Unapply()
 				if ts.Info.Method.Get(name).IsEmpty() && !genMethod.Contains(name) {
 

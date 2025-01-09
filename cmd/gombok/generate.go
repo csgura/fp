@@ -272,14 +272,14 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	fieldDecl = fieldDecl.Concat(fieldList)
 
-	fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")))
+	fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Entry[string].Head).FilterNot(eq.GivenValue("")))
 
 	fmt.Fprintf(w, `type %s%s struct {
 					%s
 				}
 				`, adaptorTypeName, decltp, fieldDecl.MakeString("\n"))
 
-	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
+	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Entry[string].Tail).MakeString("\n"))
 
 }
 
@@ -401,7 +401,7 @@ type implContext struct {
 	valName         string
 	cbName          string
 	selfarg         string
-	argTypes        fp.Seq[fp.Tuple2[string, typeExpr]]
+	argTypes        fp.Seq[fp.Entry[typeExpr]]
 	argStr          string
 	argTypeStr      string
 	resstr          string
@@ -517,8 +517,8 @@ func finalExpr(expr string) fp.Option[GeneratedExpr] {
 
 type CallArgs struct {
 	variadic bool
-	avail    fp.Seq[fp.Tuple2[string, typeExpr]]
-	args     fp.Seq[fp.Tuple2[string, typeExpr]]
+	avail    fp.Seq[fp.Entry[typeExpr]]
+	args     fp.Seq[fp.Entry[typeExpr]]
 }
 
 func (r CallArgs) ArgList() string {
@@ -526,7 +526,7 @@ func (r CallArgs) ArgList() string {
 }
 
 func (r CallArgs) ArgTypeList(w genfp.Writer, pk genfp.WorkingPackage) string {
-	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Tuple2[string, typeExpr]) string {
+	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Entry[typeExpr]) string {
 		if r.variadic && i == r.args.Size()-1 {
 			return fmt.Sprintf("%s... %s", v.I1, v.I2.TypeName(w, pk))
 		}
@@ -585,7 +585,7 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 		return varTypeExpr(gad.Package, t)
 	})
 
-	availableArgs := func() fp.Seq[fp.Tuple2[string, typeExpr]] {
+	availableArgs := func() fp.Seq[fp.Entry[typeExpr]] {
 		if gad.ExtendsSelfCheck {
 			return seq.Concat(as.Tuple[string, typeExpr]("self", namedTypeExpr(gad.Interface)), r.argTypes)
 		}
@@ -593,7 +593,7 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 	}()
 
 	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp typeExpr) fp.Try[CallArgs] {
-		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, typeExpr]) bool {
+		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Entry[typeExpr]) bool {
 			return t.I2.String() != tp.String()
 		})
 
@@ -874,11 +874,11 @@ func argName(i int, t *types.Var) string {
 	return name
 }
 
-func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
+func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Entry[string]], fp.Set[string]) {
 	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
 
-	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
+	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Entry[string] {
 		if methodSet.Contains(t.Name()) {
 			return as.Tuple("", "")
 		}
@@ -965,7 +965,7 @@ func elemTypeExpr(w genfp.ImportSet, wp genfp.WorkingPackage, t *types.Var) stri
 	return w.TypeName(wp, st.Elem())
 }
 
-func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
+func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Entry[string], fp.Set[string]) {
 	if opt.Delegate != nil && opt.Private {
 		if isEmbeddingField(gad, opt.Delegate.Field) {
 			if !gad.Self || !gad.ExtendsByEmbedding {
@@ -988,7 +988,7 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 		selfarg = "self " + w.TypeName(gad.Package, gad.Interface) + ","
 	}
 
-	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, typeExpr] {
+	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Entry[typeExpr] {
 		return as.Tuple2(argName(i, t), varTypeExpr(gad.Package, t))
 	})
 

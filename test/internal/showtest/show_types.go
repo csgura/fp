@@ -57,7 +57,7 @@ type DupGenerate struct {
 var _ show.Derives[fp.Show[DupGenerate]]
 
 type HasTuple struct {
-	Entry fp.Tuple2[string, int]
+	Entry fp.Entry[int]
 	HList hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
 }
 

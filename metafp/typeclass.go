@@ -302,7 +302,7 @@ type paramVar struct {
 type ConstraintCheckResult struct {
 	Ok bool
 
-	CheckConstrainedOf fp.Set[fp.Tuple2[string, string]]
+	CheckConstrainedOf fp.Set[fp.Entry[string]]
 	ParamMapping       fp.Map[string, TypeInfo]
 	Error              error
 }
@@ -589,7 +589,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 
 	_, err := types.Instantiate(tctx, sig, paramIns, true)
 	if err == nil {
-		mapping := seq.ToGoMap(seq.Map(seq.Map(paramFound, fp.Option[paramVar].Get), func(v paramVar) fp.Tuple2[string, TypeInfo] {
+		mapping := seq.ToGoMap(seq.Map(seq.Map(paramFound, fp.Option[paramVar].Get), func(v paramVar) fp.Entry[TypeInfo] {
 			return as.Tuple2(v.typeParam.Obj().Name(), v.actualType)
 		}))
 
