@@ -24,7 +24,7 @@ func (r ListAdaptor[T]) IsEmpty() bool {
 	if r.getHead == nil {
 		return true
 	}
-	return r.getHead.Apply().IsEmpty()
+	return r.getHead(Unit{}).IsEmpty()
 }
 func (r ListAdaptor[T]) NonEmpty() bool {
 	return !r.IsEmpty()
@@ -33,7 +33,7 @@ func (r ListAdaptor[T]) Head() T {
 	if r.getHead == nil {
 		panic("List.empty")
 	}
-	opt := r.getHead.Apply()
+	opt := r.getHead(Unit{})
 	if opt.IsEmpty() {
 		panic("List.empty")
 	}
@@ -48,7 +48,7 @@ func (r ListAdaptor[T]) Tail() List[T] {
 			return r.Tail()
 		})
 	}
-	return r.getTail.Apply()
+	return r.getTail(Unit{})
 }
 
 func (r ListAdaptor[T]) Unapply() (T, List[T]) {
