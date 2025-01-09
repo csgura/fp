@@ -173,13 +173,18 @@ type GenerateTraverseFunctions[T any] struct {
 	TypeParm TypeTag
 }
 
+type MonadFunctions struct {
+	Pure    any
+	FlatMap any
+}
+
 type GenerateMonadTransformer[T any] struct {
 	Name string
 	// 생성될 file 이름
-	File      string
-	TypeParm  TypeTag
-	Pure      any
-	FlatMap   any
-	Sequence  any
-	Transform []any
+	File          string
+	TypeParm      TypeTag
+	GivenMonad    MonadFunctions
+	ExposureMonad MonadFunctions
+	Sequence      any
+	Transform     []any
 }

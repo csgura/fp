@@ -180,16 +180,16 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	fixedParams := FixedParams(w, md.Package, md.TargetType, md.TypeParm)
 	fixedStr := strings.Join(fixedParams, ",")
 
-	pureins := CallFunc(w, md.Pure)
+	pureins := CallFunc(w, md.ExposureMonad.Pure)
 	puref := func(v string, args ...any) string {
 		return fmt.Sprintf("%s(%s)", pureins(replaceParam{
 			md.TypeParm.String(): "A",
 		}), fmt.Sprintf("%s", args...))
 	}
 
-	flatmapf := CallFunc(w, md.FlatMap)
+	flatmapf := CallFunc(w, md.ExposureMonad.FlatMap)
 
-	flatmapRet := FlatMapRetType(w, md.Package, md.FlatMap, fixedParams)
+	flatmapRet := FlatMapRetType(w, md.Package, md.ExposureMonad.FlatMap, fixedParams)
 
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {

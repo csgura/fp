@@ -346,8 +346,10 @@ func _[A, B any]() genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]] {
 	return genfp.GenerateMonadTransformer[fp.Try[fp.Seq[A]]]{
 		File:     "try_seqt.go",
 		TypeParm: genfp.TypeOf[A](),
-		Pure:     seq.Pure[A],
-		FlatMap:  seq.FlatMap[A, B],
+		ExposureMonad: genfp.MonadFunctions{
+			Pure:    seq.Pure[A],
+			FlatMap: seq.FlatMap[A, B],
+		},
 		Sequence: func(v fp.Seq[fp.Try[A]]) fp.Try[fp.Seq[A]] {
 			return Map(Sequence(v), as.Seq)
 		},
@@ -393,8 +395,10 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.Try[fp.Option[T]]] {
 	return genfp.GenerateMonadTransformer[fp.Try[fp.Option[T]]]{
 		File:     "try_optiont.go",
 		TypeParm: genfp.TypeOf[T](),
-		Pure:     option.Pure[T],
-		FlatMap:  option.FlatMap[T, U],
+		ExposureMonad: genfp.MonadFunctions{
+			Pure:    option.Pure[T],
+			FlatMap: option.FlatMap[T, U],
+		},
 		Sequence: func(v fp.Option[fp.Try[T]]) fp.Try[fp.Option[T]] {
 			if v.IsDefined() {
 				return Map(v.Get(), option.Some)

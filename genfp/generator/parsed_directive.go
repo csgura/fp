@@ -902,18 +902,23 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 	return ret, nil
 }
 
+type MonadFunctions struct {
+	Pure    TypeReference
+	FlatMap TypeReference
+}
+
 type GenerateMonadTransformerDirective struct {
 	Name       string
 	Package    genfp.WorkingPackage
 	TargetType *types.Named
 	MonadType  *types.Named
 	// 생성될 file 이름
-	File      string
-	TypeParm  *types.TypeParam
-	Pure      TypeReference
-	FlatMap   TypeReference
-	Sequence  TypeReference
-	Transform []FuncReference
+	File          string
+	TypeParm      *types.TypeParam
+	GivenMonad    MonadFunctions
+	ExposureMonad MonadFunctions
+	Sequence      TypeReference
+	Transform     []FuncReference
 }
 
 func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
@@ -941,7 +946,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("target type is not named type : %s", typeArgs.At(0))
 	}
 
-	names := []string{"Name", "File", "TypeParm", "Pure", "FlatMap", "Sequence", "Transform"}
+	names := []string{"Name", "File", "TypeParm", "GivenMonad", "ExposureMonad", "Sequence", "Transform"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -971,12 +976,18 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 			} else {
 				return ret, fmt.Errorf("invalid TypeParam. %s is not type param", v.Type)
 			}
-		case "Pure":
-			found := evalTypeReference(lit.Package, value)
-			ret.Pure = found
-
-		case "FlatMap":
-			ret.FlatMap = evalTypeReference(lit.Package, value)
+		case "GivenMonad":
+			v, err := evalMonadFunctions(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			ret.GivenMonad = v
+		case "ExposureMonad":
+			v, err := evalMonadFunctions(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			ret.ExposureMonad = v
 		case "Sequence":
 			ret.Sequence = evalTypeReference(lit.Package, value)
 		case "Transform":
@@ -1016,4 +1027,31 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 	}
 
 	return ret, nil
+}
+
+func evalMonadFunctions(p *packages.Package, e ast.Expr) (MonadFunctions, error) {
+	if lt, ok := e.(*ast.CompositeLit); ok {
+		ret := MonadFunctions{}
+		names := []string{"Pure", "FlatMap"}
+		for idx, e := range lt.Elts {
+			if idx >= len(names) {
+				return MonadFunctions{}, fmt.Errorf("invalid number of literals")
+			}
+
+			name := names[idx]
+			name, value := asKeyValue(e, name)
+
+			switch name {
+			case "Pure":
+				found := evalTypeReference(p, value)
+				ret.Pure = found
+
+			case "FlatMap":
+				ret.FlatMap = evalTypeReference(p, value)
+			}
+		}
+		return ret, nil
+	}
+	return MonadFunctions{}, fmt.Errorf("expr is not composite expr : %T", e)
+
 }
