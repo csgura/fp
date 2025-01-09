@@ -180,6 +180,35 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	fixedParams := FixedParams(w, md.Package, md.TargetType, md.TypeParm)
 	fixedStr := strings.Join(fixedParams, ",")
 
+	givekPkg := ""
+	if md.GivenMonad.Pure.Type != nil && len(md.GivenMonad.Pure.Imports) > 0 {
+		if md.GivenMonad.Pure.Imports[0].Package != md.Package.Path() {
+			w.AddImport(md.GivenMonad.Pure.Imports[0])
+			givekPkg = md.GivenMonad.Pure.Imports[0].Name
+		}
+	}
+
+	givenPure := func() string {
+		if givekPkg == "" {
+			return "Pure"
+		}
+		return givekPkg + ".Pure"
+	}()
+
+	givenMap := func() string {
+		if givekPkg == "" {
+			return "Map"
+		}
+		return givekPkg + ".Map"
+	}()
+
+	givenFlatMap := func() string {
+		if givekPkg == "" {
+			return "FlatMap"
+		}
+		return givekPkg + ".FlatMap"
+	}()
+
 	pureins := CallFunc(w, md.ExposureMonad.Pure)
 	puref := func(v string, args ...any) string {
 		return fmt.Sprintf("%s(%s)", pureins(replaceParam{
@@ -194,9 +223,9 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
 			if fixedStr != "" {
-				return fmt.Sprintf("Pure[%s](%s)", fixedParams, puref("%s", v))
+				return fmt.Sprintf("%s[%s](%s)", givenPure, fixedParams, puref("%s", v))
 			}
-			return fmt.Sprintf("Pure(%s)", puref("%s", v))
+			return fmt.Sprintf("%s(%s)", givenPure, puref("%s", v))
 		},
 		"pure": func(of string) string {
 			return pureins(replaceParam{
@@ -271,12 +300,20 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 			return f.String()
 		},
 	}
+
+	suffixName := md.Name
+
+	if givekPkg != "" {
+		suffixName = ""
+	}
 	param := map[string]any{
 		"tpargs":  tpargs,
 		"tpargs1": tpargs1,
 
-		"tp":   md.TypeParm.String(),
-		"name": md.Name,
+		"tp":           md.TypeParm.String(),
+		"name":         suffixName,
+		"givenMap":     givenMap,
+		"givenFlatMap": givenFlatMap,
 	}
 
 	w.Render(`
@@ -285,11 +322,11 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		}
 
 		func Lift{{.name}}[{{.tpargs}}](a {{outer "A"}}) {{combined "A"}} {
-			return Map(a, {{pure "A"}})
+			return {{.givenMap}}(a, {{pure "A"}})
 		}
 
 		func Map{{.name}}[{{.tpargs}},B any](t {{combined "A"}}, f func(A) B) {{combined "B"}} {
-			return Map(t, func( ma {{inner "A"}} )  {{inner "B"}} {
+			return {{.givenMap}}(t, func( ma {{inner "A"}} )  {{inner "B"}} {
 				return {{flatmap "A" "B"}}(ma, func(a A) {{inner "B"}} {
 					return {{pure "B"}}(f(a))
 				})
@@ -297,7 +334,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		}
 
 		func SubFlatMap{{.name}}[{{.tpargs}},B any](t {{combined "A"}}, f func(A) {{inner "B"}}) {{combined "B"}} {
-			return Map(t, func( ma {{inner "A"}} )  {{inner "B"}} {
+			return {{.givenMap}}(t, func( ma {{inner "A"}} )  {{inner "B"}} {
 				return {{flatmap "A" "B"}}(ma, func(a A) {{inner "B"}} {
 					return f(a)
 				})
@@ -309,7 +346,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		w.Render(`
 			func Traverse{{.name}}[A any, B any](t {{combined "A"}}, f func(A) {{outer "B"}}) {{combined "B"}} {
 				sequencef := {{sequence "B"}}
-				return FlatMap(Map{{.name}}(t,f), sequencef)
+				return {{.givenFlatMap}}(Map{{.name}}(t,f), sequencef)
 			}
 
 			func FlatMap{{.name}}[A any, B any](t {{combined "A"}}, f func(A) {{combined "B"}}) {{combined "B"}} {
@@ -318,7 +355,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					return {{flatmap (inner "B") "B"}}(v , fp.Id)
 				}
 
-				return Map(Traverse{{.name}}(t, f), flatten)
+				return {{.givenMap}}(Traverse{{.name}}(t, f), flatten)
 
 			}
 		`, funcs, param)
@@ -394,7 +431,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 					w.Render(`
 					func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
-						return Map({{.targName}}, func(insideValue {{inner (.tp)}}) {{.retType}} {
+						return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.tp)}}) {{.retType}} {
 							return {{.transExpr}}({{.callArgs}})
 						} )
 					}

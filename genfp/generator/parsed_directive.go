@@ -709,7 +709,7 @@ func evalFuncLit(pk *packages.Package, typeExpr ast.Expr) (types.Type, []genfp.I
 	if err != nil {
 		// TODO: Hello.World 같은 경우 receiver type 을  eval 하는데
 		// seq.Sort 처럼  package 이름이 있는 경우,  여기서 에러가 출력됨.
-		fmt.Printf("check expr err = %s\n", err)
+		fmt.Printf("check expr '%s' err = %s\n", types.ExprString(typeExpr), err)
 	}
 
 	var imports []genfp.ImportPackage
