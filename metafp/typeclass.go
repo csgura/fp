@@ -599,11 +599,20 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 
 	return ctx.Failed(err)
 }
-
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
+	ret := r.check(t)
+	// if ret.IsDefined() {
+	// 	argType := r.Result.TypeArgs.Head().Get()
+
+	// 	fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+	// }
+
+	return ret
+}
+func (r TypeClassInstance) check(t TypeInfo) fp.Option[TypeClassInstance] {
+
 	argType := r.Result.TypeArgs.Head().Get()
-	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
 
 	// if r.Name == "TupleHCons" {
 	// 	fmt.Printf("TupleHCons\n")

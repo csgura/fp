@@ -71,11 +71,11 @@ func ShowHasTuple() fp.Show[HasTuple] {
 		as.Generic(
 			"showtest.HasTuple",
 			"Struct",
-			func(v HasTuple) fp.Labelled2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]] {
+			func(v HasTuple) fp.Labelled2[fp.RuntimeNamed[fp.Entry[int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]] {
 				i0, i1 := v.Entry, v.HList
 				return as.Labelled2(as.NamedWithTag("Entry", i0, ``), as.NamedWithTag("HList", i1, ``))
 			},
-			func(t fp.Labelled2[fp.RuntimeNamed[fp.Tuple2[string, int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]]) HasTuple {
+			func(t fp.Labelled2[fp.RuntimeNamed[fp.Entry[int]], fp.RuntimeNamed[hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]]) HasTuple {
 				return HasTuple{Entry: t.I1.Value(), HList: t.I2.Value()}
 			},
 		),

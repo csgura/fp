@@ -2,20 +2,15 @@ package gendebug
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/eq"
+	"github.com/csgura/fp/show"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type LocalEmbedPrivate struct {
-	Name    string
-	Age     int
-	privacy string
-	NoName  struct {
-		Hello string
-		world int
-	}
+type HasTuple struct {
+	Tuple fp.Tuple2[string, int]
+	Entry fp.Entry[int]
 }
 
 // @fp.Derive
-var _ eq.Derives[fp.Eq[LocalEmbedPrivate]]
+var _ show.Derives[fp.Show[HasTuple]]

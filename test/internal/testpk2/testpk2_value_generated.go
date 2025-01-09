@@ -322,7 +322,7 @@ func (r AllKindTypes) WithI2(v interface {
 }
 
 func (r AllKindTypes) String() string {
-	return fmt.Sprintf("testpk2.AllKindTypes{hi:%v, tpe:%v, arr:%v, m:%v, a:%v, p:%v, l:%v, t:%v, m2:%v, mm:%v, intf:%v, ch:%v, ch2:%v, ch3:%v, fn3:%v, arr2:%v, st:%v, i2:%v}", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.arr2, r.st, r.i2)
+	return fmt.Sprintf("testpk2.AllKindTypes{hi:%v, tpe:%v, arr:%v, m:%v, a:%v, p:%v, l:%v, t:%v, m2:%v, mm:%v, intf:%v, ch:%v, ch2:%v, ch3:%v, arr2:%v, st:%v, i2:%v}", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.arr2, r.st, r.i2)
 }
 
 func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {

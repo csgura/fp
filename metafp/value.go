@@ -512,13 +512,16 @@ func typeId(tpe types.Type) string {
 }
 
 type TypeInfo struct {
-	ID        string
-	Pkg       *types.Package
-	TypeName  string
-	Type      types.Type
-	TypeArgs  fp.Seq[TypeInfo]
-	TypeParam fp.Seq[TypeParam]
-	Method    fp.Map[string, *types.Func]
+	ID             string
+	Pkg            *types.Package
+	TypeName       string
+	Type           types.Type
+	TypeArgs       fp.Seq[TypeInfo]
+	TypeParam      fp.Seq[TypeParam]
+	Method         fp.Map[string, *types.Func]
+	Alias          *types.Alias
+	AliasTypeArgs  fp.Seq[TypeInfo]
+	AliasTypeParam fp.Seq[TypeParam]
 }
 
 func (r TypeInfo) PackagedName() PackagedName {
@@ -1238,6 +1241,13 @@ func typeInfo(tpe types.Type) TypeInfo {
 
 	id := typeId(tpe)
 	switch realtp := tpe.(type) {
+	case *types.Alias:
+		rhst := typeInfo(types.Unalias(tpe))
+		rhst.Alias = realtp
+		rhst.AliasTypeArgs = typeArgs(realtp.TypeArgs())
+		rhst.AliasTypeParam = typeParam(realtp.TypeParams())
+
+		return rhst
 	case *types.TypeParam:
 		return TypeInfo{
 			ID:       id,
