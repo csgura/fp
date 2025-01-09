@@ -90,6 +90,8 @@ type Labelled1[T1 Named] = Tuple1[T1]
 
 type Supplier[R any] = func() R
 
+type Operator[T any] = func(T, T) T
+
 type Predicate[T any] func(T) bool
 
 func (r Predicate[T]) Negate() Predicate[T] {
