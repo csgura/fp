@@ -12,7 +12,11 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
-func InstiateTransfomer(w genfp.Writer, pk genfp.WorkingPackage, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
+func InstiateTransfomer(w genfp.Writer, pk genfp.WorkingPackage, aliastp *types.Alias, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
+
+	if aliastp != nil {
+		return NameParamReplaced(w, pk, aliastp, p)
+	}
 
 	rettype := NameParamReplaced(w, pk, monadType, p)
 	return func(newname string, fmtargs ...any) string {
@@ -158,9 +162,9 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	}), func(v string) bool { return v != "" }), ",")
 
 	outertype := NameParamReplaced(w, md.Package, md.TargetType, md.TypeParm)
-	innertype := NameParamReplaced(w, md.Package, md.MonadType, md.TypeParm)
+	innertype := NameParamReplaced(w, md.Package, md.ExposureMonadType, md.TypeParm)
 
-	combinedtype := InstiateTransfomer(w, md.Package, md.TargetType, md.MonadType, md.TypeParm)
+	combinedtype := InstiateTransfomer(w, md.Package, md.TargetAlias, md.TargetType, md.ExposureMonadType, md.TypeParm)
 
 	// srctype := rettype("A")
 	// rettp := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {

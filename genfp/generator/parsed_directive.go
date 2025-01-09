@@ -908,10 +908,11 @@ type MonadFunctions struct {
 }
 
 type GenerateMonadTransformerDirective struct {
-	Name       string
-	Package    genfp.WorkingPackage
-	TargetType *types.Named
-	MonadType  *types.Named
+	Name              string
+	Package           genfp.WorkingPackage
+	TargetAlias       *types.Alias
+	TargetType        *types.Named
+	ExposureMonadType *types.Named
 	// 생성될 file 이름
 	File          string
 	TypeParm      *types.TypeParam
@@ -930,7 +931,12 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("invalid number of type argument")
 	}
 
-	argType, ok := lit.Type.TypeArgs().At(0).(*types.Named)
+	aliasType, ok := lit.Type.TypeArgs().At(0).(*types.Alias)
+	if ok {
+		ret.TargetAlias = aliasType
+	}
+
+	argType, ok := types.Unalias(lit.Type.TypeArgs().At(0)).(*types.Named)
 	if !ok {
 		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
 	}
@@ -941,7 +947,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 	}
 
 	if monadType, ok := typeArgs.At(0).(*types.Named); ok {
-		ret.MonadType = monadType
+		ret.ExposureMonadType = monadType
 	} else {
 		return ret, fmt.Errorf("target type is not named type : %s", typeArgs.At(0))
 	}
@@ -1023,7 +1029,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 	ret.TargetType = ins.(*types.Named)
 
 	if ret.Name == "" {
-		ret.Name = ret.MonadType.Obj().Name() + "T"
+		ret.Name = ret.ExposureMonadType.Obj().Name() + "T"
 	}
 
 	return ret, nil

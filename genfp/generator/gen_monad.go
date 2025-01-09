@@ -74,15 +74,21 @@ func TypeParamReplaced(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p
 	}
 }
 
-func NameParamReplaced(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
-	return func(newname string, fmtargs ...any) string {
-		tpname := realtp.Origin().Obj().Name()
-		nameWithPkg := tpname
-		if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
-			alias := w.GetImportedName(genfp.FromTypesPackage(realtp.Obj().Pkg()))
+type GenericType interface {
+	TypeArgs() *types.TypeList
+	Obj() *types.TypeName
+}
 
-			nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
-		}
+func NameParamReplaced(w Writer, pk genfp.WorkingPackage, realtp GenericType, p *types.TypeParam) func(string, ...any) string {
+	tpname := realtp.Obj().Name()
+	nameWithPkg := tpname
+	if realtp.Obj().Pkg() != nil && realtp.Obj().Pkg().Path() != pk.Path() {
+		alias := w.GetImportedName(genfp.FromTypesPackage(realtp.Obj().Pkg()))
+
+		nameWithPkg = fmt.Sprintf("%s.%s", alias, tpname)
+	}
+
+	return func(newname string, fmtargs ...any) string {
 
 		if realtp.TypeArgs() != nil {
 			args := []string{}
