@@ -15,6 +15,13 @@ func None[A any]() fp.OptionT[A] {
 	return try.Success(option.None[A]())
 }
 
+func Fold[T any, U any](optionT fp.OptionT[T], zero U, f func(U, T) U) U {
+	if optionT.IsFailure() {
+		return zero
+	}
+	return option.Fold(optionT.Get(), zero, f)
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
@@ -45,7 +52,6 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 			fp.Option[T].OrOption,
 			fp.Option[T].OrPtr,
 			fp.Option[T].Recover,
-			option.Fold[T, U],
 		},
 	}
 }

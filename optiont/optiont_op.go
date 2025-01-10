@@ -98,9 +98,3 @@ func Recover[T any](optionT fp.OptionT[T], f func() T) fp.Try[fp.Option[T]] {
 		return fp.Option[T].Recover(insideValue, f)
 	})
 }
-
-func Fold[T any, U any](optionT fp.OptionT[T], zero U, f func(U, T) U) fp.Try[U] {
-	return try.Map(optionT, func(insideValue fp.Option[T]) U {
-		return option.Fold[T, U](insideValue, zero, f)
-	})
-}
