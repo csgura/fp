@@ -49,3 +49,11 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 		},
 	}
 }
+
+// @internal.Generate
+func _[A any]() genfp.GenerateMonadFunctions[fp.OptionT[A]] {
+	return genfp.GenerateMonadFunctions[fp.OptionT[A]]{
+		File:     "optiont_monad.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}

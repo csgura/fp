@@ -11,7 +11,7 @@ func Pure[A any](a A) fp.OptionT[A] {
 	return try.Pure(option.Pure[A](a))
 }
 
-func Lift[A any](a fp.Try[A]) fp.OptionT[A] {
+func LiftT[A any](a fp.Try[A]) fp.OptionT[A] {
 	return try.Map(a, option.Pure[A])
 }
 

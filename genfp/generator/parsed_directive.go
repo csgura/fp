@@ -851,7 +851,7 @@ func evalDelegate(pk *packages.Package) func(p *packages.Package, e ast.Expr) (D
 
 type GenerateMonadFunctionsDirective struct {
 	Package    genfp.WorkingPackage
-	TargetType *types.Named
+	TargetType GenericType
 	// 생성될 file 이름
 	File     string
 	TypeParm *types.TypeParam
@@ -866,12 +866,18 @@ func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective
 		return ret, fmt.Errorf("invalid number of type argument")
 	}
 
-	argType, ok := lit.Type.TypeArgs().At(0).(*types.Named)
-	if !ok {
-		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
-	}
+	aliasType, ok := lit.Type.TypeArgs().At(0).(*types.Alias)
+	if ok {
+		ret.TargetType = aliasType
+	} else {
 
-	ret.TargetType = argType
+		argType, ok := types.Unalias(lit.Type.TypeArgs().At(0)).(*types.Named)
+		if !ok {
+			return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
+		}
+		ret.TargetType = argType
+
+	}
 
 	names := []string{"File", "TypeParm"}
 	for idx, e := range lit.Lit.Elts {
@@ -1029,7 +1035,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 	ret.TargetType = ins.(*types.Named)
 
 	if ret.Name == "" {
-		ret.Name = ret.ExposureMonadType.Obj().Name() + "T"
+		ret.Name = ret.ExposureMonadType.Obj().Name() + ret.TargetType.Obj().Name()[:1]
 	}
 
 	return ret, nil
