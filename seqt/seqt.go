@@ -59,6 +59,46 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 	}
 }
 
+func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.SeqT[B]) fp.SeqT[B] {
+
+	/*
+		아 하스켈 코드 이해하기 빡세네
+
+		// foldlM :: (Foldable t, Monad m) => (b -> a -> m b) -> b -> t a -> m b
+		// foldlM f z0 xs = foldr c return xs z0
+		// -- See Note [List fusion and continuations in 'c']
+		// where c x k z = f z x >>= k
+
+		type K = fp.Func1[B, fp.SeqT[B]]
+
+		// 하스켈 foldr 은 대충 다음과 같은 시그니쳐
+		foldr := as.Curried3(func(f func(A, K) K, z K, s fp.Iterator[A]) K {
+			panic("")
+		})
+
+		// c 는  a -> ( b -> m b ) -> b -> m b  타입
+		// k 가  b -> mb 에 해당
+		c := func(x A, k K) K {
+			return func(z B) fp.SeqT[B] {
+				return FlatMap(f(z, x), k)
+			}
+		}
+		return foldr(c)(Pure)(s)(zero)
+	*/
+	/*
+		type K = fp.Func1[B, fp.SeqT[B]]
+		return iterator.Fold(s, Pure[B], func(k K, x A) K {
+			return func(z B) fp.SeqT[B] {
+				return FlatMap(f(z, x), k)
+			}
+		})(zero)
+	*/
+
+	return iterator.Fold(s, Pure(zero), func(b fp.SeqT[B], a A) fp.SeqT[B] {
+		return FlatMap(b, fp.Flip2(f)(a))
+	})
+}
+
 // @internal.Generate
 func _[A any]() genfp.GenerateMonadFunctions[fp.SeqT[A]] {
 	return genfp.GenerateMonadFunctions[fp.SeqT[A]]{
