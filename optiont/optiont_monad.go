@@ -573,19 +573,3 @@ func Compose4[A1 any, A2, A3, A4, R any](f1 fp.Func1[A1, fp.OptionT[A2]], f2 fp.
 func Compose5[A1 any, A2, A3, A4, A5, R any](f1 fp.Func1[A1, fp.OptionT[A2]], f2 fp.Func1[A2, fp.OptionT[A3]], f3 fp.Func1[A3, fp.OptionT[A4]], f4 fp.Func1[A4, fp.OptionT[A5]], f5 fp.Func1[A5, fp.OptionT[R]]) fp.Func1[A1, fp.OptionT[R]] {
 	return Compose2(f1, Compose4(f2, f3, f4, f5))
 }
-
-func Compose6[A1 any, A2, A3, A4, A5, A6, R any](f1 fp.Func1[A1, fp.OptionT[A2]], f2 fp.Func1[A2, fp.OptionT[A3]], f3 fp.Func1[A3, fp.OptionT[A4]], f4 fp.Func1[A4, fp.OptionT[A5]], f5 fp.Func1[A5, fp.OptionT[A6]], f6 fp.Func1[A6, fp.OptionT[R]]) fp.Func1[A1, fp.OptionT[R]] {
-	return Compose2(f1, Compose5(f2, f3, f4, f5, f6))
-}
-
-func Compose7[A1 any, A2, A3, A4, A5, A6, A7, R any](f1 fp.Func1[A1, fp.OptionT[A2]], f2 fp.Func1[A2, fp.OptionT[A3]], f3 fp.Func1[A3, fp.OptionT[A4]], f4 fp.Func1[A4, fp.OptionT[A5]], f5 fp.Func1[A5, fp.OptionT[A6]], f6 fp.Func1[A6, fp.OptionT[A7]], f7 fp.Func1[A7, fp.OptionT[R]]) fp.Func1[A1, fp.OptionT[R]] {
-	return Compose2(f1, Compose6(f2, f3, f4, f5, f6, f7))
-}
-
-func Compose8[A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f1 fp.Func1[A1, fp.OptionT[A2]], f2 fp.Func1[A2, fp.OptionT[A3]], f3 fp.Func1[A3, fp.OptionT[A4]], f4 fp.Func1[A4, fp.OptionT[A5]], f5 fp.Func1[A5, fp.OptionT[A6]], f6 fp.Func1[A6, fp.OptionT[A7]], f7 fp.Func1[A7, fp.OptionT[A8]], f8 fp.Func1[A8, fp.OptionT[R]]) fp.Func1[A1, fp.OptionT[R]] {
-	return Compose2(f1, Compose7(f2, f3, f4, f5, f6, f7, f8))
-}
-
-func Compose9[A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f1 fp.Func1[A1, fp.OptionT[A2]], f2 fp.Func1[A2, fp.OptionT[A3]], f3 fp.Func1[A3, fp.OptionT[A4]], f4 fp.Func1[A4, fp.OptionT[A5]], f5 fp.Func1[A5, fp.OptionT[A6]], f6 fp.Func1[A6, fp.OptionT[A7]], f7 fp.Func1[A7, fp.OptionT[A8]], f8 fp.Func1[A8, fp.OptionT[A9]], f9 fp.Func1[A9, fp.OptionT[R]]) fp.Func1[A1, fp.OptionT[R]] {
-	return Compose2(f1, Compose8(f2, f3, f4, f5, f6, f7, f8, f9))
-}

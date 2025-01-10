@@ -31,7 +31,7 @@ func SubFlatMap[A any, B any](t fp.OptionT[A], f func(A) fp.Option[B]) fp.Option
 	})
 }
 
-func Traverse[A any, B any](t fp.OptionT[A], f func(A) fp.Try[B]) fp.OptionT[B] {
+func MapT[A any, B any](t fp.OptionT[A], f func(A) fp.Try[B]) fp.OptionT[B] {
 	sequencef := func(v fp.Option[fp.Try[B]]) fp.OptionT[B] {
 		if v.IsDefined() {
 			return try.Map(v.Get(), option.Some)
@@ -47,7 +47,7 @@ func FlatMap[A any, B any](t fp.OptionT[A], f func(A) fp.OptionT[B]) fp.OptionT[
 		return option.FlatMap[fp.Option[B], B](v, fp.Id)
 	}
 
-	return try.Map(Traverse(t, f), flatten)
+	return try.Map(MapT(t, f), flatten)
 
 }
 

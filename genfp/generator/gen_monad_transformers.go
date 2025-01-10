@@ -333,14 +333,15 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		}
 	`)
 
+	targetMonadSingleCh := func() string {
+		if strings.HasPrefix(md.Name, md.ExposureMonadType.Obj().Name()) {
+			return md.Name[len(md.ExposureMonadType.Obj().Name()):]
+		}
+		return md.TargetType.Obj().Name()[:1]
+	}()
+
 	if suffixName == "" {
-		sf := func() string {
-			if strings.HasPrefix(md.Name, md.ExposureMonadType.Obj().Name()) {
-				return md.Name[len(md.ExposureMonadType.Obj().Name()):]
-			}
-			return md.TargetType.Obj().Name()[:1]
-		}()
-		ctx.defineFunc("Lift"+sf, `
+		ctx.defineFunc("Lift"+targetMonadSingleCh, `
 
 			func {{.funcname}}[{{.tpargs}}](a {{outer "A"}}) {{combined "A"}} {
 				return {{.givenMap}}(a, {{pure "A"}})
@@ -374,12 +375,21 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	`)
 
 	if md.Sequence.Expr != nil {
-		ctx.defineFunc("Traverse"+suffixName, `
+
+		maptname := "Map" + targetMonadSingleCh
+		if suffixName != "" {
+			maptname = "Traverse" + suffixName
+		}
+
+		ctx.defineFunc(maptname, `
 			func {{.funcname}}[A any, B any](t {{combined "A"}}, f func(A) {{outer "B"}}) {{combined "B"}} {
 				sequencef := {{sequence "B"}}
 				return {{.givenFlatMap}}(Map{{.name}}(t,f), sequencef)
 			}
 		`)
+
+		ctx.param["maptfunc"] = maptname
+
 		ctx.defineFunc("FlatMap"+suffixName, `
 			func {{.funcname}}[A any, B any](t {{combined "A"}}, f func(A) {{combined "B"}}) {{combined "B"}} {
 
@@ -387,7 +397,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					return {{flatmap (inner "B") "B"}}(v , fp.Id)
 				}
 
-				return {{.givenMap}}(Traverse{{.name}}(t, f), flatten)
+				return {{.givenMap}}({{.maptfunc}}(t, f), flatten)
 
 			}
 		`)
