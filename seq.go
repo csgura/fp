@@ -9,6 +9,8 @@ func SliceCasting[To ~[]T, From ~[]T, T any](a From) To {
 	return To(a)
 }
 
+type SeqT[T any] = Try[Seq[T]]
+
 type Seq[T any] []T
 
 func (r Seq[T]) Widen() []T {
