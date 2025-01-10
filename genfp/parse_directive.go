@@ -181,10 +181,22 @@ type MonadFunctions struct {
 type GenerateMonadTransformer[T any] struct {
 	Name string
 	// 생성될 file 이름
-	File          string
-	TypeParm      TypeTag
-	GivenMonad    MonadFunctions
+	File string
+
+	// sequence 를 구현할 때는 T 외에 U 같은 타입 파라미터를 더 쓸 수 있기 때문에
+	// 어느 파라미터가  타입 파라미터인지 표시
+	TypeParm TypeTag
+
+	// monad transformer 의 아규먼트  ( fp.Try[fp.Option[T]] 의 경우 fp.Try )
+	GivenMonad MonadFunctions
+
+	// API 를 노출 하는 monad ( fp.Try[fp.Option[T]] 의 경우 fp.Option )
 	ExposureMonad MonadFunctions
-	Sequence      any
-	Transform     []any
+
+	// sequence 함수  fp.Option[fp.Try[T]]  => fp.Try[fp.Option[T]]
+	Sequence any
+
+	// ExposureMonad 를 첫번째 아규먼트로 받는 함수들을 지정하면
+	// Monad transformer 를 아규먼트로 받는 코드를 생성해 줌
+	Transform []any
 }

@@ -145,7 +145,7 @@ func (r AllKindTypes) L() Local {
 	return r.l
 }
 
-func (r AllKindTypes) T() fp.Try[fp.Option[Local]] {
+func (r AllKindTypes) T() fp.OptionT[Local] {
 	return r.t
 }
 
@@ -249,7 +249,7 @@ func (r AllKindTypes) WithL(v Local) AllKindTypes {
 	return r
 }
 
-func (r AllKindTypes) WithT(v fp.Try[fp.Option[Local]]) AllKindTypes {
+func (r AllKindTypes) WithT(v fp.OptionT[Local]) AllKindTypes {
 	r.t = v
 	return r
 }
@@ -325,7 +325,7 @@ func (r AllKindTypes) String() string {
 	return fmt.Sprintf("testpk2.AllKindTypes{hi:%v, tpe:%v, arr:%v, m:%v, a:%v, p:%v, l:%v, t:%v, m2:%v, mm:%v, intf:%v, ch:%v, ch2:%v, ch3:%v, arr2:%v, st:%v, i2:%v}", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.OptionT[Local], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -336,7 +336,7 @@ func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], rf.Type, []os.File, m
 	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) Unapply() (fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypes) Unapply() (fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.OptionT[Local], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -429,7 +429,7 @@ func (r AllKindTypesBuilder) L(v Local) AllKindTypesBuilder {
 	return r
 }
 
-func (r AllKindTypesBuilder) T(v fp.Try[fp.Option[Local]]) AllKindTypesBuilder {
+func (r AllKindTypesBuilder) T(v fp.OptionT[Local]) AllKindTypesBuilder {
 	r.t = v
 	return r
 }
@@ -501,7 +501,7 @@ func (r AllKindTypesBuilder) I2(v interface {
 	return r
 }
 
-func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.Try[fp.Option[Local]], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.OptionT[Local], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -532,7 +532,7 @@ func (r AllKindTypesBuilder) FromTuple(t fp.Tuple20[fp.Option[int], rf.Type, []o
 	return r
 }
 
-func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe rf.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.Try[fp.Option[Local]], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
+func (r AllKindTypesBuilder) Apply(hi fp.Option[int], tpe rf.Type, arr []os.File, m map[string]int, a any, p *int, l Local, t fp.OptionT[Local], m2 map[string]atomic.Bool, mm fp.Map[string, int], intf fp.Future[int], ch chan fp.Try[fp.Either[int, string]], ch2 chan<- int, ch3 <-chan int, fn3 fp.Func1[int, fp.Try[string]], fn func(a string) fp.Try[int], fn2 func(fp.Try[string]) (result int, err error), arr2 [2]int, st struct {
 	Embed
 	A int
 	B fp.Option[string]
@@ -595,7 +595,7 @@ func (r AllKindTypesBuilder) FromMap(m map[string]any) AllKindTypesBuilder {
 		r.l = v
 	}
 
-	if v, ok := m["t"].(fp.Try[fp.Option[Local]]); ok {
+	if v, ok := m["t"].(fp.OptionT[Local]); ok {
 		r.t = v
 	}
 
@@ -666,7 +666,7 @@ type AllKindTypesMutable struct {
 	A    any
 	P    *int
 	L    Local
-	T    fp.Try[fp.Option[Local]]
+	T    fp.OptionT[Local]
 	M2   map[string]atomic.Bool
 	Mm   fp.Map[string, int]
 	Intf fp.Future[int]

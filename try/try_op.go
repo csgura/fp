@@ -143,7 +143,7 @@ func Traverse_[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) error {
 	})
 }
 
-func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.Try[fp.Option[R]] {
+func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.OptionT[R] {
 	return Map(Traverse(fp.IteratorOfOption(opta), fa), fp.Iterator[R].NextOption)
 }
 

@@ -50,7 +50,7 @@ type AllKindTypes struct { // what the
 	a    any
 	p    *int
 	l    Local
-	t    fp.Try[fp.Option[Local]]
+	t    fp.OptionT[Local]
 	m2   map[string]atomic.Bool
 	mm   fp.Map[string, int]
 	intf fp.Future[int]
