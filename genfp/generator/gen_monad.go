@@ -604,7 +604,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 		}
 	`)
 
-	ctx.defineFuncs(3, genfp.MaxFunc, "Compose{{.N}}", `
+	ctx.defineFuncs(3, genfp.MaxCompose, "Compose{{.N}}", `
 		func {{.funcname}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any]({{monadFuncChain 1 .N}}) fp.Func1[A1, {{monad "R"}}] {
 			return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
 		}
