@@ -30,8 +30,7 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 		File:     "optiont_op.go",
 		TypeParm: genfp.TypeOf[T](),
 		GivenMonad: genfp.MonadFunctions{
-			Pure:    try.Pure[T],
-			FlatMap: try.FlatMap[T, U],
+			Pure: try.Success[T],
 		},
 		ExposureMonad: genfp.MonadFunctions{
 			Pure:    option.Pure[T],

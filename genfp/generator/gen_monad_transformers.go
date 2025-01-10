@@ -184,37 +184,45 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	fixedParams := FixedParams(w, md.Package, md.TargetType, md.TypeParm)
 	fixedStr := strings.Join(fixedParams, ",")
 
-	givekPkg := ""
+	givenPkg := ""
 	if md.GivenMonad.Pure.Type != nil && len(md.GivenMonad.Pure.Imports) > 0 {
 		if md.GivenMonad.Pure.Imports[0].Package != md.Package.Path() {
 			w.AddImport(md.GivenMonad.Pure.Imports[0])
-			givekPkg = md.GivenMonad.Pure.Imports[0].Name
+			givenPkg = md.GivenMonad.Pure.Imports[0].Name
 		}
 	}
 
-	givenPure := func() string {
-		if givekPkg == "" {
+	givenPure := func(replace map[string]string) string {
+		if givenPkg == "" {
 			return "Pure"
 		}
-		return givekPkg + ".Pure"
-	}()
+		givenPureIns := CallFunc(w, md.GivenMonad.Pure)
+
+		return givenPureIns(replace)
+	}
+
+	// givenPuref := func(v string, args ...any) string {
+	// 	return fmt.Sprintf("%s(%s)", givenPure(replaceParam{
+	// 		md.TypeParm.String(): "A",
+	// 	}), fmt.Sprintf("%s", args...))
+	// }
 
 	givenMap := func() string {
-		if givekPkg == "" {
+		if givenPkg == "" {
 			return "Map"
 		}
-		return givekPkg + ".Map"
+		return givenPkg + ".Map"
 	}()
 
 	givenFlatMap := func() string {
-		if givekPkg == "" {
+		if givenPkg == "" {
 			return "FlatMap"
 		}
-		return givekPkg + ".FlatMap"
+		return givenPkg + ".FlatMap"
 	}()
 
 	pureins := CallFunc(w, md.ExposureMonad.Pure)
-	puref := func(v string, args ...any) string {
+	puref := func(args ...any) string {
 		return fmt.Sprintf("%s(%s)", pureins(replaceParam{
 			md.TypeParm.String(): "A",
 		}), fmt.Sprintf("%s", args...))
@@ -227,9 +235,13 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
 			if fixedStr != "" {
-				return fmt.Sprintf("%s[%s](%s)", givenPure, fixedParams, puref("%s", v))
+				return fmt.Sprintf("%s[%s](%s)", givenPure(replaceParam{
+					md.TypeParm.String(): innertype("A"),
+				}), fixedParams, puref(v))
 			}
-			return fmt.Sprintf("%s(%s)", givenPure, puref("%s", v))
+			return fmt.Sprintf("%s(%s)", givenPure(replaceParam{
+				md.TypeParm.String(): innertype("A"),
+			}), puref(v))
 		},
 		"pure": func(of string) string {
 			return pureins(replaceParam{
@@ -307,7 +319,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 	suffixName := md.Name
 
-	if givekPkg != "" {
+	if givenPkg != "" {
 		suffixName = ""
 	}
 	param := map[string]any{

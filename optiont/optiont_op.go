@@ -8,7 +8,7 @@ import (
 )
 
 func Pure[A any](a A) fp.OptionT[A] {
-	return try.Pure(option.Pure[A](a))
+	return try.Success[fp.Option[A]](option.Pure[A](a))
 }
 
 func LiftT[A any](a fp.Try[A]) fp.OptionT[A] {
