@@ -50,10 +50,31 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 	}
 }
 
+func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.OptionT[B]) fp.OptionT[B] {
+	sum := zero
+	for s.HasNext() {
+		t := f(sum, s.Next())
+		if t.IsSuccess() && t.Get().IsDefined() {
+			sum = t.Get().Get()
+		} else {
+			return t
+		}
+	}
+	return Pure(sum)
+}
+
 // @internal.Generate
 func _[A any]() genfp.GenerateMonadFunctions[fp.OptionT[A]] {
 	return genfp.GenerateMonadFunctions[fp.OptionT[A]]{
 		File:     "optiont_monad.go",
+		TypeParm: genfp.TypeOf[A](),
+	}
+}
+
+// @internal.Generate
+func _[A any]() genfp.GenerateTraverseFunctions[fp.OptionT[A]] {
+	return genfp.GenerateTraverseFunctions[fp.OptionT[A]]{
+		File:     "optiont_traverse.go",
 		TypeParm: genfp.TypeOf[A](),
 	}
 }
