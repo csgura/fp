@@ -1502,7 +1502,7 @@ func genValueAndGetter() {
 
 		pkgs, err := packages.Load(cfg, cwd)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("package load error : %s\n", err)
 			return
 		}
 
@@ -1545,7 +1545,9 @@ func delete_gen_files(pack string) {
 	derivename := derive_generated_file_name(pack)
 	os.Remove(derivename)
 
-	files, err := os.ReadDir(".")
+	readdir := path.Dir(derivename)
+	//fmt.Printf("cwd = %s, readdir = %s\n", try.Apply(os.Getwd()), readdir)
+	files, err := os.ReadDir(readdir)
 	if err == nil {
 		ext := path.Ext(derivename)
 		prefix := derivename[0 : len(derivename)-len(ext)]

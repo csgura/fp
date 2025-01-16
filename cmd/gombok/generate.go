@@ -294,7 +294,7 @@ func genGenerate() {
 
 	pkgs, err := packages.Load(cfg, cwd)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("package load error : %s\n", err)
 		return
 	}
 
