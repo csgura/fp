@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"os"
+	"path"
 	"reflect"
 	"strings"
 
@@ -1541,7 +1542,19 @@ func derive_generated_file_name(pack string) string {
 
 func delete_gen_files(pack string) {
 	os.Remove(value_generated_file_name(pack))
-	os.Remove(derive_generated_file_name(pack))
+	derivename := derive_generated_file_name(pack)
+	os.Remove(derivename)
+
+	files, err := os.ReadDir(".")
+	if err == nil {
+		ext := path.Ext(derivename)
+		prefix := derivename[0 : len(derivename)-len(ext)]
+		for _, f := range files {
+			if strings.HasPrefix(f.Name(), prefix) {
+				os.Remove(f.Name())
+			}
+		}
+	}
 }
 
 func main() {

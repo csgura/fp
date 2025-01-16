@@ -2397,6 +2397,7 @@ func genDerive() {
 			d.Foreach(func(v metafp.TypeClassDerive) {
 				summonCtx.deriveFuncExpr(v).Foreach(func(v SummonExpr) {
 					fmt.Fprintf(w, "%s\n", v.expr)
+					w.CheckMaxFileSize(200000)
 				})
 			})
 		}
