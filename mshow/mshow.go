@@ -335,6 +335,12 @@ func structFieldSeparator(opt fp.ShowOption) string {
 	return spaceAfterComma(opt)
 }
 
+func Struct1[N1 any](names []fp.Named, ins1 Show[N1]) Show[fp.Tuple1[N1]] {
+	return NewAppend(func(buf []string, t fp.Tuple1[N1], opt fp.ShowOption) []string {
+		return append(buf, makeString(iterator.Of(AsAppender(Named(names[0], ins1), t.I1)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	})
+}
+
 func Struct2[N1, N2 any](names []fp.Named, ins1 Show[N1], ins2 Show[N2]) Show[fp.Tuple2[N1, N2]] {
 	return NewAppend(func(buf []string, t fp.Tuple2[N1, N2], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(AsAppender(Named(names[0], ins1), t.I1)(nil, opt), AsAppender(Named(names[1], ins2), t.I2)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)

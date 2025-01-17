@@ -9,5 +9,9 @@ type Hello struct {
 	World int
 }
 
+type World struct {
+	Hello Hello
+}
+
 // @fp.Derive(recursive=true)
-var _ mshow.Derives[mshow.Show[Hello]]
+var _ mshow.Derives[mshow.Show[World]]

@@ -2439,10 +2439,10 @@ func FindFpPackage(pk *types.Package) fp.Option[*types.Package] {
 	return option.None[*types.Package]()
 }
 
-func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportSet) *TypeClassSummonContext {
+func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportSet, fpPkg, hlistPkg *types.Package) *TypeClassSummonContext {
 
-	fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp")
-	hlistPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/hlist")
+	// fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp")
+	// hlistPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/hlist")
 
 	derives := metafp.FindTypeClassDerive(pkgs)
 	summons := generator.FindTaggedNotInitalizedVariable(pkgs, "@fp.Summon")
@@ -2471,8 +2471,8 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 	}))
 	return &TypeClassSummonContext{
 		w:                     importSet,
-		fpPkg:                 fpPkg,
-		hlistPkg:              hlistPkg,
+		fpPkg:                 option.Some(fpPkg),
+		hlistPkg:              option.Some(hlistPkg),
 		tcCache:               &tccache,
 		recursiveGen:          derives,
 		implicitTypeInference: implicitTypeInference && moduleInf,
@@ -2497,16 +2497,28 @@ func genDerive() {
 			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 		}
 
-		pkgs, err := packages.Load(cfg, cwd)
+		pkgs, err := packages.Load(cfg, cwd, "github.com/csgura/fp", "github.com/csgura/fp/hlist")
 		if err != nil {
 			fmt.Printf("package load error : %s\n", err)
 			return
 		}
 
+		fpPkgs, remains := seq.Partition(pkgs, func(v *packages.Package) bool {
+			return v.Types.Path() == "github.com/csgura/fp" || v.Types.Path() == "github.com/csgura/fp/hlist"
+		})
+
+		fpPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+			return v.Types.Path() == "github.com/csgura/fp"
+		})
+
+		hlistPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+			return v.Types.Path() == "github.com/csgura/fp/hlist"
+		})
+
 		// fmtalias := w.GetImportedName(genfp.NewImportPackage("fmt", "fmt"))
 		// asalias := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-		summonCtx := NewTypeClassSummonContext(pkgs, w)
+		summonCtx := NewTypeClassSummonContext(remains, w, fpPkg.Head().Get().Types, hlistPkg.Head().Get().Types)
 		if summonCtx.recursiveGen.Size() == 0 {
 			return
 		}
