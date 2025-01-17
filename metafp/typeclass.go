@@ -192,6 +192,7 @@ type RequiredInstance struct {
 	TypeClass TypeClass
 	Type      TypeInfo
 	Lazy      bool
+	Name      bool
 }
 
 func (r RequiredInstance) String() string {
@@ -603,7 +604,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	//fmt.Printf("check %s.%s : %t(%s), %d\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size())
+	fmt.Printf("check %s.%s : %t(%s), %d <> %s\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t)
 
 	// if r.Name == "TupleHCons" {
 	// 	fmt.Printf("TupleHCons\n")
@@ -659,7 +660,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 }
 
 func (r TypeClassInstancesOfPackage) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Option[TypeClassInstance] {
-	return r.Find(t).Filter(func(v TypeClassInstance) bool {
+	found := r.All.Filter(func(v TypeClassInstance) bool {
 		if strings.HasPrefix(v.Name, namePrefix) {
 			return true
 		}
@@ -669,7 +670,11 @@ func (r TypeClassInstancesOfPackage) FindByNamePrefix(namePrefix string, t TypeI
 		}
 
 		return false
+	})
+	return seq.FlatMap(found, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+		return v.Check(t).ToSeq()
 	}).Head()
+
 }
 
 // t 는 Eq 쌓이지 않은 타입
@@ -684,6 +689,12 @@ func (r TypeClassInstancesOfPackage) Find(t TypeInfo) fp.Seq[TypeClassInstance] 
 		return ret.ToSeq()
 	}
 
+	return seq.FlatMap(r.All, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+		return v.Check(t).ToSeq()
+	})
+}
+
+func (r TypeClassInstancesOfPackage) FindAll(t TypeInfo) fp.Seq[TypeClassInstance] {
 	return seq.FlatMap(r.All, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
 		return v.Check(t).ToSeq()
 	})
@@ -873,6 +884,13 @@ func asRequired(v TypeInfo) RequiredInstance {
 		return ret
 	}
 
+	if v.TypeArgs.Size() == 0 {
+		return RequiredInstance{
+			TypeClass: tc,
+			Type:      v,
+			Name:      true,
+		}
+	}
 	return RequiredInstance{
 		TypeClass: tc,
 		Type:      v.TypeArgs.Head().Get(),
@@ -927,7 +945,12 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 							return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
 						}
 						return true
+					} else if v.Name().IsDefined() {
+						if v.Name().Get() == "Named" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
+							return true
+						}
 					}
+
 					return false
 				})
 

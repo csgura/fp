@@ -7,13 +7,11 @@ import (
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Value
-type EmbeddedTypeParamStruct[T any] struct {
-	hello string
-	world struct {
-		Level T
-		Stage string
-	}
+type Hello struct {
+	hello    string
+	world    int
+	universe string
 }
 
 // @fp.Derive
-var _ mshow.Derives[mshow.Show[EmbeddedTypeParamStruct[any]]]
+var _ mshow.Derives[mshow.Show[Hello]]
