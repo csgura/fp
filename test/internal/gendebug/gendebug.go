@@ -1,23 +1,13 @@
 package gendebug
 
-import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/show"
-)
+import "github.com/csgura/fp/mshow"
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 type Hello struct {
 	Hello string
-	world int
-}
-
-type LocalEmbedPrivate struct {
-	Name    string
-	Age     int
-	privacy string
-	hello   Hello
+	World int
 }
 
 // @fp.Derive(recursive=true)
-var _ show.Derives[fp.Show[LocalEmbedPrivate]]
+var _ mshow.Derives[mshow.Show[Hello]]
