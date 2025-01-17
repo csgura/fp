@@ -1,17 +1,19 @@
 package gendebug
 
-import "github.com/csgura/fp/mshow"
+import (
+	"github.com/csgura/fp/mshow"
+)
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type Hello struct {
-	Hello string
-	World int
+// @fp.Value
+type EmbeddedTypeParamStruct[T any] struct {
+	hello string
+	world struct {
+		Level T
+		Stage string
+	}
 }
 
-type World struct {
-	Hello Hello
-}
-
-// @fp.Derive(recursive=true)
-var _ mshow.Derives[mshow.Show[World]]
+// @fp.Derive
+var _ mshow.Derives[mshow.Show[EmbeddedTypeParamStruct[any]]]

@@ -12,6 +12,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/minimal"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
@@ -335,14 +336,14 @@ func structFieldSeparator(opt fp.ShowOption) string {
 	return spaceAfterComma(opt)
 }
 
-func Struct1[N1 any](names []fp.Named, ins1 Show[N1]) Show[fp.Tuple1[N1]] {
-	return NewAppend(func(buf []string, t fp.Tuple1[N1], opt fp.ShowOption) []string {
+func Struct1[N1 any](names []fp.Named, ins1 Show[N1]) Show[minimal.Tuple1[N1]] {
+	return NewAppend(func(buf []string, t minimal.Tuple1[N1], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(AsAppender(Named(names[0], ins1), t.I1)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
 
-func Struct2[N1, N2 any](names []fp.Named, ins1 Show[N1], ins2 Show[N2]) Show[fp.Tuple2[N1, N2]] {
-	return NewAppend(func(buf []string, t fp.Tuple2[N1, N2], opt fp.ShowOption) []string {
+func Struct2[N1, N2 any](names []fp.Named, ins1 Show[N1], ins2 Show[N2]) Show[minimal.Tuple2[N1, N2]] {
+	return NewAppend(func(buf []string, t minimal.Tuple2[N1, N2], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(AsAppender(Named(names[0], ins1), t.I1)(nil, opt), AsAppender(Named(names[1], ins2), t.I2)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
@@ -354,13 +355,15 @@ var _ = genfp.GenerateFromUntil{
 	File: "show_gen.go",
 	Imports: []genfp.ImportPackage{
 		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/minimal", Name: "minimal"},
+
 		{Package: "github.com/csgura/fp/iterator", Name: "iterator"},
 	},
 	From:  3,
 	Until: genfp.MaxProduct,
 	Template: `
-func Struct{{.N}}[{{TypeArgs 1 .N}} any](names []fp.Named, {{DeclTypeClassArgs 1 .N "Show"}}) Show[fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]] {
-	return NewAppend(func(buf []string, t fp.Tuple{{.N}}[{{TypeArgs 1 .N}}], opt fp.ShowOption) []string {
+func Struct{{.N}}[{{TypeArgs 1 .N}} any](names []fp.Named, {{DeclTypeClassArgs 1 .N "Show"}}) Show[minimal.Tuple{{.N}}[{{TypeArgs 1 .N}}]] {
+	return NewAppend(func(buf []string, t minimal.Tuple{{.N}}[{{TypeArgs 1 .N}}], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			{{- range $idx := Range 1 .N}}
 			Named(names[{{dec $idx}}],ins{{$idx}}).Append(nil, t.I{{$idx}}, opt),

@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/mshow"
 	"github.com/csgura/fp/test/internal/recursive"
-	"github.com/csgura/fp/test/internal/show"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -39,7 +38,7 @@ type Collection struct {
 }
 
 // @fp.Derive(recursive=true)
-var _ show.Derives[mshow.Show[Collection]]
+var _ mshow.Derives[mshow.Show[Collection]]
 
 type HasStringMethod struct {
 	There string
@@ -55,7 +54,7 @@ type DupGenerate struct {
 }
 
 // @fp.Derive(recursive=true)
-var _ show.Derives[mshow.Show[DupGenerate]]
+var _ mshow.Derives[mshow.Show[DupGenerate]]
 
 type HasTuple struct {
 	Entry fp.Tuple2[string, int]
@@ -63,7 +62,7 @@ type HasTuple struct {
 }
 
 // @fp.Derive
-var _ show.Derives[mshow.Show[HasTuple]]
+var _ mshow.Derives[mshow.Show[HasTuple]]
 
 // @fp.Value
 type EmbeddedStruct struct {
@@ -75,7 +74,7 @@ type EmbeddedStruct struct {
 }
 
 // @fp.Derive
-var _ show.Derives[mshow.Show[EmbeddedStruct]]
+var _ mshow.Derives[mshow.Show[EmbeddedStruct]]
 
 // @fp.Value
 type EmbeddedTypeParamStruct[T any] struct {
@@ -87,7 +86,7 @@ type EmbeddedTypeParamStruct[T any] struct {
 }
 
 // @fp.Derive
-var _ show.Derives[mshow.Show[EmbeddedTypeParamStruct[any]]]
+var _ mshow.Derives[mshow.Show[EmbeddedTypeParamStruct[any]]]
 
 func UntypedStructFunc(s struct {
 	Level   int

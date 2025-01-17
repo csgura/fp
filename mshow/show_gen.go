@@ -4,10 +4,11 @@ package mshow
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/minimal"
 )
 
-func Struct3[A1, A2, A3 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3]) Show[fp.Tuple3[A1, A2, A3]] {
-	return NewAppend(func(buf []string, t fp.Tuple3[A1, A2, A3], opt fp.ShowOption) []string {
+func Struct3[A1, A2, A3 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3]) Show[minimal.Tuple3[A1, A2, A3]] {
+	return NewAppend(func(buf []string, t minimal.Tuple3[A1, A2, A3], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -16,8 +17,8 @@ func Struct3[A1, A2, A3 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins
 	})
 }
 
-func Struct4[A1, A2, A3, A4 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4]) Show[fp.Tuple4[A1, A2, A3, A4]] {
-	return NewAppend(func(buf []string, t fp.Tuple4[A1, A2, A3, A4], opt fp.ShowOption) []string {
+func Struct4[A1, A2, A3, A4 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4]) Show[minimal.Tuple4[A1, A2, A3, A4]] {
+	return NewAppend(func(buf []string, t minimal.Tuple4[A1, A2, A3, A4], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -27,8 +28,8 @@ func Struct4[A1, A2, A3, A4 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2],
 	})
 }
 
-func Struct5[A1, A2, A3, A4, A5 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5]) Show[fp.Tuple5[A1, A2, A3, A4, A5]] {
-	return NewAppend(func(buf []string, t fp.Tuple5[A1, A2, A3, A4, A5], opt fp.ShowOption) []string {
+func Struct5[A1, A2, A3, A4, A5 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5]) Show[minimal.Tuple5[A1, A2, A3, A4, A5]] {
+	return NewAppend(func(buf []string, t minimal.Tuple5[A1, A2, A3, A4, A5], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -39,8 +40,8 @@ func Struct5[A1, A2, A3, A4, A5 any](names []fp.Named, ins1 Show[A1], ins2 Show[
 	})
 }
 
-func Struct6[A1, A2, A3, A4, A5, A6 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6]) Show[fp.Tuple6[A1, A2, A3, A4, A5, A6]] {
-	return NewAppend(func(buf []string, t fp.Tuple6[A1, A2, A3, A4, A5, A6], opt fp.ShowOption) []string {
+func Struct6[A1, A2, A3, A4, A5, A6 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6]) Show[minimal.Tuple6[A1, A2, A3, A4, A5, A6]] {
+	return NewAppend(func(buf []string, t minimal.Tuple6[A1, A2, A3, A4, A5, A6], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -52,8 +53,8 @@ func Struct6[A1, A2, A3, A4, A5, A6 any](names []fp.Named, ins1 Show[A1], ins2 S
 	})
 }
 
-func Struct7[A1, A2, A3, A4, A5, A6, A7 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7]) Show[fp.Tuple7[A1, A2, A3, A4, A5, A6, A7]] {
-	return NewAppend(func(buf []string, t fp.Tuple7[A1, A2, A3, A4, A5, A6, A7], opt fp.ShowOption) []string {
+func Struct7[A1, A2, A3, A4, A5, A6, A7 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7]) Show[minimal.Tuple7[A1, A2, A3, A4, A5, A6, A7]] {
+	return NewAppend(func(buf []string, t minimal.Tuple7[A1, A2, A3, A4, A5, A6, A7], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -66,8 +67,8 @@ func Struct7[A1, A2, A3, A4, A5, A6, A7 any](names []fp.Named, ins1 Show[A1], in
 	})
 }
 
-func Struct8[A1, A2, A3, A4, A5, A6, A7, A8 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8]) Show[fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]] {
-	return NewAppend(func(buf []string, t fp.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], opt fp.ShowOption) []string {
+func Struct8[A1, A2, A3, A4, A5, A6, A7, A8 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8]) Show[minimal.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]] {
+	return NewAppend(func(buf []string, t minimal.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -81,8 +82,8 @@ func Struct8[A1, A2, A3, A4, A5, A6, A7, A8 any](names []fp.Named, ins1 Show[A1]
 	})
 }
 
-func Struct9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9]) Show[fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
-	return NewAppend(func(buf []string, t fp.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], opt fp.ShowOption) []string {
+func Struct9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9]) Show[minimal.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
+	return NewAppend(func(buf []string, t minimal.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -97,8 +98,8 @@ func Struct9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](names []fp.Named, ins1 Show
 	})
 }
 
-func Struct10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10]) Show[fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
-	return NewAppend(func(buf []string, t fp.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], opt fp.ShowOption) []string {
+func Struct10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10]) Show[minimal.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
+	return NewAppend(func(buf []string, t minimal.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -114,8 +115,8 @@ func Struct10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](names []fp.Named, ins
 	})
 }
 
-func Struct11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11]) Show[fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
-	return NewAppend(func(buf []string, t fp.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], opt fp.ShowOption) []string {
+func Struct11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11]) Show[minimal.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
+	return NewAppend(func(buf []string, t minimal.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -132,8 +133,8 @@ func Struct11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](names []fp.Named
 	})
 }
 
-func Struct12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12]) Show[fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
-	return NewAppend(func(buf []string, t fp.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], opt fp.ShowOption) []string {
+func Struct12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12]) Show[minimal.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
+	return NewAppend(func(buf []string, t minimal.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -151,8 +152,8 @@ func Struct12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](names []fp.
 	})
 }
 
-func Struct13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13]) Show[fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
-	return NewAppend(func(buf []string, t fp.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], opt fp.ShowOption) []string {
+func Struct13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13]) Show[minimal.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
+	return NewAppend(func(buf []string, t minimal.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -171,8 +172,8 @@ func Struct13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](names 
 	})
 }
 
-func Struct14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14]) Show[fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
-	return NewAppend(func(buf []string, t fp.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], opt fp.ShowOption) []string {
+func Struct14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14]) Show[minimal.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
+	return NewAppend(func(buf []string, t minimal.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -192,8 +193,8 @@ func Struct14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](n
 	})
 }
 
-func Struct15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15]) Show[fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
-	return NewAppend(func(buf []string, t fp.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], opt fp.ShowOption) []string {
+func Struct15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15]) Show[minimal.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
+	return NewAppend(func(buf []string, t minimal.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -214,8 +215,8 @@ func Struct15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 a
 	})
 }
 
-func Struct16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16]) Show[fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
-	return NewAppend(func(buf []string, t fp.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], opt fp.ShowOption) []string {
+func Struct16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16]) Show[minimal.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
+	return NewAppend(func(buf []string, t minimal.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -237,8 +238,8 @@ func Struct16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, 
 	})
 }
 
-func Struct17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17]) Show[fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
-	return NewAppend(func(buf []string, t fp.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], opt fp.ShowOption) []string {
+func Struct17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17]) Show[minimal.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
+	return NewAppend(func(buf []string, t minimal.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -261,8 +262,8 @@ func Struct17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, 
 	})
 }
 
-func Struct18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18]) Show[fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
-	return NewAppend(func(buf []string, t fp.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], opt fp.ShowOption) []string {
+func Struct18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18]) Show[minimal.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
+	return NewAppend(func(buf []string, t minimal.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -286,8 +287,8 @@ func Struct18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, 
 	})
 }
 
-func Struct19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19]) Show[fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
-	return NewAppend(func(buf []string, t fp.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], opt fp.ShowOption) []string {
+func Struct19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19]) Show[minimal.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
+	return NewAppend(func(buf []string, t minimal.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -312,8 +313,8 @@ func Struct19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, 
 	})
 }
 
-func Struct20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19], ins20 Show[A20]) Show[fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
-	return NewAppend(func(buf []string, t fp.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], opt fp.ShowOption) []string {
+func Struct20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19], ins20 Show[A20]) Show[minimal.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
+	return NewAppend(func(buf []string, t minimal.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),
@@ -339,8 +340,8 @@ func Struct20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, 
 	})
 }
 
-func Struct21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19], ins20 Show[A20], ins21 Show[A21]) Show[fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
-	return NewAppend(func(buf []string, t fp.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], opt fp.ShowOption) []string {
+func Struct21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19], ins20 Show[A20], ins21 Show[A21]) Show[minimal.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
+	return NewAppend(func(buf []string, t minimal.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], opt fp.ShowOption) []string {
 		return append(buf, makeString(iterator.Of(
 			Named(names[0], ins1).Append(nil, t.I1, opt),
 			Named(names[1], ins2).Append(nil, t.I2, opt),

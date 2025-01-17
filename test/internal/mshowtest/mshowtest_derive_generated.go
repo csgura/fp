@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
+	"github.com/csgura/fp/minimal"
 	"github.com/csgura/fp/mshow"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/recursive"
@@ -16,10 +17,10 @@ func ShowPerson() mshow.Show[Person] {
 		as.Generic(
 			"mshowtest.Person",
 			"Struct",
-			func(v Person) fp.Tuple2[string, int] {
-				return as.Tuple2(v.Name, v.Age)
+			func(v Person) minimal.Tuple2[string, int] {
+				return minimal.AsTuple2(v.Name, v.Age)
 			},
-			func(t fp.Tuple2[string, int]) Person {
+			func(t minimal.Tuple2[string, int]) Person {
 				return Person{
 					Name: t.I1,
 					Age:  t.I2,
@@ -35,10 +36,10 @@ func ShowCollection() mshow.Show[Collection] {
 		as.Generic(
 			"mshowtest.Collection",
 			"Struct",
-			func(v Collection) fp.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]] {
-				return as.Tuple11(v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer, v.BoolPtr, v.NoMap, v.Alias, v.StringSeq)
+			func(v Collection) minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]] {
+				return minimal.AsTuple11(v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer, v.BoolPtr, v.NoMap, v.Alias, v.StringSeq)
 			},
-			func(t fp.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]) Collection {
+			func(t minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]) Collection {
 				return Collection{
 					Index:       t.I1,
 					List:        t.I2,
@@ -67,10 +68,10 @@ func ShowDupGenerate() mshow.Show[DupGenerate] {
 		as.Generic(
 			"mshowtest.DupGenerate",
 			"Struct",
-			func(v DupGenerate) fp.Tuple2[NoDerive, string] {
-				return as.Tuple2(v.NoDerive, v.World)
+			func(v DupGenerate) minimal.Tuple2[NoDerive, string] {
+				return minimal.AsTuple2(v.NoDerive, v.World)
 			},
-			func(t fp.Tuple2[NoDerive, string]) DupGenerate {
+			func(t minimal.Tuple2[NoDerive, string]) DupGenerate {
 				return DupGenerate{
 					NoDerive: t.I1,
 					World:    t.I2,
@@ -86,10 +87,10 @@ func ShowHasTuple() mshow.Show[HasTuple] {
 		as.Generic(
 			"mshowtest.HasTuple",
 			"Struct",
-			func(v HasTuple) fp.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
-				return as.Tuple2(v.Entry, v.HList)
+			func(v HasTuple) minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
+				return minimal.AsTuple2(v.Entry, v.HList)
 			},
-			func(t fp.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]) HasTuple {
+			func(t minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]) HasTuple {
 				return HasTuple{
 					Entry: t.I1,
 					HList: t.I2,
@@ -119,11 +120,21 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 		as.Generic(
 			"mshowtest.EmbeddedStruct",
 			"Struct",
-			EmbeddedStruct.AsTuple,
-			fp.Compose(
-				as.Curried2(EmbeddedStructBuilder.FromTuple)(EmbeddedStructBuilder{}),
-				EmbeddedStructBuilder.Build,
-			),
+			func(v EmbeddedStruct) minimal.Tuple2[string, struct {
+				Level int
+				Stage string
+			}] {
+				return minimal.AsTuple2(v.hello, v.world)
+			},
+			func(t minimal.Tuple2[string, struct {
+				Level int
+				Stage string
+			}]) EmbeddedStruct {
+				return EmbeddedStruct{
+					hello: t.I1,
+					world: t.I2,
+				}
+			},
 		),
 		mshow.Struct2([]fp.Named{as.NameTag(`hello`, ``), as.NameTag(`world`, ``)}, mshow.String, mshow.Generic(
 			as.Generic(
@@ -132,10 +143,10 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 				func(v struct {
 					Level int
 					Stage string
-				}) fp.Tuple2[int, string] {
-					return as.Tuple2(v.Level, v.Stage)
+				}) minimal.Tuple2[int, string] {
+					return minimal.AsTuple2(v.Level, v.Stage)
 				},
-				func(t fp.Tuple2[int, string]) struct {
+				func(t minimal.Tuple2[int, string]) struct {
 					Level int
 					Stage string
 				} {
@@ -158,11 +169,21 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 		as.Generic(
 			"mshowtest.EmbeddedTypeParamStruct",
 			"Struct",
-			EmbeddedTypeParamStruct[T].AsTuple,
-			fp.Compose(
-				as.Curried2(EmbeddedTypeParamStructBuilder[T].FromTuple)(EmbeddedTypeParamStructBuilder[T]{}),
-				EmbeddedTypeParamStructBuilder[T].Build,
-			),
+			func(v EmbeddedTypeParamStruct[T]) minimal.Tuple2[string, struct {
+				Level T
+				Stage string
+			}] {
+				return minimal.AsTuple2(v.hello, v.world)
+			},
+			func(t minimal.Tuple2[string, struct {
+				Level T
+				Stage string
+			}]) EmbeddedTypeParamStruct[T] {
+				return EmbeddedTypeParamStruct[T]{
+					hello: t.I1,
+					world: t.I2,
+				}
+			},
 		),
 		mshow.Struct2([]fp.Named{as.NameTag(`hello`, ``), as.NameTag(`world`, ``)}, mshow.String, mshow.Generic(
 			as.Generic(
@@ -171,10 +192,10 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 				func(v struct {
 					Level T
 					Stage string
-				}) fp.Tuple2[T, string] {
-					return as.Tuple2(v.Level, v.Stage)
+				}) minimal.Tuple2[T, string] {
+					return minimal.AsTuple2(v.Level, v.Stage)
 				},
-				func(t fp.Tuple2[T, string]) struct {
+				func(t minimal.Tuple2[T, string]) struct {
 					Level T
 					Stage string
 				} {
@@ -197,25 +218,16 @@ func ShowNoDerive() mshow.Show[NoDerive] {
 		as.Generic(
 			"mshowtest.NoDerive",
 			"Struct",
-			fp.Compose(
-				func(v NoDerive) fp.Labelled1[fp.RuntimeNamed[string]] {
-					i0 := v.Hello
-					return as.Labelled1(as.NamedWithTag("Hello", i0, ``))
-				},
-				as.HList1Labelled,
-			),
-
-			fp.Compose(
-				product.LabelledFromHList1,
-				func(t fp.Labelled1[fp.RuntimeNamed[string]]) NoDerive {
-					return NoDerive{Hello: t.I1.Value()}
-				},
-			),
+			func(v NoDerive) minimal.Tuple1[string] {
+				return minimal.AsTuple1(v.Hello)
+			},
+			func(t minimal.Tuple1[string]) NoDerive {
+				return NoDerive{
+					Hello: t.I1,
+				}
+			},
 		),
-		mshow.HConsLabelled(
-			mshow.Given[fp.RuntimeNamed[string]](),
-			mshow.HNil,
-		),
+		mshow.Struct1([]fp.Named{as.NameTag(`Hello`, ``)}, mshow.String),
 	)
 }
 
