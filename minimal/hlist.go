@@ -1,12 +1,12 @@
 package minimal
 
+import "github.com/csgura/fp/hlist"
+
 type HList interface {
 	// Cons[_,_] | Nil
 }
 
-type Nil struct {
-}
-
+type Nil = hlist.Nil
 type Cons[H any, T HList] struct {
 	head H
 	tail T
