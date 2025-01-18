@@ -434,7 +434,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 			//fmt.Printf("%s is recursive derivable\n", req.Type)
 		}
 
-		return r.checkRequired(ctx, tci.RequiredInstance)
+		return r.checkRequired(ctx, tci, tci.RequiredInstance)
 	})
 
 	// instance 가 있는 경우 , instance 가 Some
@@ -495,17 +495,17 @@ func (r *TypeClassSummonContext) lookupTypeClassFunc(ctx SummonContext, tc metaf
 	primScope := ctx.primScope(r.tcCache, tc)
 
 	ins := workingScope.FindFunc(nameWithTc)
-	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
 		return ins
 	}
 
 	ins = primScope.FindFunc(nameWithTc)
-	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
 		return ins
 	}
 
 	ins = primScope.FindFunc(name)
-	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
 		return ins
 	}
 
@@ -518,12 +518,12 @@ func (r *TypeClassSummonContext) lookupTypeClassFuncCheckType(ctx SummonContext,
 	primScope := ctx.primScope(r.tcCache, tc)
 
 	ins := workingScope.FindByNamePrefix(name, argType)
-	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
 		return ins
 	}
 
 	ins = primScope.FindByNamePrefix(name, argType)
-	if ins.IsDefined() && r.checkRequired(ctx, ins.Get().RequiredInstance) {
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
 		return ins
 	}
 
@@ -575,8 +575,9 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(ctx Sum
 	}
 }
 
-func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, required fp.Seq[metafp.RequiredInstance]) bool {
+func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.TypeClassInstance, required fp.Seq[metafp.RequiredInstance]) bool {
 	for _, v := range required {
+		//fmt.Printf("check %s required of %s\n", v.String(), tci.String())
 		if v.Name {
 			continue
 		}
@@ -587,7 +588,7 @@ func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, required fp.Se
 					Type:      t,
 				}
 			})
-			res := r.checkRequired(ctx, req)
+			res := r.checkRequired(ctx, tci, req)
 			if !res {
 				return false
 			}
@@ -676,7 +677,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 			return false
 			//fmt.Printf("%s is recursive derivable\n", req.Type)
 		}
-		return r.checkRequired(ctx, tci.RequiredInstance)
+		return r.checkRequired(ctx, tci, tci.RequiredInstance)
 	})
 
 	// instance 가 있는 경우 , instance 가 Some

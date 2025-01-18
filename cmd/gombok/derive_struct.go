@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
@@ -63,13 +64,112 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 			},
 		}
 	}).Or(func() fp.Option[GenericRepr] {
-		fnamed := option.TraverseSeq(typeArgs, func(a metafp.TypeInfoExpr) fp.Option[metafp.TypeClassInstance] {
-			return r.lookupTypeClassFuncCheckType(ctx, tc, "Named", a.Type)
-		})
-		if fnamed.IsDefined() {
-			panic("all find")
+		for scons := range r.lookupTypeClassFunc(ctx, tc, "StructHCons").All() {
+			fnamed := option.TraverseSeq(seq.Zip(names, typeArgs), func(a fp.Tuple2[fp.NameTag, metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
+				return r.lookupExplicitNamedFunc(ctx, tc, a.I1, a.I2.Type)
+			})
+
+			for named := range fnamed.All() {
+
+				return option.Some(GenericRepr{
+					Kind:         fp.GenericKindStruct,
+					ToReprExpr:   r.toHlistRepr(ctx, sf, typeArgs),
+					FromReprExpr: r.fromHlistRepr(ctx, sf, typeArgs),
+					ReprExpr: func() SummonExpr {
+						arity := typeArgs.Size()
+
+						hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNil").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
+
+						zipped := named.Take(arity).Reverse()
+						hlist := seq.Fold(zipped, newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeClassInstance) SummonExpr {
+
+							instance := r.exprTypeClassInstance(ctx, ti)
+
+							return newSummonExpr(func() string {
+								return fmt.Sprintf(`%s(
+										%s,
+										%s,
+									)`, scons.PackagedName(r.w, ctx.working), instance, tail,
+								)
+							}, instance.paramInstance, tail.paramInstance)
+						})
+						return hlist
+					},
+				})
+			}
+
 		}
 		return option.None[GenericRepr]()
 
 	})
+}
+
+func (r *TypeClassSummonContext) lookupExplicitNamedFunc(ctx SummonContext, tc metafp.TypeClass, name fp.NameTag, argType metafp.TypeInfo) fp.Option[metafp.TypeClassInstance] {
+	workingScope := ctx.workingScope(r.tcCache, tc)
+	primScope := ctx.primScope(r.tcCache, tc)
+
+	ins := workingScope.FindFuncHasNameArg(name, argType)
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
+		return ins
+	}
+
+	ins = primScope.FindFuncHasNameArg(name, argType)
+	if ins.IsDefined() && r.checkRequired(ctx, ins.Get(), ins.Get().RequiredInstance) {
+		return ins
+	}
+
+	return option.None[metafp.TypeClassInstance]()
+}
+
+func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctions, typeArgs fp.Seq[metafp.TypeInfoExpr]) func() string {
+	return func() string {
+		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+
+		hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+			return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
+		})
+
+		varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
+			return fmt.Sprintf("i%d", v)
+		}).MakeString(",")
+
+		hlistExpr := seq.Fold(as.Seq(iterator.Range(0, typeArgs.Size()).ToSeq()).Reverse(), hlistpk+".Empty()", func(expr string, v int) string {
+			return fmt.Sprintf(`%s.Concat(i%d, 
+						%s,
+					)`, hlistpk, v, expr)
+		})
+		return fmt.Sprintf(`func(v %s) %s {
+					%s := %s
+					return %s
+				}`, sf.typeStr(ctx.working), hlisttp,
+			varlist, sf.unapply("v"),
+			hlistExpr)
+	}
+}
+
+func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunctions, typeArgs fp.Seq[metafp.TypeInfoExpr]) func() string {
+	return func() string {
+		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+
+		hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+			return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
+		})
+
+		expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
+			if idx == typeArgs.Size()-1 {
+				return fmt.Sprintf(`i%d := hl%d.Head()`, idx, idx)
+			}
+			return fmt.Sprintf(`i%d , hl%d := %s.Unapply(hl%d)`, idx, idx+1, hlistpk, idx)
+		}).MakeString("\n")
+
+		arglist := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
+			return fmt.Sprintf("i%d", idx)
+		})
+		return fmt.Sprintf(`func(hl0 %s) %s {
+		%s
+		return %s
+	}`, hlisttp, sf.typeStr(ctx.working),
+			expr,
+			sf.apply(arglist))
+	}
 }

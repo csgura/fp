@@ -374,7 +374,7 @@ func Struct{{.N}}[{{TypeArgs 1 .N}} any](names []fp.Named, {{DeclTypeClassArgs 1
 	`,
 }
 
-func HConsLabelled[H fp.Named, T hlist.HList](hshow Show[H], tshow Show[T]) Show[hlist.Cons[H, T]] {
+func StructHCons[H any, T hlist.HList](hshow Show[H], tshow Show[T]) Show[hlist.Cons[H, T]] {
 	return NewAppend(func(buf []string, list hlist.Cons[H, T], opt fp.ShowOption) []string {
 
 		hstr := hshow.Append(nil, list.Head(), opt)

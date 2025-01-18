@@ -193,6 +193,7 @@ type RequiredInstance struct {
 	Type      TypeInfo
 	Lazy      bool
 	Name      bool
+	NameTag   fp.Option[fp.NameTag]
 }
 
 func (r RequiredInstance) String() string {
@@ -211,6 +212,7 @@ type TypeClassInstance struct {
 
 	// ContraMap 처럼,  아규먼트가 타입클래스 인스턴스로만 이루어 진것이 아니라, 다른 아규먼트를 가지고 있음.
 	HasExplictArg bool
+	HasNamedArg   bool
 
 	// lookup한 instance
 	Instance types.Object
@@ -267,12 +269,14 @@ func (r TypeClassInstance) IsGivenAny() bool {
 }
 
 type TypeClassInstancesOfPackage struct {
-	Package     *types.Package
-	TypeClass   TypeClass
-	ByName      fp.Map[string, TypeClassInstance]
-	FixedByType fp.Map[string, TypeClassInstance]
-	OtherFuncs  fp.Map[string, TypeClassInstance]
-	All         fp.Seq[TypeClassInstance]
+	Package      *types.Package
+	TypeClass    TypeClass
+	ByName       fp.Map[string, TypeClassInstance]
+	FixedByType  fp.Map[string, TypeClassInstance]
+	OtherFuncs   fp.Map[string, TypeClassInstance]
+	WithNamedArg fp.Seq[TypeClassInstance]
+
+	All fp.Seq[TypeClassInstance]
 }
 
 func (r TypeClassInstancesOfPackage) FindFunc(name string) fp.Option[TypeClassInstance] {
@@ -601,10 +605,22 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 	return ctx.Failed(err)
 }
 
+func (r TypeClassInstance) CheckWithName(name fp.NameTag, t TypeInfo) fp.Option[TypeClassInstance] {
+	return r.Check(t).Map(func(tci TypeClassInstance) TypeClassInstance {
+		tci.RequiredInstance = tci.RequiredInstance.Map(func(ri RequiredInstance) RequiredInstance {
+			if ri.Name {
+				ri.NameTag = option.Some(name)
+			}
+			return ri
+		})
+		return tci
+	})
+}
+
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 	argType := r.Result.TypeArgs.Head().Get()
-	fmt.Printf("check %s.%s : %t(%s), %d <> %s\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t)
+	//fmt.Printf("check %s.%s : %t(%s), %d <> %s\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t)
 
 	// if r.Name == "TupleHCons" {
 	// 	fmt.Printf("TupleHCons\n")
@@ -656,6 +672,13 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 		return option.Some(r)
 	}
 	return option.None[TypeClassInstance]()
+
+}
+
+func (r TypeClassInstancesOfPackage) FindFuncHasNameArg(name fp.NameTag, t TypeInfo) fp.Option[TypeClassInstance] {
+	return seq.FlatMap(r.WithNamedArg, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+		return v.CheckWithName(name, t).ToSeq()
+	}).Head()
 
 }
 
@@ -820,6 +843,18 @@ func (r TypeClassScope) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Optio
 	return option.Flatten(ret)
 }
 
+func (r TypeClassScope) FindFuncHasNameArg(namePrefix fp.NameTag, t TypeInfo) fp.Option[TypeClassInstance] {
+
+	// if name == "ShowHlistHCons" {
+	// 	fmt.Printf("find ShowHlistHCons\n")
+	// }
+	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+		return p.FindFuncHasNameArg(namePrefix, t)
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
+
+	return option.Flatten(ret)
+}
+
 func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
 
 	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
@@ -938,6 +973,14 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 			} else {
 
 				fargs := insType.FuncArgs()
+				checkNamedArg := func(v TypeInfo) bool {
+					if v.Name().IsDefined() {
+						if v.Name().Get() == "Named" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
+							return true
+						}
+					}
+					return false
+				}
 				allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
 					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
 						if v.Name().Get() == "Eval" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
@@ -945,14 +988,15 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 							return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
 						}
 						return true
-					} else if v.Name().IsDefined() {
-						if v.Name().Get() == "Named" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
-							return true
-						}
+					}
+					if checkNamedArg(v) {
+						return true
 					}
 
 					return false
 				})
+
+				hasNameArg := fargs.Exists(checkNamedArg)
 
 				if allArgTypeClass {
 
@@ -970,6 +1014,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						RequiredInstance: required,
 						Under:            under,
 						Instance:         ins,
+						HasNamedArg:      hasNameArg,
 					})
 					// ret.ByName = ret.ByName.Updated(name, tins)
 					// ret.All = ret.All.Append(tins)
@@ -1054,6 +1099,8 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 			//fmt.Printf("tc found %s, type = %T, underlying = %T\n", tins.Name, tins.Type.Type, tins.Type.Type.Underlying())
 			if tins.HasExplictArg {
 				ret.OtherFuncs = ret.OtherFuncs.Updated(name, tins)
+			} else if tins.HasNamedArg {
+				ret.WithNamedArg = ret.WithNamedArg.Append(tins)
 			} else {
 				ret.All = ret.All.Append(tins)
 				ret.ByName = ret.ByName.Updated(name, tins)
