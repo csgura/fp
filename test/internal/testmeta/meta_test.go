@@ -280,3 +280,30 @@ func TestCheckConstraintTypeParam(t *testing.T) {
 	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
 
 }
+
+func TestCheckTypeAlias(t *testing.T) {
+
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fpPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/hlist")
+
+	should.BeTrue(t, fpPkg.IsDefined())
+
+	ft := metafp.GetTypeInfo(fpPkg.Get().Scope().Lookup("Nil").Type())
+
+	tnamed := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("ShowNil").Type())
+
+	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, ft.TypeParam, tnamed, seq.Of(ft))
+	fmt.Printf("err = %s\n", cr.Error)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	should.BeTrue(t, cr.Ok)
+	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
+
+}

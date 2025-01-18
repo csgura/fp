@@ -1,18 +1,15 @@
 package gendebug
 
 import (
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/mshow"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-// @fp.Value
-// @fp.Json
-type Hello struct {
-	hello    string
-	world    int
-	universe string
+type HasTuple struct {
+	HList hlist.Cons[string, hlist.Nil]
 }
 
 // @fp.Derive
-var _ mshow.Derives[mshow.Show[Hello]]
+var _ mshow.Derives[mshow.Show[HasTuple]]
