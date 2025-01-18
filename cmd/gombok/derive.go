@@ -2191,6 +2191,14 @@ func asSummonContext(ctx DeriveContext) SummonContext {
 
 func (r *TypeClassSummonContext) summonRequired(ctx SummonContext, req metafp.RequiredInstance) SummonExpr {
 
+	if req.Name && req.NameTag.IsDefined() {
+		return newSummonExpr(func() string {
+			name := req.NameTag.Get()
+			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+
+			return fmt.Sprintf("%s.NameTag(`%s`,`%s`)", aspk, name.I1, name.I2)
+		}, nil)
+	}
 	t := req.Type
 
 	if t.IsTuple() {

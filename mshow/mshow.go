@@ -112,7 +112,7 @@ func Given[T fmt.Stringer]() Show[T] {
 	})
 }
 
-var HNil = New(func(hlist.Nil) string {
+var HNil = New(func(minimal.Nil) string {
 	return "Nil"
 })
 
@@ -374,19 +374,19 @@ func Struct{{.N}}[{{TypeArgs 1 .N}} any](names []fp.Named, {{DeclTypeClassArgs 1
 	`,
 }
 
-func StructHCons[H any, T hlist.HList](hshow Show[H], tshow Show[T]) Show[hlist.Cons[H, T]] {
-	return NewAppend(func(buf []string, list hlist.Cons[H, T], opt fp.ShowOption) []string {
+func StructHCons[H any, T minimal.HList](hshow Show[H], tshow Show[T]) Show[minimal.Cons[H, T]] {
+	return NewAppend(func(buf []string, list minimal.Cons[H, T], opt fp.ShowOption) []string {
 
-		hstr := hshow.Append(nil, list.Head(), opt)
-		tstr := tshow.Append(nil, hlist.Tail(list), opt)
+		hstr := hshow.Append(nil, minimal.Head(list), opt)
+		tstr := tshow.Append(nil, minimal.Tail(list), opt)
 
 		if isEmptyString(hstr) {
-			if hlist.IsNil(hlist.Tail(list)) {
+			if minimal.IsNil(minimal.Tail(list)) {
 				return nil
 			}
 			return tstr
 		}
-		if !hlist.IsNil(hlist.Tail(list)) && !isEmptyString(tstr) {
+		if !minimal.IsNil(minimal.Tail(list)) && !isEmptyString(tstr) {
 			if opt.Indent != "" {
 				return append(append(append(buf, hstr...), ",\n", opt.CurrentIndent()), tstr...)
 			}

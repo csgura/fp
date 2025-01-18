@@ -7,6 +7,7 @@ import (
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Value
+// @fp.Json
 type Hello struct {
 	hello    string
 	world    int
