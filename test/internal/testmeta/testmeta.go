@@ -86,6 +86,6 @@ var tp4 = fp.Tuple4[int, *int, *string, *float64]{}
 // @test.Summon
 var hello js.Encoder[string]
 
-var ShowNil = mshow.New(func(minimal.HList) string {
+var ShowNil = mshow.New(func(minimal.Nil) string {
 	return "nil"
 })

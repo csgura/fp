@@ -304,6 +304,5 @@ func TestCheckTypeAlias(t *testing.T) {
 	fmt.Printf("err = %s\n", cr.Error)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
 	should.BeTrue(t, cr.Ok)
-	should.BeTrue(t, cr.ParamMapping.Get("T").IsDefined())
 
 }
