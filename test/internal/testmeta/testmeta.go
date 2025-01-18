@@ -5,6 +5,8 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/minimal"
+	"github.com/csgura/fp/mshow"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/ngap"
 	"github.com/csgura/fp/test/internal/show"
@@ -83,3 +85,7 @@ var tp4 = fp.Tuple4[int, *int, *string, *float64]{}
 
 // @test.Summon
 var hello js.Encoder[string]
+
+var ShowNil = mshow.New(func(minimal.HList) string {
+	return "nil"
+})

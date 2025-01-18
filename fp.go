@@ -48,11 +48,21 @@ type Entry[V any] = Tuple2[string, V]
 type Named interface {
 	Name() string
 	Tag() string
-	Static() bool
+}
+
+type NameTag Tuple2[string, string]
+
+func (r NameTag) Name() string {
+	return r.I1
+}
+
+func (r NameTag) Tag() string {
+	return r.I2
 }
 
 type NamedField[T any] interface {
 	Named
+	Static() bool
 	Value() T
 }
 

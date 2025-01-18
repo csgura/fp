@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"os"
+	"path"
 	"reflect"
 	"strings"
 
@@ -1499,15 +1500,27 @@ func genValueAndGetter() {
 			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 		}
 
-		pkgs, err := packages.Load(cfg, cwd)
+		pkgs, err := packages.Load(cfg, cwd, "github.com/csgura/fp", "github.com/csgura/fp/hlist")
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("package load error : %s\n", err)
 			return
 		}
 
-		workingPackage := genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax)
+		fpPkgs, remains := seq.Partition(pkgs, func(v *packages.Package) bool {
+			return v.Types.Path() == "github.com/csgura/fp" || v.Types.Path() == "github.com/csgura/fp/hlist"
+		})
 
-		st := metafp.FindTaggedStruct(pkgs,
+		fpPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+			return v.Types.Path() == "github.com/csgura/fp"
+		})
+
+		hlistPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+			return v.Types.Path() == "github.com/csgura/fp/hlist"
+		})
+
+		workingPackage := genfp.NewWorkingPackage(remains[0].Types, remains[0].Fset, remains[0].Syntax)
+
+		st := metafp.FindTaggedStruct(remains,
 			"@fp.Value",
 			"@fp.GetterPubField",
 			"@fp.Deref",
@@ -1524,7 +1537,7 @@ func genValueAndGetter() {
 			return
 		}
 
-		deriveCtx := NewTypeClassSummonContext(pkgs, genfp.NewImportSet())
+		deriveCtx := NewTypeClassSummonContext(remains, genfp.NewImportSet(), fpPkg.Head().Get().Types, hlistPkg.Head().Get().Types)
 
 		genTaggedStruct(w, workingPackage, st, deriveCtx)
 
@@ -1541,7 +1554,21 @@ func derive_generated_file_name(pack string) string {
 
 func delete_gen_files(pack string) {
 	os.Remove(value_generated_file_name(pack))
-	os.Remove(derive_generated_file_name(pack))
+	derivename := derive_generated_file_name(pack)
+	os.Remove(derivename)
+
+	readdir := path.Dir(derivename)
+	//fmt.Printf("cwd = %s, readdir = %s\n", try.Apply(os.Getwd()), readdir)
+	files, err := os.ReadDir(readdir)
+	if err == nil {
+		ext := path.Ext(derivename)
+		prefix := derivename[0 : len(derivename)-len(ext)]
+		for _, f := range files {
+			if strings.HasPrefix(f.Name(), prefix) {
+				os.Remove(f.Name())
+			}
+		}
+	}
 }
 
 func main() {

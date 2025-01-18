@@ -1,16 +1,15 @@
 package gendebug
 
 import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/show"
+	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/mshow"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 type HasTuple struct {
-	Tuple fp.Tuple2[string, int]
-	Entry fp.Entry[int]
+	HList hlist.Cons[string, hlist.Nil]
 }
 
 // @fp.Derive
-var _ show.Derives[fp.Show[HasTuple]]
+var _ mshow.Derives[mshow.Show[HasTuple]]
