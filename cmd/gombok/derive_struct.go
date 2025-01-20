@@ -83,7 +83,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 						zipped := named.Take(arity).Reverse()
 						hlist := seq.Fold(zipped, newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeClassInstance) SummonExpr {
 
-							instance := r.exprTypeClassInstance(ctx, ti)
+							instance := r.exprTypeClassInstance(ctx, ti, true)
 
 							return newSummonExpr(func() string {
 								return fmt.Sprintf(`%s(
@@ -139,14 +139,20 @@ func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctio
 			return fmt.Sprintf("i%d", v)
 		}).MakeString(",")
 
-		hlistExpr := seq.Fold(as.Seq(iterator.Range(0, typeArgs.Size()).ToSeq()).Reverse(), hlistpk+".Empty()", func(expr string, v int) string {
-			return fmt.Sprintf(`%s.Concat(i%d, 
-						%s,
-					)`, hlistpk, v, expr)
-		})
+		hlast := fmt.Sprintf("h%d := %s.Empty()", typeArgs.Size(), hlistpk)
+		hlistExpr := seq.Fold(as.Seq(iterator.Range(0, typeArgs.Size()).ToSeq()).Reverse(), seq.Of(hlast), func(expr fp.Seq[string], v int) fp.Seq[string] {
+			return append(expr, fmt.Sprintf(`h%d := %s.Concat(i%d, h%d)`, v, hlistpk, v, v+1))
+		}).MakeString("\n")
+
+		// hlistExpr := seq.Fold(as.Seq(iterator.Range(0, typeArgs.Size()).ToSeq()).Reverse(), hlistpk+".Empty()", func(expr string, v int) string {
+		// 	return fmt.Sprintf(`%s.Concat(i%d,
+		// 				%s,
+		// 			)`, hlistpk, v, expr)
+		// })
 		return fmt.Sprintf(`func(v %s) %s {
 					%s := %s
-					return %s
+					%s
+					return h0
 				}`, sf.typeStr(ctx.working), hlisttp,
 			varlist, sf.unapply("v"),
 			hlistExpr)
