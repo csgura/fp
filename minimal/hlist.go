@@ -8,16 +8,8 @@ type HList interface {
 
 type Nil = hlist.Nil
 type Cons[H any, T HList] struct {
-	head H
-	tail T
-}
-
-func Head[H any, T HList](r Cons[H, T]) H {
-	return r.head
-}
-
-func Tail[H any, T HList](r Cons[H, T]) T {
-	return r.tail
+	Head H
+	Tail T
 }
 
 func Empty() Nil {
@@ -28,14 +20,6 @@ func Concat[H any, T HList](h H, t T) Cons[H, T] {
 	return Cons[H, T]{h, t}
 }
 
-func Unapply[H any, T HList](list Cons[H, T]) (H, T) {
-	return Head(list), Tail(list)
-}
-
-func IsNil[T HList](v T) bool {
-	switch any(v).(type) {
-	case Nil:
-		return true
-	}
-	return false
+func IsNil(v HList) bool {
+	return Nil{} == v
 }

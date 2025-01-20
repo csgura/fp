@@ -178,9 +178,9 @@ func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunct
 
 		expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
 			if idx == typeArgs.Size()-1 {
-				return fmt.Sprintf(`i%d := %s.Head(hl%d)`, idx, minimalpk, idx)
+				return fmt.Sprintf(`i%d := hl%d.Head`, idx, idx)
 			}
-			return fmt.Sprintf(`i%d , hl%d := %s.Unapply(hl%d)`, idx, idx+1, minimalpk, idx)
+			return fmt.Sprintf(`i%d , hl%d := hl%d.Head, hl%d.Tail`, idx, idx+1, idx, idx)
 		}).MakeString("\n")
 
 		arglist := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
