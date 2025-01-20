@@ -1580,8 +1580,8 @@ func main() {
 	}
 
 	delete_gen_files(pack)
-	genValueAndGetter()
 	genGenerate()
+	genValueAndGetter()
 	//fmt.Printf("GOPACKAGE = %s\n", pack)
 	genDerive()
 
