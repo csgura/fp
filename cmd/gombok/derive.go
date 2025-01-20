@@ -1635,10 +1635,14 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
 
+		args := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string { return fmt.Sprintf("I%d : v.%s", v.I1+1, v.I2.I1) }).MakeString(",\n")
+
 		return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
-			return %s.AsTuple%d(%s)
+			return %s.Tuple%d[%s]{
+				%s,
+			}
 		}`, typeStr(ctx.working), fppk, fields.Size(), p,
-			fppk, fields.Size(), seq.Map(names, func(v fieldName) string { return "v." + v.I1 }).MakeString(","),
+			fppk, fields.Size(), p, args,
 		)
 	}
 
@@ -2124,7 +2128,7 @@ func (r *TypeClassSummonContext) summonTuple(ctx SummonContext, tc metafp.TypeCl
 	}
 
 	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, fp.Option[metafp.TypeInfo]{}, true)
-	return r.summonVariant(ctx, tc, fmt.Sprintf("fp.Tuple%d", typeArgs.Size()), tupleGeneric)
+	return r.summonGeneric(ctx, tc, fmt.Sprintf("fp.Tuple%d", typeArgs.Size()), tupleGeneric)
 
 }
 
@@ -2246,7 +2250,7 @@ func (r *TypeClassSummonContext) summonStruct(ctx SummonContext, tc metafp.TypeC
 		return r.summonStructGenericRepr(ctx, tc, sf)
 	})
 
-	return r.summonVariant(ctx, tc, named.GenericName(), summonExpr)
+	return r.summonGeneric(ctx, tc, named.GenericName(), summonExpr)
 }
 
 func (r *TypeClassSummonContext) summonUntypedStruct(ctx SummonContext, tc metafp.TypeClass, tpe metafp.TypeInfo, fields fp.Seq[metafp.StructField]) SummonExpr {
@@ -2261,10 +2265,10 @@ func (r *TypeClassSummonContext) summonUntypedStruct(ctx SummonContext, tc metaf
 		return r.summonStructGenericRepr(ctx, tc, sf)
 	})
 
-	return r.summonVariant(ctx, tc, "struct", summonExpr)
+	return r.summonGeneric(ctx, tc, "struct", summonExpr)
 }
 
-func (r *TypeClassSummonContext) summonVariant(ctx SummonContext, tc metafp.TypeClass, genericName string, genericRepr GenericRepr) SummonExpr {
+func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.TypeClass, genericName string, genericRepr GenericRepr) SummonExpr {
 	mapExpr := option.Map(r.lookupTypeClassFunc(ctx, tc, "Generic"), func(generic metafp.TypeClassInstance) SummonExpr {
 		repr := genericRepr.ReprExpr()
 
@@ -2369,7 +2373,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 		},
 	}
 
-	return r.summonVariant(ctx, tc, named.GenericName(), summonExpr)
+	return r.summonGeneric(ctx, tc, named.GenericName(), summonExpr)
 }
 
 func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) SummonExpr {

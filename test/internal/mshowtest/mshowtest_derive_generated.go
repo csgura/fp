@@ -18,7 +18,10 @@ func ShowPerson() mshow.Show[Person] {
 			"mshowtest.Person",
 			"Struct",
 			func(v Person) minimal.Tuple2[string, int] {
-				return minimal.AsTuple2(v.Name, v.Age)
+				return minimal.Tuple2[string, int]{
+					I1: v.Name,
+					I2: v.Age,
+				}
 			},
 			func(t minimal.Tuple2[string, int]) Person {
 				return Person{
@@ -37,7 +40,19 @@ func ShowCollection() mshow.Show[Collection] {
 			"mshowtest.Collection",
 			"Struct",
 			func(v Collection) minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]] {
-				return minimal.AsTuple11(v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer, v.BoolPtr, v.NoMap, v.Alias, v.StringSeq)
+				return minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]{
+					I1:  v.Index,
+					I2:  v.List,
+					I3:  v.Description,
+					I4:  v.Set,
+					I5:  v.Option,
+					I6:  v.NoDerive,
+					I7:  v.Stringer,
+					I8:  v.BoolPtr,
+					I9:  v.NoMap,
+					I10: v.Alias,
+					I11: v.StringSeq,
+				}
 			},
 			func(t minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]) Collection {
 				return Collection{
@@ -69,7 +84,10 @@ func ShowDupGenerate() mshow.Show[DupGenerate] {
 			"mshowtest.DupGenerate",
 			"Struct",
 			func(v DupGenerate) minimal.Tuple2[NoDerive, string] {
-				return minimal.AsTuple2(v.NoDerive, v.World)
+				return minimal.Tuple2[NoDerive, string]{
+					I1: v.NoDerive,
+					I2: v.World,
+				}
 			},
 			func(t minimal.Tuple2[NoDerive, string]) DupGenerate {
 				return DupGenerate{
@@ -88,7 +106,10 @@ func ShowHasTuple() mshow.Show[HasTuple] {
 			"mshowtest.HasTuple",
 			"Struct",
 			func(v HasTuple) minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
-				return minimal.AsTuple2(v.Entry, v.HList)
+				return minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+					I1: v.Entry,
+					I2: v.HList,
+				}
 			},
 			func(t minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]) HasTuple {
 				return HasTuple{
@@ -124,7 +145,13 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 				Level int
 				Stage string
 			}] {
-				return minimal.AsTuple2(v.hello, v.world)
+				return minimal.Tuple2[string, struct {
+					Level int
+					Stage string
+				}]{
+					I1: v.hello,
+					I2: v.world,
+				}
 			},
 			func(t minimal.Tuple2[string, struct {
 				Level int
@@ -173,7 +200,13 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 				Level T
 				Stage string
 			}] {
-				return minimal.AsTuple2(v.hello, v.world)
+				return minimal.Tuple2[string, struct {
+					Level T
+					Stage string
+				}]{
+					I1: v.hello,
+					I2: v.world,
+				}
 			},
 			func(t minimal.Tuple2[string, struct {
 				Level T
@@ -219,7 +252,9 @@ func ShowNoDerive() mshow.Show[NoDerive] {
 			"mshowtest.NoDerive",
 			"Struct",
 			func(v NoDerive) minimal.Tuple1[string] {
-				return minimal.AsTuple1(v.Hello)
+				return minimal.Tuple1[string]{
+					I1: v.Hello,
+				}
 			},
 			func(t minimal.Tuple1[string]) NoDerive {
 				return NoDerive{
