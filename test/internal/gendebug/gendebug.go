@@ -55,7 +55,7 @@ type InitiatingMessageValue struct {
 	OverloadStart                         *OverloadStart                         `aper:"valueExt,referenceFieldValue:22,criticality:ignore"`
 	OverloadStop                          *OverloadStop                          `aper:"valueExt,referenceFieldValue:23,criticality:reject"`
 	Paging                                *Paging                                `aper:"valueExt,referenceFieldValue:24,criticality:ignore"`
-	// PDUSessionResourceNotify              *PDUSessionResourceNotify              `aper:"valueExt,referenceFieldValue:30,criticality:ignore"`
+	PDUSessionResourceNotify              *PDUSessionResourceNotify              `aper:"valueExt,referenceFieldValue:30,criticality:ignore"`
 	// PrivateMessage                        *PrivateMessage                        `aper:"valueExt,referenceFieldValue:31,criticality:ignore"`
 	// PWSFailureIndication                  *PWSFailureIndication                  `aper:"valueExt,referenceFieldValue:33,criticality:ignore"`
 	// PWSRestartIndication                  *PWSRestartIndication                  `aper:"valueExt,referenceFieldValue:34,criticality:ignore"`
