@@ -7,9 +7,12 @@ import (
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
+type ProtocolIESingleContainerGlobalRANNodeIDExtIEs struct {
+}
+
 type HasTuple struct {
 	HList hlist.Cons[string, hlist.Nil]
 }
 
 // @fp.Derive
-var _ mshow.Derives[mshow.Show[HasTuple]]
+var _ mshow.Derives[mshow.Show[ProtocolIESingleContainerGlobalRANNodeIDExtIEs]]

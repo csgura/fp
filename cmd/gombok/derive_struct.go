@@ -125,6 +125,12 @@ func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctio
 	return func() string {
 		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
 
+		if typeArgs.Size() == 0 {
+			return fmt.Sprintf(`func (%s) %s.Nil {
+							return %s.Empty()
+						}`, sf.typeStr(ctx.working), hlistpk, hlistpk)
+		}
+
 		hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
 			return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
 		})
@@ -150,6 +156,13 @@ func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctio
 func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunctions, typeArgs fp.Seq[metafp.TypeInfoExpr]) func() string {
 	return func() string {
 		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
+
+		if typeArgs.Size() == 0 {
+			valuereceiver := sf.typeStr(ctx.working)
+			return fmt.Sprintf(`func (%s.Nil) %s{
+							return %s{}
+						}`, hlistpk, valuereceiver, valuereceiver)
+		}
 
 		hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
 			return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
