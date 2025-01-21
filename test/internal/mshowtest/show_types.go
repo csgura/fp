@@ -95,3 +95,18 @@ func UntypedStructFunc(s struct {
 }) {
 	fmt.Println("Ok")
 }
+
+type EmptyStruct struct {
+}
+
+// @fp.Derive
+var _ mshow.Derives[mshow.Show[EmptyStruct]]
+
+type TLV = []byte
+
+type HasAliasType struct {
+	Data TLV
+}
+
+// @fp.Derive
+var _ mshow.Derives[mshow.Show[HasAliasType]]

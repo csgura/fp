@@ -112,7 +112,7 @@ func Given[T fmt.Stringer]() Show[T] {
 	})
 }
 
-var HNil = New(func(minimal.Nil) string {
+var HNil = New(func(hlist.Nil) string {
 	return "Nil"
 })
 

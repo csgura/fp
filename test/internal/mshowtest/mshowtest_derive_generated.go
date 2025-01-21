@@ -246,6 +246,42 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 	)
 }
 
+func ShowEmptyStruct() mshow.Show[EmptyStruct] {
+	return mshow.Generic(
+		as.Generic(
+			"mshowtest.EmptyStruct",
+			"Struct",
+			func(EmptyStruct) hlist.Nil {
+				return hlist.Empty()
+			},
+			func(hlist.Nil) EmptyStruct {
+				return EmptyStruct{}
+			},
+		),
+		mshow.HNil,
+	)
+}
+
+func ShowHasAliasType() mshow.Show[HasAliasType] {
+	return mshow.Generic(
+		as.Generic(
+			"mshowtest.HasAliasType",
+			"Struct",
+			func(v HasAliasType) minimal.Tuple1[TLV] {
+				return minimal.Tuple1[TLV]{
+					I1: v.Data,
+				}
+			},
+			func(t minimal.Tuple1[TLV]) HasAliasType {
+				return HasAliasType{
+					Data: t.I1,
+				}
+			},
+		),
+		mshow.Struct1([]fp.Named{as.NameTag(`Data`, ``)}, mshow.Slice(mshow.Int[byte]())),
+	)
+}
+
 func ShowNoDerive() mshow.Show[NoDerive] {
 	return mshow.Generic(
 		as.Generic(
