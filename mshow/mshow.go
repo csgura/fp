@@ -252,6 +252,10 @@ func MakeString[T any](a Show[T], t T, option fp.ShowOption) string {
 	return strings.Join(a.Append(nil, t, option), "")
 }
 
+func Stringer[T any](a Show[T], t T, option fp.ShowOption) fmt.Stringer {
+	return fp.StringerFunc(as.Supplier3(MakeString[T], a, t, option))
+}
+
 func pshow[T any](ins Show[T]) func(t T) string {
 	return func(t T) string {
 		return MakeString(ins, t, fp.ShowOption{})
@@ -377,16 +381,16 @@ func Struct{{.N}}[{{TypeArgs 1 .N}} any](names []fp.Named, {{DeclTypeClassArgs 1
 func StructHCons[H any, T minimal.HList](hshow Show[H], tshow Show[T]) Show[minimal.Cons[H, T]] {
 	return NewAppend(func(buf []string, list minimal.Cons[H, T], opt fp.ShowOption) []string {
 
-		hstr := hshow.Append(nil, minimal.Head(list), opt)
-		tstr := tshow.Append(nil, minimal.Tail(list), opt)
+		hstr := hshow.Append(nil, list.Head, opt)
+		tstr := tshow.Append(nil, list.Tail, opt)
 
 		if isEmptyString(hstr) {
-			if minimal.IsNil(minimal.Tail(list)) {
+			if minimal.IsNil(list.Tail) {
 				return nil
 			}
 			return tstr
 		}
-		if !minimal.IsNil(minimal.Tail(list)) && !isEmptyString(tstr) {
+		if !minimal.IsNil(list.Tail) && !isEmptyString(tstr) {
 			if opt.Indent != "" {
 				return append(append(append(buf, hstr...), ",\n", opt.CurrentIndent()), tstr...)
 			}

@@ -29,12 +29,8 @@ type Cons[H any, T HList] struct {
 	tail T
 }
 
-func IsNil[T HList](v T) bool {
-	switch any(v).(type) {
-	case Nil:
-		return true
-	}
-	return false
+func IsNil(v HList) bool {
+	return Nil{} == v
 }
 
 func Head[H any, T HList](r Cons[H, T]) H {

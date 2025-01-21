@@ -987,6 +987,10 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						if v.Name().Get() == "Named" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
 							return true
 						}
+
+						if v.Name().Get() == "NameTag" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
+							return true
+						}
 					}
 					return false
 				}
