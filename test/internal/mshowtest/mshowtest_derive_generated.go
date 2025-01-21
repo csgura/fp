@@ -14,32 +14,32 @@ import (
 
 func ShowPerson() mshow.Show[Person] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.Person",
-			"Struct",
-			func(v Person) minimal.Tuple2[string, int] {
+		fp.Generic[Person, minimal.Tuple2[string, int]]{
+			Type: "mshowtest.Person",
+			Kind: "Struct",
+			To: func(v Person) minimal.Tuple2[string, int] {
 				return minimal.Tuple2[string, int]{
 					I1: v.Name,
 					I2: v.Age,
 				}
 			},
-			func(t minimal.Tuple2[string, int]) Person {
+			From: func(t minimal.Tuple2[string, int]) Person {
 				return Person{
 					Name: t.I1,
 					Age:  t.I2,
 				}
 			},
-		),
+		},
 		mshow.Struct2([]fp.Named{as.NameTag(`Name`, ``), as.NameTag(`Age`, ``)}, mshow.String, mshow.Int[int]()),
 	)
 }
 
 func ShowCollection() mshow.Show[Collection] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.Collection",
-			"Struct",
-			func(v Collection) minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]] {
+		fp.Generic[Collection, minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]]{
+			Type: "mshowtest.Collection",
+			Kind: "Struct",
+			To: func(v Collection) minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]] {
 				return minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]{
 					I1:  v.Index,
 					I2:  v.List,
@@ -54,7 +54,7 @@ func ShowCollection() mshow.Show[Collection] {
 					I11: v.StringSeq,
 				}
 			},
-			func(t minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]) Collection {
+			From: func(t minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]) Collection {
 				return Collection{
 					Index:       t.I1,
 					List:        t.I2,
@@ -69,7 +69,7 @@ func ShowCollection() mshow.Show[Collection] {
 					StringSeq:   t.I11,
 				}
 			},
-		),
+		},
 		mshow.Struct11([]fp.Named{as.NameTag(`Index`, ``), as.NameTag(`List`, ``), as.NameTag(`Description`, ``), as.NameTag(`Set`, ``), as.NameTag(`Option`, ``), as.NameTag(`NoDerive`, ``), as.NameTag(`Stringer`, ``), as.NameTag(`BoolPtr`, ``), as.NameTag(`NoMap`, ``), as.NameTag(`Alias`, ``), as.NameTag(`StringSeq`, ``)}, mshow.GoMap(mshow.String, ShowPerson()), mshow.Slice(ShowPerson()), mshow.Ptr(lazy.Call(func() mshow.Show[string] {
 			return mshow.String
 		})), mshow.Set(mshow.Int[int]()), mshow.Option(ShowPerson()), ShowNoDerive(), mshow.Given[HasStringMethod](), mshow.Ptr(lazy.Call(func() mshow.Show[bool] {
@@ -80,51 +80,51 @@ func ShowCollection() mshow.Show[Collection] {
 
 func ShowDupGenerate() mshow.Show[DupGenerate] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.DupGenerate",
-			"Struct",
-			func(v DupGenerate) minimal.Tuple2[NoDerive, string] {
+		fp.Generic[DupGenerate, minimal.Tuple2[NoDerive, string]]{
+			Type: "mshowtest.DupGenerate",
+			Kind: "Struct",
+			To: func(v DupGenerate) minimal.Tuple2[NoDerive, string] {
 				return minimal.Tuple2[NoDerive, string]{
 					I1: v.NoDerive,
 					I2: v.World,
 				}
 			},
-			func(t minimal.Tuple2[NoDerive, string]) DupGenerate {
+			From: func(t minimal.Tuple2[NoDerive, string]) DupGenerate {
 				return DupGenerate{
 					NoDerive: t.I1,
 					World:    t.I2,
 				}
 			},
-		),
+		},
 		mshow.Struct2([]fp.Named{as.NameTag(`NoDerive`, ``), as.NameTag(`World`, ``)}, ShowNoDerive(), mshow.String),
 	)
 }
 
 func ShowHasTuple() mshow.Show[HasTuple] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.HasTuple",
-			"Struct",
-			func(v HasTuple) minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
+		fp.Generic[HasTuple, minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]]{
+			Type: "mshowtest.HasTuple",
+			Kind: "Struct",
+			To: func(v HasTuple) minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
 				return minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
 					I1: v.Entry,
 					I2: v.HList,
 				}
 			},
-			func(t minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]) HasTuple {
+			From: func(t minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]) HasTuple {
 				return HasTuple{
 					Entry: t.I1,
 					HList: t.I2,
 				}
 			},
-		),
+		},
 		mshow.Struct2([]fp.Named{as.NameTag(`Entry`, ``), as.NameTag(`HList`, ``)}, mshow.Generic(
-			as.Generic(
-				"fp.Tuple2",
-				"Tuple",
-				as.HList2,
-				product.TupleFromHList2[string, int],
-			),
+			fp.Generic[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+				Type: "fp.Tuple2",
+				Kind: "Tuple",
+				To:   as.HList2[string, int],
+				From: product.TupleFromHList2[string, int],
+			},
 			mshow.TupleHCons(
 				mshow.String,
 				mshow.TupleHCons(
@@ -138,22 +138,23 @@ func ShowHasTuple() mshow.Show[HasTuple] {
 
 func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.EmbeddedStruct",
-			"Struct",
-			func(v EmbeddedStruct) minimal.Tuple2[string, struct {
+		fp.Generic[EmbeddedStruct, minimal.Tuple2[string, struct {
+			Level int
+			Stage string
+		}]]{
+			Type: "mshowtest.EmbeddedStruct",
+			Kind: "Struct",
+			To: func(v EmbeddedStruct) minimal.Tuple2[string, struct {
 				Level int
 				Stage string
-			}] {
-				return minimal.Tuple2[string, struct {
-					Level int
-					Stage string
-				}]{
-					I1: v.hello,
-					I2: v.world,
-				}
-			},
-			func(t minimal.Tuple2[string, struct {
+			}] { return minimal.Tuple2[string, struct {
+				Level int
+				Stage string
+			}]{
+				I1: v.hello,
+				I2: v.world,
+			} },
+			From: func(t minimal.Tuple2[string, struct {
 				Level int
 				Stage string
 			}]) EmbeddedStruct {
@@ -162,18 +163,21 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 					world: t.I2,
 				}
 			},
-		),
+		},
 		mshow.Struct2([]fp.Named{as.NameTag(`hello`, ``), as.NameTag(`world`, ``)}, mshow.String, mshow.Generic(
-			as.Generic(
-				"struct",
-				"Struct",
-				func(v struct {
+			fp.Generic[struct {
+				Level int
+				Stage string
+			}, minimal.Tuple2[int, string]]{
+				Type: "struct",
+				Kind: "Struct",
+				To: func(v struct {
 					Level int
 					Stage string
 				}) minimal.Tuple2[int, string] {
 					return minimal.AsTuple2(v.Level, v.Stage)
 				},
-				func(t minimal.Tuple2[int, string]) struct {
+				From: func(t minimal.Tuple2[int, string]) struct {
 					Level int
 					Stage string
 				} {
@@ -185,7 +189,7 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 						Stage: t.I2,
 					}
 				},
-			),
+			},
 			mshow.Struct2([]fp.Named{as.NameTag(`Level`, ``), as.NameTag(`Stage`, ``)}, mshow.Int[int](), mshow.String),
 		)),
 	)
@@ -193,22 +197,23 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 
 func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[EmbeddedTypeParamStruct[T]] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.EmbeddedTypeParamStruct",
-			"Struct",
-			func(v EmbeddedTypeParamStruct[T]) minimal.Tuple2[string, struct {
+		fp.Generic[EmbeddedTypeParamStruct[T], minimal.Tuple2[string, struct {
+			Level T
+			Stage string
+		}]]{
+			Type: "mshowtest.EmbeddedTypeParamStruct",
+			Kind: "Struct",
+			To: func(v EmbeddedTypeParamStruct[T]) minimal.Tuple2[string, struct {
 				Level T
 				Stage string
-			}] {
-				return minimal.Tuple2[string, struct {
-					Level T
-					Stage string
-				}]{
-					I1: v.hello,
-					I2: v.world,
-				}
-			},
-			func(t minimal.Tuple2[string, struct {
+			}] { return minimal.Tuple2[string, struct {
+				Level T
+				Stage string
+			}]{
+				I1: v.hello,
+				I2: v.world,
+			} },
+			From: func(t minimal.Tuple2[string, struct {
 				Level T
 				Stage string
 			}]) EmbeddedTypeParamStruct[T] {
@@ -217,18 +222,21 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 					world: t.I2,
 				}
 			},
-		),
+		},
 		mshow.Struct2([]fp.Named{as.NameTag(`hello`, ``), as.NameTag(`world`, ``)}, mshow.String, mshow.Generic(
-			as.Generic(
-				"struct",
-				"Struct",
-				func(v struct {
+			fp.Generic[struct {
+				Level T
+				Stage string
+			}, minimal.Tuple2[T, string]]{
+				Type: "struct",
+				Kind: "Struct",
+				To: func(v struct {
 					Level T
 					Stage string
 				}) minimal.Tuple2[T, string] {
 					return minimal.AsTuple2(v.Level, v.Stage)
 				},
-				func(t minimal.Tuple2[T, string]) struct {
+				From: func(t minimal.Tuple2[T, string]) struct {
 					Level T
 					Stage string
 				} {
@@ -240,7 +248,7 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 						Stage: t.I2,
 					}
 				},
-			),
+			},
 			mshow.Struct2([]fp.Named{as.NameTag(`Level`, ``), as.NameTag(`Stage`, ``)}, showT, mshow.String),
 		)),
 	)
@@ -248,72 +256,72 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 
 func ShowEmptyStruct() mshow.Show[EmptyStruct] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.EmptyStruct",
-			"Struct",
-			func(EmptyStruct) hlist.Nil {
+		fp.Generic[EmptyStruct, hlist.Nil]{
+			Type: "mshowtest.EmptyStruct",
+			Kind: "Struct",
+			To: func(EmptyStruct) hlist.Nil {
 				return hlist.Empty()
 			},
-			func(hlist.Nil) EmptyStruct {
+			From: func(hlist.Nil) EmptyStruct {
 				return EmptyStruct{}
 			},
-		),
+		},
 		mshow.HNil,
 	)
 }
 
 func ShowHasAliasType() mshow.Show[HasAliasType] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.HasAliasType",
-			"Struct",
-			func(v HasAliasType) minimal.Tuple1[TLV] {
+		fp.Generic[HasAliasType, minimal.Tuple1[TLV]]{
+			Type: "mshowtest.HasAliasType",
+			Kind: "Struct",
+			To: func(v HasAliasType) minimal.Tuple1[TLV] {
 				return minimal.Tuple1[TLV]{
 					I1: v.Data,
 				}
 			},
-			func(t minimal.Tuple1[TLV]) HasAliasType {
+			From: func(t minimal.Tuple1[TLV]) HasAliasType {
 				return HasAliasType{
 					Data: t.I1,
 				}
 			},
-		),
+		},
 		mshow.Struct1([]fp.Named{as.NameTag(`Data`, ``)}, mshow.Slice(mshow.Int[byte]())),
 	)
 }
 
 func ShowNoDerive() mshow.Show[NoDerive] {
 	return mshow.Generic(
-		as.Generic(
-			"mshowtest.NoDerive",
-			"Struct",
-			func(v NoDerive) minimal.Tuple1[string] {
+		fp.Generic[NoDerive, minimal.Tuple1[string]]{
+			Type: "mshowtest.NoDerive",
+			Kind: "Struct",
+			To: func(v NoDerive) minimal.Tuple1[string] {
 				return minimal.Tuple1[string]{
 					I1: v.Hello,
 				}
 			},
-			func(t minimal.Tuple1[string]) NoDerive {
+			From: func(t minimal.Tuple1[string]) NoDerive {
 				return NoDerive{
 					Hello: t.I1,
 				}
 			},
-		),
+		},
 		mshow.Struct1([]fp.Named{as.NameTag(`Hello`, ``)}, mshow.String),
 	)
 }
 
 func ShowRecursiveStringAlias() mshow.Show[recursive.StringAlias] {
 	return mshow.Generic(
-		as.Generic(
-			"recursive.StringAlias",
-			"NewType",
-			func(v recursive.StringAlias) string {
+		fp.Generic[recursive.StringAlias, string]{
+			Type: "recursive.StringAlias",
+			Kind: "NewType",
+			To: func(v recursive.StringAlias) string {
 				return string(v)
 			},
-			func(v string) recursive.StringAlias {
+			From: func(v string) recursive.StringAlias {
 				return recursive.StringAlias(v)
 			},
-		),
+		},
 		mshow.String,
 	)
 }

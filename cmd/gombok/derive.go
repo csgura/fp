@@ -118,6 +118,8 @@ func (r SummonContext) recursiveDerive(required metafp.RequiredInstance, notDefi
 type GenericRepr struct {
 	//	ReprType     func() string
 	Kind         string
+	Type         func() string
+	ReprType     func() string
 	ToReprExpr   func() string
 	FromReprExpr func() string
 	ReprExpr     func() SummonExpr
@@ -1260,6 +1262,8 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
 		return GenericRepr{
 			Kind:         fp.GenericKindStruct,
+			Type:         as.Supplier1(sf.typeStr, ctx.working),
+			ReprType:     r.labelledTupleReprType(ctx, sf),
 			ToReprExpr:   sf.asLabelled,
 			FromReprExpr: sf.fromLabelled,
 			ReprExpr: func() SummonExpr {
@@ -1269,7 +1273,9 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 	}).Or(func() fp.Option[GenericRepr] {
 		return option.Map(r.lookupTypeClassFunc(ctx, tc, "HConsLabelled"), func(hcons metafp.TypeClassInstance) GenericRepr {
 			return GenericRepr{
-				Kind: fp.GenericKindStruct,
+				Kind:     fp.GenericKindStruct,
+				Type:     as.Supplier1(sf.typeStr, ctx.working),
+				ReprType: r.labelledHlistReprType(ctx, sf),
 				ToReprExpr: func() string {
 
 					if typeArgs.Size() == 0 {
@@ -1872,8 +1878,7 @@ type structFunctions struct {
 	asTuple    func() string
 	asMinTuple func() string
 
-	asLabelled func() string
-
+	asLabelled   func() string
 	fromLabelled func() string
 
 	// func(v fp.Tuple2[A,B]) struct{}
@@ -1917,6 +1922,8 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 		// }).MakeString(",")
 		return GenericRepr{
 			Kind:         fp.GenericKindStruct,
+			Type:         as.Supplier1(sf.typeStr, ctx.working),
+			ReprType:     r.tupleReprType(ctx, sf, false),
 			ToReprExpr:   sf.asTuple,
 			FromReprExpr: sf.fromTuple,
 			ReprExpr: func() SummonExpr {
@@ -1929,7 +1936,9 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe), false)
 
 	return GenericRepr{
-		Kind: fp.GenericKindStruct,
+		Kind:     fp.GenericKindStruct,
+		Type:     as.Supplier1(sf.typeStr, ctx.working),
+		ReprType: r.hlistReprType(ctx, sf, false),
 		ToReprExpr: func() string {
 
 			if typeArgs.Size() >= max.Product {
@@ -2048,17 +2057,43 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc metafp.TypeClass, typeArgs fp.Seq[metafp.TypeInfoExpr], fieldOf fp.Option[metafp.TypeInfo], explicit bool) GenericRepr {
 	return GenericRepr{
 		Kind: fp.GenericKindTuple,
+		Type: func() string {
+			tuplepk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+			p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+				return f.TypeName(r.w, ctx.working)
+			}).MakeString(",")
+
+			if typeArgs.Size() == 0 {
+				return fmt.Sprintf(`%s.Unit`, tuplepk)
+			}
+
+			return fmt.Sprintf("%s.Tuple%d[%s]", tuplepk, typeArgs.Size(), p)
+		},
+		ReprType: func() string {
+			hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+			minimalpk := hlistpk
+
+			if typeArgs.Size() == 0 {
+				return fmt.Sprintf(`%s.Nil`, hlistpk)
+			}
+
+			hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+				return fmt.Sprintf("%s.Cons[%s,%s]", minimalpk, a.TypeName(r.w, ctx.working), b)
+			})
+
+			return hlisttp
+		},
 		ToReprExpr: func() string {
 			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
 			arity := fp.Min(typeArgs.Size(), max.Product-1)
 			//arity := typeArgs.Size()
 
-			if r.implicitTypeInference {
-				return fmt.Sprintf(`%s.HList%d`,
-					aspk, arity,
-				)
-			}
+			// if r.implicitTypeInference {
+			// 	return fmt.Sprintf(`%s.HList%d`,
+			// 		aspk, arity,
+			// 	)
+			// }
 			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
 				return f.TypeName(r.w, ctx.working)
 			}).Take(arity).MakeString(",")
@@ -2273,16 +2308,17 @@ func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.Type
 		repr := genericRepr.ReprExpr()
 
 		retExpr := func() string {
-			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 			return fmt.Sprintf(`%s(
-					%s.Generic(
-							"%s",
-							"%s",
-							%s,
-							%s,
-						), 
+					%s.Generic[%s,%s]{
+							Type: "%s",
+							Kind: "%s",
+							To: %s,
+							From: %s,
+						}, 
 						%s, 
-					)`, generic.PackagedName(r.w, ctx.working), aspk,
+					)`, generic.PackagedName(r.w, ctx.working),
+				fppk, genericRepr.Type(), genericRepr.ReprType(),
 				genericName,
 				genericRepr.Kind,
 				genericRepr.ToReprExpr(),
@@ -2344,17 +2380,23 @@ func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.Type
 
 func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeClass, named metafp.NamedTypeInfo) SummonExpr {
 
-	valuetp := ""
-	if named.Info.TypeParam.Size() > 0 {
-		valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
-			return v.Name
-		}).MakeString(",") + "]"
-	}
-
-	nameWithTp := named.PackagedName(r.w, ctx.working) + valuetp
-
 	summonExpr := GenericRepr{
 		Kind: fp.GenericKindNewType,
+		Type: func() string {
+			valuetp := ""
+			if named.Info.TypeParam.Size() > 0 {
+				valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+					return v.Name
+				}).MakeString(",") + "]"
+			}
+
+			nameWithTp := named.PackagedName(r.w, ctx.working) + valuetp
+
+			return nameWithTp
+		},
+		ReprType: func() string {
+			return r.w.TypeName(ctx.working, named.Underlying.Type)
+		},
 		ReprExpr: func() SummonExpr {
 			return r.summonRequired(ctx, metafp.RequiredInstance{
 				TypeClass: tc,
@@ -2362,11 +2404,29 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 			})
 		},
 		ToReprExpr: func() string {
+			valuetp := ""
+			if named.Info.TypeParam.Size() > 0 {
+				valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+					return v.Name
+				}).MakeString(",") + "]"
+			}
+
+			nameWithTp := named.PackagedName(r.w, ctx.working) + valuetp
+
 			return fmt.Sprintf(`func(v %s) %s {
 					return %s(v)
 				}`, nameWithTp, r.w.TypeName(ctx.working, named.Underlying.Type), r.w.TypeName(ctx.working, named.Underlying.Type))
 		},
 		FromReprExpr: func() string {
+			valuetp := ""
+			if named.Info.TypeParam.Size() > 0 {
+				valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+					return v.Name
+				}).MakeString(",") + "]"
+			}
+
+			nameWithTp := named.PackagedName(r.w, ctx.working) + valuetp
+
 			return fmt.Sprintf(`func(v %s) %s {
 					return %s(v)
 				}`, r.w.TypeName(ctx.working, named.Underlying.Type), nameWithTp, nameWithTp)
