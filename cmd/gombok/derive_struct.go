@@ -83,7 +83,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 						zipped := named.Take(arity).Reverse()
 						hlist := seq.Fold(zipped, newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeClassInstance) SummonExpr {
 
-							instance := r.exprTypeClassInstance(ctx, ti, true)
+							instance := r.exprTypeClassInstance(ctx, ti, false)
 
 							return newSummonExpr(func() string {
 								return fmt.Sprintf(`%s(
