@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -137,22 +138,21 @@ func DecoderThree() js.Decoder[Three] {
 
 func ShowThree() fp.Show[Three] {
 	return show.Generic(
-		as.Generic(
-			"testpk2.Three",
-			"Struct",
-			fp.Compose(
+		fp.Generic[Three, hlist.Cons[int, hlist.Cons[string, hlist.Cons[float64, hlist.Nil]]]]{
+			Type: "testpk2.Three",
+			Kind: "Struct",
+			To: fp.Compose(
 				Three.AsTuple,
-				as.HList3,
+				as.HList3[int, string, float64],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
 					ThreeBuilder.Build,
 				),
 			),
-		),
+		},
 		show.StructHCons(
 			show.Int[int](),
 			show.StructHCons(
@@ -168,22 +168,21 @@ func ShowThree() fp.Show[Three] {
 
 func ReadThree() read.Read[Three] {
 	return read.Generic(
-		as.Generic(
-			"testpk2.Three",
-			"Struct",
-			fp.Compose(
+		fp.Generic[Three, hlist.Cons[int, hlist.Cons[string, hlist.Cons[float64, hlist.Nil]]]]{
+			Type: "testpk2.Three",
+			Kind: "Struct",
+			To: fp.Compose(
 				Three.AsTuple,
-				as.HList3,
+				as.HList3[int, string, float64],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
 					ThreeBuilder.Build,
 				),
 			),
-		),
+		},
 		read.TupleHCons(
 			read.Int[int](),
 			read.TupleHCons(

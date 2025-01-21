@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -49,22 +50,21 @@ func EqCarsOwned() fp.Eq[CarsOwned] {
 
 func ShowAddress() fp.Show[Address] {
 	return show.Generic(
-		as.Generic(
-			"docexample.Address",
-			"Struct",
-			fp.Compose(
+		fp.Generic[Address, hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]]]{
+			Type: "docexample.Address",
+			Kind: "Struct",
+			To: fp.Compose(
 				Address.AsTuple,
-				as.HList3,
+				as.HList3[string, string, string],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
 					AddressBuilder.Build,
 				),
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
