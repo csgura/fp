@@ -111,6 +111,13 @@ type GenerateFromList struct {
 	Template string
 }
 
+type GenerateFromStructs struct {
+	File     string
+	Imports  []ImportPackage
+	List     []any
+	Template string
+}
+
 type GenerateAdaptor[T any] struct {
 	// 생성될 file 이름
 	File string

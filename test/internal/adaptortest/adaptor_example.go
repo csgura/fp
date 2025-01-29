@@ -12,6 +12,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/test/internal/testpk1"
 	"github.com/csgura/fp/try"
 	ftry "github.com/csgura/fp/try"
@@ -226,12 +227,12 @@ var _ = genfp.GenerateAdaptor[HTTP]{
 // @fp.Generate
 var _ = genfp.GenerateAdaptor[HTTP2]{
 	File:           "adaptor_generated.go",
-	ImplementsWith: []genfp.TypeTag{genfp.TypeOf[io.Closer]()},
+	ImplementsWith: seq.Of(genfp.TypeOf[io.Closer]()),
 	ExtendsWith: map[string]genfp.TypeTag{
 		"Closer": genfp.TypeOf[io.Closer](),
 	},
-	Embedding:          []genfp.TypeTag{genfp.TypeOf[HTTPAdaptor]()},
-	Delegate:           []genfp.Delegate{genfp.DelegatedBy[HTTP]("HTTPAdaptor")},
+	Embedding:          seq.Of(genfp.TypeOf[HTTPAdaptor]()),
+	Delegate:           seq.Of(genfp.DelegatedBy[HTTP]("HTTPAdaptor")),
 	Self:               true,
 	ExtendsByEmbedding: true,
 }

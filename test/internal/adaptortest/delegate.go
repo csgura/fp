@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/seq"
 )
 
 type SpanContext interface {
@@ -28,7 +29,7 @@ var _ = genfp.GenerateAdaptor[SpanContext]{
 	File:               "delegate_generated.go",
 	Name:               "SpanContextEmbedding",
 	Self:               true,
-	EmbeddingInterface: []genfp.TypeTag{genfp.TypeOf[context.Context](), genfp.TypeOf[io.Closer]()},
+	EmbeddingInterface: seq.Of(genfp.TypeOf[context.Context](), genfp.TypeOf[io.Closer]()),
 }
 
 type TracerImpl struct {

@@ -228,6 +228,19 @@ func evalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Package,
 		}
 		return ret, nil
 
+	} else if ce, ok := e.(*ast.CallExpr); ok {
+		if matchFuncName(ce, "seq.Of") {
+			var ret []T
+
+			for _, e := range ce.Args {
+				v, err := f(p, e)
+				if err != nil {
+					return nil, err
+				}
+				ret = append(ret, v)
+			}
+			return ret, nil
+		}
 	}
 	return nil, fmt.Errorf("expr is not array expr : %T", e)
 }
@@ -1065,5 +1078,57 @@ func evalMonadFunctions(p *packages.Package, e ast.Expr) (MonadFunctions, error)
 		return ret, nil
 	}
 	return MonadFunctions{}, fmt.Errorf("expr is not composite expr : %T", e)
+
+}
+
+type GenerateFromStructs struct {
+	File     string
+	Imports  []genfp.ImportPackage
+	List     []TypeReference
+	Template string
+}
+
+func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
+
+	lit := tagged.Lit
+	ret := GenerateFromStructs{}
+
+	names := []string{"File", "Imports", "List", "Template"}
+	for idx, e := range lit.Elts {
+		if idx >= len(names) {
+			return GenerateFromStructs{}, fmt.Errorf("invalid number of literals")
+		}
+
+		name := names[idx]
+		name, value := asKeyValue(e, name)
+		switch name {
+		case "File":
+			v, err := evalStringValue(tagged.Package, value)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.File = v
+		case "Imports":
+			v, err := evalArray(tagged.Package, value, evalImport)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Imports = v
+		case "List":
+			v, err := evalArray(tagged.Package, value, evalTypeOf(tagged.Package))
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.List = v
+		case "Template":
+			v, err := evalStringValue(tagged.Package, value)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Template = v
+		}
+	}
+
+	return ret, nil
 
 }
