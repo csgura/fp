@@ -291,6 +291,17 @@ func removePkgPrefix(v string) string {
 	return v
 }
 
+func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.TypeInfoExpr) genfp.TypeName {
+	return genfp.TypeName{
+		Package:   genfp.FromTypesPackage(v.Type.Pkg),
+		Complete:  v.TypeName(w, workingPkg),
+		Name:      v.Type.TypeName,
+		IsPtr:     v.Type.IsPtr(),
+		IsNilable: v.Type.IsNilable(),
+		ZeroExpr:  w.ZeroExpr(workingPkg, v.Type.Type),
+	}
+}
+
 func genGenerate() {
 	pack := os.Getenv("GOPACKAGE")
 
@@ -372,28 +383,31 @@ func genGenerate() {
 					if name.IsDefined() {
 						is := genfp.NewImportSet()
 						fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldDef {
+							tpe := toTypeName(is, workingPkg, f.TypeInfoExpr(workingPkg))
+							indtpe := tpe
+							if f.FieldType.IsPtr() {
+								indtpe = toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+									Type: f.FieldType.ElemType().Get(),
+								})
+							}
 							return genfp.StructFieldDef{
-								Name: f.Name,
-								Type: genfp.TypeName{
-									Package:  genfp.FromTypesPackage(f.FieldType.Pkg),
-									Complete: f.TypeName(is, workingPkg),
-									Name:     f.FieldType.TypeName,
-								},
-								Tag: f.Tag,
+								Name:         f.Name,
+								Type:         tpe,
+								IndirectType: indtpe,
+								Tag:          f.Tag,
 								ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeName {
-									return genfp.TypeName{
-										Package:  genfp.FromTypesPackage(v.Pkg),
-										Complete: is.TypeName(workingPkg, v.Type),
-										Name:     f.FieldType.TypeName,
-									}
+									return toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+										Type: v,
+									})
 								}).OrZero(),
-								IsPtr:     f.FieldType.IsPtr(),
-								IsNilable: f.FieldType.IsNilable(),
 							}
 						})
 						st := genfp.StructDef{
 							Name:   name.Get(),
 							Fields: fields,
+							Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+								Type: ti,
+							}),
 						}
 
 						w.Render(gfu.Template, map[string]any{}, map[string]any{

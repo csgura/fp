@@ -2,6 +2,7 @@ package genfp
 
 import (
 	"fmt"
+	"path"
 	"reflect"
 )
 
@@ -19,6 +20,13 @@ func (r TypeTagOf[T]) Type() reflect.Type {
 
 func TypeOf[T any]() TypeTag {
 	return TypeTagOf[T]{}
+}
+
+func Import(p string) ImportPackage {
+	return ImportPackage{
+		Package: p,
+		Name:    path.Base(p),
+	}
 }
 
 type Delegate struct {
@@ -112,9 +120,23 @@ type GenerateFromList struct {
 }
 
 type TypeName struct {
+	// fp.Option[string] 처럼 완전한 type 이름.
 	Complete string
-	Package  ImportPackage
-	Name     string
+
+	// package
+	Package ImportPackage
+
+	// Option 과 같이 package 와 type arg 없는 이름.
+	Name string
+
+	// pointer 인지 여부
+	IsPtr bool
+
+	// nilable 타입인지 여부
+	IsNilable bool
+
+	// zero 값
+	ZeroExpr string
 }
 
 func (r TypeName) String() string {
@@ -122,16 +144,25 @@ func (r TypeName) String() string {
 }
 
 type StructFieldDef struct {
-	Name      string
-	Type      TypeName
-	Tag       string
-	ElemType  TypeName
-	IsPtr     bool
-	IsNilable bool
+	// field 이름
+	Name string
+
+	// field type
+	Type TypeName
+
+	// field tag
+	Tag string
+
+	// []T, *T, Option[T] 같은 타입인 경우 T 타입
+	ElemType TypeName
+
+	// *T 의 경우 T, 아니면 Type과 동일한 값.
+	IndirectType TypeName
 }
 
 type StructDef struct {
 	Name   string
+	Type   TypeName
 	Fields []StructFieldDef
 }
 
@@ -143,7 +174,7 @@ type GenerateFromStructs struct {
 	File    string
 	Imports []ImportPackage
 	List    []TypeTag
-	// StructFieldDef 가 .N 에 들어 있음.
+	// StructDef 가 .N 에 들어 있음.
 	Template string
 }
 

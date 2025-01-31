@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/constant"
 	"go/types"
+	"path"
 	"strconv"
 	"strings"
 
@@ -190,6 +191,17 @@ func evalImport(p *packages.Package, e ast.Expr) (genfp.ImportPackage, error) {
 			}
 		}
 		return ret, nil
+	} else if ce, ok := e.(*ast.CallExpr); ok {
+		if matchFuncName(ce, "genfp.Import") && len(ce.Args) == 1 {
+			p, err := evalStringValue(p, ce.Args[0])
+			if err != nil {
+				return genfp.ImportPackage{}, err
+			}
+			return genfp.ImportPackage{
+				Package: p,
+				Name:    path.Base(p),
+			}, nil
+		}
 	}
 	return genfp.ImportPackage{}, fmt.Errorf("expr is not composite expr : %T", e)
 

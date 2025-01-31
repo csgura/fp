@@ -19,17 +19,27 @@ type InitiatingMessageValue struct {
 
 // @fp.Generate
 var _ = genfp.GenerateFromStructs{
-	File:    "gendebug_generated.go",
-	Imports: seq.Of(genfp.ImportPackage{Package: "fmt", Name: "fmt"}),
-	List:    seq.Of(genfp.TypeOf[InitiatingMessageValue]()),
+	File: "gendebug_generated.go",
+	Imports: seq.Of(
+		genfp.Import("fmt"),
+		genfp.Import("github.com/csgura/fp"),
+		genfp.Import("github.com/csgura/fp/genfp"),
+	),
+	List: seq.Of(genfp.TypeOf[InitiatingMessageValue](), genfp.TypeOf[genfp.GenerateFromUntil]()),
 	Template: `
-		func Hello{{.N}}(arg {{.N}}) {
+		func Hello{{.N}}(arg {{.N.Type}}) {{.N.Type}} {
 			{{$st := .N}}
 			{{range .N.Fields }}
-				fmt.Printf("{{$st}}.{{.Type.Name}} = %v\n", arg.{{.Name}} )
+				fmt.Printf("{{$st}}.{{.IndirectType.Name}} = %v\n", arg.{{.Name}} )
 				fmt.Printf("elem type = {{.ElemType}}")
 
+				
 			{{end}}
+			return {{.N.Type}} {
+				{{- range .N.Fields }}
+					{{.Name}} : {{.Type.ZeroExpr}},
+				{{- end}}
+			}
 		}
 	`,
 }
