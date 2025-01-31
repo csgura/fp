@@ -1094,10 +1094,11 @@ func evalMonadFunctions(p *packages.Package, e ast.Expr) (MonadFunctions, error)
 }
 
 type GenerateFromStructs struct {
-	File     string
-	Imports  []genfp.ImportPackage
-	List     []TypeReference
-	Template string
+	File      string
+	Imports   []genfp.ImportPackage
+	List      []TypeReference
+	Recursive bool
+	Template  string
 }
 
 func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
@@ -1105,7 +1106,7 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 	lit := tagged.Lit
 	ret := GenerateFromStructs{}
 
-	names := []string{"File", "Imports", "List", "Template"}
+	names := []string{"File", "Imports", "List", "Recursive", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
 			return GenerateFromStructs{}, fmt.Errorf("invalid number of literals")
@@ -1132,6 +1133,12 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 				return GenerateFromStructs{}, err
 			}
 			ret.List = v
+		case "Recursive":
+			v, err := evalBoolValue(value)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Recursive = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {

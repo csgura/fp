@@ -297,9 +297,35 @@ func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.Typ
 		Complete:  v.TypeName(w, workingPkg),
 		Name:      v.Type.TypeName,
 		IsPtr:     v.Type.IsPtr(),
+		IsStruct:  v.Type.Underlying().IsStruct(),
 		IsNilable: v.Type.IsNilable(),
 		ZeroExpr:  w.ZeroExpr(workingPkg, v.Type.Type),
 	}
+}
+
+func scanStructTypes(list []metafp.TypeInfo, ti metafp.TypeInfo, uniqCheck map[string]bool, recursive bool) []metafp.TypeInfo {
+
+	if !ti.IsOption() && ti.Underlying().IsStruct() {
+		if exists := uniqCheck[ti.ID]; !exists {
+			uniqCheck[ti.ID] = true
+			list = append(list, ti)
+			if recursive {
+				for _, f := range ti.Fields() {
+					list = scanStructTypes(list, f.FieldType, uniqCheck, recursive)
+				}
+			}
+		}
+	}
+	if recursive {
+		if elem, ok := ti.ElemType().Unapply(); ok {
+			list = scanStructTypes(list, elem, uniqCheck, recursive)
+		}
+
+		list = seq.Fold(ti.TypeArgs, list, func(l []metafp.TypeInfo, t metafp.TypeInfo) []metafp.TypeInfo {
+			return scanStructTypes(l, t, uniqCheck, recursive)
+		})
+	}
+	return list
 }
 
 func genGenerate() {
@@ -376,8 +402,12 @@ func genGenerate() {
 					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
 				}
 
-				for _, v := range gfu.List {
-					ti := metafp.GetTypeInfo(v.Type)
+				uniqCheck := map[string]bool{}
+				all := seq.Fold(gfu.List, []metafp.TypeInfo{}, func(list []metafp.TypeInfo, tr generator.TypeReference) []metafp.TypeInfo {
+					return scanStructTypes(list, metafp.GetTypeInfo(tr.Type), uniqCheck, gfu.Recursive)
+				})
+
+				for _, ti := range all {
 
 					name := ti.Name()
 					if name.IsDefined() {
@@ -395,6 +425,8 @@ func genGenerate() {
 								Type:         tpe,
 								IndirectType: indtpe,
 								Tag:          f.Tag,
+								IsPublic:     f.Public(),
+								IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
 								ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeName {
 									return toTypeName(is, workingPkg, metafp.TypeInfoExpr{
 										Type: v,
@@ -402,9 +434,14 @@ func genGenerate() {
 								}).OrZero(),
 							}
 						})
+
+						visible := fields.Filter(func(v genfp.StructFieldDef) bool {
+							return v.IsVisible
+						})
 						st := genfp.StructDef{
-							Name:   name.Get(),
-							Fields: fields,
+							Name:      name.Get(),
+							AllFields: fields,
+							Fields:    visible,
 							Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
 								Type: ti,
 							}),

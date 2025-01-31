@@ -132,6 +132,8 @@ type TypeName struct {
 	// pointer 인지 여부
 	IsPtr bool
 
+	IsStruct bool
+
 	// nilable 타입인지 여부
 	IsNilable bool
 
@@ -158,12 +160,19 @@ type StructFieldDef struct {
 
 	// *T 의 경우 T, 아니면 Type과 동일한 값.
 	IndirectType TypeName
+
+	// 참조 가능한 field 인지
+	IsVisible bool
+
+	// 대문자로 시작하는지
+	IsPublic bool
 }
 
 type StructDef struct {
-	Name   string
-	Type   TypeName
-	Fields []StructFieldDef
+	Name      string
+	Type      TypeName
+	Fields    []StructFieldDef
+	AllFields []StructFieldDef
 }
 
 func (r StructDef) String() string {
@@ -171,9 +180,10 @@ func (r StructDef) String() string {
 }
 
 type GenerateFromStructs struct {
-	File    string
-	Imports []ImportPackage
-	List    []TypeTag
+	File      string
+	Imports   []ImportPackage
+	List      []TypeTag
+	Recursive bool
 	// StructDef 가 .N 에 들어 있음.
 	Template string
 }

@@ -14,7 +14,7 @@ type InitiatingMessageValue struct {
 	AMFConfigurationUpdate *AMFConfigurationUpdate `aper:"valueExt,referenceFieldValue:0,criticality:reject"`
 	HandoverCancel         *HandoverCancel         `aper:"valueExt,referenceFieldValue:10,criticality:reject"`
 	HandoverRequired       *HandoverRequired       `aper:"valueExt,referenceFieldValue:12,criticality:reject"`
-	HandoverRequest        *HandoverRequest        `aper:"valueExt,referenceFieldValue:13,criticality:reject"`
+	handoverRequest        *HandoverRequest        `aper:"valueExt,referenceFieldValue:13,criticality:reject"`
 }
 
 // @fp.Generate
@@ -25,7 +25,8 @@ var _ = genfp.GenerateFromStructs{
 		genfp.Import("github.com/csgura/fp"),
 		genfp.Import("github.com/csgura/fp/genfp"),
 	),
-	List: seq.Of(genfp.TypeOf[InitiatingMessageValue](), genfp.TypeOf[genfp.GenerateFromUntil]()),
+	Recursive: true,
+	List:      seq.Of(genfp.TypeOf[InitiatingMessageValue](), genfp.TypeOf[genfp.GenerateFromUntil]()),
 	Template: `
 		func Hello{{.N}}(arg {{.N.Type}}) {{.N.Type}} {
 			{{$st := .N}}
