@@ -111,10 +111,39 @@ type GenerateFromList struct {
 	Template string
 }
 
+type TypeName struct {
+	Complete string
+	Package  ImportPackage
+	Name     string
+}
+
+func (r TypeName) String() string {
+	return r.Complete
+}
+
+type StructFieldDef struct {
+	Name      string
+	Type      TypeName
+	Tag       string
+	ElemType  TypeName
+	IsPtr     bool
+	IsNilable bool
+}
+
+type StructDef struct {
+	Name   string
+	Fields []StructFieldDef
+}
+
+func (r StructDef) String() string {
+	return r.Name
+}
+
 type GenerateFromStructs struct {
-	File     string
-	Imports  []ImportPackage
-	List     []any
+	File    string
+	Imports []ImportPackage
+	List    []TypeTag
+	// StructFieldDef 가 .N 에 들어 있음.
 	Template string
 }
 

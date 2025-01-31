@@ -1066,6 +1066,21 @@ func (r TypeInfo) IsPtr() bool {
 	return false
 }
 
+func (r TypeInfo) ElemType() fp.Option[TypeInfo] {
+	type elemT interface {
+		Elem() types.Type
+	}
+
+	if et, ok := r.Type.(elemT); ok {
+		return option.Some(GetTypeInfo(et.Elem()))
+	}
+
+	if r.TypeArgs.Size() == 1 {
+		return r.TypeArgs.Head()
+	}
+	return option.None[TypeInfo]()
+}
+
 func (r TypeInfo) IsTuple() bool {
 	switch nt := r.Type.(type) {
 	case *types.Named:

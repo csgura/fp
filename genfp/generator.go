@@ -545,11 +545,18 @@ type ImportPackage struct {
 	Name    string
 }
 
+func (r ImportPackage) String() string {
+	return r.Alias()
+}
+
 func (r ImportPackage) Path() string {
 	return r.Package
 }
 
 func (r ImportPackage) Alias() string {
+	if r.Name == "" {
+		return path.Base(r.Package)
+	}
 	return r.Name
 }
 

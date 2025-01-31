@@ -283,6 +283,14 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 }
 
+func removePkgPrefix(v string) string {
+	dotidx := strings.IndexByte(v, '.')
+	if dotidx > 0 {
+		return v[dotidx+1:]
+	}
+	return v
+}
+
 func genGenerate() {
 	pack := os.Getenv("GOPACKAGE")
 
@@ -298,8 +306,10 @@ func genGenerate() {
 		return
 	}
 
+	workingPkg := genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax)
 	gentemplate := generator.FindGenerateFromUntil(pkgs, "@fp.Generate")
 	genlist := generator.FindGenerateFromList(pkgs, "@fp.Generate")
+	genstruct := generator.FindGenerateFromStructs(pkgs, "@fp.Generate")
 
 	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
 	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
@@ -309,6 +319,7 @@ func genGenerate() {
 	filelist := iterator.ToGoSet(
 		mutable.MapOf(gentemplate).Keys().
 			Concat(mutable.MapOf(genlist).Keys()).
+			Concat(mutable.MapOf(genstruct).Keys()).
 			Concat(mutable.MapOf(genadaptor).Keys()).
 			Concat(mutable.MapOf(monadf).Keys()).
 			Concat(mutable.MapOf(traversef).Keys()).
@@ -346,6 +357,49 @@ func genGenerate() {
 					w.Render(gfu.Template, map[string]any{}, map[string]any{
 						"N": v,
 					})
+				}
+			}
+
+			for _, gfu := range genstruct[file] {
+				for _, im := range gfu.Imports {
+					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
+				}
+
+				for _, v := range gfu.List {
+					ti := metafp.GetTypeInfo(v.Type)
+
+					name := ti.Name()
+					if name.IsDefined() {
+						is := genfp.NewImportSet()
+						fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldDef {
+							return genfp.StructFieldDef{
+								Name: f.Name,
+								Type: genfp.TypeName{
+									Package:  genfp.FromTypesPackage(f.FieldType.Pkg),
+									Complete: f.TypeName(is, workingPkg),
+									Name:     f.FieldType.TypeName,
+								},
+								Tag: f.Tag,
+								ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeName {
+									return genfp.TypeName{
+										Package:  genfp.FromTypesPackage(v.Pkg),
+										Complete: is.TypeName(workingPkg, v.Type),
+										Name:     f.FieldType.TypeName,
+									}
+								}).OrZero(),
+								IsPtr:     f.FieldType.IsPtr(),
+								IsNilable: f.FieldType.IsNilable(),
+							}
+						})
+						st := genfp.StructDef{
+							Name:   name.Get(),
+							Fields: fields,
+						}
+
+						w.Render(gfu.Template, map[string]any{}, map[string]any{
+							"N": st,
+						})
+					}
 				}
 			}
 
