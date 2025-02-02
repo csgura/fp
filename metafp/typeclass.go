@@ -67,9 +67,13 @@ func (r TypeClassDerive) InstantiatedType(t TypeInfo) TypeInfo {
 	ret.TypeArgs = seq.Of(t)
 
 	ctx := types.NewContext()
-	ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
-	ret.Type = ins
-
+	if ret.Alias != nil {
+		ins, _ := types.Instantiate(ctx, ret.Alias, []types.Type{t.Type}, false)
+		ret.Type = ins
+	} else {
+		ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
+		ret.Type = ins
+	}
 	return ret
 }
 
@@ -131,7 +135,8 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 							ti := info.Types[vs.Type]
 
 							if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
-								if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() > 0 {
+								firstArg := nt.TypeArgs().At(0)
+								if tt, ok := firstArg.(*types.Named); ok && tt.TypeArgs().Len() > 0 {
 
 									// types.Named.Obj() 는  generic type 을 리턴해 준다.
 									tcType := typeInfo(tt.Obj().Type())
@@ -146,6 +151,20 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 										},
 										TypeClassType: tcType,
 										TypeArgs:      typeArgs(tt.TypeArgs()),
+										Tags:          option.Map(doc, extractTag).OrZero(),
+									})
+								} else if alias, ok := firstArg.(*types.Alias); ok && alias.TypeArgs().Len() > 0 {
+									tcType := typeInfo(alias.Obj().Type())
+
+									return seq.Of(TypeClassDirective{
+										Package:              genfp.NewWorkingPackage(pk.Types, pk.Fset, pk.Syntax),
+										PrimitiveInstancePkg: nt.Obj().Pkg(),
+										TypeClass: TypeClass{
+											Name:    alias.Obj().Name(),
+											Package: genfp.FromTypesPackage(alias.Obj().Pkg()),
+										},
+										TypeClassType: tcType,
+										TypeArgs:      typeArgs(alias.TypeArgs()),
 										Tags:          option.Map(doc, extractTag).OrZero(),
 									})
 								}
@@ -618,12 +637,14 @@ func (r TypeClassInstance) CheckWithName(name fp.NameTag, t TypeInfo) fp.Option[
 }
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
-	ret := r.check(t)
-	// if ret.IsDefined() {
-	// 	argType := r.Result.TypeArgs.Head().Get()
+	fmt.Printf("check %s.%s with type %s\n", r.Package.Name(), r.Name, t)
 
-	// 	fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
-	// }
+	ret := r.check(t)
+	if ret.IsDefined() {
+		argType := r.Result.TypeArgs.Head().Get()
+
+		fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+	}
 
 	return ret
 }
@@ -951,8 +972,8 @@ func AsRequiredInstance(v TypeInfo) fp.Option[RequiredInstance] {
 
 func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInstance] {
 	insType := typeInfo(ins.Type())
-	rType := insType.ResultType()
 	name := ins.Name()
+	rType := insType.ResultType()
 
 	if _, ok := ins.(*types.TypeName); ok {
 		return option.None[TypeClassInstance]()
@@ -962,7 +983,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 
 		under := rType.TypeArgs.Head().Get()
 
-		if insType.IsFunc() {
+		if insType.Alias == nil && insType.IsFunc() {
 
 			if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 				return option.Some(TypeClassInstance{
@@ -995,6 +1016,9 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 					return false
 				}
 				allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
+					if v.Alias != nil && v.TypeArgs.Size() == 1 {
+						return true
+					}
 					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
 						if v.Name().Get() == "Eval" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
 							realv := v.TypeArgs.Head().Get()

@@ -847,6 +847,9 @@ func (r TypeInfo) String() string {
 
 }
 func (r TypeInfo) ResultType() TypeInfo {
+	if r.Alias != nil {
+		return r
+	}
 	switch at := r.Type.(type) {
 
 	case *types.Signature:
@@ -862,6 +865,11 @@ func (r TypeInfo) ResultType() TypeInfo {
 
 func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
 
+	if r.Alias != nil {
+		if r.Alias.Obj().Pkg().Path() == tc.Package.Path() && r.Alias.Obj().Name() == tc.Name {
+			return true
+		}
+	}
 	switch at := r.Type.(type) {
 	case *types.Named:
 		if at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
@@ -930,6 +938,9 @@ func (r TypeInfo) FuncArgs() fp.Seq[TypeInfo] {
 }
 
 func (r TypeInfo) Name() fp.Option[string] {
+	if r.Alias != nil {
+		return option.Some(r.Alias.Obj().Name())
+	}
 	switch at := r.Type.(type) {
 	case *types.Named:
 		return option.Some(at.Obj().Name())
@@ -1259,8 +1270,8 @@ func typeInfo(tpe types.Type) TypeInfo {
 	case *types.Alias:
 		rhst := typeInfo(types.Unalias(tpe))
 		rhst.Alias = realtp
-		rhst.AliasTypeArgs = typeArgs(realtp.TypeArgs())
-		rhst.AliasTypeParam = typeParam(realtp.TypeParams())
+		rhst.TypeArgs = typeArgs(realtp.TypeArgs())
+		rhst.TypeParam = typeParam(realtp.TypeParams())
 
 		return rhst
 	case *types.TypeParam:
