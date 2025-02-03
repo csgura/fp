@@ -991,6 +991,10 @@ func (r TypeInfo) AsNamed() fp.Option[NamedTypeInfo] {
 
 func (r TypeInfo) IsPrintable() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Underlying().IsPrintable()
+	case *types.Named:
+		return r.Underlying().IsPrintable()
 	case *types.Signature:
 		return false
 	}
@@ -1071,7 +1075,7 @@ func (r TypeInfo) IsStruct() bool {
 func (r TypeInfo) Underlying() TypeInfo {
 
 	if r.IsAlias() {
-
+		return r.AsNamed().Get().Underlying
 	}
 
 	if r.IsNamed() {

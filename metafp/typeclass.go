@@ -637,14 +637,17 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 	//fmt.Printf("check %s.%s with type %s\n", r.Package.Name(), r.Name, t)
 
 	ret := r.check(t)
+
+	if t.IsAlias() {
+		alisret := r.check(t.Unalias())
+		return seq.Sort(as.Seq(ret.ToSeq()).Concat(alisret.ToSeq()), OrdTypeClassInstance).Head()
+	}
+
 	// if ret.IsDefined() {
 	// 	argType := r.Result.TypeArgs.Head().Get()
 
 	// 	fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
 	// }
-	if ret.IsEmpty() && t.IsAlias() {
-		return r.Check(t.Unalias())
-	}
 
 	return ret
 }
@@ -1148,28 +1151,30 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		})
 
 	}
-	ret.All = seq.Sort(ret.All, as.Ord(func(a, b TypeClassInstance) bool {
-		if !a.Implicit && b.Implicit {
-			return true
-		}
-
-		if a.Implicit && !b.Implicit {
-			return false
-		}
-
-		if a.Implicit && b.Implicit {
-			consA := a.Type.TypeParam.Head().Get().Constraint.Underlying()
-			consB := b.Type.TypeParam.Head().Get().Constraint.Underlying()
-
-			return types.Implements(consA, consB.(*types.Interface))
-
-		}
-		return a.RequiredInstance.Size() < b.RequiredInstance.Size()
-
-	}))
+	ret.All = seq.Sort(ret.All, OrdTypeClassInstance)
 	// ord := seq.Map(ret.All, func(v TypeClassInstance) string {
 	// 	return v.Name
 	// }).MakeString(",")
 	// fmt.Printf("%s sorted =%s\n", tc.Name, ord)
 	return ret
 }
+
+var OrdTypeClassInstance = as.Ord(func(a, b TypeClassInstance) bool {
+	if !a.Implicit && b.Implicit {
+		return true
+	}
+
+	if a.Implicit && !b.Implicit {
+		return false
+	}
+
+	if a.Implicit && b.Implicit {
+		consA := a.Type.TypeParam.Head().Get().Constraint.Underlying()
+		consB := b.Type.TypeParam.Head().Get().Constraint.Underlying()
+
+		return types.Implements(consA, consB.(*types.Interface))
+
+	}
+	return a.RequiredInstance.Size() < b.RequiredInstance.Size()
+
+})
