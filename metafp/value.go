@@ -655,6 +655,14 @@ func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 // Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
 func (r TypeInfo) IsInstantiatedOf(ctx ConstraintCheckResult, typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
 
+	if r.IsAlias() {
+		return r.Unalias().IsInstantiatedOf(ctx, typeParam, genericType)
+	}
+
+	if genericType.IsAlias() {
+		return r.IsInstantiatedOf(ctx, typeParam, genericType.Unalias())
+	}
+
 	// package가 동일해야 함
 	if !isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(genericType.Pkg)) {
 		return ctx.Failed(fp.Error(400, "not same package %s, %s", r, genericType))
