@@ -1024,9 +1024,6 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 							realv := v.TypeArgs.Head().Get()
 							return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
 						}
-						if v.ID == rType.ID {
-							return false
-						}
 						return true
 					}
 					if checkNamedArg(v) {
@@ -1036,9 +1033,25 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 					return false
 				})
 
+				hasSelfRef := fargs.Exists(func(v TypeInfo) bool {
+					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
+						if v.ID == rType.ID {
+							return true
+						}
+					}
+					return false
+				})
+
 				hasNameArg := fargs.Exists(checkNamedArg)
 
 				if allArgTypeClass {
+
+					hasExplictArg := false
+					// Named 의 경우 다음과 같이 자기 자신을 참조
+					// Named[T any](name fp.Named, ashow Show[T]) Show[T]
+					if hasSelfRef && !hasNameArg {
+						hasExplictArg = true
+					}
 
 					required := seq.Map(fargs, asRequired)
 
@@ -1047,6 +1060,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						Name:             name,
 						Static:           false,
 						Implicit:         false,
+						HasExplictArg:    hasExplictArg,
 						Type:             insType,
 						Result:           rType,
 						TypeClassType:    rType.GenericType(),
