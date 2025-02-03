@@ -512,16 +512,13 @@ func typeId(tpe types.Type) string {
 }
 
 type TypeInfo struct {
-	ID             string
-	Pkg            *types.Package
-	TypeName       string
-	Type           types.Type
-	TypeArgs       fp.Seq[TypeInfo]
-	TypeParam      fp.Seq[TypeParam]
-	Method         fp.Map[string, *types.Func]
-	Alias          *types.Alias
-	AliasTypeArgs  fp.Seq[TypeInfo]
-	AliasTypeParam fp.Seq[TypeParam]
+	ID        string
+	Pkg       *types.Package
+	TypeName  string
+	Type      types.Type
+	TypeArgs  fp.Seq[TypeInfo]
+	TypeParam fp.Seq[TypeParam]
+	Method    fp.Map[string, *types.Func]
 }
 
 func (r TypeInfo) PackagedName() PackagedName {
@@ -847,9 +844,6 @@ func (r TypeInfo) String() string {
 
 }
 func (r TypeInfo) ResultType() TypeInfo {
-	if r.Alias != nil {
-		return r
-	}
 	switch at := r.Type.(type) {
 
 	case *types.Signature:
@@ -865,12 +859,11 @@ func (r TypeInfo) ResultType() TypeInfo {
 
 func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
 
-	if r.Alias != nil {
-		if r.Alias.Obj().Pkg().Path() == tc.Package.Path() && r.Alias.Obj().Name() == tc.Name {
+	switch at := r.Type.(type) {
+	case *types.Alias:
+		if at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
 			return true
 		}
-	}
-	switch at := r.Type.(type) {
 	case *types.Named:
 		if at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
 			return true
@@ -938,10 +931,9 @@ func (r TypeInfo) FuncArgs() fp.Seq[TypeInfo] {
 }
 
 func (r TypeInfo) Name() fp.Option[string] {
-	if r.Alias != nil {
-		return option.Some(r.Alias.Obj().Name())
-	}
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return option.Some(at.Obj().Name())
 	case *types.Named:
 		return option.Some(at.Obj().Name())
 	case *types.Basic:
@@ -951,6 +943,22 @@ func (r TypeInfo) Name() fp.Option[string] {
 	case *types.Signature:
 	}
 	return option.None[string]()
+}
+
+func (r TypeInfo) IsAlias() bool {
+	switch r.Type.(type) {
+	case *types.Alias:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) Unalias() TypeInfo {
+	switch rt := r.Type.(type) {
+	case *types.Alias:
+		return GetTypeInfo(rt.Rhs())
+	}
+	return r
 }
 
 func (r TypeInfo) IsNamed() bool {
@@ -963,6 +971,13 @@ func (r TypeInfo) IsNamed() bool {
 
 func (r TypeInfo) AsNamed() fp.Option[NamedTypeInfo] {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return option.Some(NamedTypeInfo{
+			Package:    r.Pkg,
+			Name:       r.Name().Get(),
+			Info:       r,
+			Underlying: typeInfo(at.Underlying()),
+		})
 	case *types.Named:
 		return option.Some(NamedTypeInfo{
 			Package:    r.Pkg,
@@ -1054,6 +1069,11 @@ func (r TypeInfo) IsStruct() bool {
 }
 
 func (r TypeInfo) Underlying() TypeInfo {
+
+	if r.IsAlias() {
+
+	}
+
 	if r.IsNamed() {
 		return r.AsNamed().Get().Underlying
 	}
@@ -1267,13 +1287,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 
 	id := typeId(tpe)
 	switch realtp := tpe.(type) {
-	case *types.Alias:
-		rhst := typeInfo(types.Unalias(tpe))
-		rhst.Alias = realtp
-		rhst.TypeArgs = typeArgs(realtp.TypeArgs())
-		rhst.TypeParam = typeParam(realtp.TypeParams())
 
-		return rhst
 	case *types.TypeParam:
 		return TypeInfo{
 			ID:       id,
@@ -1285,6 +1299,25 @@ func typeInfo(tpe types.Type) TypeInfo {
 			ID:       id,
 			Type:     tpe,
 			TypeName: realtp.Name(),
+		}
+	case *types.Alias:
+		args := typeArgs(realtp.TypeArgs())
+		params := typeParam(realtp.TypeParams())
+
+		//TODO : type param 추가하면 난리남..
+		if params.Size() > 0 && args.Size() == 0 {
+			args = seq.Map(params, func(v TypeParam) TypeInfo {
+				p := types.NewTypeParam(v.TypeName, v.Constraint)
+				return typeInfo(p)
+			})
+		}
+		return TypeInfo{
+			ID:        id,
+			Pkg:       realtp.Obj().Pkg(),
+			Type:      tpe,
+			TypeName:  realtp.Obj().Name(),
+			TypeArgs:  args,
+			TypeParam: params,
 		}
 	case *types.Named:
 		args := typeArgs(realtp.TypeArgs())

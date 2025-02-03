@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/minimal"
 	"github.com/csgura/fp/mshow"
 	"github.com/csgura/fp/product"
@@ -69,7 +70,11 @@ func ShowCollection() mshow.Show[Collection] {
 				}
 			},
 		},
-		mshow.Struct11([]fp.Named{as.NameTag(`Index`, ``), as.NameTag(`List`, ``), as.NameTag(`Description`, ``), as.NameTag(`Set`, ``), as.NameTag(`Option`, ``), as.NameTag(`NoDerive`, ``), as.NameTag(`Stringer`, ``), as.NameTag(`BoolPtr`, ``), as.NameTag(`NoMap`, ``), as.NameTag(`Alias`, ``), as.NameTag(`StringSeq`, ``)}, ShowGoMap(mshow.String, ShowPerson()), ShowSlice(ShowPerson()), ShowPtr(mshow.String), mshow.Given[fp.Set[int]](), mshow.Given[fp.Option[Person]](), ShowNoDerive(), mshow.Given[HasStringMethod](), ShowPtr(mshow.Bool), ShowGoMap(mshow.String, ShowNoDerive()), ShowRecursiveStringAlias(), ShowFpSeq(mshow.String)),
+		mshow.Struct11([]fp.Named{as.NameTag(`Index`, ``), as.NameTag(`List`, ``), as.NameTag(`Description`, ``), as.NameTag(`Set`, ``), as.NameTag(`Option`, ``), as.NameTag(`NoDerive`, ``), as.NameTag(`Stringer`, ``), as.NameTag(`BoolPtr`, ``), as.NameTag(`NoMap`, ``), as.NameTag(`Alias`, ``), as.NameTag(`StringSeq`, ``)}, mshow.GoMap(mshow.String, ShowPerson()), mshow.Slice(ShowPerson()), mshow.Ptr(lazy.Call(func() mshow.Show[string] {
+			return mshow.String
+		})), mshow.Set(mshow.Int[int]()), mshow.Option(ShowPerson()), ShowNoDerive(), mshow.Given[HasStringMethod](), mshow.Ptr(lazy.Call(func() mshow.Show[bool] {
+			return mshow.Bool
+		})), mshow.GoMap(mshow.String, ShowNoDerive()), ShowRecursiveStringAlias(), mshow.Seq(mshow.String)),
 	)
 }
 
@@ -127,7 +132,7 @@ func ShowHasTuple() mshow.Show[HasTuple] {
 					mshow.HNil,
 				),
 			),
-		), ShowHlistHCons(mshow.String, ShowHlistHCons(mshow.Int[int](), mshow.HNil))),
+		), mshow.HCons(mshow.String, mshow.HCons(mshow.Int[int](), mshow.HNil))),
 	)
 }
 
@@ -281,7 +286,7 @@ func ShowHasAliasType() mshow.Show[HasAliasType] {
 				}
 			},
 		},
-		mshow.Struct1([]fp.Named{as.NameTag(`Data`, ``)}, ShowSlice()),
+		mshow.Struct1([]fp.Named{as.NameTag(`Data`, ``)}, mshow.Slice(mshow.Int[byte]())),
 	)
 }
 
@@ -318,21 +323,5 @@ func ShowRecursiveStringAlias() mshow.Show[recursive.StringAlias] {
 			},
 		},
 		mshow.String,
-	)
-}
-
-func ShowFpSeq[T any]() mshow.Show[fp.Seq[T]] {
-	return mshow.Generic(
-		fp.Generic[fp.Seq[T], []string]{
-			Type: "fp.Seq",
-			Kind: "NewType",
-			To: func(v fp.Seq[T]) []string {
-				return []string(v)
-			},
-			From: func(v []string) fp.Seq[T] {
-				return fp.Seq[T](v)
-			},
-		},
-		ShowSlice(mshow.String),
 	)
 }

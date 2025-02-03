@@ -67,13 +67,10 @@ func (r TypeClassDerive) InstantiatedType(t TypeInfo) TypeInfo {
 	ret.TypeArgs = seq.Of(t)
 
 	ctx := types.NewContext()
-	if ret.Alias != nil {
-		ins, _ := types.Instantiate(ctx, ret.Alias, []types.Type{t.Type}, false)
-		ret.Type = ins
-	} else {
-		ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
-		ret.Type = ins
-	}
+
+	ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
+	ret.Type = ins
+
 	return ret
 }
 
@@ -637,13 +634,16 @@ func (r TypeClassInstance) CheckWithName(name fp.NameTag, t TypeInfo) fp.Option[
 }
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
-	fmt.Printf("check %s.%s with type %s\n", r.Package.Name(), r.Name, t)
+	//fmt.Printf("check %s.%s with type %s\n", r.Package.Name(), r.Name, t)
 
 	ret := r.check(t)
-	if ret.IsDefined() {
-		argType := r.Result.TypeArgs.Head().Get()
+	// if ret.IsDefined() {
+	// 	argType := r.Result.TypeArgs.Head().Get()
 
-		fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+	// 	fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+	// }
+	if ret.IsEmpty() && t.IsAlias() {
+		return r.Check(t.Unalias())
 	}
 
 	return ret
@@ -983,7 +983,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 
 		under := rType.TypeArgs.Head().Get()
 
-		if insType.Alias == nil && insType.IsFunc() {
+		if insType.IsFunc() {
 
 			if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 				return option.Some(TypeClassInstance{
@@ -1016,13 +1016,13 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 					return false
 				}
 				allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
-					if v.Alias != nil && v.TypeArgs.Size() == 1 {
-						return true
-					}
 					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
 						if v.Name().Get() == "Eval" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
 							realv := v.TypeArgs.Head().Get()
 							return realv.Name().IsDefined() && realv.TypeArgs.Size() == 1
+						}
+						if v.ID == rType.ID {
+							return false
 						}
 						return true
 					}

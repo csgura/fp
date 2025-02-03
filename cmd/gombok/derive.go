@@ -679,7 +679,10 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 			return false
 			//fmt.Printf("%s is recursive derivable\n", req.Type)
 		}
-		return r.checkRequired(ctx, tci, tci.RequiredInstance)
+		//fmt.Printf("checkRequired for %s[%s] is %s, \n", req.TypeClass.Name, req.Type, tci.Name)
+		ret := r.checkRequired(ctx, tci, tci.RequiredInstance)
+		//fmt.Printf("result for %s[%s] is %s -> %t, \n", req.TypeClass.Name, req.Type, tci.Name, ret)
+		return ret
 	})
 
 	// instance 가 있는 경우 , instance 가 Some
@@ -939,12 +942,13 @@ func (r *TypeClassSummonContext) exprLookupTarget(ctx SummonContext, lt lookupTa
 
 		instanceExpr := lt.instanceExpr(r.w, ctx.working)
 		retExpr := func() string {
+			expr := instanceExpr.String()
 			tpstr := r.typeParamStringOfLookupTarget(ctx, lt)
 
 			if tpstr.IsDefined() {
-				return fmt.Sprintf("%s[%s](%s)", instanceExpr, tpstr.Get(), list)
+				return fmt.Sprintf("%s[%s](%s)", expr, tpstr.Get(), list)
 			} else {
-				return fmt.Sprintf("%s(%s)", instanceExpr, list)
+				return fmt.Sprintf("%s(%s)", expr, list)
 			}
 		}
 
