@@ -2254,7 +2254,9 @@ func (r *TypeClassSummonContext) summonRequired(ctx SummonContext, req metafp.Re
 	t := req.Type
 
 	if t.IsTuple() {
-		return r.summonTuple(ctx, req.TypeClass, seq.Map(t.TypeArgs, func(v metafp.TypeInfo) metafp.TypeInfoExpr {
+		// TODO: alias 된 타입에 대해, 별도의 구현이 있는 경우??
+		ut := t.Unalias()
+		return r.summonTuple(ctx, req.TypeClass, seq.Map(ut.TypeArgs, func(v metafp.TypeInfo) metafp.TypeInfoExpr {
 			return metafp.TypeInfoExpr{
 				Type: v,
 			}

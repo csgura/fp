@@ -412,6 +412,28 @@ func fold[T, ACC any](len int, getter func(idx int) T, zero ACC, fn func(ACC, T)
 
 func typeId(tpe types.Type) string {
 	switch realtp := tpe.(type) {
+	case *types.Alias:
+		tpname := realtp.Origin().Obj().Name()
+		nameWithPkg := tpname
+		if realtp.Obj().Pkg() != nil {
+
+			nameWithPkg = fmt.Sprintf("%s.%s", realtp.Obj().Pkg().Path(), tpname)
+		}
+
+		if realtp.TypeArgs() != nil {
+			args := []string{}
+			for i := 0; i < realtp.TypeArgs().Len(); i++ {
+				args = append(args, typeId(realtp.TypeArgs().At(i)))
+			}
+
+			argsstr := strings.Join(args, ",")
+
+			return fmt.Sprintf("%s[%s]", nameWithPkg, argsstr)
+		} else {
+
+			return nameWithPkg
+
+		}
 	case *types.Named:
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
@@ -539,6 +561,9 @@ func (r TypeInfo) IsSamePkg(other genfp.WorkingPackage) bool {
 
 func (r TypeInfo) Fields() fp.Seq[StructField] {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		under := typeInfo(at.Underlying())
+		return under.Fields()
 	case *types.Named:
 		under := typeInfo(at.Underlying())
 		return under.Fields()
@@ -575,6 +600,9 @@ func (r TypeInfo) HasTypeReference(checked fp.Set[string], refType TypeInfo) boo
 	}
 
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		under := typeInfo(at.Underlying())
+		return under.HasTypeReference(checked, refType)
 	case *types.Named:
 		under := typeInfo(at.Underlying())
 		return under.HasTypeReference(checked, refType)
@@ -1118,6 +1146,8 @@ func (r TypeInfo) ElemType() fp.Option[TypeInfo] {
 
 func (r TypeInfo) IsTuple() bool {
 	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsTuple()
 	case *types.Named:
 		if nt.Obj().Pkg().Path() == "github.com/csgura/fp" && strings.HasPrefix(nt.Obj().Name(), "Tuple") {
 			return true
@@ -1128,6 +1158,8 @@ func (r TypeInfo) IsTuple() bool {
 
 func (r TypeInfo) IsOption() bool {
 	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsTuple()
 	case *types.Named:
 		if nt.Obj().Pkg().Path() == "github.com/csgura/fp" && nt.Obj().Name() == "Option" {
 			return true

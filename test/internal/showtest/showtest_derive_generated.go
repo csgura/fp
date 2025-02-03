@@ -79,7 +79,7 @@ func ShowHasTuple() fp.Show[HasTuple] {
 				return HasTuple{Entry: t.I1.Value(), HList: t.I2.Value()}
 			},
 		},
-		show.Labelled2(show.Named[fp.RuntimeNamed[fp.Tuple2[string, int]]](show.Generic(
+		show.Labelled2(show.Named[fp.RuntimeNamed[fp.Entry[int]]](show.Generic(
 			fp.Generic[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
 				Type: "fp.Tuple2",
 				Kind: "Tuple",
