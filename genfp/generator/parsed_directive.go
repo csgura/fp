@@ -379,7 +379,7 @@ func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
 			}
 			ret.File = v
 		case "Imports":
-			v, err := evalArray(tagged.Package, value, evalImport)
+			v, err := evalImports(tagged.Package, value)
 			if err != nil {
 				return genfp.GenerateFromList{}, err
 			}
@@ -1144,7 +1144,7 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 			}
 			ret.File = v
 		case "Imports":
-			v, err := evalArray(tagged.Package, value, evalImport)
+			v, err := evalImports(tagged.Package, value)
 			if err != nil {
 				return GenerateFromStructs{}, err
 			}

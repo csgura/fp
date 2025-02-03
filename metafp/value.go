@@ -1129,6 +1129,24 @@ func (r TypeInfo) IsPtr() bool {
 	return false
 }
 
+func (r TypeInfo) IsNumber() bool {
+	switch at := r.Type.(type) {
+	case *types.Basic:
+		switch at.Kind() {
+		case types.Float32, types.Float64:
+			return true
+		case types.Int, types.Int16, types.Int32, types.Int64:
+			return true
+		case types.Uint, types.Uint16, types.Uint32, types.Uint64:
+			return true
+		case types.UntypedInt, types.UntypedFloat:
+			return true
+		}
+		return false
+	}
+	return false
+}
+
 func (r TypeInfo) ElemType() fp.Option[TypeInfo] {
 	type elemT interface {
 		Elem() types.Type

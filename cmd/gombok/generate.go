@@ -292,12 +292,20 @@ func removePkgPrefix(v string) string {
 }
 
 func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.TypeInfoExpr) genfp.TypeName {
+	name := v.Type.TypeName
+	if name == "*" {
+		name = "Ptr"
+	} else if name == "[]" {
+		name = "Slice"
+	}
 	return genfp.TypeName{
+		Type:      v.Type.Type,
 		Package:   genfp.FromTypesPackage(v.Type.Pkg),
 		Complete:  v.TypeName(w, workingPkg),
-		Name:      v.Type.TypeName,
+		Name:      name,
 		IsPtr:     v.Type.IsPtr(),
 		IsStruct:  v.Type.Underlying().IsStruct(),
+		IsNumber:  v.Type.IsNumber(),
 		IsNilable: v.Type.IsNilable(),
 		ZeroExpr:  w.ZeroExpr(workingPkg, v.Type.Type),
 	}
@@ -337,13 +345,28 @@ func genGenerate() {
 		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 	}
 
-	pkgs, err := packages.Load(cfg, cwd)
+	allpkgs, err := packages.Load(cfg, cwd, "github.com/csgura/fp", "github.com/csgura/fp/hlist")
 	if err != nil {
 		fmt.Printf("package load error : %s\n", err)
 		return
 	}
 
+	fpPkgs, pkgs := seq.Partition(allpkgs, func(v *packages.Package) bool {
+		return v.Types.Path() == "github.com/csgura/fp" || v.Types.Path() == "github.com/csgura/fp/hlist"
+	})
+
+	fpPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+		return v.Types.Path() == "github.com/csgura/fp"
+	})
+
+	hlistPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+		return v.Types.Path() == "github.com/csgura/fp/hlist"
+	})
+
 	workingPkg := genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax)
+
+	deriveCtx := NewTypeClassSummonContext(pkgs, genfp.NewImportSet(), fpPkg.Head().Get().Types, hlistPkg.Head().Get().Types)
+
 	gentemplate := generator.FindGenerateFromUntil(pkgs, "@fp.Generate")
 	genlist := generator.FindGenerateFromList(pkgs, "@fp.Generate")
 	genstruct := generator.FindGenerateFromStructs(pkgs, "@fp.Generate")
@@ -439,6 +462,7 @@ func genGenerate() {
 							return v.IsVisible
 						})
 						st := genfp.StructDef{
+							Package:   genfp.FromTypesPackage(ti.Pkg),
 							Name:      name.Get(),
 							AllFields: fields,
 							Fields:    visible,
@@ -447,7 +471,41 @@ func genGenerate() {
 							}),
 						}
 
-						w.Render(gfu.Template, map[string]any{}, map[string]any{
+						w.Render(gfu.Template, map[string]any{
+							"Summon": func(tc string, f genfp.TypeName) string {
+								arr := strings.Split(tc, ".")
+								if len(arr) != 2 {
+									fmt.Printf("typeclass invalid %s\n", tc)
+									return ""
+								}
+
+								pk := as.Seq(gfu.Imports).Find(func(v genfp.ImportPackage) bool {
+									return v.Alias() == arr[0]
+								})
+								if pk.IsEmpty() {
+									fmt.Printf("not imported package %s", arr[0])
+
+									return ""
+								}
+
+								rq := metafp.RequiredInstance{
+									Type: metafp.GetTypeInfo(f.Type),
+									TypeClass: metafp.TypeClass{
+										Name:    arr[1],
+										Package: pk.Get(),
+									},
+								}
+
+								ctx := SummonContext{
+									working:   workingPkg,
+									typeClass: rq.TypeClass,
+									summonFor: rq.Type.String(),
+								}
+								ret := deriveCtx.summonRequired(ctx, rq)
+
+								return ret.Expr()
+							},
+						}, map[string]any{
 							"N": st,
 						})
 					}

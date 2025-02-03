@@ -2,6 +2,7 @@ package genfp
 
 import (
 	"fmt"
+	"go/types"
 	"path"
 	"reflect"
 )
@@ -128,6 +129,9 @@ type GenerateFromList struct {
 }
 
 type TypeName struct {
+	// golang types.Type
+	Type types.Type
+
 	// fp.Option[string] 처럼 완전한 type 이름.
 	Complete string
 
@@ -139,6 +143,8 @@ type TypeName struct {
 
 	// pointer 인지 여부
 	IsPtr bool
+
+	IsNumber bool
 
 	IsStruct bool
 
@@ -177,6 +183,7 @@ type StructFieldDef struct {
 }
 
 type StructDef struct {
+	Package   ImportPackage
 	Name      string
 	Type      TypeName
 	Fields    []StructFieldDef
