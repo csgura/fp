@@ -29,6 +29,14 @@ func Import(p string) ImportPackage {
 	}
 }
 
+func Imports(p ...string) []ImportPackage {
+	var ret []ImportPackage
+	for _, v := range p {
+		ret = append(ret, Import(v))
+	}
+	return ret
+}
+
 type Delegate struct {
 	TypeOf TypeTag
 	Field  string

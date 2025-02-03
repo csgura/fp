@@ -257,6 +257,28 @@ func evalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Package,
 	return nil, fmt.Errorf("expr is not array expr : %T", e)
 }
 
+func evalImports(p *packages.Package, e ast.Expr) ([]genfp.ImportPackage, error) {
+
+	if ce, ok := e.(*ast.CallExpr); ok {
+		if matchFuncName(ce, "genfp.Imports") {
+			var ret []genfp.ImportPackage
+
+			for _, e := range ce.Args {
+				v, err := evalStringValue(p, e)
+				if err != nil {
+					return nil, err
+				}
+				ret = append(ret, genfp.ImportPackage{
+					Package: v,
+					Name:    path.Base(v),
+				})
+			}
+			return ret, nil
+		}
+	}
+	return evalArray(p, e, evalImport)
+}
+
 func evalMap[K comparable, V any](p *packages.Package, e ast.Expr, kf func(*packages.Package, ast.Expr) (K, error), vf func(*packages.Package, ast.Expr) (V, error)) (map[K]V, error) {
 
 	if lt, ok := e.(*ast.CompositeLit); ok {
@@ -306,7 +328,7 @@ func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
 			}
 			ret.File = v
 		case "Imports":
-			v, err := evalArray(tagged.Package, value, evalImport)
+			v, err := evalImports(tagged.Package, value)
 			if err != nil {
 				return genfp.GenerateFromUntil{}, err
 			}
