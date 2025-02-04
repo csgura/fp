@@ -190,6 +190,13 @@ type StructDef struct {
 	AllFields []StructFieldDef
 }
 
+func (r StructDef) FieldAt(at int) *StructFieldDef {
+	if at < len(r.Fields) {
+		return &r.Fields[at]
+	}
+	return nil
+}
+
 func (r StructDef) String() string {
 	return r.Name
 }
