@@ -2332,12 +2332,32 @@ func (r *TypeClassSummonContext) summonUntypedStruct(ctx SummonContext, tc metaf
 }
 
 func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.TypeClass, genericName string, genericRepr GenericRepr) SummonExpr {
-	mapExpr := option.Map(r.lookupTypeClassFunc(ctx, tc, "Generic"), func(generic metafp.TypeClassInstance) SummonExpr {
+	mapExpr := option.Map(r.lookupTypeClassFunc(ctx, tc, "ContraGeneric"), func(generic metafp.TypeClassInstance) SummonExpr {
 		repr := genericRepr.ReprExpr()
 
 		retExpr := func() string {
-			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 			return fmt.Sprintf(`%s(
+						"%s",
+						"%s",
+						%s,
+						%s,
+					)`, generic.PackagedName(r.w, ctx.working),
+				genericName,
+				genericRepr.Kind,
+				repr,
+				genericRepr.ToReprExpr(),
+			)
+		}
+
+		return newSummonExpr(retExpr, repr.paramInstance)
+
+	}).Or(func() fp.Option[SummonExpr] {
+		return option.Map(r.lookupTypeClassFunc(ctx, tc, "Generic"), func(generic metafp.TypeClassInstance) SummonExpr {
+			repr := genericRepr.ReprExpr()
+
+			retExpr := func() string {
+				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+				return fmt.Sprintf(`%s(
 					%s.Generic[%s,%s]{
 							Type: "%s",
 							Kind: "%s",
@@ -2346,19 +2366,20 @@ func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.Type
 						}, 
 						%s, 
 					)`, generic.PackagedName(r.w, ctx.working),
-				fppk, genericRepr.Type(), genericRepr.ReprType(),
-				genericName,
-				genericRepr.Kind,
-				genericRepr.ToReprExpr(),
-				genericRepr.FromReprExpr(),
-				repr,
-			)
-		}
+					fppk, genericRepr.Type(), genericRepr.ReprType(),
+					genericName,
+					genericRepr.Kind,
+					genericRepr.ToReprExpr(),
+					genericRepr.FromReprExpr(),
+					repr,
+				)
+			}
 
-		return newSummonExpr(retExpr, repr.paramInstance)
-
+			return newSummonExpr(retExpr, repr.paramInstance)
+		})
 	}).Or(func() fp.Option[SummonExpr] {
 		return option.Map(r.lookupTypeClassFunc(ctx, tc, "IMap"), func(imapfunc metafp.TypeClassInstance) SummonExpr {
+
 			repr := genericRepr.ReprExpr()
 			retExpr := func() string {
 				return fmt.Sprintf(`%s( 
