@@ -145,3 +145,25 @@ var _ mshow.Derives[mshow.Show[EmbeddedStruct]]
 var _ mshow.Derives[mshow.Show[EmbeddedTypeParamStruct[any]]]
 
 var _ mshow.Derives[mshow.Show[EmptyStruct]]
+
+// @fp.Generate
+var _ = genfp.GenerateFromStructs{
+	File:    "firstfield.go",
+	Imports: genfp.Imports(),
+	List: seq.Of(
+		genfp.TypeOf[EmptyStruct](),
+		genfp.TypeOf[Person](),
+
+	//	genfp.TypeOf[Collection](),
+	),
+	Recursive: true,
+	Template: `
+		func FirstField{{.N}}() string {
+			{{- if .N.FieldAt 0}}
+				return "{{(.N.FieldAt 0).Name}}"
+			{{- else}}
+				return ""
+			{{- end}}
+		}
+	`,
+}

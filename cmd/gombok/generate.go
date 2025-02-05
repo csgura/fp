@@ -313,9 +313,10 @@ func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.Typ
 
 func scanStructTypes(list []metafp.TypeInfo, ti metafp.TypeInfo, uniqCheck map[string]bool, recursive bool) []metafp.TypeInfo {
 
-	if !ti.IsOption() && ti.Underlying().IsStruct() {
-		if exists := uniqCheck[ti.ID]; !exists {
-			uniqCheck[ti.ID] = true
+	if exists := uniqCheck[ti.ID]; !exists {
+		uniqCheck[ti.ID] = true
+		if !ti.IsOption() && ti.Underlying().IsStruct() {
+
 			list = append(list, ti)
 			if recursive {
 				for _, f := range ti.Fields() {
@@ -323,15 +324,16 @@ func scanStructTypes(list []metafp.TypeInfo, ti metafp.TypeInfo, uniqCheck map[s
 				}
 			}
 		}
-	}
-	if recursive {
-		if elem, ok := ti.ElemType().Unapply(); ok {
-			list = scanStructTypes(list, elem, uniqCheck, recursive)
+		if recursive {
+			if elem, ok := ti.ElemType().Unapply(); ok {
+				list = scanStructTypes(list, elem, uniqCheck, recursive)
+			}
+
+			list = seq.Fold(ti.TypeArgs, list, func(l []metafp.TypeInfo, t metafp.TypeInfo) []metafp.TypeInfo {
+				return scanStructTypes(l, t, uniqCheck, recursive)
+			})
 		}
 
-		list = seq.Fold(ti.TypeArgs, list, func(l []metafp.TypeInfo, t metafp.TypeInfo) []metafp.TypeInfo {
-			return scanStructTypes(l, t, uniqCheck, recursive)
-		})
 	}
 	return list
 }
@@ -434,6 +436,7 @@ func genGenerate() {
 
 					name := ti.Name()
 					if name.IsDefined() {
+						//fmt.Printf("generate code of %s\n", name.Get())
 						is := genfp.NewImportSet()
 						fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldDef {
 							tpe := toTypeName(is, workingPkg, f.TypeInfoExpr(workingPkg))
@@ -462,10 +465,11 @@ func genGenerate() {
 							return v.IsVisible
 						})
 						st := genfp.StructDef{
-							Package:   genfp.FromTypesPackage(ti.Pkg),
-							Name:      name.Get(),
-							AllFields: fields,
-							Fields:    visible,
+							Package:          genfp.FromTypesPackage(ti.Pkg),
+							IsCurrentPackage: ti.IsSamePkg(workingPkg),
+							Name:             name.Get(),
+							AllFields:        fields,
+							Fields:           visible,
 							Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
 								Type: ti,
 							}),

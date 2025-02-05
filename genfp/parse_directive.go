@@ -183,11 +183,12 @@ type StructFieldDef struct {
 }
 
 type StructDef struct {
-	Package   ImportPackage
-	Name      string
-	Type      TypeName
-	Fields    []StructFieldDef
-	AllFields []StructFieldDef
+	Package          ImportPackage
+	IsCurrentPackage bool
+	Name             string
+	Type             TypeName
+	Fields           []StructFieldDef
+	AllFields        []StructFieldDef
 }
 
 func (r StructDef) FieldAt(at int) *StructFieldDef {
