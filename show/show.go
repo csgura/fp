@@ -308,8 +308,14 @@ func GoMap[K comparable, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[map[
 }
 
 func Slice[T any](tshow fp.Show[T]) fp.Show[[]T] {
-	return ContraMap(Seq(tshow), func(u []T) fp.Seq[T] {
-		return u
+	return NewAppend(func(buf []string, s []T, opt fp.ShowOption) []string {
+		childOpt := opt.IncreaseIndent()
+
+		var childStr [][]string
+		for _, v := range s {
+			childStr = append(childStr, tshow.Append(nil, v, childOpt))
+		}
+		return appendSeq(buf, "Seq", iterator.FromSlice(childStr), opt)
 	})
 }
 
@@ -362,7 +368,10 @@ func structFieldSeparator(opt fp.ShowOption) string {
 
 func Labelled2[N1, N2 fp.Named](ins1 fp.Show[N1], ins2 fp.Show[N2]) fp.Show[fp.Labelled2[N1, N2]] {
 	return NewAppend(func(buf []string, t fp.Labelled2[N1, N2], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(AsAppender(ins1, t.I1)(nil, opt), AsAppender(ins2, t.I2)(nil, opt)).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+		return append(buf, makeString(iterator.Of(
+			ins1.Append(nil, t.I1, opt),
+			ins2.Append(nil, t.I2, opt),
+		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
 	})
 }
 
