@@ -214,8 +214,12 @@ func trailingComma(opt fp.ShowOption) string {
 func Seq[T any](tshow Show[T]) Show[fp.Seq[T]] {
 	return NewAppend(func(buf []string, s fp.Seq[T], opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
-		childStr := iterator.Map(iterator.FromSeq(s), fp.Flip(as.Curried3(tshow)(nil))(childOpt))
-		return appendSeq(buf, "Seq", childStr, opt)
+
+		var childStr [][]string
+		for _, v := range s {
+			childStr = append(childStr, tshow(nil, v, childOpt))
+		}
+		return appendSeq(buf, "Seq", iterator.FromSlice(childStr), opt)
 	})
 }
 
@@ -281,8 +285,14 @@ func GoMap[K comparable, V any](showk Show[K], showv Show[V]) Show[map[K]V] {
 }
 
 func Slice[T any](tshow Show[T]) Show[[]T] {
-	return ContraMap(Seq(tshow), func(u []T) fp.Seq[T] {
-		return u
+	return NewAppend(func(buf []string, s []T, opt fp.ShowOption) []string {
+		childOpt := opt.IncreaseIndent()
+
+		var childStr [][]string
+		for _, v := range s {
+			childStr = append(childStr, tshow(nil, v, childOpt))
+		}
+		return appendSeq(buf, "Seq", iterator.FromSlice(childStr), opt)
 	})
 }
 
