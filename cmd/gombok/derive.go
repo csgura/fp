@@ -49,6 +49,7 @@ type DeriveContext struct {
 	primScope    metafp.TypeClassScope
 	workingScope metafp.TypeClassScope
 	recursiveGen bool
+	noinline     bool
 }
 
 type SummonContext struct {
@@ -2235,6 +2236,8 @@ func (r *TypeClassSummonContext) SummonExpression(tc metafp.TypeClassDerive) Sum
 		working:      tc.Package,
 		recursiveGen: option.FlatMap(tc.Tags.Get("@fp.Derive"),
 			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("recursive"))).Exists(eq.GivenValue("true")),
+		noinline: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("noinline"))).Exists(eq.GivenValue("true")),
 	}
 
 	return r.summonRequired(asSummonContext(ctx), metafp.RequiredInstance{
@@ -2245,6 +2248,7 @@ func (r *TypeClassSummonContext) SummonExpression(tc metafp.TypeClassDerive) Sum
 }
 
 func asSummonContext(ctx DeriveContext) SummonContext {
+
 	return SummonContext{
 		working:       ctx.working,
 		typeClass:     ctx.tc.TypeClass,
@@ -2486,6 +2490,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 }
 
 func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) SummonExpr {
+
 	workingPackage := tc.Package
 
 	ctx := DeriveContext{
@@ -2495,6 +2500,13 @@ func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) Summ
 		working:      workingPackage,
 		recursiveGen: option.FlatMap(tc.Tags.Get("@fp.Derive"),
 			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("recursive"))).Exists(eq.GivenValue("true")),
+		noinline: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("noinline"))).Exists(eq.GivenValue("true")),
+	}
+
+	funcDirective := ""
+	if ctx.noinline {
+		funcDirective = "//go:noinline\n"
 	}
 
 	valuetpdec := ""
@@ -2531,18 +2543,18 @@ func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) Summ
 
 			fargs := seq.Map(mapExpr.paramInstance, as.Func3(ParamInstance.Expr).ApplyLast2(r.w, ctx.tc.Package)).MakeString(",")
 			return fmt.Sprintf(`
-						func %s%s( %s ) %s[%s%s] {
+						%sfunc %s%s( %s ) %s[%s%s] {
 							return %s
 						}
-					`, tc.GeneratedInstanceName(), valuetpdec, fargs, tcname, tc.DeriveFor.PackagedName(r.w, workingPackage), valuetp,
+					`, funcDirective, tc.GeneratedInstanceName(), valuetpdec, fargs, tcname, tc.DeriveFor.PackagedName(r.w, workingPackage), valuetp,
 				mapExpr)
 		}
 		tcname := tc.TypeClass.PackagedName(r.w, workingPackage)
 		return fmt.Sprintf(`
-						func %s() %s[%s] {
+						%sfunc %s() %s[%s] {
 							return %s
 						}
-					`, tc.GeneratedInstanceName(), tcname, tc.DeriveFor.PackagedName(r.w, workingPackage),
+					`, funcDirective, tc.GeneratedInstanceName(), tcname, tc.DeriveFor.PackagedName(r.w, workingPackage),
 			mapExpr)
 	}
 

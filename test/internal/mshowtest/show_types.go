@@ -37,7 +37,7 @@ type Collection struct {
 	StringSeq   fp.Seq[string]
 }
 
-// @fp.Derive(recursive=true)
+// @fp.Derive(recursive=true,noinline)
 var _ mshow.Derives[mshow.Show[Collection]]
 
 type HasStringMethod struct {

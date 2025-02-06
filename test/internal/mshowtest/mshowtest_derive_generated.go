@@ -25,6 +25,7 @@ func ShowPerson() mshow.Show[Person] {
 	)
 }
 
+//go:noinline
 func ShowCollection() mshow.Show[Collection] {
 	return mshow.ContraGeneric(
 		"mshowtest.Collection",
@@ -175,6 +176,7 @@ func ShowHasAliasType() mshow.Show[HasAliasType] {
 	)
 }
 
+//go:noinline
 func ShowNoDerive() mshow.Show[NoDerive] {
 	return mshow.ContraGeneric(
 		"mshowtest.NoDerive",
@@ -188,6 +190,7 @@ func ShowNoDerive() mshow.Show[NoDerive] {
 	)
 }
 
+//go:noinline
 func ShowRecursiveStringAlias() mshow.Show[recursive.StringAlias] {
 	return mshow.ContraGeneric(
 		"recursive.StringAlias",
