@@ -295,8 +295,12 @@ func GoMap[K comparable, V any](showk Show[K], showv Show[V]) Show[map[K]V] {
 func Slice[T any](tshow Show[T]) Show[[]T] {
 	return NewAppend(func(buf []string, s []T, opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
-		childStr := iterator.Map(iterator.FromSeq(s), fp.Flip(as.Curried3(tshow.Append)(nil))(childOpt))
-		return appendSeq(buf, "Seq", childStr, opt)
+
+		var childStr [][]string
+		for _, v := range s {
+			childStr = append(childStr, tshow.Append(nil, v, childOpt))
+		}
+		return appendSeq(buf, "Seq", iterator.FromSlice(childStr), opt)
 	})
 }
 
