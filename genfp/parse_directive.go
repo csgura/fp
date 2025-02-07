@@ -265,6 +265,13 @@ func (r InterfaceMethodDef) ReturnsDef() string {
 	}), ",")
 }
 
+func (r InterfaceMethodDef) ArgAt(i int) *VarDef {
+	if i < len(r.Args) {
+		return &r.Args[i]
+	}
+	return nil
+}
+
 func (r InterfaceMethodDef) ReturnAt(i int) *VarDef {
 	if i < len(r.Returns) {
 		return &r.Returns[i]
