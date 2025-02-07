@@ -312,7 +312,7 @@ func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
 	lit := tagged.Lit
 	ret := genfp.GenerateFromUntil{}
 
-	names := []string{"File", "Imports", "From", "Until", "Template"}
+	names := []string{"File", "Imports", "From", "Until", "Variables", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
 			return genfp.GenerateFromUntil{}, fmt.Errorf("invalid number of literals")
@@ -345,6 +345,12 @@ func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
 				return genfp.GenerateFromUntil{}, err
 			}
 			ret.Until = v
+		case "Variables":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalStringValue)
+			if err != nil {
+				return genfp.GenerateFromUntil{}, err
+			}
+			ret.Variables = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
@@ -363,7 +369,7 @@ func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
 	lit := tagged.Lit
 	ret := genfp.GenerateFromList{}
 
-	names := []string{"File", "Imports", "List", "Template"}
+	names := []string{"File", "Imports", "List", "Variables", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
 			return genfp.GenerateFromList{}, fmt.Errorf("invalid number of literals")
@@ -390,6 +396,12 @@ func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
 				return genfp.GenerateFromList{}, err
 			}
 			ret.List = v
+		case "Variables":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalStringValue)
+			if err != nil {
+				return genfp.GenerateFromList{}, err
+			}
+			ret.Variables = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {

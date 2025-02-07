@@ -114,18 +114,20 @@ var defaultFunc = map[string]any{
 }
 
 type GenerateFromUntil struct {
-	File     string
-	Imports  []ImportPackage
-	From     int
-	Until    int
-	Template string
+	File      string
+	Imports   []ImportPackage
+	From      int
+	Until     int
+	Variables map[string]string
+	Template  string
 }
 
 type GenerateFromList struct {
-	File     string
-	Imports  []ImportPackage
-	List     []string
-	Template string
+	File      string
+	Imports   []ImportPackage
+	List      []string
+	Variables map[string]string
+	Template  string
 }
 
 type TypeName struct {
