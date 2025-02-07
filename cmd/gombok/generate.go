@@ -424,9 +424,15 @@ func genGenerate() {
 				}
 
 				for _, v := range gfu.List {
-					w.Render(gfu.Template, map[string]any{}, map[string]any{
+					params := map[string]any{
 						"N": v,
-					})
+					}
+					for k, v := range gfu.Variables {
+						if k != "N" {
+							params[k] = v
+						}
+					}
+					w.Render(gfu.Template, map[string]any{}, params)
 				}
 			}
 
@@ -443,7 +449,14 @@ func genGenerate() {
 					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
 				}
 
-				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, map[string]any{})
+				params := map[string]any{}
+				for k, v := range gfu.Variables {
+					if k != "N" {
+						params[k] = v
+					}
+				}
+
+				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, params)
 			}
 
 			for _, gad := range genadaptor[file] {
