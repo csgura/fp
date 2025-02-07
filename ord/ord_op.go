@@ -89,6 +89,10 @@ func GivenField[S any, T fp.ImplicitOrd](getter func(S) T) fp.Ord[S] {
 	return ContraMap(Given[T](), getter)
 }
 
+func GivenKey[K fp.ImplicitOrd, V any]() fp.Ord[fp.Tuple2[K, V]] {
+	return ContraMap(Given[K](), fp.Tuple2[K, V].Head)
+}
+
 func ContraMap[T, U any](instance fp.Ord[T], fn func(U) T) fp.Ord[U] {
 	return New(eq.ContraMap[T](instance, fn), func(a, b U) bool {
 		return instance.Less(fn(a), fn(b))

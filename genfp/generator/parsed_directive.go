@@ -1119,6 +1119,7 @@ type GenerateFromStructs struct {
 	File      string
 	Imports   []genfp.ImportPackage
 	List      []TypeReference
+	Variables map[string]string
 	Recursive bool
 	Template  string
 }
@@ -1128,7 +1129,7 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 	lit := tagged.Lit
 	ret := GenerateFromStructs{}
 
-	names := []string{"File", "Imports", "List", "Recursive", "Template"}
+	names := []string{"File", "Imports", "List", "Recursive", "Variables", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
 			return GenerateFromStructs{}, fmt.Errorf("invalid number of literals")
@@ -1161,6 +1162,63 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 				return GenerateFromStructs{}, err
 			}
 			ret.Recursive = v
+		case "Variables":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalStringValue)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Variables = v
+		case "Template":
+			v, err := evalStringValue(tagged.Package, value)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Template = v
+		}
+	}
+
+	return ret, nil
+
+}
+
+func ParseGenerateFromInterfaces(tagged TaggedLit) (GenerateFromStructs, error) {
+
+	lit := tagged.Lit
+	ret := GenerateFromStructs{}
+
+	names := []string{"File", "Imports", "List", "Variables", "Template"}
+	for idx, e := range lit.Elts {
+		if idx >= len(names) {
+			return GenerateFromStructs{}, fmt.Errorf("invalid number of literals")
+		}
+
+		name := names[idx]
+		name, value := asKeyValue(e, name)
+		switch name {
+		case "File":
+			v, err := evalStringValue(tagged.Package, value)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.File = v
+		case "Imports":
+			v, err := evalImports(tagged.Package, value)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Imports = v
+		case "List":
+			v, err := evalArray(tagged.Package, value, evalTypeOf(tagged.Package))
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.List = v
+		case "Variables":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalStringValue)
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.Variables = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {

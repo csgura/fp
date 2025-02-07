@@ -134,6 +134,24 @@ func FindGenerateFromStructs(p []*packages.Package, tags ...string) map[string][
 
 	return ret
 }
+
+func FindGenerateFromInterfaces(p []*packages.Package, tags ...string) map[string][]GenerateFromStructs {
+	ret := map[string][]GenerateFromStructs{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateFromInterfaces", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateFromInterfaces(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s\n", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
+}
+
 func FindGenerateAdaptor(p []*packages.Package, tags ...string) map[string][]GenerateAdaptorDirective {
 	ret := map[string][]GenerateAdaptorDirective{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateAdaptor", tags...)

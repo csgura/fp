@@ -299,15 +299,21 @@ func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.Typ
 		name = "Slice"
 	}
 	return genfp.TypeName{
-		Type:      v.Type.Type,
-		Package:   genfp.FromTypesPackage(v.Type.Pkg),
-		Complete:  v.TypeName(w, workingPkg),
-		Name:      name,
-		IsPtr:     v.Type.IsPtr(),
-		IsStruct:  v.Type.Underlying().IsStruct(),
-		IsNumber:  v.Type.IsNumber(),
-		IsNilable: v.Type.IsNilable(),
-		ZeroExpr:  w.ZeroExpr(workingPkg, v.Type.Type),
+		Type:             v.Type.Type,
+		Package:          genfp.FromTypesPackage(v.Type.Pkg),
+		IsCurrentPackage: v.Type.IsSamePkg(workingPkg),
+		Complete:         v.TypeName(w, workingPkg),
+		Name:             name,
+		IsPtr:            v.Type.IsPtr(),
+		IsStruct:         v.Type.Underlying().IsStruct(),
+		IsNumber:         v.Type.IsNumber(),
+		IsNilable:        v.Type.IsNilable(),
+		ZeroExpr:         w.ZeroExpr(workingPkg, v.Type.Type),
+		TypeArgs: seq.Map(v.Type.TypeArgs, func(v metafp.TypeInfo) genfp.TypeName {
+			return toTypeName(w, workingPkg, metafp.TypeInfoExpr{
+				Type: v,
+			})
+		}),
 	}
 }
 
@@ -372,6 +378,7 @@ func genGenerate() {
 	gentemplate := generator.FindGenerateFromUntil(pkgs, "@fp.Generate")
 	genlist := generator.FindGenerateFromList(pkgs, "@fp.Generate")
 	genstruct := generator.FindGenerateFromStructs(pkgs, "@fp.Generate")
+	geniface := generator.FindGenerateFromInterfaces(pkgs, "@fp.Generate")
 
 	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
 	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
@@ -382,6 +389,7 @@ func genGenerate() {
 		mutable.MapOf(gentemplate).Keys().
 			Concat(mutable.MapOf(genlist).Keys()).
 			Concat(mutable.MapOf(genstruct).Keys()).
+			Concat(mutable.MapOf(geniface).Keys()).
 			Concat(mutable.MapOf(genadaptor).Keys()).
 			Concat(mutable.MapOf(monadf).Keys()).
 			Concat(mutable.MapOf(traversef).Keys()).
@@ -422,98 +430,12 @@ func genGenerate() {
 				}
 			}
 
+			for _, gfu := range geniface[file] {
+				generateFromInterface(w, workingPkg, deriveCtx, gfu)
+			}
+
 			for _, gfu := range genstruct[file] {
-				for _, im := range gfu.Imports {
-					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
-				}
-
-				uniqCheck := map[string]bool{}
-				all := seq.Fold(gfu.List, []metafp.TypeInfo{}, func(list []metafp.TypeInfo, tr generator.TypeReference) []metafp.TypeInfo {
-					return scanStructTypes(list, metafp.GetTypeInfo(tr.Type), uniqCheck, gfu.Recursive)
-				})
-
-				for _, ti := range all {
-
-					name := ti.Name()
-					if name.IsDefined() {
-						//fmt.Printf("generate code of %s\n", name.Get())
-						is := genfp.NewImportSet()
-						fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldDef {
-							tpe := toTypeName(is, workingPkg, f.TypeInfoExpr(workingPkg))
-							indtpe := tpe
-							if f.FieldType.IsPtr() {
-								indtpe = toTypeName(is, workingPkg, metafp.TypeInfoExpr{
-									Type: f.FieldType.ElemType().Get(),
-								})
-							}
-							return genfp.StructFieldDef{
-								Name:         f.Name,
-								Type:         tpe,
-								IndirectType: indtpe,
-								Tag:          f.Tag,
-								IsPublic:     f.Public(),
-								IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
-								ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeName {
-									return toTypeName(is, workingPkg, metafp.TypeInfoExpr{
-										Type: v,
-									})
-								}).OrZero(),
-							}
-						})
-
-						visible := fields.Filter(func(v genfp.StructFieldDef) bool {
-							return v.IsVisible
-						})
-						st := genfp.StructDef{
-							Package:          genfp.FromTypesPackage(ti.Pkg),
-							IsCurrentPackage: ti.IsSamePkg(workingPkg),
-							Name:             name.Get(),
-							AllFields:        fields,
-							Fields:           visible,
-							Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
-								Type: ti,
-							}),
-						}
-
-						w.Render(gfu.Template, map[string]any{
-							"Summon": func(tc string, f genfp.TypeName) string {
-								arr := strings.Split(tc, ".")
-								if len(arr) != 2 {
-									fmt.Printf("typeclass invalid %s\n", tc)
-									return ""
-								}
-
-								pk := as.Seq(gfu.Imports).Find(func(v genfp.ImportPackage) bool {
-									return v.Alias() == arr[0]
-								})
-								if pk.IsEmpty() {
-									fmt.Printf("not imported package %s", arr[0])
-
-									return ""
-								}
-
-								rq := metafp.RequiredInstance{
-									Type: metafp.GetTypeInfo(f.Type),
-									TypeClass: metafp.TypeClass{
-										Name:    arr[1],
-										Package: pk.Get(),
-									},
-								}
-
-								ctx := SummonContext{
-									working:   workingPkg,
-									typeClass: rq.TypeClass,
-									summonFor: rq.Type.String(),
-								}
-								ret := deriveCtx.summonRequired(ctx, rq)
-
-								return ret.Expr()
-							},
-						}, map[string]any{
-							"N": st,
-						})
-					}
-				}
+				generateFromStruct(w, workingPkg, deriveCtx, gfu)
 			}
 
 			for _, gfu := range gentemplate[file] {
@@ -542,6 +464,210 @@ func genGenerate() {
 		})
 	}
 
+}
+
+func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveCtx *TypeClassSummonContext, gfu generator.GenerateFromStructs) {
+	for _, im := range gfu.Imports {
+		w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
+	}
+
+	for _, tr := range gfu.List {
+
+		ti := metafp.GetTypeInfo(tr.Type)
+		name := ti.Name()
+
+		if name.IsDefined() && ti.Underlying().IsInterface() {
+			is := genfp.NewImportSet()
+
+			ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
+			methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodDef {
+				args := v.I2.Signature().Params()
+				convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarDef {
+					return func(i int, t *types.Var) genfp.VarDef {
+						name := t.Name()
+						if name == "" {
+							name = fmt.Sprintf("%s%d", vprefix, i)
+						}
+
+						return genfp.VarDef{
+							Index: i,
+							Name:  t.Name(),
+							Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+								Type: metafp.GetTypeInfo(t.Type()),
+							}),
+						}
+					}
+				}
+				argsDef := iterate(args.Len(), args.At, convVar("arg"))
+
+				rets := v.I2.Signature().Results()
+				retDef := iterate(rets.Len(), rets.At, convVar("ret"))
+
+				return genfp.InterfaceMethodDef{
+					Name:    v.I1,
+					Args:    argsDef,
+					Returns: retDef,
+				}
+			})
+
+			st := genfp.InterfaceDef{
+				Package:          genfp.FromTypesPackage(ti.Pkg),
+				IsCurrentPackage: ti.IsSamePkg(workingPkg),
+				Name:             name.Get(),
+				Methods:          methods,
+				Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+					Type: ti,
+				}),
+			}
+
+			params := map[string]any{
+				"N": st,
+			}
+
+			for k, v := range gfu.Variables {
+				if k != "N" {
+					params[k] = v
+				}
+			}
+			w.Render(gfu.Template, map[string]any{
+				"Summon": func(tc string, f genfp.TypeName) string {
+					arr := strings.Split(tc, ".")
+					if len(arr) != 2 {
+						fmt.Printf("typeclass invalid %s\n", tc)
+						return ""
+					}
+
+					pk := as.Seq(gfu.Imports).Find(func(v genfp.ImportPackage) bool {
+						return v.Alias() == arr[0]
+					})
+					if pk.IsEmpty() {
+						fmt.Printf("not imported package %s", arr[0])
+
+						return ""
+					}
+
+					rq := metafp.RequiredInstance{
+						Type: metafp.GetTypeInfo(f.Type),
+						TypeClass: metafp.TypeClass{
+							Name:    arr[1],
+							Package: pk.Get(),
+						},
+					}
+
+					ctx := SummonContext{
+						working:   workingPkg,
+						typeClass: rq.TypeClass,
+						summonFor: rq.Type.String(),
+					}
+					ret := deriveCtx.summonRequired(ctx, rq)
+
+					return ret.Expr()
+				},
+			}, params)
+		}
+	}
+}
+
+func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveCtx *TypeClassSummonContext, gfu generator.GenerateFromStructs) {
+	for _, im := range gfu.Imports {
+		w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
+	}
+
+	uniqCheck := map[string]bool{}
+	all := seq.Fold(gfu.List, []metafp.TypeInfo{}, func(list []metafp.TypeInfo, tr generator.TypeReference) []metafp.TypeInfo {
+		return scanStructTypes(list, metafp.GetTypeInfo(tr.Type), uniqCheck, gfu.Recursive)
+	})
+
+	for _, ti := range all {
+
+		name := ti.Name()
+		if name.IsDefined() && ti.Underlying().IsStruct() {
+			//fmt.Printf("generate code of %s\n", name.Get())
+			is := genfp.NewImportSet()
+			fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldDef {
+				tpe := toTypeName(is, workingPkg, f.TypeInfoExpr(workingPkg))
+				indtpe := tpe
+				if f.FieldType.IsPtr() {
+					indtpe = toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+						Type: f.FieldType.ElemType().Get(),
+					})
+				}
+				return genfp.StructFieldDef{
+					Name:         f.Name,
+					Type:         tpe,
+					IndirectType: indtpe,
+					Tag:          f.Tag,
+					IsPublic:     f.Public(),
+					IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
+					ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeName {
+						return toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+							Type: v,
+						})
+					}).OrZero(),
+				}
+			})
+
+			visible := fields.Filter(func(v genfp.StructFieldDef) bool {
+				return v.IsVisible
+			})
+			st := genfp.StructDef{
+				Package:          genfp.FromTypesPackage(ti.Pkg),
+				IsCurrentPackage: ti.IsSamePkg(workingPkg),
+				Name:             name.Get(),
+				AllFields:        fields,
+				Fields:           visible,
+				Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+					Type: ti,
+				}),
+			}
+
+			params := map[string]any{
+				"N": st,
+			}
+
+			for k, v := range gfu.Variables {
+				if k != "N" {
+					params[k] = v
+				}
+			}
+
+			w.Render(gfu.Template, map[string]any{
+				"Summon": func(tc string, f genfp.TypeName) string {
+					arr := strings.Split(tc, ".")
+					if len(arr) != 2 {
+						fmt.Printf("typeclass invalid %s\n", tc)
+						return ""
+					}
+
+					pk := as.Seq(gfu.Imports).Find(func(v genfp.ImportPackage) bool {
+						return v.Alias() == arr[0]
+					})
+					if pk.IsEmpty() {
+						fmt.Printf("not imported package %s", arr[0])
+
+						return ""
+					}
+
+					rq := metafp.RequiredInstance{
+						Type: metafp.GetTypeInfo(f.Type),
+						TypeClass: metafp.TypeClass{
+							Name:    arr[1],
+							Package: pk.Get(),
+						},
+					}
+
+					ctx := SummonContext{
+						working:   workingPkg,
+						typeClass: rq.TypeClass,
+						summonFor: rq.Type.String(),
+					}
+					ret := deriveCtx.summonRequired(ctx, rq)
+
+					return ret.Expr()
+				},
+			}, params)
+		}
+	}
 }
 
 func isEmbeddingField(gad generator.GenerateAdaptorDirective, field string) bool {

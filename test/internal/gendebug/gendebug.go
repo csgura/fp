@@ -2,13 +2,24 @@ package gendebug
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/show"
+	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/seq"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-// @fp.ImportGiven
-var _ show.Derives[fp.Show[any]]
+type Hello interface {
+	World(address string, count int) fp.Try[string]
+}
 
-// @fp.Summon
-var showMap fp.Show[map[string]string]
+//go:generate go run github.com/csgura/fp/cmd/gombok
+
+// @fp.Generate
+var _ = genfp.GenerateFromInterfaces{
+	File: "intf_generated.go",
+	List: seq.Of(genfp.TypeOf[Hello]()),
+	Template: `
+		type Message struct {
+		}
+	`,
+}

@@ -138,6 +138,8 @@ type TypeName struct {
 	// package
 	Package ImportPackage
 
+	IsCurrentPackage bool
+
 	// Option 과 같이 package 와 type arg 없는 이름.
 	Name string
 
@@ -153,10 +155,19 @@ type TypeName struct {
 
 	// zero 값
 	ZeroExpr string
+
+	TypeArgs []TypeName
 }
 
 func (r TypeName) String() string {
 	return r.Complete
+}
+
+func (r TypeName) TypeArgAt(i int) *TypeName {
+	if i < len(r.TypeArgs) {
+		return &r.TypeArgs[i]
+	}
+	return nil
 }
 
 type StructFieldDef struct {
@@ -207,7 +218,72 @@ type GenerateFromStructs struct {
 	Imports   []ImportPackage
 	List      []TypeTag
 	Recursive bool
+	Variables map[string]string
 	// StructDef 가 .N 에 들어 있음.
+	Template string
+}
+
+type VarDef struct {
+	Index int
+	// 선언에 변수이름 없으면 ""
+	Name string
+	Type TypeName
+}
+
+func (r VarDef) String() string {
+	return r.Type.String()
+}
+
+type InterfaceMethodDef struct {
+	// method 이름
+	Name string
+
+	// arg type
+	Args []VarDef
+
+	// return type
+	Returns []VarDef
+}
+
+func (r InterfaceMethodDef) ArgsDef() string {
+	return seqMakeString(seqMap(r.Args, func(v VarDef) string {
+		return fmt.Sprintf("%s %s", v.Name, v.Type.Complete)
+	}), ",")
+}
+
+func (r InterfaceMethodDef) ArgsCall() string {
+	return seqMakeString(seqMap(r.Args, func(v VarDef) string {
+		return fmt.Sprintf("%s", v.Name)
+	}), ",")
+}
+
+func (r InterfaceMethodDef) ReturnsDef() string {
+	return seqMakeString(seqMap(r.Returns, func(v VarDef) string {
+		return fmt.Sprintf("%s", v.Type.Complete)
+	}), ",")
+}
+
+func (r InterfaceMethodDef) ReturnAt(i int) *VarDef {
+	if i < len(r.Returns) {
+		return &r.Returns[i]
+	}
+	return nil
+}
+
+type InterfaceDef struct {
+	Package          ImportPackage
+	IsCurrentPackage bool
+	Name             string
+	Type             TypeName
+	Methods          []InterfaceMethodDef
+}
+
+type GenerateFromInterfaces struct {
+	File      string
+	Imports   []ImportPackage
+	List      []TypeTag
+	Variables map[string]string
+	// InterfaceDef 가 .N 에 들어 있음.
 	Template string
 }
 
