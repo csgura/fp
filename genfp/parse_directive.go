@@ -39,9 +39,8 @@ func Imports(p ...string) []ImportPackage {
 }
 
 func PackageOfType[T any]() ImportPackage {
-	var t *T
-	tp := reflect.Indirect(reflect.ValueOf(t)).Type()
-	return Import(tp.PkgPath())
+	tp := TypeOf[T]()
+	return Import(tp.Type().PkgPath())
 }
 
 type Delegate struct {
