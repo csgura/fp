@@ -135,7 +135,7 @@ type GenerateFromList struct {
 	Template  string
 }
 
-type TypeName struct {
+type TypeInfo struct {
 	// golang types.Type
 	Type types.Type
 
@@ -163,35 +163,35 @@ type TypeName struct {
 	// zero 값
 	ZeroExpr string
 
-	TypeArgs []TypeName
+	TypeArgs []TypeInfo
 }
 
-func (r TypeName) String() string {
+func (r TypeInfo) String() string {
 	return r.Complete
 }
 
-func (r TypeName) TypeArgAt(i int) *TypeName {
+func (r TypeInfo) TypeArgAt(i int) *TypeInfo {
 	if i < len(r.TypeArgs) {
 		return &r.TypeArgs[i]
 	}
 	return nil
 }
 
-type StructFieldDef struct {
+type StructFieldInfo struct {
 	// field 이름
 	Name string
 
 	// field type
-	Type TypeName
+	Type TypeInfo
 
 	// field tag
 	Tag string
 
 	// []T, *T, Option[T] 같은 타입인 경우 T 타입
-	ElemType TypeName
+	ElemType TypeInfo
 
 	// *T 의 경우 T, 아니면 Type과 동일한 값.
-	IndirectType TypeName
+	IndirectType TypeInfo
 
 	// 참조 가능한 field 인지
 	IsVisible bool
@@ -200,23 +200,23 @@ type StructFieldDef struct {
 	IsPublic bool
 }
 
-type StructDef struct {
+type StructInfo struct {
 	Package          ImportPackage
 	IsCurrentPackage bool
 	Name             string
-	Type             TypeName
-	Fields           []StructFieldDef
-	AllFields        []StructFieldDef
+	Type             TypeInfo
+	Fields           []StructFieldInfo
+	AllFields        []StructFieldInfo
 }
 
-func (r StructDef) FieldAt(at int) *StructFieldDef {
+func (r StructInfo) FieldAt(at int) *StructFieldInfo {
 	if at < len(r.Fields) {
 		return &r.Fields[at]
 	}
 	return nil
 }
 
-func (r StructDef) String() string {
+func (r StructInfo) String() string {
 	return r.Name
 }
 
@@ -226,70 +226,70 @@ type GenerateFromStructs struct {
 	List      []TypeTag
 	Recursive bool
 	Variables map[string]string
-	// StructDef 가 .N 에 들어 있음.
+	// StructInfo 가 .N 에 들어 있음.
 	Template string
 }
 
-type VarDef struct {
+type VarInfo struct {
 	Index int
 	// 선언에 변수이름 없으면 ""
 	Name string
-	Type TypeName
+	Type TypeInfo
 }
 
-func (r VarDef) String() string {
+func (r VarInfo) String() string {
 	return r.Type.String()
 }
 
-type InterfaceMethodDef struct {
+type InterfaceMethodInfo struct {
 	// method 이름
 	Name string
 
 	// arg type
-	Args []VarDef
+	Args []VarInfo
 
 	// return type
-	Returns []VarDef
+	Returns []VarInfo
 }
 
-func (r InterfaceMethodDef) ArgsDef() string {
-	return seqMakeString(seqMap(r.Args, func(v VarDef) string {
+func (r InterfaceMethodInfo) ArgsDef() string {
+	return seqMakeString(seqMap(r.Args, func(v VarInfo) string {
 		return fmt.Sprintf("%s %s", v.Name, v.Type.Complete)
 	}), ",")
 }
 
-func (r InterfaceMethodDef) ArgsCall() string {
-	return seqMakeString(seqMap(r.Args, func(v VarDef) string {
+func (r InterfaceMethodInfo) ArgsCall() string {
+	return seqMakeString(seqMap(r.Args, func(v VarInfo) string {
 		return fmt.Sprintf("%s", v.Name)
 	}), ",")
 }
 
-func (r InterfaceMethodDef) ReturnsDef() string {
-	return seqMakeString(seqMap(r.Returns, func(v VarDef) string {
+func (r InterfaceMethodInfo) ReturnsDef() string {
+	return seqMakeString(seqMap(r.Returns, func(v VarInfo) string {
 		return fmt.Sprintf("%s", v.Type.Complete)
 	}), ",")
 }
 
-func (r InterfaceMethodDef) ArgAt(i int) *VarDef {
+func (r InterfaceMethodInfo) ArgAt(i int) *VarInfo {
 	if i < len(r.Args) {
 		return &r.Args[i]
 	}
 	return nil
 }
 
-func (r InterfaceMethodDef) ReturnAt(i int) *VarDef {
+func (r InterfaceMethodInfo) ReturnAt(i int) *VarInfo {
 	if i < len(r.Returns) {
 		return &r.Returns[i]
 	}
 	return nil
 }
 
-type InterfaceDef struct {
+type InterfaceInfo struct {
 	Package          ImportPackage
 	IsCurrentPackage bool
 	Name             string
-	Type             TypeName
-	Methods          []InterfaceMethodDef
+	Type             TypeInfo
+	Methods          []InterfaceMethodInfo
 }
 
 type GenerateFromInterfaces struct {
@@ -297,7 +297,7 @@ type GenerateFromInterfaces struct {
 	Imports   []ImportPackage
 	List      []TypeTag
 	Variables map[string]string
-	// InterfaceDef 가 .N 에 들어 있음.
+	// InterfaceInfo 가 .N 에 들어 있음.
 	Template string
 }
 
