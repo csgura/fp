@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/csgura/fp"
@@ -21,6 +22,20 @@ import (
 
 	"golang.org/x/tools/go/packages"
 )
+
+var isverbose = option.NonZero(os.Getenv("GOMBOK_VERBOSE")).
+	FilterNot(eq.GivenValue("false")).
+	FilterNot(eq.GivenValue("0")).
+	FilterNot(eq.GivenValue("off")).IsDefined()
+
+func verbose(formatstr string, args ...any) {
+	if isverbose {
+		_, f, l, _ := runtime.Caller(1)
+		message := fmt.Sprintf(formatstr, args...)
+		fmt.Printf("[%s:%4d] %s", path.Base(f), l, message)
+		fmt.Println()
+	}
+}
 
 func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 	if p1 == nil && p2 == nil {

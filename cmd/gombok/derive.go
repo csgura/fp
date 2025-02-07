@@ -201,8 +201,9 @@ func (r ArgumentInstance) Required() fp.Seq[metafp.RequiredInstance] {
 }
 
 type DefinedInstance struct {
-	instance metafp.TypeClassInstance
-	local    bool
+	instance   metafp.TypeClassInstance
+	searchName string
+	checked    bool
 }
 
 func (r DefinedInstance) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
@@ -228,9 +229,9 @@ func (r DefinedInstance) Required() fp.Seq[metafp.RequiredInstance] {
 	return r.instance.RequiredInstance
 }
 
-func (r DefinedInstance) IsLocal() bool {
-	return r.local
-}
+// func (r DefinedInstance) IsLocal() bool {
+// 	return r.local
+// }
 
 type NotDefinedInstance struct {
 	instanceOf metafp.TypeInfo
@@ -287,23 +288,42 @@ func (r lookupTarget) required() fp.Seq[metafp.RequiredInstance] {
 	)
 }
 
-func (r lookupTarget) isGivenAny() bool {
-	return option.Map(r.instance(), metafp.TypeClassInstance.IsGivenAny).OrElse(false)
+func constTrue[T any](T) bool {
+	return true
 }
-
-func (r lookupTarget) isLocal() bool {
+func (r lookupTarget) checked() bool {
 	return either.Fold(
 		r.target,
-		fp.Const[NotDefinedInstance](false),
+		constTrue,
 		as.Func3(either.Fold[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance], bool]).ApplyLast2(
-			fp.Const[SummonExprInstance](false),
+			constTrue,
 			as.Func3(either.Fold[ArgumentInstance, DefinedInstance, bool]).ApplyLast2(
-				fp.Const[ArgumentInstance](false),
-				DefinedInstance.IsLocal,
+				constTrue,
+				func(di DefinedInstance) bool {
+					return di.checked
+				},
 			),
 		),
 	)
 }
+
+func (r lookupTarget) isGivenAny() bool {
+	return option.Map(r.instance(), metafp.TypeClassInstance.IsGivenAny).OrElse(false)
+}
+
+// func (r lookupTarget) isLocal() bool {
+// 	return either.Fold(
+// 		r.target,
+// 		fp.Const[NotDefinedInstance](false),
+// 		as.Func3(either.Fold[SummonExprInstance, fp.Either[ArgumentInstance, DefinedInstance], bool]).ApplyLast2(
+// 			fp.Const[SummonExprInstance](false),
+// 			as.Func3(either.Fold[ArgumentInstance, DefinedInstance, bool]).ApplyLast2(
+// 				fp.Const[ArgumentInstance](false),
+// 				DefinedInstance.IsLocal,
+// 			),
+// 		),
+// 	)
+// }
 
 func (r lookupTarget) isFunc() bool {
 
@@ -367,7 +387,7 @@ func (r *TypeClassSummonContext) typeclassInstanceMust(ctx SummonContext, req me
 
 // f 는 Eq 쌓이지 않은 타입
 // Eq[T] 같은거 아님
-func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) fp.Option[metafp.TypeClassInstance] {
+func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) fp.Option[DefinedInstance] {
 
 	f := req.Type
 
@@ -431,25 +451,31 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
-	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+	filtered := iterator.FilterMap(ins, func(tci metafp.TypeClassInstance) fp.Option[DefinedInstance] {
+		none := option.None[DefinedInstance]()
 
 		if r.initVarSet.Contains(tci.Name) {
-			return false
+			return none
 		}
 
 		if tci.IsGivenAny() && ctx.recursiveGen() && isRecursiveDerivable(req) {
-			return false
+			return none
 			//fmt.Printf("%s is recursive derivable\n", req.Type)
 		}
 
-		if strict {
-			return r.checkRequired(ctx, tci, tci.RequiredInstance)
+		check := r.checkRequired(ctx, tci, tci.RequiredInstance)
+		if strict && !check {
+			return none
 		}
-		return true
+		return option.Some(DefinedInstance{
+			instance:   tci,
+			checked:    check,
+			searchName: tci.Name,
+		})
 	})
 
 	// instance 가 있는 경우 , instance 가 Some
-	ret := ins.NextOption()
+	ret := filtered.NextOption()
 
 	return ret
 }
@@ -580,13 +606,14 @@ func (r *TypeClassSummonContext) lookupTypeClassFuncMust(ctx SummonContext, tc m
 	}
 }
 
-func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) func() fp.Option[metafp.TypeClassInstance] {
-	return func() fp.Option[metafp.TypeClassInstance] {
+func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) func() fp.Option[DefinedInstance] {
+	return func() fp.Option[DefinedInstance] {
 		return r.lookupTypeClassInstancePrimitivePkg(ctx, req, strict, name...)
 	}
 }
 
 func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.TypeClassInstance, required fp.Seq[metafp.RequiredInstance]) bool {
+	verbose("check required for %s", tci.Name)
 	for _, v := range required {
 		//fmt.Printf("check %s required of %s\n", v.String(), tci.String())
 		if v.Name {
@@ -606,7 +633,10 @@ func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.Typ
 
 		} else {
 			// TODO: summonArgs에서 다시  lookup 하는 코드 있음.
+			verbose("lookup type class %s[%s], for check required for %s ", v.TypeClass.Name, v.Type, tci.Name)
+
 			res := r.lookupTypeClassInstance(ctx, v)
+			verbose("lookup type class result = %s(%s[%s]), for check required for %s ", res.target, v.TypeClass.Name, v.Type, tci.Name)
 			if res.target.IsLeft() {
 				tc, rgen := ctx.recursiveDerive(v, res.target.Left()).Unapply()
 				if rgen {
@@ -617,7 +647,25 @@ func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.Typ
 					continue
 				}
 				return false
-
+			} else if res.checked() == false {
+				tc, rgen := ctx.recursiveDerive(v, NotDefinedInstance{
+					instanceOf: v.Type,
+					name:       v.TypeClass.Name + publicName(v.Type.TypeName),
+					required: seq.Map(v.Type.TypeArgs, func(ti metafp.TypeInfo) metafp.RequiredInstance {
+						return metafp.RequiredInstance{
+							TypeClass: v.TypeClass,
+							Type:      ti,
+						}
+					}),
+				}).Unapply()
+				if rgen {
+					if !r.tcCache.IsWillGenerated(tc) {
+						r.recursiveGen = append(r.recursiveGen, tc)
+						r.tcCache.WillGenerated(tc)
+					}
+					continue
+				}
+				return false
 			}
 		}
 	}
@@ -645,7 +693,7 @@ func isRecursiveDerivable(req metafp.RequiredInstance) bool {
 
 }
 
-func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) fp.Option[metafp.TypeClassInstance] {
+func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) fp.Option[DefinedInstance] {
 
 	scope := ctx.primScope(r.tcCache, req.TypeClass)
 
@@ -674,36 +722,42 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
-	ins = ins.Filter(func(tci metafp.TypeClassInstance) bool {
+	filtered := iterator.FilterMap(ins, func(tci metafp.TypeClassInstance) fp.Option[DefinedInstance] {
 
+		none := option.None[DefinedInstance]()
 		if isSamePkg(ctx.working, genfp.FromTypesPackage(tci.Package)) {
 			if r.initVarSet.Contains(tci.Name) {
-				return false
+				return none
 			}
 		}
 
 		//fmt.Printf("result for %s[%s] is %s, is given %t\n", req.TypeClass.Name, req.Type, tci.Name, tci.IsGivenAny())
 
 		if tci.IsGivenAny() && ctx.recursiveGen() && isRecursiveDerivable(req) {
-			return false
+			return none
 			//fmt.Printf("%s is recursive derivable\n", req.Type)
 		}
 		//fmt.Printf("checkRequired for %s[%s] is %s, \n", req.TypeClass.Name, req.Type, tci.Name)
-		if strict {
-			ret := r.checkRequired(ctx, tci, tci.RequiredInstance)
-			return ret
+
+		check := r.checkRequired(ctx, tci, tci.RequiredInstance)
+		if strict && !check {
+			return none
 		}
-		return true
+		return option.Some(DefinedInstance{
+			instance:   tci,
+			checked:    check,
+			searchName: tci.Name,
+		})
 		//fmt.Printf("result for %s[%s] is %s -> %t, \n", req.TypeClass.Name, req.Type, tci.Name, ret)
 
 	})
 
 	// instance 가 있는 경우 , instance 가 Some
-	return ins.NextOption()
+	return filtered.NextOption()
 
 }
 
-func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx SummonContext, req metafp.RequiredInstance, strict bool, name string) fp.Option[metafp.TypeClassInstance] {
+func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx SummonContext, req metafp.RequiredInstance, strict bool, name string) fp.Option[DefinedInstance] {
 
 	f := req.Type
 	if f.Pkg != nil && f.Pkg.Path() != ctx.working.Path() {
@@ -716,23 +770,32 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx SummonContex
 			ti := metafp.GetTypeInfo(obj.Type())
 			rhsType := ti.ResultType()
 			if rhsType.IsInstanceOf(ctx.typeClass) {
-				return metafp.AsTypeClassInstance(req.TypeClass, obj)
+				return option.Map(metafp.AsTypeClassInstance(req.TypeClass, obj), func(a metafp.TypeClassInstance) DefinedInstance {
+					return DefinedInstance{
+						instance:   a,
+						checked:    true,
+						searchName: name,
+					}
+				})
 
 			}
 
 		}
 	}
 
-	return option.None[metafp.TypeClassInstance]()
+	return option.None[DefinedInstance]()
 }
 
-func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.RequiredInstance, strict bool, name string) fp.Option[metafp.TypeClassInstance] {
+func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.RequiredInstance, strict bool, name string) fp.Option[DefinedInstance] {
 
+	verbose("named lookup name = %s, type = %s[%s], strict %t", name, req.TypeClass.Name, req.Type, strict)
 	localInsOpt := r.lookupTypeClassInstanceLocalDeclared(ctx, req, strict, name)
 	if localInsOpt.IsDefined() {
 
 		localIns := localInsOpt.Get()
-		if !localIns.IsGivenAny() {
+		if !localIns.instance.IsGivenAny() {
+			verbose("named lookup name = %s, type = %s[%s]. found = %s", name, req.TypeClass.Name, req.Type, localIns.instance.Name)
+
 			return localInsOpt
 
 		}
@@ -744,24 +807,27 @@ func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.Requi
 
 	if localInsOpt.IsDefined() && ret.IsDefined() {
 		retIns := ret.Get()
-		if retIns.IsGivenAny() {
+		if retIns.instance.IsGivenAny() {
+			verbose("named lookup name = %s, type = %s[%s]. found = %s", name, req.TypeClass.Name, req.Type, localInsOpt.Get().instance.Name)
+
 			return localInsOpt
 		}
 
 	}
 
-	return ret.OrOption(localInsOpt)
+	result := ret.OrOption(localInsOpt)
+	verbose("named lookup name = %s, type = %s[%s]. result = %s", name, req.TypeClass.Name, req.Type, result)
+
+	return result
 
 }
 
-func TypeClassInstanceToLookupTarget(a metafp.TypeClassInstance) lookupTarget {
+func TypeClassInstanceToLookupTarget(a DefinedInstance) lookupTarget {
 	return lookupTarget{
-		target: either.Right[NotDefinedInstance](either.Right[SummonExprInstance](either.Right[ArgumentInstance](DefinedInstance{
-			instance: a,
-		}))),
+		target: either.Right[NotDefinedInstance](either.Right[SummonExprInstance](either.Right[ArgumentInstance](a))),
 	}
 }
-func (r *TypeClassSummonContext) orMust(ctx SummonContext, req metafp.RequiredInstance, name string, ins fp.Option[metafp.TypeClassInstance]) lookupTarget {
+func (r *TypeClassSummonContext) orMust(ctx SummonContext, req metafp.RequiredInstance, name string, ins fp.Option[DefinedInstance]) lookupTarget {
 	lt := option.Map(ins, TypeClassInstanceToLookupTarget)
 	return lt.OrElse(r.typeclassInstanceMust(ctx, req, name))
 
@@ -1033,6 +1099,8 @@ func (r *TypeClassSummonContext) exprTypeClassMemberLabelled(ctx SummonContext, 
 }
 
 func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req metafp.RequiredInstance) lookupTarget {
+	verbose("lookup tc instance %s[%s]", req.TypeClass.Name, req.Type)
+
 	f := req.Type
 
 	switch at := f.Type.(type) {
@@ -2196,7 +2264,7 @@ func (r *TypeClassSummonContext) summonFpNamed(ctx SummonContext, tc metafp.Type
 		// named := r.lookupTypeClassFunc(ctx, tc, "Named")
 		if named.IsDefined() {
 			//fmt.Printf("find named\n")
-			return r.exprTypeClassInstance(ctx, named.Get(), false)
+			return r.exprTypeClassInstance(ctx, named.Get().instance, false)
 		}
 	}
 
@@ -2288,8 +2356,10 @@ func (r *TypeClassSummonContext) summon(ctx SummonContext, req metafp.RequiredIn
 
 func (r *TypeClassSummonContext) summonRequired(ctx SummonContext, req metafp.RequiredInstance) SummonExpr {
 
+	verbose("summon required %s[%s]", req.TypeClass.Name, req.Type)
 	ret := r.summon(ctx, req)
 	if ret.IsDefined() {
+		verbose("summoned required %s[%s]", req.TypeClass.Name, req.Type)
 		return ret.Get()
 	}
 
@@ -2491,6 +2561,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 
 func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) SummonExpr {
 
+	verbose("derive type class func for %s", tc.DeriveFor.Name)
 	workingPackage := tc.Package
 
 	ctx := DeriveContext{

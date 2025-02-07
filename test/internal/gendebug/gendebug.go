@@ -2,24 +2,22 @@ package gendebug
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/genfp"
-	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/monoid"
+	"github.com/csgura/fp/test/internal/testpk1"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type Hello interface {
-	World(address string, count int) fp.Try[string]
+type LegacyPerson struct {
+	Name    string
+	Age     int
+	privacy string
 }
 
-//go:generate go run github.com/csgura/fp/cmd/gombok
-
-// @fp.Generate
-var _ = genfp.GenerateFromInterfaces{
-	File: "intf_generated.go",
-	List: seq.Of(genfp.TypeOf[Hello]()),
-	Template: `
-		type Message struct {
-		}
-	`,
+type LegacyPhoneBook struct {
+	Person LegacyPerson
+	Phone  string
 }
+
+// @fp.Derive(recursive=true)
+var _ monoid.Derives[fp.Monoid[testpk1.LegacyPhoneBook]]
