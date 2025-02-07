@@ -163,13 +163,13 @@ func evalIntValue(p *packages.Package, e ast.Expr) (int, error) {
 	return 0, fmt.Errorf("can't eval %T as int", e)
 }
 
-func evalImport(p *packages.Package, e ast.Expr) (genfp.ImportPackage, error) {
+func evalImport(p *packages.Package, e ast.Expr) ([]genfp.ImportPackage, error) {
 	if lt, ok := e.(*ast.CompositeLit); ok {
 		ret := genfp.ImportPackage{}
 		names := []string{"Package", "Name"}
 		for idx, e := range lt.Elts {
 			if idx >= len(names) {
-				return genfp.ImportPackage{}, fmt.Errorf("invalid number of literals")
+				return nil, fmt.Errorf("invalid number of literals")
 			}
 
 			name := names[idx]
@@ -179,31 +179,42 @@ func evalImport(p *packages.Package, e ast.Expr) (genfp.ImportPackage, error) {
 			case "Package":
 				v, err := evalStringValue(p, value)
 				if err != nil {
-					return genfp.ImportPackage{}, err
+					return nil, err
 				}
 				ret.Package = v
 			case "Name":
 				v, err := evalStringValue(p, value)
 				if err != nil {
-					return genfp.ImportPackage{}, err
+					return nil, err
 				}
 				ret.Name = v
 			}
 		}
-		return ret, nil
+		return []genfp.ImportPackage{ret}, nil
 	} else if ce, ok := e.(*ast.CallExpr); ok {
 		if matchFuncName(ce, "genfp.Import") && len(ce.Args) == 1 {
 			p, err := evalStringValue(p, ce.Args[0])
 			if err != nil {
-				return genfp.ImportPackage{}, err
+				return nil, err
 			}
-			return genfp.ImportPackage{
-				Package: p,
-				Name:    path.Base(p),
+			return []genfp.ImportPackage{
+				{
+					Package: p,
+					Name:    path.Base(p),
+				},
 			}, nil
+		} else if matchFuncName(ce, "genfp.PackageOfType") {
+			arr, err := extractTypeParam(p, ce.Fun)
+			if err != nil {
+				return nil, err
+			}
+			if len(arr) != 1 {
+				return nil, fmt.Errorf("not allowed expression. use genfp.PackageOfType[T]")
+			}
+			return arr[0].Imports, nil
 		}
 	}
-	return genfp.ImportPackage{}, fmt.Errorf("expr is not composite expr : %T", e)
+	return nil, fmt.Errorf("expr is not composite expr : %T", e)
 
 }
 
@@ -257,6 +268,37 @@ func evalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Package,
 	return nil, fmt.Errorf("expr is not array expr : %T", e)
 }
 
+func flatEvalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Package, ast.Expr) ([]T, error)) ([]T, error) {
+
+	if lt, ok := e.(*ast.CompositeLit); ok {
+		var ret []T
+
+		for _, e := range lt.Elts {
+			v, err := f(p, e)
+			if err != nil {
+				return nil, err
+			}
+			ret = append(ret, v...)
+		}
+		return ret, nil
+
+	} else if ce, ok := e.(*ast.CallExpr); ok {
+		if matchFuncName(ce, "seq.Of") {
+			var ret []T
+
+			for _, e := range ce.Args {
+				v, err := f(p, e)
+				if err != nil {
+					return nil, err
+				}
+				ret = append(ret, v...)
+			}
+			return ret, nil
+		}
+	}
+	return nil, fmt.Errorf("expr is not array expr : %T", e)
+}
+
 func evalImports(p *packages.Package, e ast.Expr) ([]genfp.ImportPackage, error) {
 
 	if ce, ok := e.(*ast.CallExpr); ok {
@@ -276,7 +318,7 @@ func evalImports(p *packages.Package, e ast.Expr) ([]genfp.ImportPackage, error)
 			return ret, nil
 		}
 	}
-	return evalArray(p, e, evalImport)
+	return flatEvalArray(p, e, evalImport)
 }
 
 func evalMap[K comparable, V any](p *packages.Package, e ast.Expr, kf func(*packages.Package, ast.Expr) (K, error), vf func(*packages.Package, ast.Expr) (V, error)) (map[K]V, error) {

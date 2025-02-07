@@ -867,16 +867,28 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[st
 			return fmt.Sprintf("%s : %s", f.I2.Name, argName)
 		}).MakeString(",\n")
 
-		fmt.Fprintf(w, `
+		if allFields.Size() > 0 {
+
+			fmt.Fprintf(w, `
 			func %s%s(%s) %s {
 				return %s {
 					%s,
 				}
 			}
 		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
-			valueType,
-			fields,
-		)
+				valueType,
+				fields,
+			)
+		} else {
+			fmt.Fprintf(w, `
+			func %s%s(%s) %s {
+				return %s {
+				}
+			}
+		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+				valueType,
+			)
+		}
 	}
 
 	return genMethod
@@ -915,16 +927,27 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.S
 			return fmt.Sprintf("%s : %s", f.I2.Name, argName)
 		}).MakeString(",\n")
 
-		fmt.Fprintf(w, `
-			func %s%s(%s) %s {
-				return %s {
-					%s,
+		if allFields.Size() > 0 {
+			fmt.Fprintf(w, `
+				func %s%s(%s) %s {
+					return %s {
+						%s,
+					}
 				}
-			}
-		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
-			valueType,
-			fields,
-		)
+			`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+				valueType,
+				fields,
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func %s%s(%s) %s {
+					return %s {
+					}
+				}
+			`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+				valueType,
+			)
+		}
 	}
 
 	return genMethod

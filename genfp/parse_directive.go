@@ -38,6 +38,12 @@ func Imports(p ...string) []ImportPackage {
 	return ret
 }
 
+func PackageOfType[T any]() ImportPackage {
+	var t *T
+	tp := reflect.Indirect(reflect.ValueOf(t)).Type()
+	return Import(tp.PkgPath())
+}
+
 type Delegate struct {
 	TypeOf TypeTag
 	Field  string

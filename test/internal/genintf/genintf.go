@@ -21,6 +21,12 @@ type Hello interface {
 	Universe(ctx context.Context, galaxy string) fp.Try[string]
 }
 
+type Alias = Todo
+
+type Todo interface {
+	Today() fp.Try[string]
+}
+
 type handler struct {
 	ref     string
 	timeout time.Duration
@@ -31,12 +37,13 @@ type handler struct {
 // @fp.Generate
 var _ = genfp.GenerateFromInterfaces{
 	File: "intf_generated.go",
-	Imports: genfp.Imports(
-		"context",
-		"github.com/csgura/fp",
+	Imports: seq.Of(
+		genfp.PackageOfType[fp.Option[context.Context]](),
 	),
-
-	List: seq.Of(genfp.TypeOf[Hello]()),
+	List: seq.Of(
+		genfp.TypeOf[Hello](),
+		genfp.TypeOf[Alias](),
+	),
 	Variables: map[string]string{
 		"receiver": "r handler",
 		"actorRef": "r.ref",

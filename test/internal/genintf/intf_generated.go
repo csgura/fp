@@ -29,3 +29,13 @@ type MessageWorld struct {
 func (r handler) World(address string, count int) fp.Try[string] {
 	return NewMessageWorld(address, count).SendRequest(r.ref, r.timeout)
 }
+
+// @fp.Getter
+// @fp.AllArgsConstructor
+type MessageToday struct {
+	ResponseType[string]
+}
+
+func (r handler) Today() fp.Try[string] {
+	return NewMessageToday().SendRequest(r.ref, r.timeout)
+}

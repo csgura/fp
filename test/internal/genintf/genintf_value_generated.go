@@ -34,3 +34,7 @@ func (r MessageWorld) Address() string {
 func (r MessageWorld) Count() int {
 	return r.count
 }
+
+func NewMessageToday() MessageToday {
+	return MessageToday{}
+}

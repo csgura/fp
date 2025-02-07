@@ -1366,6 +1366,9 @@ func typeInfo(tpe types.Type) TypeInfo {
 		args := typeArgs(realtp.TypeArgs())
 		params := typeParam(realtp.TypeParams())
 
+		rhs := types.Unalias(realtp)
+		rhsTp := GetTypeInfo(rhs)
+
 		//TODO : type param 추가하면 난리남..
 		if params.Size() > 0 && args.Size() == 0 {
 			args = seq.Map(params, func(v TypeParam) TypeInfo {
@@ -1380,6 +1383,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 			TypeName:  realtp.Obj().Name(),
 			TypeArgs:  args,
 			TypeParam: params,
+			Method:    rhsTp.Method,
 		}
 	case *types.Named:
 		args := typeArgs(realtp.TypeArgs())
