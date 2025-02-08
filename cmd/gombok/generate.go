@@ -441,7 +441,7 @@ func genGenerate() {
 					params := map[string]any{
 						"N": v,
 					}
-					for k, v := range gfu.Variables {
+					for k, v := range gfu.Parameters {
 						if k != "N" {
 							params[k] = v
 						}
@@ -464,7 +464,7 @@ func genGenerate() {
 				}
 
 				params := map[string]any{}
-				for k, v := range gfu.Variables {
+				for k, v := range gfu.Parameters {
 					if k != "N" {
 						params[k] = v
 					}
@@ -627,7 +627,7 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 				"N": st,
 			}
 
-			for k, v := range gfu.Variables {
+			for k, v := range gfu.Parameters {
 				if k != "N" {
 					params[k] = v
 				}
@@ -694,7 +694,7 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 				"N": st,
 			}
 
-			for k, v := range gfu.Variables {
+			for k, v := range gfu.Parameters {
 				if k != "N" {
 					params[k] = v
 				}

@@ -41,7 +41,7 @@ var _ = genfp.GenerateFromInterfaces{
 		genfp.TypeOf[Hello](),
 		genfp.TypeOf[Alias](),
 	),
-	Variables: map[string]string{
+	Parameters: map[string]string{
 		"receiver": "r handler",
 		"actorRef": "r.ref",
 		"timeout":  "r.timeout",
