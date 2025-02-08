@@ -146,11 +146,15 @@ type GenerateFromList struct {
 	Template  string
 }
 
+// TypeDecl 을 사용하여 type string 으로 변환 가능
 type TypeInfo struct {
 	// golang types.Type
 	Type types.Type
 
 	// fp.Option[string] 처럼 완전한 type 이름.
+	// TypeDecl과 다른 점은 ,  import 를 하지 않음.
+	// "" 안에서 사용할 경우 이걸 사용
+	// import가 필요하면 TypeDecl 사용
 	Complete string
 
 	// package
@@ -230,8 +234,10 @@ type StructInfo struct {
 	IsCurrentPackage bool
 	Name             string
 	Type             TypeInfo
-	Fields           []StructFieldInfo
-	AllFields        []StructFieldInfo
+	// 참조 가능한 field목록
+	Fields []StructFieldInfo
+	// 모든 field 목록
+	AllFields []StructFieldInfo
 }
 
 func (r StructInfo) FieldAt(at int) *StructFieldInfo {
@@ -255,6 +261,8 @@ type GenerateFromStructs struct {
 	Template string
 }
 
+// VarDecl 함수를 사용하면 name type 형태로 변환 가능
+// TypeDecl 함수를 사용하면 type 만 리턴
 type VarInfo struct {
 	Index int
 	// 선언에 변수이름 없으면 ""
@@ -271,24 +279,30 @@ type InterfaceMethodInfo struct {
 	Name string
 
 	// arg type
+	// VarDecl .Args 하면  a type, b type 형태로 리턴
+	// TypeDecl .Args 하면 type, type 형태로 리턴
 	Args []VarInfo
 
 	// return type
+	// Args와 동일하게 VarDecl , TypeDecl 사용 가능
 	Returns []VarInfo
 }
 
+// TypeDecl .Args와 다른 점은 import하지 않음.
 func (r InterfaceMethodInfo) ArgsDef() string {
 	return seqMakeString(seqMap(r.Args, func(v VarInfo) string {
 		return fmt.Sprintf("%s %s", v.Name, v.Type.Complete)
 	}), ",")
 }
 
+// a,b,c 형태로 이름만 리턴
 func (r InterfaceMethodInfo) ArgsCall() string {
 	return seqMakeString(seqMap(r.Args, func(v VarInfo) string {
 		return fmt.Sprintf("%s", v.Name)
 	}), ",")
 }
 
+// TypeDecl .Returns와 다른 점은 import하지 않음.
 func (r InterfaceMethodInfo) ReturnsDef() string {
 	return seqMakeString(seqMap(r.Returns, func(v VarInfo) string {
 		return fmt.Sprintf("%s", v.Type.Complete)
