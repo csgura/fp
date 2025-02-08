@@ -5,10 +5,14 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
+	"path"
+	"runtime"
 	"strings"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
@@ -16,6 +20,20 @@ import (
 	"github.com/csgura/fp/seq"
 	"golang.org/x/tools/go/packages"
 )
+
+var isverbose = option.NonZero(os.Getenv("GOMBOK_VERBOSE")).
+	FilterNot(eq.GivenValue("false")).
+	FilterNot(eq.GivenValue("0")).
+	FilterNot(eq.GivenValue("off")).IsDefined()
+
+func verbose(formatstr string, args ...any) {
+	if isverbose {
+		_, f, l, _ := runtime.Caller(1)
+		message := fmt.Sprintf(formatstr, args...)
+		fmt.Printf("[%s:%4d] %s", path.Base(f), l, message)
+		fmt.Println()
+	}
+}
 
 type TypeClass struct {
 	Name    string
@@ -634,20 +652,20 @@ func (r TypeClassInstance) CheckWithName(name fp.NameTag, t TypeInfo) fp.Option[
 }
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
-	//fmt.Printf("check %s.%s with type %s\n", r.Package.Name(), r.Name, t)
+	verbose("check %s.%s with type %s", r.Package.Name(), r.Name, t)
 
 	ret := r.check(t)
 
 	if t.IsAlias() {
 		alisret := r.check(t.Unalias())
-		return seq.Sort(as.Seq(ret.ToSeq()).Concat(alisret.ToSeq()), OrdTypeClassInstance).Head()
+		ret = seq.Sort(as.Seq(ret.ToSeq()).Concat(alisret.ToSeq()), OrdTypeClassInstance).Head()
 	}
 
-	// if ret.IsDefined() {
-	// 	argType := r.Result.TypeArgs.Head().Get()
+	if ret.IsDefined() {
+		argType := r.Result.TypeArgs.Head().Get()
 
-	// 	fmt.Printf("check %s.%s : %t(%s), %d with type %s -> %t\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
-	// }
+		verbose("check %s.%s : %t(%s), %d with type %s -> %t", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+	}
 
 	return ret
 }
@@ -973,10 +991,30 @@ func AsRequiredInstance(v TypeInfo) fp.Option[RequiredInstance] {
 	return option.Some(asRequired(v))
 }
 
+func TypeClassInstanceType(r TypeInfo) TypeInfo {
+	switch at := r.Type.(type) {
+	case *types.Signature:
+		if at.Results().Len() == 1 {
+			rtype := at.Results().At(0)
+			rtypeInfo := typeInfo(rtype.Type())
+			return rtypeInfo
+		}
+	}
+
+	return r
+}
+
+func ObjectIsFunc(ins types.Object) bool {
+	if _, ok := ins.(*types.Func); ok {
+		return true
+	}
+	return false
+}
+
 func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInstance] {
 	insType := typeInfo(ins.Type())
 	name := ins.Name()
-	rType := insType.ResultType()
+	rType := TypeClassInstanceType(insType)
 
 	if _, ok := ins.(*types.TypeName); ok {
 		return option.None[TypeClassInstance]()
@@ -986,7 +1024,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 
 		under := rType.TypeArgs.Head().Get()
 
-		if insType.IsFunc() {
+		if ObjectIsFunc(ins) {
 
 			if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 				return option.Some(TypeClassInstance{

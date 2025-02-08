@@ -687,7 +687,7 @@ func isRecursiveDerivable(req metafp.RequiredInstance) bool {
 				return false
 			}
 		}
-		return true
+		return false
 	}
 	return false
 
@@ -816,7 +816,7 @@ func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.Requi
 	}
 
 	result := ret.OrOption(localInsOpt)
-	verbose("named lookup name = %s, type = %s[%s]. result = %s", name, req.TypeClass.Name, req.Type, result)
+	verbose("named lookup name = %s, type = %s[%s]. found = %t", name, req.TypeClass.Name, req.Type, result.IsDefined())
 
 	return result
 
@@ -1116,7 +1116,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 			target: either.Right[NotDefinedInstance](either.Right[SummonExprInstance](either.NotRight[DefinedInstance](ret))),
 		}
 	case *types.Named:
-		if at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
+		if at.Obj().Pkg() != nil && at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
 			//fmt.Printf("lookup named hlist %s\n", req.Type)
 
 			if at.Obj().Name() == "Nil" {

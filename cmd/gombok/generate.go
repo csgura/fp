@@ -291,12 +291,14 @@ func removePkgPrefix(v string) string {
 	return v
 }
 
-func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.TypeInfoExpr) genfp.TypeInfo {
+func toTypeInfo(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.TypeInfoExpr) genfp.TypeInfo {
 	name := v.Type.TypeName
 	if name == "*" {
 		name = "Ptr"
 	} else if name == "[]" {
 		name = "Slice"
+	} else if name == "[_]" {
+		name = "Array"
 	}
 	return genfp.TypeInfo{
 		Type:             v.Type.Type,
@@ -304,13 +306,25 @@ func toTypeName(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.Typ
 		IsCurrentPackage: v.Type.IsSamePkg(workingPkg),
 		Complete:         v.TypeName(w, workingPkg),
 		Name:             name,
+		IsBasic:          v.Type.IsBasic(),
+		IsInterface:      v.Type.Underlying().IsInterface(),
 		IsPtr:            v.Type.IsPtr(),
 		IsStruct:         v.Type.Underlying().IsStruct(),
+		IsSlice:          v.Type.IsSlice(),
+		IsMap:            v.Type.IsMap(),
+		IsFunc:           v.Type.IsFunc(),
+		IsString:         v.Type.IsString(),
 		IsNumber:         v.Type.IsNumber(),
+		IsBool:           v.Type.IsBool(),
 		IsNilable:        v.Type.IsNilable(),
+		IsOption:         v.Type.IsOption(),
+		IsError:          v.Type.IsError(),
+		IsTry:            v.Type.IsTry(),
+		IsComparable:     types.Comparable(v.Type.Type),
+		IsAny:            v.Type.IsAny(),
 		ZeroExpr:         w.ZeroExpr(workingPkg, v.Type.Type),
 		TypeArgs: seq.Map(v.Type.TypeArgs, func(v metafp.TypeInfo) genfp.TypeInfo {
-			return toTypeName(w, workingPkg, metafp.TypeInfoExpr{
+			return toTypeInfo(w, workingPkg, metafp.TypeInfoExpr{
 				Type: v,
 			})
 		}),
@@ -505,7 +519,7 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 						return genfp.VarInfo{
 							Index: i,
 							Name:  t.Name(),
-							Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+							Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
 								Type: metafp.GetTypeInfo(t.Type()),
 							}),
 						}
@@ -528,7 +542,7 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 				IsCurrentPackage: ti.IsSamePkg(workingPkg),
 				Name:             name.Get(),
 				Methods:          methods,
-				Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+				Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
 					Type: ti,
 				}),
 			}
@@ -598,10 +612,10 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 			//fmt.Printf("generate code of %s\n", name.Get())
 			is := genfp.NewImportSet()
 			fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldInfo {
-				tpe := toTypeName(is, workingPkg, f.TypeInfoExpr(workingPkg))
+				tpe := toTypeInfo(is, workingPkg, f.TypeInfoExpr(workingPkg))
 				indtpe := tpe
 				if f.FieldType.IsPtr() {
-					indtpe = toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+					indtpe = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
 						Type: f.FieldType.ElemType().Get(),
 					})
 				}
@@ -613,7 +627,7 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 					IsPublic:     f.Public(),
 					IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
 					ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeInfo {
-						return toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+						return toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
 							Type: v,
 						})
 					}).OrZero(),
@@ -629,7 +643,7 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 				Name:             name.Get(),
 				AllFields:        fields,
 				Fields:           visible,
-				Type: toTypeName(is, workingPkg, metafp.TypeInfoExpr{
+				Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
 					Type: ti,
 				}),
 			}

@@ -5,6 +5,7 @@ import (
 	"go/types"
 	"path"
 	"reflect"
+	"strings"
 )
 
 type TypeTag interface {
@@ -56,6 +57,8 @@ func DelegatedBy[T any](fieldName string) Delegate {
 }
 
 var defaultFunc = map[string]any{
+	"PublicName":        PublicName,
+	"PrivateName":       PrivateName,
 	"FormatStr":         FormatStr,
 	"FuncChain":         FuncChain,
 	"ConsType":          ConsType,
@@ -118,6 +121,14 @@ var defaultFunc = map[string]any{
 	},
 }
 
+func PublicName(name string) string {
+	return strings.ToUpper(name[:1]) + name[1:]
+}
+
+func PrivateName(name string) string {
+	return strings.ToLower(name[:1]) + name[1:]
+}
+
 type GenerateFromUntil struct {
 	File      string
 	Imports   []ImportPackage
@@ -150,15 +161,29 @@ type TypeInfo struct {
 	// Option 과 같이 package 와 type arg 없는 이름.
 	Name string
 
+	// nilable 타입인지 여부
+	IsNilable bool
+
+	IsBasic bool
+
 	// pointer 인지 여부
 	IsPtr bool
 
 	IsNumber bool
+	IsBool   bool
+	IsString bool
+	IsSlice  bool
+	IsMap    bool
+	IsFunc   bool
 
-	IsStruct bool
+	IsStruct     bool
+	IsInterface  bool
+	IsError      bool
+	IsComparable bool
+	IsAny        bool
 
-	// nilable 타입인지 여부
-	IsNilable bool
+	IsOption bool
+	IsTry    bool
 
 	// zero 값
 	ZeroExpr string

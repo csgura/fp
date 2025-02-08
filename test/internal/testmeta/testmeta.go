@@ -1,12 +1,15 @@
 package testmeta
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/minimal"
 	"github.com/csgura/fp/mshow"
+	fshow "github.com/csgura/fp/show"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/ngap"
 	"github.com/csgura/fp/test/internal/show"
@@ -89,3 +92,17 @@ var hello js.Encoder[string]
 var ShowNil = mshow.New(func(minimal.Nil) string {
 	return "nil"
 })
+
+func returnError() error {
+	return nil
+}
+
+func returnAny() any {
+	return nil
+}
+
+func ShowAny[T any]() fp.Show[T] {
+	return fshow.New(func(t T) string {
+		return fmt.Sprint(t)
+	})
+}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/should"
@@ -304,5 +305,79 @@ func TestCheckTypeAlias(t *testing.T) {
 	fmt.Printf("err = %s\n", cr.Error)
 	fmt.Printf("mapping = %s\n", cr.ParamMapping)
 	should.BeTrue(t, cr.Ok)
+
+}
+
+func TestIsError(t *testing.T) {
+
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fn := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("returnError").Type())
+	should.BeTrue(t, fn.ResultType().IsError())
+
+	fn = metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("returnAny").Type())
+	should.BeTrue(t, fn.ResultType().IsAny())
+
+}
+
+func TestAliasTypeClass(t *testing.T) {
+
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	mshowPkg := metafp.FindPackage(pkgs, "github.com/csgura/fp/mshow")
+
+	mshowString := mshowPkg.Get().Scope().Lookup("String")
+
+	ret := metafp.AsTypeClassInstance(metafp.TypeClass{
+		Name:    "Show",
+		Package: genfp.FromTypesPackage(mshowString.Pkg()),
+	}, mshowString)
+	should.BeSome(t, ret)
+	should.BeTrue(t, ret.Get().Static)
+
+}
+
+func TestShowAny(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fn := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("returnAny").Type())
+	should.BeTrue(t, fn.ResultType().IsAny())
+
+	ft := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("ShowAny").Type())
+
+	cr := metafp.ConstraintCheck(metafp.ConstraintCheckResult{Ok: true}, ft.TypeParam, ft.ResultType(), seq.Of(fn.ResultType()))
+	fmt.Printf("err = %s\n", cr.Error)
+	fmt.Printf("mapping = %s\n", cr.ParamMapping)
+	should.BeTrue(t, cr.Ok)
+
+	tci := metafp.AsTypeClassInstance(metafp.TypeClass{
+		Name:    "Show",
+		Package: genfp.NewImportPackage("github.com/csgura/fp", "fp"),
+	}, pkgs[0].Types.Scope().Lookup("ShowAny"))
+	should.BeSome(t, tci)
+
+	checked := tci.Get().Check(fn.ResultType())
+	should.BeSome(t, checked)
 
 }

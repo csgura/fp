@@ -1,23 +1,23 @@
 package gendebug
 
 import (
+	"fmt"
+
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/monoid"
-	"github.com/csgura/fp/test/internal/testpk1"
+	"github.com/csgura/fp/test/internal/show"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type LegacyPerson struct {
-	Name    string
-	Age     int
-	privacy string
+type Hello struct {
+	AN any
 }
 
-type LegacyPhoneBook struct {
-	Person LegacyPerson
-	Phone  string
+func ShowAny[T any]() fp.Show[T] {
+	return show.New(func(t T) string {
+		return fmt.Sprint(t)
+	})
 }
 
 // @fp.Derive(recursive=true)
-var _ monoid.Derives[fp.Monoid[testpk1.LegacyPhoneBook]]
+var _ show.Derives[fp.Show[Hello]]
