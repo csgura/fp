@@ -158,7 +158,7 @@ type TypeInfo struct {
 
 	IsCurrentPackage bool
 
-	// Option 과 같이 package 와 type arg 없는 이름.
+	// "Option" 형태로 package 와 type arg 없는 이름.
 	Name string
 
 	// nilable 타입인지 여부

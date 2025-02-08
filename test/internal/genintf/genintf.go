@@ -37,9 +37,6 @@ type handler struct {
 // @fp.Generate
 var _ = genfp.GenerateFromInterfaces{
 	File: "intf_generated.go",
-	Imports: seq.Of(
-		genfp.PackageOfType[fp.Option[context.Context]](),
-	),
 	List: seq.Of(
 		genfp.TypeOf[Hello](),
 		genfp.TypeOf[Alias](),
@@ -59,12 +56,12 @@ var _ = genfp.GenerateFromInterfaces{
 			// @fp.AllArgsConstructor
 			type Message{{.Name}} struct {
 				{{- range .Args}}
-					{{.Name}} {{.Type}}
+					{{.Name}} {{.Type | TypeDecl}}
 				{{- end}}
-				ResponseType[{{(.ReturnAt 0).Type.TypeArgAt 0}}]
+				ResponseType[{{(.ReturnAt 0).Type.TypeArgAt 0 | TypeDecl}}]
 			}
 
-			func ({{$receiver}}) {{.Name}}( {{.ArgsDef}} ) {{.ReturnsDef}} {
+			func ({{$receiver}}) {{.Name}}( {{.Args | VarDecl}} ) {{.Returns | TypeDecl}} {
 				return NewMessage{{.Name}}({{.ArgsCall}}).SendRequest({{$actorRef}},{{$timeout}})
 			}
 		{{end}}

@@ -493,6 +493,82 @@ func genGenerate() {
 
 }
 
+func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[genfp.ImportPackage], deriveCtx *TypeClassSummonContext) map[string]any {
+	return map[string]any{
+		"Summon": func(tc string, f genfp.TypeInfo) string {
+			arr := strings.Split(tc, ".")
+			if len(arr) != 2 {
+				fmt.Printf("typeclass invalid %s\n", tc)
+				return ""
+			}
+
+			pk := imports.Find(func(v genfp.ImportPackage) bool {
+				return v.Alias() == arr[0]
+			})
+			if pk.IsEmpty() {
+				fmt.Printf("not imported package %s", arr[0])
+
+				return ""
+			}
+
+			rq := metafp.RequiredInstance{
+				Type: metafp.GetTypeInfo(f.Type),
+				TypeClass: metafp.TypeClass{
+					Name:    arr[1],
+					Package: pk.Get(),
+				},
+			}
+
+			ctx := SummonContext{
+				working:   workingPkg,
+				typeClass: rq.TypeClass,
+				summonFor: rq.Type.String(),
+			}
+			ret := deriveCtx.summonRequired(ctx, rq)
+
+			return ret.Expr()
+		},
+		"TypeDecl": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.TypeInfo:
+				return w.TypeName(workingPkg, rv.Type)
+			case *genfp.TypeInfo:
+				if rv != nil {
+					return w.TypeName(workingPkg, rv.Type)
+				}
+			case genfp.VarInfo:
+				return w.TypeName(workingPkg, rv.Type.Type)
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					return w.TypeName(workingPkg, rv.Type.Type)
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					return w.TypeName(workingPkg, v.Type.Type)
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+		},
+		"VarDecl": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.VarInfo:
+				return fmt.Sprintf("%s %s", rv.Name, w.TypeName(workingPkg, rv.Type.Type))
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					return fmt.Sprintf("%s %s", rv.Name, w.TypeName(workingPkg, rv.Type.Type))
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPkg, v.Type.Type))
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+		},
+	}
+}
+
 func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveCtx *TypeClassSummonContext, gfu generator.GenerateFromStructs) {
 	for _, im := range gfu.Imports {
 		w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
@@ -556,41 +632,7 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 					params[k] = v
 				}
 			}
-			w.Render(gfu.Template, map[string]any{
-				"Summon": func(tc string, f genfp.TypeInfo) string {
-					arr := strings.Split(tc, ".")
-					if len(arr) != 2 {
-						fmt.Printf("typeclass invalid %s\n", tc)
-						return ""
-					}
-
-					pk := as.Seq(gfu.Imports).Find(func(v genfp.ImportPackage) bool {
-						return v.Alias() == arr[0]
-					})
-					if pk.IsEmpty() {
-						fmt.Printf("not imported package %s", arr[0])
-
-						return ""
-					}
-
-					rq := metafp.RequiredInstance{
-						Type: metafp.GetTypeInfo(f.Type),
-						TypeClass: metafp.TypeClass{
-							Name:    arr[1],
-							Package: pk.Get(),
-						},
-					}
-
-					ctx := SummonContext{
-						working:   workingPkg,
-						typeClass: rq.TypeClass,
-						summonFor: rq.Type.String(),
-					}
-					ret := deriveCtx.summonRequired(ctx, rq)
-
-					return ret.Expr()
-				},
-			}, params)
+			w.Render(gfu.Template, templFunc(w, workingPkg, gfu.Imports, deriveCtx), params)
 		}
 	}
 }
@@ -658,41 +700,7 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 				}
 			}
 
-			w.Render(gfu.Template, map[string]any{
-				"Summon": func(tc string, f genfp.TypeInfo) string {
-					arr := strings.Split(tc, ".")
-					if len(arr) != 2 {
-						fmt.Printf("typeclass invalid %s\n", tc)
-						return ""
-					}
-
-					pk := as.Seq(gfu.Imports).Find(func(v genfp.ImportPackage) bool {
-						return v.Alias() == arr[0]
-					})
-					if pk.IsEmpty() {
-						fmt.Printf("not imported package %s", arr[0])
-
-						return ""
-					}
-
-					rq := metafp.RequiredInstance{
-						Type: metafp.GetTypeInfo(f.Type),
-						TypeClass: metafp.TypeClass{
-							Name:    arr[1],
-							Package: pk.Get(),
-						},
-					}
-
-					ctx := SummonContext{
-						working:   workingPkg,
-						typeClass: rq.TypeClass,
-						summonFor: rq.Type.String(),
-					}
-					ret := deriveCtx.summonRequired(ctx, rq)
-
-					return ret.Expr()
-				},
-			}, params)
+			w.Render(gfu.Template, templFunc(w, workingPkg, gfu.Imports, deriveCtx), params)
 		}
 	}
 }
