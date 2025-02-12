@@ -443,39 +443,6 @@ func HCons[H any, T hlist.HList](hshow Show[H], tshow Show[T]) Show[hlist.Cons[H
 func ContraGeneric[A, Repr any](name string, kind string, reprShow Show[Repr], to func(A) Repr) Show[A] {
 	return NewAppend(func(buf []string, a A, opt fp.ShowOption) []string {
 		childOpt := opt.IncreaseIndent()
-		valueStr := reprShow.Append(nil, to(a), childOpt)
-		if opt.OmitEmpty && isEmptyString(valueStr) {
-			return nil
-		}
-
-		if kind == fp.GenericKindNewType {
-			if opt.OmitTypeName {
-				return append(buf, valueStr...)
-			}
-			return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), "(", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), ")")
-		} else if kind == fp.GenericKindTuple {
-			if opt.SquareBracketForArray {
-				return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), "[", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), "]")
-
-			} else {
-				return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), "(", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), ")")
-
-			}
-		}
-
-		if opt.Indent != "" {
-			return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), "{\n", childOpt.CurrentIndent()), valueStr...), trailingComma(opt), "\n", opt.CurrentIndent(), "}")
-
-		} else {
-			return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), "{", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), "}")
-
-		}
-	})
-}
-
-func ContraGeneric[A, Repr any](name string, kind string, reprShow Show[Repr], to func(A) Repr) Show[A] {
-	return NewAppend(func(buf []string, a A, opt fp.ShowOption) []string {
-		childOpt := opt.IncreaseIndent()
 		valueStr := reprShow(nil, to(a), childOpt)
 		if opt.OmitEmpty && isEmptyString(valueStr) {
 			return nil

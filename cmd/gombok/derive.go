@@ -678,7 +678,7 @@ func isValueGeneratedType(t metafp.TypeInfo) bool {
 }
 
 func isRecursiveDerivable(req metafp.RequiredInstance) bool {
-	if req.Type.IsNamed() {
+	if req.Type.IsNamed() && !req.Type.IsAlias() {
 		namedType := req.Type.AsNamed().Get()
 		if namedType.Underlying.IsStruct() {
 			if namedType.Underlying.Fields().Exists(metafp.StructField.Public) || isValueGeneratedType(req.Type) {
@@ -687,7 +687,7 @@ func isRecursiveDerivable(req metafp.RequiredInstance) bool {
 				return false
 			}
 		}
-		return false
+		return true
 	}
 	return false
 

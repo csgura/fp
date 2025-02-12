@@ -1,23 +1,17 @@
 package gendebug
 
 import (
-	"fmt"
-
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/test/internal/show"
+	"github.com/csgura/fp/clone"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type Hello struct {
-	AN any
-}
+type MySeq []string
 
-func ShowAny[T any]() fp.Show[T] {
-	return show.New(func(t T) string {
-		return fmt.Sprint(t)
-	})
+type HasReference struct {
+	MS MySeq
 }
 
 // @fp.Derive(recursive=true)
-var _ show.Derives[fp.Show[Hello]]
+var _ clone.Derives[fp.Clone[HasReference]]
