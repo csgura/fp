@@ -556,11 +556,11 @@ func Func0[R any](f func() (R, error), ctx ...fp.Executor) fp.Func1[fp.Unit, fp.
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "applicative_gen.go",
-	Imports: []genfp.ImportPackage{
-		{Package: "github.com/csgura/fp", Name: "fp"},
-		{Package: "github.com/csgura/fp/curried", Name: "curried"},
-		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
-	},
+	Imports: genfp.Imports(
+		"github.com/csgura/fp",
+		"github.com/csgura/fp/curried",
+		"github.com/csgura/fp/hlist",
+	),
 	From:  2,
 	Until: genfp.MaxFunc,
 	Template: `
@@ -661,11 +661,11 @@ func Chain{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "applicative_gen.go",
-	Imports: []genfp.ImportPackage{
-		{Package: "github.com/csgura/fp", Name: "fp"},
-		{Package: "github.com/csgura/fp/curried", Name: "curried"},
-		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
-	},
+	Imports: genfp.Imports(
+		"github.com/csgura/fp",
+		"github.com/csgura/fp/curried",
+		"github.com/csgura/fp/hlist",
+	),
 	From:  2,
 	Until: genfp.MaxFunc,
 	Template: `

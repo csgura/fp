@@ -5,10 +5,14 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
+	"path"
+	"runtime"
 	"strings"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/mutable"
@@ -16,6 +20,20 @@ import (
 	"github.com/csgura/fp/seq"
 	"golang.org/x/tools/go/packages"
 )
+
+var isverbose = option.NonZero(os.Getenv("GOMBOK_VERBOSE")).
+	FilterNot(eq.GivenValue("false")).
+	FilterNot(eq.GivenValue("0")).
+	FilterNot(eq.GivenValue("off")).IsDefined()
+
+func verbose(formatstr string, args ...any) {
+	if isverbose {
+		_, f, l, _ := runtime.Caller(1)
+		message := fmt.Sprintf(formatstr, args...)
+		fmt.Printf("[%s:%4d] %s", path.Base(f), l, message)
+		fmt.Println()
+	}
+}
 
 type TypeClass struct {
 	Name    string
@@ -67,6 +85,7 @@ func (r TypeClassDerive) InstantiatedType(t TypeInfo) TypeInfo {
 	ret.TypeArgs = seq.Of(t)
 
 	ctx := types.NewContext()
+
 	ins, _ := types.Instantiate(ctx, ret.Type, []types.Type{t.Type}, false)
 	ret.Type = ins
 
@@ -131,7 +150,8 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 							ti := info.Types[vs.Type]
 
 							if nt, ok := ti.Type.(*types.Named); ok && nt.TypeArgs().Len() == 1 {
-								if tt, ok := nt.TypeArgs().At(0).(*types.Named); ok && tt.TypeArgs().Len() > 0 {
+								firstArg := nt.TypeArgs().At(0)
+								if tt, ok := firstArg.(*types.Named); ok && tt.TypeArgs().Len() > 0 {
 
 									// types.Named.Obj() 는  generic type 을 리턴해 준다.
 									tcType := typeInfo(tt.Obj().Type())
@@ -146,6 +166,20 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 										},
 										TypeClassType: tcType,
 										TypeArgs:      typeArgs(tt.TypeArgs()),
+										Tags:          option.Map(doc, extractTag).OrZero(),
+									})
+								} else if alias, ok := firstArg.(*types.Alias); ok && alias.TypeArgs().Len() > 0 {
+									tcType := typeInfo(alias.Obj().Type())
+
+									return seq.Of(TypeClassDirective{
+										Package:              genfp.NewWorkingPackage(pk.Types, pk.Fset, pk.Syntax),
+										PrimitiveInstancePkg: nt.Obj().Pkg(),
+										TypeClass: TypeClass{
+											Name:    alias.Obj().Name(),
+											Package: genfp.FromTypesPackage(alias.Obj().Pkg()),
+										},
+										TypeClassType: tcType,
+										TypeArgs:      typeArgs(alias.TypeArgs()),
 										Tags:          option.Map(doc, extractTag).OrZero(),
 									})
 								}
@@ -307,7 +341,7 @@ type paramVar struct {
 type ConstraintCheckResult struct {
 	Ok bool
 
-	CheckConstrainedOf fp.Set[fp.Tuple2[string, string]]
+	CheckConstrainedOf fp.Set[fp.Entry[string]]
 	ParamMapping       fp.Map[string, TypeInfo]
 	Error              error
 }
@@ -594,7 +628,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 
 	_, err := types.Instantiate(tctx, sig, paramIns, true)
 	if err == nil {
-		mapping := seq.ToGoMap(seq.Map(seq.Map(paramFound, fp.Option[paramVar].Get), func(v paramVar) fp.Tuple2[string, TypeInfo] {
+		mapping := seq.ToGoMap(seq.Map(seq.Map(paramFound, fp.Option[paramVar].Get), func(v paramVar) fp.Entry[TypeInfo] {
 			return as.Tuple2(v.typeParam.Obj().Name(), v.actualType)
 		}))
 
@@ -616,11 +650,28 @@ func (r TypeClassInstance) CheckWithName(name fp.NameTag, t TypeInfo) fp.Option[
 		return tci
 	})
 }
-
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
+	verbose("check %s.%s with type %s", r.Package.Name(), r.Name, t)
+
+	ret := r.check(t)
+
+	if t.IsAlias() {
+		alisret := r.check(t.Unalias())
+		ret = seq.Sort(as.Seq(ret.ToSeq()).Concat(alisret.ToSeq()), OrdTypeClassInstance).Head()
+	}
+
+	if ret.IsDefined() {
+		argType := r.Result.TypeArgs.Head().Get()
+
+		verbose("check %s.%s : %t(%s), %d with type %s -> %t", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+	}
+
+	return ret
+}
+func (r TypeClassInstance) check(t TypeInfo) fp.Option[TypeClassInstance] {
+
 	argType := r.Result.TypeArgs.Head().Get()
-	//fmt.Printf("check %s.%s : %t(%s), %d <> %s\n", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t)
 
 	// if r.Name == "TupleHCons" {
 	// 	fmt.Printf("TupleHCons\n")
@@ -940,10 +991,30 @@ func AsRequiredInstance(v TypeInfo) fp.Option[RequiredInstance] {
 	return option.Some(asRequired(v))
 }
 
+func TypeClassInstanceType(r TypeInfo) TypeInfo {
+	switch at := r.Type.(type) {
+	case *types.Signature:
+		if at.Results().Len() == 1 {
+			rtype := at.Results().At(0)
+			rtypeInfo := typeInfo(rtype.Type())
+			return rtypeInfo
+		}
+	}
+
+	return r
+}
+
+func ObjectIsFunc(ins types.Object) bool {
+	if _, ok := ins.(*types.Func); ok {
+		return true
+	}
+	return false
+}
+
 func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInstance] {
 	insType := typeInfo(ins.Type())
-	rType := insType.ResultType()
 	name := ins.Name()
+	rType := TypeClassInstanceType(insType)
 
 	if _, ok := ins.(*types.TypeName); ok {
 		return option.None[TypeClassInstance]()
@@ -953,7 +1024,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 
 		under := rType.TypeArgs.Head().Get()
 
-		if insType.IsFunc() {
+		if ObjectIsFunc(ins) {
 
 			if insType.NumArgs() == 0 && insType.TypeParam.Size() == 1 {
 				return option.Some(TypeClassInstance{
@@ -1000,9 +1071,25 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 					return false
 				})
 
+				hasSelfRef := fargs.Exists(func(v TypeInfo) bool {
+					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
+						if v.ID == rType.ID {
+							return true
+						}
+					}
+					return false
+				})
+
 				hasNameArg := fargs.Exists(checkNamedArg)
 
 				if allArgTypeClass {
+
+					hasExplictArg := false
+					// Named 의 경우 다음과 같이 자기 자신을 참조
+					// Named[T any](name fp.Named, ashow Show[T]) Show[T]
+					if hasSelfRef && !hasNameArg {
+						hasExplictArg = true
+					}
 
 					required := seq.Map(fargs, asRequired)
 
@@ -1011,6 +1098,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						Name:             name,
 						Static:           false,
 						Implicit:         false,
+						HasExplictArg:    hasExplictArg,
 						Type:             insType,
 						Result:           rType,
 						TypeClassType:    rType.GenericType(),
@@ -1115,28 +1203,30 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 		})
 
 	}
-	ret.All = seq.Sort(ret.All, as.Ord(func(a, b TypeClassInstance) bool {
-		if !a.Implicit && b.Implicit {
-			return true
-		}
-
-		if a.Implicit && !b.Implicit {
-			return false
-		}
-
-		if a.Implicit && b.Implicit {
-			consA := a.Type.TypeParam.Head().Get().Constraint.Underlying()
-			consB := b.Type.TypeParam.Head().Get().Constraint.Underlying()
-
-			return types.Implements(consA, consB.(*types.Interface))
-
-		}
-		return a.RequiredInstance.Size() < b.RequiredInstance.Size()
-
-	}))
+	ret.All = seq.Sort(ret.All, OrdTypeClassInstance)
 	// ord := seq.Map(ret.All, func(v TypeClassInstance) string {
 	// 	return v.Name
 	// }).MakeString(",")
 	// fmt.Printf("%s sorted =%s\n", tc.Name, ord)
 	return ret
 }
+
+var OrdTypeClassInstance = as.Ord(func(a, b TypeClassInstance) bool {
+	if !a.Implicit && b.Implicit {
+		return true
+	}
+
+	if a.Implicit && !b.Implicit {
+		return false
+	}
+
+	if a.Implicit && b.Implicit {
+		consA := a.Type.TypeParam.Head().Get().Constraint.Underlying()
+		consB := b.Type.TypeParam.Head().Get().Constraint.Underlying()
+
+		return types.Implements(consA, consB.(*types.Interface))
+
+	}
+	return a.RequiredInstance.Size() < b.RequiredInstance.Size()
+
+})

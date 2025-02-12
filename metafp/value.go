@@ -117,7 +117,7 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	return option.None[TaggedStruct]()
 }
 
-func parseKeyValue(s string) fp.Tuple2[string, string] {
+func parseKeyValue(s string) fp.Entry[string] {
 	s = strings.TrimSpace(s)
 	idx := strings.Index(s, "=")
 	if idx > 0 && len(s) > idx+1 {
@@ -126,7 +126,7 @@ func parseKeyValue(s string) fp.Tuple2[string, string] {
 	return as.Tuple2(s, "true")
 }
 
-func parseAnnotation(s string) fp.Tuple2[string, Annotation] {
+func parseAnnotation(s string) fp.Entry[Annotation] {
 	pstart := strings.Index(s, "(")
 	if pstart > 0 {
 		pend := strings.LastIndex(s, ")")
@@ -412,6 +412,28 @@ func fold[T, ACC any](len int, getter func(idx int) T, zero ACC, fn func(ACC, T)
 
 func typeId(tpe types.Type) string {
 	switch realtp := tpe.(type) {
+	case *types.Alias:
+		tpname := realtp.Origin().Obj().Name()
+		nameWithPkg := tpname
+		if realtp.Obj().Pkg() != nil {
+
+			nameWithPkg = fmt.Sprintf("%s.%s", realtp.Obj().Pkg().Path(), tpname)
+		}
+
+		if realtp.TypeArgs() != nil {
+			args := []string{}
+			for i := 0; i < realtp.TypeArgs().Len(); i++ {
+				args = append(args, typeId(realtp.TypeArgs().At(i)))
+			}
+
+			argsstr := strings.Join(args, ",")
+
+			return fmt.Sprintf("%s[%s]", nameWithPkg, argsstr)
+		} else {
+
+			return nameWithPkg
+
+		}
 	case *types.Named:
 		tpname := realtp.Origin().Obj().Name()
 		nameWithPkg := tpname
@@ -539,6 +561,9 @@ func (r TypeInfo) IsSamePkg(other genfp.WorkingPackage) bool {
 
 func (r TypeInfo) Fields() fp.Seq[StructField] {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		under := typeInfo(at.Underlying())
+		return under.Fields()
 	case *types.Named:
 		under := typeInfo(at.Underlying())
 		return under.Fields()
@@ -575,6 +600,9 @@ func (r TypeInfo) HasTypeReference(checked fp.Set[string], refType TypeInfo) boo
 	}
 
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		under := typeInfo(at.Underlying())
+		return under.HasTypeReference(checked, refType)
 	case *types.Named:
 		under := typeInfo(at.Underlying())
 		return under.HasTypeReference(checked, refType)
@@ -626,6 +654,14 @@ func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 
 // Seq[Tuple2[A,B]] 같은 타입이  Seq[T any]  같은  타입의 instantiated 인지 확인하는 함수
 func (r TypeInfo) IsInstantiatedOf(ctx ConstraintCheckResult, typeParam fp.Seq[TypeParam], genericType TypeInfo) ConstraintCheckResult {
+
+	if r.IsAlias() {
+		return r.Unalias().IsInstantiatedOf(ctx, typeParam, genericType)
+	}
+
+	if genericType.IsAlias() {
+		return r.IsInstantiatedOf(ctx, typeParam, genericType.Unalias())
+	}
 
 	// package가 동일해야 함
 	if !isSamePkg(genfp.FromTypesPackage(r.Pkg), genfp.FromTypesPackage(genericType.Pkg)) {
@@ -845,7 +881,8 @@ func (r TypeInfo) String() string {
 }
 func (r TypeInfo) ResultType() TypeInfo {
 	switch at := r.Type.(type) {
-
+	case *types.Alias:
+		return r.Unalias().ResultType()
 	case *types.Signature:
 		if at.Results().Len() == 1 {
 			rtype := at.Results().At(0)
@@ -860,8 +897,12 @@ func (r TypeInfo) ResultType() TypeInfo {
 func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
 
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		if at.Obj().Pkg() != nil && at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
+			return true
+		}
 	case *types.Named:
-		if at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
+		if at.Obj().Pkg() != nil && at.Obj().Pkg().Path() == tc.Package.Path() && at.Obj().Name() == tc.Name {
 			return true
 		}
 	}
@@ -873,7 +914,7 @@ func (r TypeInfo) IsInstanceOf(tc TypeClass) bool {
 func (r TypeInfo) IsAny() bool {
 	switch at := r.Type.(type) {
 	case *types.Alias:
-		return typeInfo(at.Rhs()).IsAny()
+		return r.Unalias().IsAny()
 	case *types.Interface:
 		if at.NumMethods() == 0 && at.NumEmbeddeds() == 0 {
 			return true
@@ -884,6 +925,8 @@ func (r TypeInfo) IsAny() bool {
 
 func (r TypeInfo) IsFunc() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsFunc()
 	case *types.Signature:
 		return true
 	}
@@ -892,6 +935,8 @@ func (r TypeInfo) IsFunc() bool {
 
 func (r TypeInfo) NumArgs() int {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().NumArgs()
 	case *types.Signature:
 		if at.Params() == nil {
 			return 0
@@ -914,6 +959,8 @@ func atLenToSeq[T any, A atLen[T]](a A) fp.Seq[T] {
 
 func (r TypeInfo) FuncArgs() fp.Seq[TypeInfo] {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().FuncArgs()
 	case *types.Signature:
 		if at.Params() == nil {
 			return nil
@@ -928,6 +975,8 @@ func (r TypeInfo) FuncArgs() fp.Seq[TypeInfo] {
 
 func (r TypeInfo) Name() fp.Option[string] {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return option.Some(at.Obj().Name())
 	case *types.Named:
 		return option.Some(at.Obj().Name())
 	case *types.Basic:
@@ -939,8 +988,26 @@ func (r TypeInfo) Name() fp.Option[string] {
 	return option.None[string]()
 }
 
+func (r TypeInfo) IsAlias() bool {
+	switch r.Type.(type) {
+	case *types.Alias:
+		return true
+	}
+	return false
+}
+
+func (r TypeInfo) Unalias() TypeInfo {
+	switch rt := r.Type.(type) {
+	case *types.Alias:
+		return GetTypeInfo(types.Unalias(rt))
+	}
+	return r
+}
+
 func (r TypeInfo) IsNamed() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return true
 	case *types.Named:
 		return true
 	}
@@ -949,6 +1016,13 @@ func (r TypeInfo) IsNamed() bool {
 
 func (r TypeInfo) AsNamed() fp.Option[NamedTypeInfo] {
 	switch at := r.Type.(type) {
+	case *types.Alias:
+		return option.Some(NamedTypeInfo{
+			Package:    r.Pkg,
+			Name:       r.Name().Get(),
+			Info:       r,
+			Underlying: typeInfo(at.Underlying()),
+		})
 	case *types.Named:
 		return option.Some(NamedTypeInfo{
 			Package:    r.Pkg,
@@ -962,6 +1036,10 @@ func (r TypeInfo) AsNamed() fp.Option[NamedTypeInfo] {
 
 func (r TypeInfo) IsPrintable() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Underlying().IsPrintable()
+	case *types.Named:
+		return r.Underlying().IsPrintable()
 	case *types.Signature:
 		return false
 	}
@@ -993,6 +1071,8 @@ func (r TypeInfo) IsTypeParam() bool {
 
 func (r TypeInfo) IsBasic() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsBasic()
 	case *types.Basic:
 		return true
 	}
@@ -1001,6 +1081,8 @@ func (r TypeInfo) IsBasic() bool {
 
 func (r TypeInfo) IsSlice() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsSlice()
 	case *types.Slice:
 		return true
 	}
@@ -1009,6 +1091,8 @@ func (r TypeInfo) IsSlice() bool {
 
 func (r TypeInfo) IsInterface() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsInterface()
 	case *types.Interface:
 		return true
 	}
@@ -1017,6 +1101,8 @@ func (r TypeInfo) IsInterface() bool {
 
 func (r TypeInfo) IsUnion() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsUnion()
 	case *types.Union:
 		return true
 	}
@@ -1025,6 +1111,8 @@ func (r TypeInfo) IsUnion() bool {
 
 func (r TypeInfo) IsArray() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsArray()
 	case *types.Array:
 		return true
 	}
@@ -1033,6 +1121,8 @@ func (r TypeInfo) IsArray() bool {
 
 func (r TypeInfo) IsStruct() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsStruct()
 	case *types.Struct:
 		return true
 	}
@@ -1040,6 +1130,11 @@ func (r TypeInfo) IsStruct() bool {
 }
 
 func (r TypeInfo) Underlying() TypeInfo {
+
+	if r.IsAlias() {
+		return r.AsNamed().Get().Underlying
+	}
+
 	if r.IsNamed() {
 		return r.AsNamed().Get().Underlying
 	}
@@ -1049,6 +1144,8 @@ func (r TypeInfo) Underlying() TypeInfo {
 
 func (r TypeInfo) IsMap() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsMap()
 	case *types.Map:
 		return true
 	}
@@ -1057,16 +1154,83 @@ func (r TypeInfo) IsMap() bool {
 
 func (r TypeInfo) IsPtr() bool {
 	switch r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsPtr()
 	case *types.Pointer:
 		return true
 	}
 	return false
 }
 
+func (r TypeInfo) IsNumber() bool {
+	switch at := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsNumber()
+	case *types.Basic:
+		switch at.Kind() {
+		case types.Float32, types.Float64:
+			return true
+		case types.Int, types.Int16, types.Int32, types.Int64:
+			return true
+		case types.Uint, types.Uint16, types.Uint32, types.Uint64:
+			return true
+		case types.UntypedInt, types.UntypedFloat:
+			return true
+		}
+		return false
+	}
+	return false
+}
+
+func (r TypeInfo) IsString() bool {
+	switch at := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsString()
+	case *types.Basic:
+		switch at.Kind() {
+		case types.String:
+			return true
+		}
+		return false
+	}
+	return false
+}
+
+func (r TypeInfo) IsBool() bool {
+	switch at := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsBool()
+	case *types.Basic:
+		switch at.Kind() {
+		case types.Bool:
+			return true
+		}
+		return false
+	}
+	return false
+}
+
+func (r TypeInfo) ElemType() fp.Option[TypeInfo] {
+	type elemT interface {
+		Elem() types.Type
+	}
+
+	if et, ok := r.Type.(elemT); ok {
+		return option.Some(GetTypeInfo(et.Elem()))
+	}
+
+	if r.TypeArgs.Size() == 1 {
+		return r.TypeArgs.Head()
+	}
+	return option.None[TypeInfo]()
+}
+
 func (r TypeInfo) IsTuple() bool {
 	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsTuple()
 	case *types.Named:
-		if nt.Obj().Pkg().Path() == "github.com/csgura/fp" && strings.HasPrefix(nt.Obj().Name(), "Tuple") {
+		if nt.Obj().Pkg() != nil && nt.Obj().Pkg().Path() == "github.com/csgura/fp" && strings.HasPrefix(nt.Obj().Name(), "Tuple") {
 			return true
 		}
 	}
@@ -1075,16 +1239,42 @@ func (r TypeInfo) IsTuple() bool {
 
 func (r TypeInfo) IsOption() bool {
 	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsOption()
 	case *types.Named:
-		if nt.Obj().Pkg().Path() == "github.com/csgura/fp" && nt.Obj().Name() == "Option" {
+		if nt.Obj().Pkg() != nil && nt.Obj().Pkg().Path() == "github.com/csgura/fp" && nt.Obj().Name() == "Option" {
 			return true
 		}
 	}
 	return false
 }
 
+func (r TypeInfo) IsTry() bool {
+	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsTry()
+	case *types.Named:
+		if nt.Obj().Pkg() != nil && nt.Obj().Pkg().Path() == "github.com/csgura/fp" && nt.Obj().Name() == "Try" {
+			return true
+		}
+	}
+	return false
+}
+
+func (r TypeInfo) IsError() bool {
+	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsError()
+	case *types.Named:
+		return nt.Obj().Pkg() == nil && nt.Obj().Name() == "error"
+	}
+	return false
+}
+
 func (r TypeInfo) IsNilable() bool {
 	switch atp := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsNilable()
 	case *types.Pointer:
 		return true
 	case *types.Slice:
@@ -1139,6 +1329,8 @@ func (r TypeInfo) TypeStr(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 
 func (r TypeInfo) GenericType() TypeInfo {
 	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().GenericType()
 	case *types.Named:
 		return typeInfo(nt.Obj().Type())
 	}
@@ -1148,6 +1340,8 @@ func (r TypeInfo) GenericType() TypeInfo {
 func (r TypeInfo) Instantiate(arg []TypeInfo) fp.Try[TypeInfo] {
 
 	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().Instantiate(arg)
 	case *types.Named:
 		ctx := types.NewContext()
 
@@ -1238,6 +1432,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 
 	id := typeId(tpe)
 	switch realtp := tpe.(type) {
+
 	case *types.TypeParam:
 		return TypeInfo{
 			ID:       id,
@@ -1250,6 +1445,29 @@ func typeInfo(tpe types.Type) TypeInfo {
 			Type:     tpe,
 			TypeName: realtp.Name(),
 		}
+	case *types.Alias:
+		args := typeArgs(realtp.TypeArgs())
+		params := typeParam(realtp.TypeParams())
+
+		rhs := types.Unalias(realtp)
+		rhsTp := GetTypeInfo(rhs)
+
+		//TODO : type param 추가하면 난리남..
+		if params.Size() > 0 && args.Size() == 0 {
+			args = seq.Map(params, func(v TypeParam) TypeInfo {
+				p := types.NewTypeParam(v.TypeName, v.Constraint)
+				return typeInfo(p)
+			})
+		}
+		return TypeInfo{
+			ID:        id,
+			Pkg:       realtp.Obj().Pkg(),
+			Type:      tpe,
+			TypeName:  realtp.Obj().Name(),
+			TypeArgs:  args,
+			TypeParam: params,
+			Method:    rhsTp.Method,
+		}
 	case *types.Named:
 		args := typeArgs(realtp.TypeArgs())
 		params := typeParam(realtp.TypeParams())
@@ -1257,14 +1475,14 @@ func typeInfo(tpe types.Type) TypeInfo {
 		methodMap := func() fp.Map[string, *types.Func] {
 			if realtp.NumMethods() == 0 {
 				if underIntf, ok := realtp.Underlying().(*types.Interface); ok {
-					method := iterator.Map(iterator.Range(0, underIntf.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+					method := iterator.Map(iterator.Range(0, underIntf.NumMethods()), func(v int) fp.Entry[*types.Func] {
 						m := underIntf.Method(v)
 						return as.Tuple2(m.Name(), m)
 					})
 					return mutable.MapOf(iterator.ToGoMap(method))
 				}
 			}
-			method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Tuple2[string, *types.Func] {
+			method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Entry[*types.Func] {
 				m := realtp.Method(v)
 				return as.Tuple2(m.Name(), m)
 			})

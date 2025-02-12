@@ -272,15 +272,90 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	fieldDecl = fieldDecl.Concat(fieldList)
 
-	fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Tuple2[string, string].Head).FilterNot(eq.GivenValue("")))
+	fieldDecl = fieldDecl.Concat(seq.Map(fields, fp.Entry[string].Head).FilterNot(eq.GivenValue("")))
 
 	fmt.Fprintf(w, `type %s%s struct {
 					%s
 				}
 				`, adaptorTypeName, decltp, fieldDecl.MakeString("\n"))
 
-	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Tuple2[string, string].Tail).MakeString("\n"))
+	fmt.Fprintf(w, "%s", seq.Map(fields, fp.Entry[string].Tail).MakeString("\n"))
 
+}
+
+func removePkgPrefix(v string) string {
+	dotidx := strings.IndexByte(v, '.')
+	if dotidx > 0 {
+		return v[dotidx+1:]
+	}
+	return v
+}
+
+func toTypeInfo(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.TypeInfoExpr) genfp.TypeInfo {
+	name := v.Type.TypeName
+	if name == "*" {
+		name = "Ptr"
+	} else if name == "[]" {
+		name = "Slice"
+	} else if name == "[_]" {
+		name = "Array"
+	}
+	return genfp.TypeInfo{
+		Type:             v.Type.Type,
+		Package:          genfp.FromTypesPackage(v.Type.Pkg),
+		IsCurrentPackage: v.Type.IsSamePkg(workingPkg),
+		Complete:         v.TypeName(w, workingPkg),
+		Name:             name,
+		IsBasic:          v.Type.IsBasic(),
+		IsInterface:      v.Type.Underlying().IsInterface(),
+		IsPtr:            v.Type.IsPtr(),
+		IsStruct:         v.Type.Underlying().IsStruct(),
+		IsSlice:          v.Type.IsSlice(),
+		IsMap:            v.Type.IsMap(),
+		IsFunc:           v.Type.IsFunc(),
+		IsString:         v.Type.IsString(),
+		IsNumber:         v.Type.IsNumber(),
+		IsBool:           v.Type.IsBool(),
+		IsNilable:        v.Type.IsNilable(),
+		IsOption:         v.Type.IsOption(),
+		IsError:          v.Type.IsError(),
+		IsTry:            v.Type.IsTry(),
+		IsComparable:     types.Comparable(v.Type.Type),
+		IsAny:            v.Type.IsAny(),
+		ZeroExpr:         w.ZeroExpr(workingPkg, v.Type.Type),
+		TypeArgs: seq.Map(v.Type.TypeArgs, func(v metafp.TypeInfo) genfp.TypeInfo {
+			return toTypeInfo(w, workingPkg, metafp.TypeInfoExpr{
+				Type: v,
+			})
+		}),
+	}
+}
+
+func scanStructTypes(list []metafp.TypeInfo, ti metafp.TypeInfo, uniqCheck map[string]bool, recursive bool) []metafp.TypeInfo {
+
+	if exists := uniqCheck[ti.ID]; !exists {
+		uniqCheck[ti.ID] = true
+		if !ti.IsOption() && ti.Underlying().IsStruct() {
+
+			list = append(list, ti)
+			if recursive {
+				for _, f := range ti.Fields() {
+					list = scanStructTypes(list, f.FieldType, uniqCheck, recursive)
+				}
+			}
+		}
+		if recursive {
+			if elem, ok := ti.ElemType().Unapply(); ok {
+				list = scanStructTypes(list, elem, uniqCheck, recursive)
+			}
+
+			list = seq.Fold(ti.TypeArgs, list, func(l []metafp.TypeInfo, t metafp.TypeInfo) []metafp.TypeInfo {
+				return scanStructTypes(l, t, uniqCheck, recursive)
+			})
+		}
+
+	}
+	return list
 }
 
 func genGenerate() {
@@ -292,14 +367,32 @@ func genGenerate() {
 		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
 	}
 
-	pkgs, err := packages.Load(cfg, cwd)
+	allpkgs, err := packages.Load(cfg, cwd, "github.com/csgura/fp", "github.com/csgura/fp/hlist")
 	if err != nil {
 		fmt.Printf("package load error : %s\n", err)
 		return
 	}
 
+	fpPkgs, pkgs := seq.Partition(allpkgs, func(v *packages.Package) bool {
+		return v.Types.Path() == "github.com/csgura/fp" || v.Types.Path() == "github.com/csgura/fp/hlist"
+	})
+
+	fpPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+		return v.Types.Path() == "github.com/csgura/fp"
+	})
+
+	hlistPkg := fpPkgs.Filter(func(v *packages.Package) bool {
+		return v.Types.Path() == "github.com/csgura/fp/hlist"
+	})
+
+	workingPkg := genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax)
+
+	deriveCtx := NewTypeClassSummonContext(pkgs, genfp.NewImportSet(), fpPkg.Head().Get().Types, hlistPkg.Head().Get().Types)
+
 	gentemplate := generator.FindGenerateFromUntil(pkgs, "@fp.Generate")
 	genlist := generator.FindGenerateFromList(pkgs, "@fp.Generate")
+	genstruct := generator.FindGenerateFromStructs(pkgs, "@fp.Generate")
+	geniface := generator.FindGenerateFromInterfaces(pkgs, "@fp.Generate")
 
 	genadaptor := generator.FindGenerateAdaptor(pkgs, "@fp.Generate")
 	monadf := generator.FindGenerateMonadFunctions(pkgs, "@fp.Generate")
@@ -309,6 +402,8 @@ func genGenerate() {
 	filelist := iterator.ToGoSet(
 		mutable.MapOf(gentemplate).Keys().
 			Concat(mutable.MapOf(genlist).Keys()).
+			Concat(mutable.MapOf(genstruct).Keys()).
+			Concat(mutable.MapOf(geniface).Keys()).
 			Concat(mutable.MapOf(genadaptor).Keys()).
 			Concat(mutable.MapOf(monadf).Keys()).
 			Concat(mutable.MapOf(traversef).Keys()).
@@ -343,10 +438,24 @@ func genGenerate() {
 				}
 
 				for _, v := range gfu.List {
-					w.Render(gfu.Template, map[string]any{}, map[string]any{
+					params := map[string]any{
 						"N": v,
-					})
+					}
+					for k, v := range gfu.Parameters {
+						if k != "N" {
+							params[k] = v
+						}
+					}
+					w.Render(gfu.Template, map[string]any{}, params)
 				}
+			}
+
+			for _, gfu := range geniface[file] {
+				generateFromInterface(w, workingPkg, deriveCtx, gfu)
+			}
+
+			for _, gfu := range genstruct[file] {
+				generateFromStruct(w, workingPkg, deriveCtx, gfu)
 			}
 
 			for _, gfu := range gentemplate[file] {
@@ -354,7 +463,14 @@ func genGenerate() {
 					w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
 				}
 
-				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, map[string]any{})
+				params := map[string]any{}
+				for k, v := range gfu.Parameters {
+					if k != "N" {
+						params[k] = v
+					}
+				}
+
+				w.Iteration(gfu.From, gfu.Until).Write(gfu.Template, params)
 			}
 
 			for _, gad := range genadaptor[file] {
@@ -375,6 +491,218 @@ func genGenerate() {
 		})
 	}
 
+}
+
+func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[genfp.ImportPackage], deriveCtx *TypeClassSummonContext) map[string]any {
+	return map[string]any{
+		"Summon": func(tc string, f genfp.TypeInfo) string {
+			arr := strings.Split(tc, ".")
+			if len(arr) != 2 {
+				fmt.Printf("typeclass invalid %s\n", tc)
+				return ""
+			}
+
+			pk := imports.Find(func(v genfp.ImportPackage) bool {
+				return v.Alias() == arr[0]
+			})
+			if pk.IsEmpty() {
+				fmt.Printf("not imported package %s", arr[0])
+
+				return ""
+			}
+
+			rq := metafp.RequiredInstance{
+				Type: metafp.GetTypeInfo(f.Type),
+				TypeClass: metafp.TypeClass{
+					Name:    arr[1],
+					Package: pk.Get(),
+				},
+			}
+
+			ctx := SummonContext{
+				working:   workingPkg,
+				typeClass: rq.TypeClass,
+				summonFor: rq.Type.String(),
+			}
+			ret := deriveCtx.summonRequired(ctx, rq)
+
+			return ret.Expr()
+		},
+		"TypeDecl": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.TypeInfo:
+				return w.TypeName(workingPkg, rv.Type)
+			case *genfp.TypeInfo:
+				if rv != nil {
+					return w.TypeName(workingPkg, rv.Type)
+				}
+			case genfp.VarInfo:
+				return w.TypeName(workingPkg, rv.Type.Type)
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					return w.TypeName(workingPkg, rv.Type.Type)
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					return w.TypeName(workingPkg, v.Type.Type)
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+		},
+		"VarDecl": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.VarInfo:
+				return fmt.Sprintf("%s %s", rv.Name, w.TypeName(workingPkg, rv.Type.Type))
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					return fmt.Sprintf("%s %s", rv.Name, w.TypeName(workingPkg, rv.Type.Type))
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPkg, v.Type.Type))
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+		},
+	}
+}
+
+func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveCtx *TypeClassSummonContext, gfu generator.GenerateFromStructs) {
+	for _, im := range gfu.Imports {
+		w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
+	}
+
+	for _, tr := range gfu.List {
+
+		ti := metafp.GetTypeInfo(tr.Type)
+		name := ti.Name()
+
+		if name.IsDefined() && ti.Underlying().IsInterface() {
+			is := genfp.NewImportSet()
+
+			ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
+			methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
+				args := v.I2.Signature().Params()
+				convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarInfo {
+					return func(i int, t *types.Var) genfp.VarInfo {
+						name := t.Name()
+						if name == "" {
+							name = fmt.Sprintf("%s%d", vprefix, i)
+						}
+
+						return genfp.VarInfo{
+							Index: i,
+							Name:  t.Name(),
+							Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+								Type: metafp.GetTypeInfo(t.Type()),
+							}),
+						}
+					}
+				}
+				argsDef := iterate(args.Len(), args.At, convVar("arg"))
+
+				rets := v.I2.Signature().Results()
+				retDef := iterate(rets.Len(), rets.At, convVar("ret"))
+
+				return genfp.InterfaceMethodInfo{
+					Name:    v.I1,
+					Args:    argsDef,
+					Returns: retDef,
+				}
+			})
+
+			st := genfp.InterfaceInfo{
+				Package:          genfp.FromTypesPackage(ti.Pkg),
+				IsCurrentPackage: ti.IsSamePkg(workingPkg),
+				Name:             name.Get(),
+				Methods:          methods,
+				Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+					Type: ti,
+				}),
+			}
+
+			params := map[string]any{
+				"N": st,
+			}
+
+			for k, v := range gfu.Parameters {
+				if k != "N" {
+					params[k] = v
+				}
+			}
+			w.Render(gfu.Template, templFunc(w, workingPkg, gfu.Imports, deriveCtx), params)
+		}
+	}
+}
+
+func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveCtx *TypeClassSummonContext, gfu generator.GenerateFromStructs) {
+	for _, im := range gfu.Imports {
+		w.GetImportedName(genfp.NewImportPackage(im.Package, im.Name))
+	}
+
+	uniqCheck := map[string]bool{}
+	all := seq.Fold(gfu.List, []metafp.TypeInfo{}, func(list []metafp.TypeInfo, tr generator.TypeReference) []metafp.TypeInfo {
+		return scanStructTypes(list, metafp.GetTypeInfo(tr.Type), uniqCheck, gfu.Recursive)
+	})
+
+	for _, ti := range all {
+
+		name := ti.Name()
+		if name.IsDefined() && ti.Underlying().IsStruct() {
+			//fmt.Printf("generate code of %s\n", name.Get())
+			is := genfp.NewImportSet()
+			fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldInfo {
+				tpe := toTypeInfo(is, workingPkg, f.TypeInfoExpr(workingPkg))
+				indtpe := tpe
+				if f.FieldType.IsPtr() {
+					indtpe = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+						Type: f.FieldType.ElemType().Get(),
+					})
+				}
+				return genfp.StructFieldInfo{
+					Name:         f.Name,
+					Type:         tpe,
+					IndirectType: indtpe,
+					Tag:          f.Tag,
+					IsPublic:     f.Public(),
+					IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
+					ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeInfo {
+						return toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+							Type: v,
+						})
+					}).OrZero(),
+				}
+			})
+
+			visible := fields.Filter(func(v genfp.StructFieldInfo) bool {
+				return v.IsVisible
+			})
+			st := genfp.StructInfo{
+				Package:          genfp.FromTypesPackage(ti.Pkg),
+				IsCurrentPackage: ti.IsSamePkg(workingPkg),
+				Name:             name.Get(),
+				AllFields:        fields,
+				Fields:           visible,
+				Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+					Type: ti,
+				}),
+			}
+
+			params := map[string]any{
+				"N": st,
+			}
+
+			for k, v := range gfu.Parameters {
+				if k != "N" {
+					params[k] = v
+				}
+			}
+
+			w.Render(gfu.Template, templFunc(w, workingPkg, gfu.Imports, deriveCtx), params)
+		}
+	}
 }
 
 func isEmbeddingField(gad generator.GenerateAdaptorDirective, field string) bool {
@@ -401,7 +729,7 @@ type implContext struct {
 	valName         string
 	cbName          string
 	selfarg         string
-	argTypes        fp.Seq[fp.Tuple2[string, typeExpr]]
+	argTypes        fp.Seq[fp.Entry[typeExpr]]
 	argStr          string
 	argTypeStr      string
 	resstr          string
@@ -517,8 +845,8 @@ func finalExpr(expr string) fp.Option[GeneratedExpr] {
 
 type CallArgs struct {
 	variadic bool
-	avail    fp.Seq[fp.Tuple2[string, typeExpr]]
-	args     fp.Seq[fp.Tuple2[string, typeExpr]]
+	avail    fp.Seq[fp.Entry[typeExpr]]
+	args     fp.Seq[fp.Entry[typeExpr]]
 }
 
 func (r CallArgs) ArgList() string {
@@ -526,7 +854,7 @@ func (r CallArgs) ArgList() string {
 }
 
 func (r CallArgs) ArgTypeList(w genfp.Writer, pk genfp.WorkingPackage) string {
-	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Tuple2[string, typeExpr]) string {
+	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Entry[typeExpr]) string {
 		if r.variadic && i == r.args.Size()-1 {
 			return fmt.Sprintf("%s... %s", v.I1, v.I2.TypeName(w, pk))
 		}
@@ -585,7 +913,7 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 		return varTypeExpr(gad.Package, t)
 	})
 
-	availableArgs := func() fp.Seq[fp.Tuple2[string, typeExpr]] {
+	availableArgs := func() fp.Seq[fp.Entry[typeExpr]] {
 		if gad.ExtendsSelfCheck {
 			return seq.Concat(as.Tuple[string, typeExpr]("self", namedTypeExpr(gad.Interface)), r.argTypes)
 		}
@@ -593,7 +921,7 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 	}()
 
 	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp typeExpr) fp.Try[CallArgs] {
-		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Tuple2[string, typeExpr]) bool {
+		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Entry[typeExpr]) bool {
 			return t.I2.String() != tp.String()
 		})
 
@@ -874,11 +1202,11 @@ func argName(i int, t *types.Var) string {
 	return name
 }
 
-func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Tuple2[string, string]], fp.Set[string]) {
+func fieldAndImplOfInterfaceImpl2(w genfp.Writer, gad generator.GenerateAdaptorDirective, namedInterface types.Type, adaptorTypeName string, superField string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Seq[fp.Entry[string]], fp.Set[string]) {
 	//fmt.Printf("generate impl %s of %s\n", namedInterface.String(), adaptorTypeName)
 	intf := namedInterface.Underlying().(*types.Interface)
 
-	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Tuple2[string, string] {
+	fields := iterate(intf.NumMethods(), intf.Method, func(i int, t *types.Func) fp.Entry[string] {
 		if methodSet.Contains(t.Name()) {
 			return as.Tuple("", "")
 		}
@@ -965,7 +1293,7 @@ func elemTypeExpr(w genfp.ImportSet, wp genfp.WorkingPackage, t *types.Var) stri
 	return w.TypeName(wp, st.Elem())
 }
 
-func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Tuple2[string, string], fp.Set[string]) {
+func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdaptorDirective, t *types.Func, w genfp.Writer, namedInterface types.Type, superField string, adaptorTypeName string, fieldMap fp.Map[string, generator.TypeReference], methodSet fp.Set[string]) (fp.Entry[string], fp.Set[string]) {
 	if opt.Delegate != nil && opt.Private {
 		if isEmbeddingField(gad, opt.Delegate.Field) {
 			if !gad.Self || !gad.ExtendsByEmbedding {
@@ -988,7 +1316,7 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 		selfarg = "self " + w.TypeName(gad.Package, gad.Interface) + ","
 	}
 
-	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Tuple2[string, typeExpr] {
+	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Entry[typeExpr] {
 		return as.Tuple2(argName(i, t), varTypeExpr(gad.Package, t))
 	})
 

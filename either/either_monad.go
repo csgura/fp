@@ -213,47 +213,6 @@ func LiftA3[L any, A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) R) func(fp
 	}
 }
 
-func Map3[L any, A1 any, A2, A3, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], f func(a1 A1, a2 A2, a3 A3) R) fp.Either[L, R] {
-	return LiftA3[L](f)(ins1, ins2, ins3)
-}
-
-func LiftM3[L any, A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3]) fp.Either[L, R] {
-	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3]) fp.Either[L, R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
-			return LiftM2(func(a2 A2, a3 A3) fp.Either[L, R] {
-				return f(a1, a2, a3)
-			})(ins2, ins3)
-		})
-	}
-}
-
-func FlatMap3[L any, A1 any, A2, A3, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], f func(a1 A1, a2 A2, a3 A3) fp.Either[L, R]) fp.Either[L, R] {
-	return LiftM3(f)(ins1, ins2, ins3)
-}
-
-func Flap3[L any, A1 any, A2, A3, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Either[L, R]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Either[L, R]]] {
-		return Flap2(Ap(tf, Pure[L](a1)))
-	}
-}
-
-func Method3[L any, A1 any, A2, A3, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3) R) func(A2, A3) fp.Either[L, R] {
-	return func(a2 A2, a3 A3) fp.Either[L, R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1(a1, a2, a3)
-		})
-	}
-}
-
-func FlatMethod3[L any, A1 any, A2, A3, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3) fp.Either[L, R]) func(A2, A3) fp.Either[L, R] {
-	return func(a2 A2, a3 A3) fp.Either[L, R] {
-		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
-			return fa1(a1, a2, a3)
-		})
-	}
-}
-
 func LiftA4[L any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4]) fp.Either[L, R] {
 	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4]) fp.Either[L, R] {
 
@@ -261,47 +220,6 @@ func LiftA4[L any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4)
 			return LiftA3[L](func(a2 A2, a3 A3, a4 A4) R {
 				return f(a1, a2, a3, a4)
 			})(ins2, ins3, ins4)
-		})
-	}
-}
-
-func Map4[L any, A1 any, A2, A3, A4, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Either[L, R] {
-	return LiftA4[L](f)(ins1, ins2, ins3, ins4)
-}
-
-func LiftM4[L any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4]) fp.Either[L, R] {
-	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4]) fp.Either[L, R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
-			return LiftM3(func(a2 A2, a3 A3, a4 A4) fp.Either[L, R] {
-				return f(a1, a2, a3, a4)
-			})(ins2, ins3, ins4)
-		})
-	}
-}
-
-func FlatMap4[L any, A1 any, A2, A3, A4, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Either[L, R]) fp.Either[L, R] {
-	return LiftM4(f)(ins1, ins2, ins3, ins4)
-}
-
-func Flap4[L any, A1 any, A2, A3, A4, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Either[L, R]]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Either[L, R]]]] {
-		return Flap3(Ap(tf, Pure[L](a1)))
-	}
-}
-
-func Method4[L any, A1 any, A2, A3, A4, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(A2, A3, A4) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4) fp.Either[L, R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1(a1, a2, a3, a4)
-		})
-	}
-}
-
-func FlatMethod4[L any, A1 any, A2, A3, A4, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Either[L, R]) func(A2, A3, A4) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4) fp.Either[L, R] {
-		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
-			return fa1(a1, a2, a3, a4)
 		})
 	}
 }
@@ -317,47 +235,6 @@ func LiftA5[L any, A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4
 	}
 }
 
-func Map5[L any, A1 any, A2, A3, A4, A5, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.Either[L, R] {
-	return LiftA5[L](f)(ins1, ins2, ins3, ins4, ins5)
-}
-
-func LiftM5[L any, A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5]) fp.Either[L, R] {
-	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5]) fp.Either[L, R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
-			return LiftM4(func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R] {
-				return f(a1, a2, a3, a4, a5)
-			})(ins2, ins3, ins4, ins5)
-		})
-	}
-}
-
-func FlatMap5[L any, A1 any, A2, A3, A4, A5, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R]) fp.Either[L, R] {
-	return LiftM5(f)(ins1, ins2, ins3, ins4, ins5)
-}
-
-func Flap5[L any, A1 any, A2, A3, A4, A5, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Either[L, R]]]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Either[L, R]]]]] {
-		return Flap4(Ap(tf, Pure[L](a1)))
-	}
-}
-
-func Method5[L any, A1 any, A2, A3, A4, A5, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) func(A2, A3, A4, A5) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1(a1, a2, a3, a4, a5)
-		})
-	}
-}
-
-func FlatMethod5[L any, A1 any, A2, A3, A4, A5, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R]) func(A2, A3, A4, A5) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R] {
-		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
-			return fa1(a1, a2, a3, a4, a5)
-		})
-	}
-}
-
 func LiftA6[L any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6]) fp.Either[L, R] {
 	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6]) fp.Either[L, R] {
 
@@ -365,47 +242,6 @@ func LiftA6[L any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3
 			return LiftA5[L](func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R {
 				return f(a1, a2, a3, a4, a5, a6)
 			})(ins2, ins3, ins4, ins5, ins6)
-		})
-	}
-}
-
-func Map6[L any, A1 any, A2, A3, A4, A5, A6, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.Either[L, R] {
-	return LiftA6[L](f)(ins1, ins2, ins3, ins4, ins5, ins6)
-}
-
-func LiftM6[L any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6]) fp.Either[L, R] {
-	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6]) fp.Either[L, R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
-			return LiftM5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R] {
-				return f(a1, a2, a3, a4, a5, a6)
-			})(ins2, ins3, ins4, ins5, ins6)
-		})
-	}
-}
-
-func FlatMap6[L any, A1 any, A2, A3, A4, A5, A6, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R]) fp.Either[L, R] {
-	return LiftM6(f)(ins1, ins2, ins3, ins4, ins5, ins6)
-}
-
-func Flap6[L any, A1 any, A2, A3, A4, A5, A6, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Either[L, R]]]]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Either[L, R]]]]]] {
-		return Flap5(Ap(tf, Pure[L](a1)))
-	}
-}
-
-func Method6[L any, A1 any, A2, A3, A4, A5, A6, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(A2, A3, A4, A5, A6) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1(a1, a2, a3, a4, a5, a6)
-		})
-	}
-}
-
-func FlatMethod6[L any, A1 any, A2, A3, A4, A5, A6, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R]) func(A2, A3, A4, A5, A6) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R] {
-		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
-			return fa1(a1, a2, a3, a4, a5, a6)
 		})
 	}
 }
@@ -421,47 +257,6 @@ func LiftA7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a
 	}
 }
 
-func Map7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.Either[L, R] {
-	return LiftA7[L](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7)
-}
-
-func LiftM7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6], fp.Either[L, A7]) fp.Either[L, R] {
-	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7]) fp.Either[L, R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
-			return LiftM6(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R] {
-				return f(a1, a2, a3, a4, a5, a6, a7)
-			})(ins2, ins3, ins4, ins5, ins6, ins7)
-		})
-	}
-}
-
-func FlatMap7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R]) fp.Either[L, R] {
-	return LiftM7(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7)
-}
-
-func Flap7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Either[L, R]]]]]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Either[L, R]]]]]]] {
-		return Flap6(Ap(tf, Pure[L](a1)))
-	}
-}
-
-func Method7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) func(A2, A3, A4, A5, A6, A7) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1(a1, a2, a3, a4, a5, a6, a7)
-		})
-	}
-}
-
-func FlatMethod7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R]) func(A2, A3, A4, A5, A6, A7) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R] {
-		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
-			return fa1(a1, a2, a3, a4, a5, a6, a7)
-		})
-	}
-}
-
 func LiftA8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6], fp.Either[L, A7], fp.Either[L, A8]) fp.Either[L, R] {
 	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8]) fp.Either[L, R] {
 
@@ -469,47 +264,6 @@ func LiftA8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A
 			return LiftA7[L](func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R {
 				return f(a1, a2, a3, a4, a5, a6, a7, a8)
 			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
-		})
-	}
-}
-
-func Map8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.Either[L, R] {
-	return LiftA8[L](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8)
-}
-
-func LiftM8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6], fp.Either[L, A7], fp.Either[L, A8]) fp.Either[L, R] {
-	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8]) fp.Either[L, R] {
-
-		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
-			return LiftM7(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R] {
-				return f(a1, a2, a3, a4, a5, a6, a7, a8)
-			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
-		})
-	}
-}
-
-func FlatMap8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R]) fp.Either[L, R] {
-	return LiftM8(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8)
-}
-
-func Flap8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Either[L, R]]]]]]]]] {
-	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Either[L, R]]]]]]]] {
-		return Flap7(Ap(tf, Pure[L](a1)))
-	}
-}
-
-func Method8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(A2, A3, A4, A5, A6, A7, A8) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R] {
-		return Map(ta1, func(a1 A1) R {
-			return fa1(a1, a2, a3, a4, a5, a6, a7, a8)
-		})
-	}
-}
-
-func FlatMethod8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R]) func(A2, A3, A4, A5, A6, A7, A8) fp.Either[L, R] {
-	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R] {
-		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
-			return fa1(a1, a2, a3, a4, a5, a6, a7, a8)
 		})
 	}
 }
@@ -525,8 +279,98 @@ func LiftA9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, 
 	}
 }
 
+func Map3[L any, A1 any, A2, A3, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], f func(a1 A1, a2 A2, a3 A3) R) fp.Either[L, R] {
+	return LiftA3[L](f)(ins1, ins2, ins3)
+}
+
+func Map4[L any, A1 any, A2, A3, A4, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], f func(a1 A1, a2 A2, a3 A3, a4 A4) R) fp.Either[L, R] {
+	return LiftA4[L](f)(ins1, ins2, ins3, ins4)
+}
+
+func Map5[L any, A1 any, A2, A3, A4, A5, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) fp.Either[L, R] {
+	return LiftA5[L](f)(ins1, ins2, ins3, ins4, ins5)
+}
+
+func Map6[L any, A1 any, A2, A3, A4, A5, A6, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) fp.Either[L, R] {
+	return LiftA6[L](f)(ins1, ins2, ins3, ins4, ins5, ins6)
+}
+
+func Map7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) fp.Either[L, R] {
+	return LiftA7[L](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7)
+}
+
+func Map8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) fp.Either[L, R] {
+	return LiftA8[L](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8)
+}
+
 func Map9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8], ins9 fp.Either[L, A9], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) fp.Either[L, R] {
 	return LiftA9[L](f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
+}
+
+func LiftM3[L any, A1 any, A2, A3, R any](f func(a1 A1, a2 A2, a3 A3) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3]) fp.Either[L, R] {
+	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3]) fp.Either[L, R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
+			return LiftM2(func(a2 A2, a3 A3) fp.Either[L, R] {
+				return f(a1, a2, a3)
+			})(ins2, ins3)
+		})
+	}
+}
+
+func LiftM4[L any, A1 any, A2, A3, A4, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4]) fp.Either[L, R] {
+	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4]) fp.Either[L, R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
+			return LiftM3(func(a2 A2, a3 A3, a4 A4) fp.Either[L, R] {
+				return f(a1, a2, a3, a4)
+			})(ins2, ins3, ins4)
+		})
+	}
+}
+
+func LiftM5[L any, A1 any, A2, A3, A4, A5, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5]) fp.Either[L, R] {
+	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5]) fp.Either[L, R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
+			return LiftM4(func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R] {
+				return f(a1, a2, a3, a4, a5)
+			})(ins2, ins3, ins4, ins5)
+		})
+	}
+}
+
+func LiftM6[L any, A1 any, A2, A3, A4, A5, A6, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6]) fp.Either[L, R] {
+	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6]) fp.Either[L, R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
+			return LiftM5(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R] {
+				return f(a1, a2, a3, a4, a5, a6)
+			})(ins2, ins3, ins4, ins5, ins6)
+		})
+	}
+}
+
+func LiftM7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6], fp.Either[L, A7]) fp.Either[L, R] {
+	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7]) fp.Either[L, R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
+			return LiftM6(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R] {
+				return f(a1, a2, a3, a4, a5, a6, a7)
+			})(ins2, ins3, ins4, ins5, ins6, ins7)
+		})
+	}
+}
+
+func LiftM8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6], fp.Either[L, A7], fp.Either[L, A8]) fp.Either[L, R] {
+	return func(ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8]) fp.Either[L, R] {
+
+		return FlatMap(ins1, func(a1 A1) fp.Either[L, R] {
+			return LiftM7(func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R] {
+				return f(a1, a2, a3, a4, a5, a6, a7, a8)
+			})(ins2, ins3, ins4, ins5, ins6, ins7, ins8)
+		})
+	}
 }
 
 func LiftM9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Either[L, R]) func(fp.Either[L, A1], fp.Either[L, A2], fp.Either[L, A3], fp.Either[L, A4], fp.Either[L, A5], fp.Either[L, A6], fp.Either[L, A7], fp.Either[L, A8], fp.Either[L, A9]) fp.Either[L, R] {
@@ -540,8 +384,68 @@ func LiftM9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](f func(a1 A1, 
 	}
 }
 
+func FlatMap3[L any, A1 any, A2, A3, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], f func(a1 A1, a2 A2, a3 A3) fp.Either[L, R]) fp.Either[L, R] {
+	return LiftM3(f)(ins1, ins2, ins3)
+}
+
+func FlatMap4[L any, A1 any, A2, A3, A4, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], f func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Either[L, R]) fp.Either[L, R] {
+	return LiftM4(f)(ins1, ins2, ins3, ins4)
+}
+
+func FlatMap5[L any, A1 any, A2, A3, A4, A5, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R]) fp.Either[L, R] {
+	return LiftM5(f)(ins1, ins2, ins3, ins4, ins5)
+}
+
+func FlatMap6[L any, A1 any, A2, A3, A4, A5, A6, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R]) fp.Either[L, R] {
+	return LiftM6(f)(ins1, ins2, ins3, ins4, ins5, ins6)
+}
+
+func FlatMap7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R]) fp.Either[L, R] {
+	return LiftM7(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7)
+}
+
+func FlatMap8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R]) fp.Either[L, R] {
+	return LiftM8(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8)
+}
+
 func FlatMap9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](ins1 fp.Either[L, A1], ins2 fp.Either[L, A2], ins3 fp.Either[L, A3], ins4 fp.Either[L, A4], ins5 fp.Either[L, A5], ins6 fp.Either[L, A6], ins7 fp.Either[L, A7], ins8 fp.Either[L, A8], ins9 fp.Either[L, A9], f func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Either[L, R]) fp.Either[L, R] {
 	return LiftM9(f)(ins1, ins2, ins3, ins4, ins5, ins6, ins7, ins8, ins9)
+}
+
+func Flap3[L any, A1 any, A2, A3, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, R]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Either[L, R]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Either[L, R]]] {
+		return Flap2(Ap(tf, Pure[L](a1)))
+	}
+}
+
+func Flap4[L any, A1 any, A2, A3, A4, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, R]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Either[L, R]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Either[L, R]]]] {
+		return Flap3(Ap(tf, Pure[L](a1)))
+	}
+}
+
+func Flap5[L any, A1 any, A2, A3, A4, A5, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, R]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Either[L, R]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Either[L, R]]]]] {
+		return Flap4(Ap(tf, Pure[L](a1)))
+	}
+}
+
+func Flap6[L any, A1 any, A2, A3, A4, A5, A6, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, R]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Either[L, R]]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Either[L, R]]]]]] {
+		return Flap5(Ap(tf, Pure[L](a1)))
+	}
+}
+
+func Flap7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, R]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Either[L, R]]]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Either[L, R]]]]]]] {
+		return Flap6(Ap(tf, Pure[L](a1)))
+	}
+}
+
+func Flap8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, R]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Either[L, R]]]]]]]]] {
+	return func(a1 A1) fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Either[L, R]]]]]]]] {
+		return Flap7(Ap(tf, Pure[L](a1)))
+	}
 }
 
 func Flap9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](tf fp.Either[L, fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, R]]]]]]]]]]) fp.Func1[A1, fp.Func1[A2, fp.Func1[A3, fp.Func1[A4, fp.Func1[A5, fp.Func1[A6, fp.Func1[A7, fp.Func1[A8, fp.Func1[A9, fp.Either[L, R]]]]]]]]]] {
@@ -550,10 +454,106 @@ func Flap9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](tf fp.Either[L,
 	}
 }
 
+func Method3[L any, A1 any, A2, A3, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3) R) func(A2, A3) fp.Either[L, R] {
+	return func(a2 A2, a3 A3) fp.Either[L, R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1(a1, a2, a3)
+		})
+	}
+}
+
+func Method4[L any, A1 any, A2, A3, A4, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) R) func(A2, A3, A4) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4) fp.Either[L, R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1(a1, a2, a3, a4)
+		})
+	}
+}
+
+func Method5[L any, A1 any, A2, A3, A4, A5, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) R) func(A2, A3, A4, A5) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1(a1, a2, a3, a4, a5)
+		})
+	}
+}
+
+func Method6[L any, A1 any, A2, A3, A4, A5, A6, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) R) func(A2, A3, A4, A5, A6) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1(a1, a2, a3, a4, a5, a6)
+		})
+	}
+}
+
+func Method7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) R) func(A2, A3, A4, A5, A6, A7) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1(a1, a2, a3, a4, a5, a6, a7)
+		})
+	}
+}
+
+func Method8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) R) func(A2, A3, A4, A5, A6, A7, A8) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R] {
+		return Map(ta1, func(a1 A1) R {
+			return fa1(a1, a2, a3, a4, a5, a6, a7, a8)
+		})
+	}
+}
+
 func Method9[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, A9, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) R) func(A2, A3, A4, A5, A6, A7, A8, A9) fp.Either[L, R] {
 	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Either[L, R] {
 		return Map(ta1, func(a1 A1) R {
 			return fa1(a1, a2, a3, a4, a5, a6, a7, a8, a9)
+		})
+	}
+}
+
+func FlatMethod3[L any, A1 any, A2, A3, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3) fp.Either[L, R]) func(A2, A3) fp.Either[L, R] {
+	return func(a2 A2, a3 A3) fp.Either[L, R] {
+		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
+			return fa1(a1, a2, a3)
+		})
+	}
+}
+
+func FlatMethod4[L any, A1 any, A2, A3, A4, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4) fp.Either[L, R]) func(A2, A3, A4) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4) fp.Either[L, R] {
+		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
+			return fa1(a1, a2, a3, a4)
+		})
+	}
+}
+
+func FlatMethod5[L any, A1 any, A2, A3, A4, A5, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R]) func(A2, A3, A4, A5) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5) fp.Either[L, R] {
+		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
+			return fa1(a1, a2, a3, a4, a5)
+		})
+	}
+}
+
+func FlatMethod6[L any, A1 any, A2, A3, A4, A5, A6, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R]) func(A2, A3, A4, A5, A6) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Either[L, R] {
+		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
+			return fa1(a1, a2, a3, a4, a5, a6)
+		})
+	}
+}
+
+func FlatMethod7[L any, A1 any, A2, A3, A4, A5, A6, A7, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R]) func(A2, A3, A4, A5, A6, A7) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Either[L, R] {
+		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
+			return fa1(a1, a2, a3, a4, a5, a6, a7)
+		})
+	}
+}
+
+func FlatMethod8[L any, A1 any, A2, A3, A4, A5, A6, A7, A8, R any](ta1 fp.Either[L, A1], fa1 func(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R]) func(A2, A3, A4, A5, A6, A7, A8) fp.Either[L, R] {
+	return func(a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Either[L, R] {
+		return FlatMap(ta1, func(a1 A1) fp.Either[L, R] {
+			return fa1(a1, a2, a3, a4, a5, a6, a7, a8)
 		})
 	}
 }

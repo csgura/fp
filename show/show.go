@@ -286,9 +286,9 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 
 		childOpt := opt.IncreaseIndent()
 
-		keyshow := seq.Sort(iterator.Map(v.Iterator(), as.Func2(product.MapKey[K, V, string]).ApplyLast(showk.Show)).ToSeq(), ord.GivenField(fp.Tuple2[string, V].Head))
+		keyshow := seq.Sort(iterator.Map(v.Iterator(), as.Func2(product.MapKey[K, V, string]).ApplyLast(showk.Show)).ToSeq(), ord.GivenField(fp.Entry[V].Head))
 
-		showmap := iterator.Map(iterator.FromSeq(keyshow), func(t fp.Tuple2[string, V]) []string {
+		showmap := iterator.Map(iterator.FromSeq(keyshow), func(t fp.Entry[V]) []string {
 			valuestr := showv.Append(nil, t.I2, childOpt)
 			if isEmptyString(valuestr) {
 				return nil

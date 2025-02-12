@@ -43,6 +43,8 @@ func (r Tuple1[T1]) String() string {
 	return fmt.Sprintf("(%v)", r.I1)
 }
 
+type Entry[V any] = Tuple2[string, V]
+
 type Named interface {
 	Name() string
 	Tag() string
@@ -94,23 +96,11 @@ func (r RuntimeNamed[T]) String() string {
 	return fmt.Sprintf("%s: %v", r.Name(), r.Value())
 }
 
-type Labelled1[T1 Named] struct {
-	I1 T1
-}
+type Labelled1[T1 Named] = Tuple1[T1]
 
-func (r Labelled1[T1]) Head() T1 {
-	return r.I1
-}
+type Supplier[R any] = func() R
 
-func (r Labelled1[T1]) Tail() Unit {
-	return Unit{}
-}
-
-func (r Labelled1[T1]) String() string {
-	return fmt.Sprintf("(%v)", r.I1)
-}
-
-type Supplier[R any] func() R
+type Operator[T any] = func(T, T) T
 
 type Predicate[T any] func(T) bool
 
@@ -183,13 +173,9 @@ func (r PartialFunc[T, R]) OrElse(other PartialFunc[T, R]) PartialFunc[T, R] {
 	}
 }
 
-type Func0[R any] Func1[Unit, R]
+type Func0[R any] = Func1[Unit, R]
 
-func (r Func0[R]) Apply() R {
-	return r(Unit{})
-}
-
-type Func1[A1, R any] func(a1 A1) R
+type Func1[A1, R any] = func(a1 A1) R
 
 type Func2[A1, A2, R any] func(a1 A1, a2 A2) R
 
@@ -605,43 +591,11 @@ type Tuple{{.N}}[{{TypeArgs 1 .N "T"}} any] struct {
 
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
-	File: "labelled_gen.go",
-	Imports: []genfp.ImportPackage{
-		{Package: "fmt", Name: "fmt"},
-	},
-	From:  2,
-	Until: genfp.MaxProduct,
+	File:    "labelled_gen.go",
+	Imports: []genfp.ImportPackage{},
+	From:    2,
+	Until:   genfp.MaxProduct,
 	Template: `
-{{define "Receiver"}}func(r Labelled{{.N}}[{{TypeArgs 1 .N "T"}}]){{end}}
-
-type Labelled{{.N}}[{{TypeArgs 1 .N "T"}} Named] struct {
-	{{- range $idx := Range 1 .N}}
-		I{{$idx}} T{{$idx}}
-	{{- end}}
-}
-
-{{template "Receiver" .}} Head() T1 {
-	return r.I1
-}
-
-{{template "Receiver" .}} Last() T{{.N}} {
-	return r.I{{.N}}
-}
-
-{{template "Receiver" .}} Init() ({{TypeArgs 1 (dec .N) "T"}}) {
-	return {{CallArgs 1 (dec .N) "r.I"}}
-}
-
-{{template "Receiver" .}} Tail() ({{TypeArgs 2 .N "T"}}) {
-	return {{CallArgs 2 .N "r.I"}}
-}
-
-{{template "Receiver" .}} String() string {
-	return fmt.Sprintf("({{FormatStr 1 .N}})", {{CallArgs 1 .N "r.I"}})
-}
-
-{{template "Receiver" .}} Unapply() ({{TypeArgs 1 .N "T"}}) {
-	return {{CallArgs 1 .N "r.I"}}
-}
+type Labelled{{.N}}[{{TypeArgs 1 .N "T"}} Named] = Tuple{{.N}}[{{TypeArgs 1 .N "T"}}]
 	`,
 }

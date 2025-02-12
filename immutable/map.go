@@ -6,6 +6,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hash"
 )
 
 //lint:file-ignore U1000 source copy from github.com/benbjohnson/immutable/blob/master/immutable.go
@@ -65,6 +66,10 @@ func MapBase[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.MapBase[K
 
 func Map[K, V any](hasher fp.Hashable[K], t ...fp.Tuple2[K, V]) fp.Map[K, V] {
 	return fp.MakeMap(MapBase(hasher, t...))
+}
+
+func MapGiven[K comparable, V any](t ...fp.Tuple2[K, V]) fp.Map[K, V] {
+	return fp.MakeMap(MapBase(hash.Given[K](), t...))
 }
 
 // Len returns the number of elements in the map.

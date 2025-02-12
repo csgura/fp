@@ -61,6 +61,15 @@ func main() {
 		}
 	}
 
+	for file, list := range monadt {
+
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
+				generator.WriteMonadTransformers(w, gfu, funcList)
+			}
+		})
+	}
+
 	for file, list := range genmonad {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {
@@ -79,12 +88,4 @@ func main() {
 		})
 	}
 
-	for file, list := range monadt {
-
-		genfp.Generate(pack, file, func(w genfp.Writer) {
-			for _, gfu := range list {
-				generator.WriteMonadTransformers(w, gfu, funcList)
-			}
-		})
-	}
 }

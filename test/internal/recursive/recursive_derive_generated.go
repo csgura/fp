@@ -40,17 +40,16 @@ func MonoidNormalStruct() fp.Monoid[NormalStruct] {
 
 func ShowNormalStruct() fp.Show[NormalStruct] {
 	return show.Generic(
-		as.Generic(
-			"recursive.NormalStruct",
-			"Struct",
-			fp.Compose(
+		fp.Generic[NormalStruct, hlist.Cons[string, hlist.Cons[int, hlist.Cons[string, hlist.Nil]]]]{
+			Type: "recursive.NormalStruct",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v NormalStruct) fp.Tuple3[string, int, string] {
 					return as.Tuple3(v.Name, v.Age, v.Address)
 				},
-				as.HList3,
+				as.HList3[string, int, string],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				func(t fp.Tuple3[string, int, string]) NormalStruct {
 					return NormalStruct{
@@ -60,7 +59,7 @@ func ShowNormalStruct() fp.Show[NormalStruct] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
@@ -120,17 +119,16 @@ func DecoderNormalStruct() js.Decoder[NormalStruct] {
 
 func ShowTuple2Struct() fp.Show[Tuple2Struct] {
 	return show.Generic(
-		as.Generic(
-			"recursive.Tuple2Struct",
-			"Struct",
-			fp.Compose(
+		fp.Generic[Tuple2Struct, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+			Type: "recursive.Tuple2Struct",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v Tuple2Struct) fp.Tuple2[string, int] {
 					return as.Tuple2(v.Name, v.Age)
 				},
-				as.HList2,
+				as.HList2[string, int],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList2,
 				func(t fp.Tuple2[string, int]) Tuple2Struct {
 					return Tuple2Struct{
@@ -139,7 +137,7 @@ func ShowTuple2Struct() fp.Show[Tuple2Struct] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
@@ -524,10 +522,10 @@ func MonoidOver21[T any](monoidT fp.Monoid[T]) fp.Monoid[Over21[T]] {
 
 func ShowOver21[T any](showT fp.Show[T]) fp.Show[Over21[T]] {
 	return show.Generic(
-		as.Generic(
-			"recursive.Over21",
-			"Struct",
-			func(v Over21[T]) hlist.Cons[T, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+		fp.Generic[Over21[T], hlist.Cons[T, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]{
+			Type: "recursive.Over21",
+			Kind: "Struct",
+			To: func(v Over21[T]) hlist.Cons[T, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
 				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.I1, v.I2, v.I3, v.I4, v.I5, v.I6, v.I7, v.I8, v.I9, v.I10, v.I11, v.I12, v.I13, v.I14, v.I15, v.I16, v.I17, v.I18, v.I19, v.I20, v.I21, v.I22, v.I23, v.I24, v.I25, v.I26, v.I27, v.I28, v.I29, v.I30
 				return hlist.Concat(i0,
 					hlist.Concat(i1,
@@ -591,7 +589,7 @@ func ShowOver21[T any](showT fp.Show[T]) fp.Show[Over21[T]] {
 					),
 				)
 			},
-			func(hl0 hlist.Cons[T, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21[T] {
+			From: func(hl0 hlist.Cons[T, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21[T] {
 				i0, hl1 := hlist.Unapply(hl0)
 				i1, hl2 := hlist.Unapply(hl1)
 				i2, hl3 := hlist.Unapply(hl2)
@@ -624,7 +622,7 @@ func ShowOver21[T any](showT fp.Show[T]) fp.Show[Over21[T]] {
 				i29 := hl29.Head()
 				return Over21[T]{I1: i0, I2: i1, I3: i2, I4: i3, I5: i4, I6: i5, I7: i6, I8: i7, I9: i8, I10: i9, I11: i10, I12: i11, I13: i12, I14: i13, I15: i14, I16: i15, I17: i16, I18: i17, I19: i18, I20: i19, I21: i20, I22: i21, I23: i22, I24: i23, I25: i24, I26: i25, I27: i26, I28: i27, I29: i28, I30: i29}
 			},
-		),
+		},
 		show.StructHCons(
 			showT,
 			show.StructHCons(
@@ -1072,20 +1070,25 @@ func MonoidTestpk1LegacyStruct() fp.Monoid[testpk1.LegacyStruct] {
 
 func ShowTestpk1LegacyStruct() fp.Show[testpk1.LegacyStruct] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.LegacyStruct",
-			"Struct",
-			fp.Compose(
+		fp.Generic[testpk1.LegacyStruct, hlist.Cons[string, hlist.Cons[int, hlist.Cons[struct {
+			Hello string
+			World int
+		}, hlist.Nil]]]]{
+			Type: "testpk1.LegacyStruct",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v testpk1.LegacyStruct) fp.Tuple3[string, int, struct {
 					Hello string
 					World int
 				}] {
 					return as.Tuple3(v.Name, v.Age, v.NoName)
 				},
-				as.HList3,
+				as.HList3[string, int, struct {
+					Hello string
+					World int
+				}],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				func(t fp.Tuple3[string, int, struct {
 					Hello string
@@ -1098,27 +1101,29 @@ func ShowTestpk1LegacyStruct() fp.Show[testpk1.LegacyStruct] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
 				show.Int[int](),
 				show.StructHCons(
 					show.Generic(
-						as.Generic(
-							"struct",
-							"Struct",
-							fp.Compose(
+						fp.Generic[struct {
+							Hello string
+							World int
+						}, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+							Type: "struct",
+							Kind: "Struct",
+							To: fp.Compose(
 								func(v struct {
 									Hello string
 									World int
 								}) fp.Tuple2[string, int] {
 									return as.Tuple2(v.Hello, v.World)
 								},
-								as.HList2,
+								as.HList2[string, int],
 							),
-
-							fp.Compose(
+							From: fp.Compose(
 								product.TupleFromHList2,
 								func(t fp.Tuple2[string, int]) struct {
 									Hello string
@@ -1133,7 +1138,7 @@ func ShowTestpk1LegacyStruct() fp.Show[testpk1.LegacyStruct] {
 									}
 								},
 							),
-						),
+						},
 						show.StructHCons(
 							show.String,
 							show.StructHCons(
@@ -1266,17 +1271,16 @@ func MonoidTestpk1LegacyPhoneBook() fp.Monoid[testpk1.LegacyPhoneBook] {
 
 func ShowTestpk1LegacyPhoneBook() fp.Show[testpk1.LegacyPhoneBook] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.LegacyPhoneBook",
-			"Struct",
-			fp.Compose(
+		fp.Generic[testpk1.LegacyPhoneBook, hlist.Cons[testpk1.LegacyPerson, hlist.Cons[string, hlist.Nil]]]{
+			Type: "testpk1.LegacyPhoneBook",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
 					return as.Tuple2(v.Person, v.Phone)
 				},
-				as.HList2,
+				as.HList2[testpk1.LegacyPerson, string],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList2,
 				func(t fp.Tuple2[testpk1.LegacyPerson, string]) testpk1.LegacyPhoneBook {
 					return testpk1.LegacyPhoneBook{
@@ -1285,7 +1289,7 @@ func ShowTestpk1LegacyPhoneBook() fp.Show[testpk1.LegacyPhoneBook] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.Given[testpk1.LegacyPerson](),
 			show.StructHCons(
@@ -1342,17 +1346,16 @@ func MonoidLocalPhoneBook() fp.Monoid[LocalPhoneBook] {
 
 func ShowLocalPhoneBook() fp.Show[LocalPhoneBook] {
 	return show.Generic(
-		as.Generic(
-			"recursive.LocalPhoneBook",
-			"Struct",
-			fp.Compose(
+		fp.Generic[LocalPhoneBook, hlist.Cons[LocalPerson, hlist.Cons[string, hlist.Cons[StringAlias, hlist.Nil]]]]{
+			Type: "recursive.LocalPhoneBook",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v LocalPhoneBook) fp.Tuple3[LocalPerson, string, StringAlias] {
 					return as.Tuple3(v.Person, v.Phone, v.Alias)
 				},
-				as.HList3,
+				as.HList3[LocalPerson, string, StringAlias],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				func(t fp.Tuple3[LocalPerson, string, StringAlias]) LocalPhoneBook {
 					return LocalPhoneBook{
@@ -1362,7 +1365,7 @@ func ShowLocalPhoneBook() fp.Show[LocalPhoneBook] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.Given[LocalPerson](),
 			show.StructHCons(

@@ -57,6 +57,8 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
 		return GenericRepr{
 			Kind:         fp.GenericKindStruct,
+			Type:         as.Supplier1(sf.typeStr, ctx.working),
+			ReprType:     r.tupleReprType(ctx, sf, true),
 			ToReprExpr:   sf.asMinTuple,
 			FromReprExpr: sf.fromMinTuple,
 			ReprExpr: func() SummonExpr {
@@ -73,6 +75,8 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 
 				return option.Some(GenericRepr{
 					Kind:         fp.GenericKindStruct,
+					Type:         as.Supplier1(sf.typeStr, ctx.working),
+					ReprType:     r.hlistReprType(ctx, sf, true),
 					ToReprExpr:   r.toHlistRepr(ctx, sf, typeArgs),
 					FromReprExpr: r.fromHlistRepr(ctx, sf, typeArgs),
 					ReprExpr: func() SummonExpr {
@@ -83,7 +87,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 						zipped := named.Take(arity).Reverse()
 						hlist := seq.Fold(zipped, newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeClassInstance) SummonExpr {
 
-							instance := r.exprTypeClassInstance(ctx, ti, true)
+							instance := r.exprTypeClassInstance(ctx, ti, false)
 
 							return newSummonExpr(func() string {
 								return fmt.Sprintf(`%s(
@@ -120,6 +124,139 @@ func (r *TypeClassSummonContext) lookupExplicitNamedFunc(ctx SummonContext, tc m
 
 	return option.None[metafp.TypeClassInstance]()
 }
+
+func (r *TypeClassSummonContext) hlistReprType(ctx SummonContext, sf structFunctions, useMinimal bool) func() string {
+	return func() string {
+		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+		minimalpk := hlistpk
+		if useMinimal {
+			minimalpk = r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
+		}
+
+		fields := sf.fields
+
+		typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+			return v.TypeInfoExpr(ctx.working)
+		})
+
+		if typeArgs.Size() == 0 {
+			return fmt.Sprintf(`%s.Nil`, hlistpk)
+		}
+
+		hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+			return fmt.Sprintf("%s.Cons[%s,%s]", minimalpk, a.TypeName(r.w, ctx.working), b)
+		})
+
+		return hlisttp
+	}
+}
+
+func (r *TypeClassSummonContext) tupleReprType(ctx SummonContext, sf structFunctions, useMinimal bool) func() string {
+	return func() string {
+		tuplepk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		if useMinimal {
+			tuplepk = r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
+		}
+
+		fields := sf.fields
+
+		p := seq.Map(sf.typeArgs, func(f metafp.TypeInfoExpr) string {
+			return f.TypeName(r.w, ctx.working)
+		}).MakeString(",")
+
+		if sf.typeArgs.Size() == 0 {
+			return fmt.Sprintf(`%s.Unit`, tuplepk)
+		}
+
+		return fmt.Sprintf("%s.Tuple%d[%s]", tuplepk, fields.Size(), p)
+	}
+}
+
+func (r *TypeClassSummonContext) structFieldNameTypeStr(ctx SummonContext, sf structFunctions, field metafp.StructField) string {
+
+	name := field.Name
+	valueType := field.TypeInfoExpr(ctx.working).TypeName(r.w, ctx.working)
+	if sf.namedGenerated {
+		ret := publicName(name)
+		if ret == name {
+			ret = fmt.Sprintf("PubNamed%sOf%s", ret, sf.name)
+		} else {
+			ret = fmt.Sprintf("Named%sOf%s", ret, sf.name)
+		}
+
+		if isSamePkg(ctx.working, genfp.FromTypesPackage(sf.pack)) {
+			return ret
+		} else {
+			return fmt.Sprintf("%s.%s", r.w.GetImportedName(genfp.FromTypesPackage(sf.pack)), ret)
+		}
+	} else {
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+
+		return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, valueType)
+
+	}
+
+}
+func (r *TypeClassSummonContext) labelledHlistReprType(ctx SummonContext, sf structFunctions) func() string {
+	return func() string {
+		if sf.fields.Size() == 0 {
+			hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+
+			return fmt.Sprintf(`%s.Nil`, hlistpk)
+		}
+
+		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+
+		hlisttp := seq.Fold(sf.fields.Reverse(), hlistpk+".Nil", func(b string, f metafp.StructField) string {
+			return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, r.structFieldNameTypeStr(ctx, sf, f), b)
+		})
+
+		return hlisttp
+	}
+}
+
+func (r *TypeClassSummonContext) labelledTupleReprType(ctx SummonContext, sf structFunctions) func() string {
+	return func() string {
+		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+
+		names := seq.Map(sf.fields, func(v metafp.StructField) string {
+			return r.structFieldNameTypeStr(ctx, sf, v)
+		}).MakeString(",")
+
+		return fmt.Sprintf("%s.Labelled%d[%s]", fppk, sf.fields.Size(), names)
+	}
+
+}
+
+// func (r *TypeClassSummonContext) toLabelledHlistReprType(ctx SummonContext, sf structFunctions, useMinimal bool) func() string {
+// 	return func() string {
+// 		if sf.namedGenerated {
+
+// 		} else {
+// 			hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+// 			minimalpk := hlistpk
+// 			if useMinimal {
+// 				minimalpk = r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
+// 			}
+
+// 			fields := sf.fields
+
+// 			typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+// 				return v.TypeInfoExpr(ctx.working)
+// 			})
+
+// 			if typeArgs.Size() == 0 {
+// 				return fmt.Sprintf(`%s.Nil`, hlistpk)
+// 			}
+
+// 			hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
+// 				return fmt.Sprintf("%s.Cons[%s,%s]", minimalpk, a.TypeName(r.w, ctx.working), b)
+// 			})
+
+// 			return hlisttp
+// 		}
+// 	}
+// }
 
 func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctions, typeArgs fp.Seq[metafp.TypeInfoExpr]) func() string {
 	return func() string {

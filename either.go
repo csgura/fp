@@ -1,6 +1,9 @@
 package fp
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // Option 의 zero value 는 None
 // Try의 zero value 는 Failure()
@@ -48,6 +51,10 @@ func (r left[L, R]) Recover(f func() R) Either[L, R] {
 	return Right[L, R](f())
 }
 
+func (r left[L, R]) String() string {
+	return fmt.Sprintf("Left(%v)", r.v)
+}
+
 type right[L, R any] struct {
 	v R
 }
@@ -64,6 +71,10 @@ func (r right[L, R]) Left() L {
 
 func (r right[L, R]) Get() R {
 	return r.v
+}
+
+func (r right[L, R]) String() string {
+	return fmt.Sprintf("Right(%v)", r.v)
 }
 
 func (r right[L, R]) MarshalJSON() ([]byte, error) {

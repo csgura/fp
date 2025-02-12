@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/csgura/fp"
@@ -21,6 +22,20 @@ import (
 
 	"golang.org/x/tools/go/packages"
 )
+
+var isverbose = option.NonZero(os.Getenv("GOMBOK_VERBOSE")).
+	FilterNot(eq.GivenValue("false")).
+	FilterNot(eq.GivenValue("0")).
+	FilterNot(eq.GivenValue("off")).IsDefined()
+
+func verbose(formatstr string, args ...any) {
+	if isverbose {
+		_, f, l, _ := runtime.Caller(1)
+		message := fmt.Sprintf(formatstr, args...)
+		fmt.Printf("[%s:%4d] %s", path.Base(f), l, message)
+		fmt.Println()
+	}
+}
 
 func isSamePkg(p1 genfp.PackageId, p2 genfp.PackageId) bool {
 	if p1 == nil && p2 == nil {
@@ -142,9 +157,9 @@ func processDeref(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 				)
 			}
 
-			sorted := seq.Sort(rhs.Method.Iterator().ToSeq(), ord.ContraMap(ord.Given[string](), fp.Tuple2[string, *types.Func].Head))
+			sorted := seq.Sort(rhs.Method.Iterator().ToSeq(), ord.ContraMap(ord.Given[string](), fp.Entry[*types.Func].Head))
 
-			sorted.Foreach(func(t fp.Tuple2[string, *types.Func]) {
+			sorted.Foreach(func(t fp.Entry[*types.Func]) {
 				name, f := t.Unapply()
 				if ts.Info.Method.Get(name).IsEmpty() && !genMethod.Contains(name) {
 
@@ -852,16 +867,28 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[st
 			return fmt.Sprintf("%s : %s", f.I2.Name, argName)
 		}).MakeString(",\n")
 
-		fmt.Fprintf(w, `
+		if allFields.Size() > 0 {
+
+			fmt.Fprintf(w, `
 			func %s%s(%s) %s {
 				return %s {
 					%s,
 				}
 			}
 		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
-			valueType,
-			fields,
-		)
+				valueType,
+				fields,
+			)
+		} else {
+			fmt.Fprintf(w, `
+			func %s%s(%s) %s {
+				return %s {
+				}
+			}
+		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+				valueType,
+			)
+		}
 	}
 
 	return genMethod
@@ -900,16 +927,27 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.S
 			return fmt.Sprintf("%s : %s", f.I2.Name, argName)
 		}).MakeString(",\n")
 
-		fmt.Fprintf(w, `
-			func %s%s(%s) %s {
-				return %s {
-					%s,
+		if allFields.Size() > 0 {
+			fmt.Fprintf(w, `
+				func %s%s(%s) %s {
+					return %s {
+						%s,
+					}
 				}
-			}
-		`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
-			valueType,
-			fields,
-		)
+			`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+				valueType,
+				fields,
+			)
+		} else {
+			fmt.Fprintf(w, `
+				func %s%s(%s) %s {
+					return %s {
+					}
+				}
+			`, fnName, ts.Info.TypeParamDecl(w, workingPackage), tp, valueType,
+				valueType,
+			)
+		}
 	}
 
 	return genMethod

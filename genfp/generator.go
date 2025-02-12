@@ -210,13 +210,22 @@ func (r *writer) Render(templateStr string, funcs map[string]any, param map[stri
 		}
 		err := tpl.Execute(r, param)
 		if err != nil {
-			fmt.Printf("template = %s\n", templateStr)
-			panic(err)
+			lines := strings.Split(templateStr, "\n")
+			for i := range lines {
+				lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
+			}
+			log.Print(strings.Join(lines, "\n"))
+			log.Fatal("template error ", err)
+
 		}
 
 	} else {
-		fmt.Printf("template = %s\n", templateStr)
-		panic(err)
+		lines := strings.Split(templateStr, "\n")
+		for i := range lines {
+			lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
+		}
+		log.Print(strings.Join(lines, "\n"))
+		log.Fatal("template error ", err)
 	}
 }
 
@@ -545,11 +554,18 @@ type ImportPackage struct {
 	Name    string
 }
 
+func (r ImportPackage) String() string {
+	return r.Alias()
+}
+
 func (r ImportPackage) Path() string {
 	return r.Package
 }
 
 func (r ImportPackage) Alias() string {
+	if r.Name == "" {
+		return path.Base(r.Package)
+	}
 	return r.Name
 }
 

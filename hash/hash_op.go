@@ -3,6 +3,7 @@ package hash
 
 import (
 	"hash/fnv"
+	"hash/maphash"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
@@ -10,7 +11,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/seq"
 )
 
 func hashUint64(value uint64) uint32 {
@@ -38,6 +38,17 @@ func New[T any](eq fp.Eq[T], f func(T) uint32) fp.Hashable[T] {
 func Number[T fp.ImplicitNum]() fp.Hashable[T] {
 	return New(eq.Given[T](), func(key T) uint32 {
 		return hashUint64(uint64(key))
+	})
+}
+
+func Given[T comparable]() fp.Hashable[T] {
+	seed := maphash.MakeSeed()
+	return GivenSeed[T](seed)
+}
+
+func GivenSeed[T comparable](seed maphash.Seed) fp.Hashable[T] {
+	return New(eq.Given[T](), func(t T) uint32 {
+		return hashUint64(maphash.Comparable(seed, t))
 	})
 }
 
@@ -87,9 +98,11 @@ func HCons[H any, T hlist.HList](heq fp.Hashable[H], teq fp.Hashable[T]) fp.Hash
 
 func Seq[T any](hashT fp.Hashable[T]) fp.Hashable[fp.Seq[T]] {
 	return New(eq.Seq[T](hashT), func(a fp.Seq[T]) uint32 {
-		return seq.Fold(a, 0, func(h uint32, t T) uint32 {
-			return h*31 + hashT.Hash(t)
-		})
+		var h uint32
+		for _, t := range a {
+			h = h*31 + hashT.Hash(t)
+		}
+		return h
 	})
 }
 

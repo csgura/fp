@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/clone"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 	"time"
@@ -12,28 +13,28 @@ import (
 
 func CloneCloneStruct() fp.Clone[CloneStruct] {
 	return clone.Generic(
-		as.Generic(
-			"clonetest.CloneStruct",
-			"Struct",
-			CloneStruct.AsTuple,
-			fp.Compose(
+		fp.Generic[CloneStruct, fp.Tuple2[string, int]]{
+			Type: "clonetest.CloneStruct",
+			Kind: "Struct",
+			To:   CloneStruct.AsTuple,
+			From: fp.Compose(
 				as.Curried2(CloneStructBuilder.FromTuple)(CloneStructBuilder{}),
 				CloneStructBuilder.Build,
 			),
-		),
+		},
 		clone.Tuple2(clone.Given[string](), clone.Given[int]()),
 	)
 }
 
 func CloneHasReference() fp.Clone[HasReference] {
 	return clone.Generic(
-		as.Generic(
-			"clonetest.HasReference",
-			"Struct",
-			func(v HasReference) fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct] {
+		fp.Generic[HasReference, fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]]{
+			Type: "clonetest.HasReference",
+			Kind: "Struct",
+			To: func(v HasReference) fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct] {
 				return as.Tuple8(v.A, v.S, v.M, v.RD, v.T, v.MS, v.VS, v.CS)
 			},
-			func(t fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]) HasReference {
+			From: func(t fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]) HasReference {
 				return HasReference{
 					A:  t.I1,
 					S:  t.I2,
@@ -45,7 +46,7 @@ func CloneHasReference() fp.Clone[HasReference] {
 					CS: t.I8,
 				}
 			},
-		),
+		},
 		clone.Tuple8(clone.Ptr(lazy.Call(func() fp.Clone[string] {
 			return clone.Given[string]()
 		})), clone.Slice(clone.Given[int]()), clone.GoMap(clone.Given[string](), clone.Given[int]()), CloneRecursiveDerive(), clone.Given[time.Time](), CloneMySeq(), CloneValueStruct(), CloneCloneStruct()),
@@ -54,17 +55,16 @@ func CloneHasReference() fp.Clone[HasReference] {
 
 func CloneRecursiveDerive() fp.Clone[RecursiveDerive] {
 	return clone.Generic(
-		as.Generic(
-			"clonetest.RecursiveDerive",
-			"Struct",
-			fp.Compose(
+		fp.Generic[RecursiveDerive, hlist.Cons[[]string, hlist.Nil]]{
+			Type: "clonetest.RecursiveDerive",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v RecursiveDerive) fp.Tuple1[[]string] {
 					return as.Tuple1(v.S)
 				},
-				as.HList1,
+				as.HList1[[]string],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList1,
 				func(t fp.Tuple1[[]string]) RecursiveDerive {
 					return RecursiveDerive{
@@ -72,7 +72,7 @@ func CloneRecursiveDerive() fp.Clone[RecursiveDerive] {
 					}
 				},
 			),
-		),
+		},
 		clone.HCons(
 			clone.Slice(clone.Given[string]()),
 			clone.HNil,
@@ -82,31 +82,31 @@ func CloneRecursiveDerive() fp.Clone[RecursiveDerive] {
 
 func CloneMySeq() fp.Clone[MySeq] {
 	return clone.Generic(
-		as.Generic(
-			"clonetest.MySeq",
-			"NewType",
-			func(v MySeq) []string {
+		fp.Generic[MySeq, []string]{
+			Type: "clonetest.MySeq",
+			Kind: "NewType",
+			To: func(v MySeq) []string {
 				return []string(v)
 			},
-			func(v []string) MySeq {
+			From: func(v []string) MySeq {
 				return MySeq(v)
 			},
-		),
+		},
 		clone.Slice(clone.Given[string]()),
 	)
 }
 
 func CloneValueStruct() fp.Clone[ValueStruct] {
 	return clone.Generic(
-		as.Generic(
-			"clonetest.ValueStruct",
-			"Struct",
-			ValueStruct.AsTuple,
-			fp.Compose(
+		fp.Generic[ValueStruct, fp.Tuple2[string, int]]{
+			Type: "clonetest.ValueStruct",
+			Kind: "Struct",
+			To:   ValueStruct.AsTuple,
+			From: fp.Compose(
 				as.Curried2(ValueStructBuilder.FromTuple)(ValueStructBuilder{}),
 				ValueStructBuilder.Build,
 			),
-		),
+		},
 		clone.Tuple2(clone.Given[string](), clone.Given[int]()),
 	)
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
+	"time"
 )
 
 func EqWorld() fp.Eq[World] {
@@ -67,22 +68,21 @@ func DecoderWorld() js.Decoder[World] {
 
 func ShowWorld() fp.Show[World] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.World",
-			"Struct",
-			fp.Compose(
+		fp.Generic[World, hlist.Cons[string, hlist.Cons[time.Time, hlist.Cons[string, hlist.Nil]]]]{
+			Type: "testpk1.World",
+			Kind: "Struct",
+			To: fp.Compose(
 				World.AsTuple,
-				as.HList3,
+				as.HList3[string, time.Time, string],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 					WorldBuilder.Build,
 				),
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
@@ -127,30 +127,29 @@ func EqAliasedStruct() fp.Eq[AliasedStruct] {
 
 func ShowHListInsideHList() fp.Show[HListInsideHList] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.HListInsideHList",
-			"Struct",
-			fp.Compose(
+		fp.Generic[HListInsideHList, hlist.Cons[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[World, hlist.Nil]]]]{
+			Type: "testpk1.HListInsideHList",
+			Kind: "Struct",
+			To: fp.Compose(
 				HListInsideHList.AsTuple,
-				as.HList3,
+				as.HList3[fp.Tuple2[string, int], string, World],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
 					HListInsideHListBuilder.Build,
 				),
 			),
-		),
+		},
 		show.StructHCons(
 			show.Generic(
-				as.Generic(
-					"fp.Tuple2",
-					"Tuple",
-					as.HList2,
-					product.TupleFromHList2[string, int],
-				),
+				fp.Generic[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+					Type: "fp.Tuple2",
+					Kind: "Tuple",
+					To:   as.HList2[string, int],
+					From: product.TupleFromHList2[string, int],
+				},
 				show.TupleHCons(
 					show.String,
 					show.TupleHCons(
@@ -172,30 +171,29 @@ func ShowHListInsideHList() fp.Show[HListInsideHList] {
 
 func ReadHListInsideHList() read.Read[HListInsideHList] {
 	return read.Generic(
-		as.Generic(
-			"testpk1.HListInsideHList",
-			"Struct",
-			fp.Compose(
+		fp.Generic[HListInsideHList, hlist.Cons[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[World, hlist.Nil]]]]{
+			Type: "testpk1.HListInsideHList",
+			Kind: "Struct",
+			To: fp.Compose(
 				HListInsideHList.AsTuple,
-				as.HList3,
+				as.HList3[fp.Tuple2[string, int], string, World],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
 					HListInsideHListBuilder.Build,
 				),
 			),
-		),
+		},
 		read.TupleHCons(
 			read.Generic(
-				as.Generic(
-					"fp.Tuple2",
-					"Tuple",
-					as.HList2,
-					product.TupleFromHList2[string, int],
-				),
+				fp.Generic[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+					Type: "fp.Tuple2",
+					Kind: "Tuple",
+					To:   as.HList2[string, int],
+					From: product.TupleFromHList2[string, int],
+				},
 				read.TupleHCons(
 					read.String,
 					read.TupleHCons(
@@ -217,22 +215,21 @@ func ReadHListInsideHList() read.Read[HListInsideHList] {
 
 func ReadWorld() read.Read[World] {
 	return read.Generic(
-		as.Generic(
-			"testpk1.World",
-			"Struct",
-			fp.Compose(
+		fp.Generic[World, hlist.Cons[string, hlist.Cons[time.Time, hlist.Cons[string, hlist.Nil]]]]{
+			Type: "testpk1.World",
+			Kind: "Struct",
+			To: fp.Compose(
 				World.AsTuple,
-				as.HList3,
+				as.HList3[string, time.Time, string],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				fp.Compose(
 					as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
 					WorldBuilder.Build,
 				),
 			),
-		),
+		},
 		read.TupleHCons(
 			read.String,
 			read.TupleHCons(
@@ -688,10 +685,10 @@ func MonoidOver21() fp.Monoid[Over21] {
 
 func ReadOver21() read.Read[Over21] {
 	return read.Generic(
-		as.Generic(
-			"testpk1.Over21",
-			"Struct",
-			func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
+		fp.Generic[Over21, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]{
+			Type: "testpk1.Over21",
+			Kind: "Struct",
+			To: func(v Over21) hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] {
 				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29 := v.Unapply()
 				return hlist.Concat(i0,
 					hlist.Concat(i1,
@@ -755,7 +752,7 @@ func ReadOver21() read.Read[Over21] {
 					),
 				)
 			},
-			func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
+			From: func(hl0 hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Cons[int, hlist.Nil]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]) Over21 {
 				i0, hl1 := hlist.Unapply(hl0)
 				i1, hl2 := hlist.Unapply(hl1)
 				i2, hl3 := hlist.Unapply(hl2)
@@ -788,7 +785,7 @@ func ReadOver21() read.Read[Over21] {
 				i29 := hl29.Head()
 				return Over21Builder{}.Apply(i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18, i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29).Build()
 			},
-		),
+		},
 		read.TupleHCons(
 			read.Int[int](),
 			read.TupleHCons(
@@ -1256,17 +1253,16 @@ func EqLocalEmbedPrivate() fp.Eq[LocalEmbedPrivate] {
 
 func ShowUseShow() fp.Show[UseShow] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.UseShow",
-			"Struct",
-			fp.Compose(
+		fp.Generic[UseShow, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+			Type: "testpk1.UseShow",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v UseShow) fp.Tuple2[string, int] {
 					return as.Tuple2(v.hello, v.world)
 				},
-				as.HList2,
+				as.HList2[string, int],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList2,
 				func(t fp.Tuple2[string, int]) UseShow {
 					return UseShow{
@@ -1275,7 +1271,7 @@ func ShowUseShow() fp.Show[UseShow] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
@@ -1288,17 +1284,16 @@ func ShowUseShow() fp.Show[UseShow] {
 
 func ShowShowHasTypeParam() fp.Show[ShowHasTypeParam] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.ShowHasTypeParam",
-			"Struct",
-			fp.Compose(
+		fp.Generic[ShowHasTypeParam, hlist.Cons[string, hlist.Cons[int, hlist.Cons[Container[int], hlist.Nil]]]]{
+			Type: "testpk1.ShowHasTypeParam",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v ShowHasTypeParam) fp.Tuple3[string, int, Container[int]] {
 					return as.Tuple3(v.hello, v.world, v.message)
 				},
-				as.HList3,
+				as.HList3[string, int, Container[int]],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				func(t fp.Tuple3[string, int, Container[int]]) ShowHasTypeParam {
 					return ShowHasTypeParam{
@@ -1308,7 +1303,7 @@ func ShowShowHasTypeParam() fp.Show[ShowHasTypeParam] {
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
@@ -1324,17 +1319,16 @@ func ShowShowHasTypeParam() fp.Show[ShowHasTypeParam] {
 
 func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint[T]] {
 	return show.Generic(
-		as.Generic(
-			"testpk1.ShowConstraint",
-			"Struct",
-			fp.Compose(
+		fp.Generic[ShowConstraint[T], hlist.Cons[string, hlist.Cons[int, hlist.Cons[T, hlist.Nil]]]]{
+			Type: "testpk1.ShowConstraint",
+			Kind: "Struct",
+			To: fp.Compose(
 				func(v ShowConstraint[T]) fp.Tuple3[string, int, T] {
 					return as.Tuple3(v.hello, v.world, v.message)
 				},
-				as.HList3,
+				as.HList3[string, int, T],
 			),
-
-			fp.Compose(
+			From: fp.Compose(
 				product.TupleFromHList3,
 				func(t fp.Tuple3[string, int, T]) ShowConstraint[T] {
 					return ShowConstraint[T]{
@@ -1344,7 +1338,7 @@ func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint
 					}
 				},
 			),
-		),
+		},
 		show.StructHCons(
 			show.String,
 			show.StructHCons(
