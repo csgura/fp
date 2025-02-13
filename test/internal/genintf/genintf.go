@@ -34,6 +34,29 @@ type handler struct {
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
+const generateTemplate = `
+	{{$receiver := .receiver}}
+	{{$timeout := .timeout}}
+	{{$actorRef := .actorRef}}
+
+	{{range .N.Methods}}
+		// @fp.Getter
+		// @fp.AllArgsConstructor
+		type Message{{.Name}} struct {
+			{{- range .Args}}
+				{{.Name}} {{.Type | TypeDecl}}
+			{{- end}}
+			ResponseType[{{(.ReturnAt 0).Type.TypeArgAt 0 | TypeDecl}}]
+		}
+
+		func ({{$receiver}}) {{.Name}}( {{.Args | VarDecl}} ) {{.Returns | TypeDecl}} {
+			return NewMessage{{.Name}}({{.ArgsCall}}).SendRequest({{$actorRef}},{{$timeout}})
+		}
+	{{end}}
+		
+		
+`
+
 // @fp.Generate
 var _ = genfp.GenerateFromInterfaces{
 	File: "intf_generated.go",
@@ -46,26 +69,5 @@ var _ = genfp.GenerateFromInterfaces{
 		"actorRef": "r.ref",
 		"timeout":  "r.timeout",
 	},
-	Template: `
-		{{$receiver := .receiver}}
-		{{$timeout := .timeout}}
-		{{$actorRef := .actorRef}}
-
-		{{range .N.Methods}}
-			// @fp.Getter
-			// @fp.AllArgsConstructor
-			type Message{{.Name}} struct {
-				{{- range .Args}}
-					{{.Name}} {{.Type | TypeDecl}}
-				{{- end}}
-				ResponseType[{{(.ReturnAt 0).Type.TypeArgAt 0 | TypeDecl}}]
-			}
-
-			func ({{$receiver}}) {{.Name}}( {{.Args | VarDecl}} ) {{.Returns | TypeDecl}} {
-				return NewMessage{{.Name}}({{.ArgsCall}}).SendRequest({{$actorRef}},{{$timeout}})
-			}
-		{{end}}
-		
-		
-	`,
+	Template: generateTemplate,
 }

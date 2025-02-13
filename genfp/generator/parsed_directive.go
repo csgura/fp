@@ -33,12 +33,14 @@ func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
 	case *ast.Ident:
 		v, _ := evalConst(p, e)
 		if v.Kind() == constant.String {
-			return v.String(), nil
+			//fmt.Printf("eval const : %s, %T\n", v.String(), v)
+
+			return constant.StringVal(v), nil
 		}
 	case *ast.SelectorExpr:
 		v, _ := evalConst(p, e)
 		if v.Kind() == constant.String {
-			return v.String(), nil
+			return constant.StringVal(v), nil
 		}
 	}
 	return "", fmt.Errorf("can't eval %T as string", e)
@@ -144,8 +146,8 @@ func evalIntValue(p *packages.Package, e ast.Expr) (int, error) {
 	case *ast.Ident:
 		v, _ := evalConst(p, e)
 		if v.Kind() == constant.Int {
-			i, err := strconv.ParseInt(v.String(), 10, 64)
-			if err != nil {
+			i, ok := constant.Int64Val(v)
+			if !ok {
 				return 0, fmt.Errorf("can't parseInt %s", v.String())
 			}
 			return int(i), nil
@@ -153,8 +155,8 @@ func evalIntValue(p *packages.Package, e ast.Expr) (int, error) {
 	case *ast.SelectorExpr:
 		v, _ := evalConst(p, e)
 		if v.Kind() == constant.Int {
-			i, err := strconv.ParseInt(v.String(), 10, 64)
-			if err != nil {
+			i, ok := constant.Int64Val(v)
+			if !ok {
 				return 0, fmt.Errorf("can't parseInt %s", v.String())
 			}
 			return int(i), nil
