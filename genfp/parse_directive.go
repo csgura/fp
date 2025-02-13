@@ -283,6 +283,8 @@ type InterfaceMethodInfo struct {
 	// TypeDecl .Args 하면 type, type 형태로 리턴
 	Args []VarInfo
 
+	IsVariadic bool
+
 	// return type
 	// Args와 동일하게 VarDecl , TypeDecl 사용 가능
 	Returns []VarInfo

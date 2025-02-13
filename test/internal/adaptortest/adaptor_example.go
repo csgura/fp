@@ -461,3 +461,20 @@ var _ = genfp.GenerateAdaptor[Invoker]{
 	Extends:          true,
 	ExtendsSelfCheck: true,
 }
+
+type StringMaker = fmt.Stringer
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[StringMaker]{
+	File:             "example_adaptor.go",
+	Extends:          true,
+	ExtendsSelfCheck: true,
+	Options: []genfp.ImplOption{
+		{
+			Method: StringMaker.String,
+			DefaultImpl: func(self StringMaker) string {
+				return "hello world"
+			},
+		},
+	},
+}

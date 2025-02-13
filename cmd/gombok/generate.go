@@ -131,7 +131,11 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	adaptorTypeName := gad.Name
 	if adaptorTypeName == "" {
-		adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
+		if gad.TargetAlias != nil {
+			adaptorTypeName = gad.TargetAlias.Obj().Name() + "Adaptor"
+		} else {
+			adaptorTypeName = gad.Interface.Obj().Name() + "Adaptor"
+		}
 	}
 
 	fieldSet := fp.Map[string, generator.TypeReference]{}
@@ -265,7 +269,11 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 
 	extends := ""
 	if gad.Extends && !gad.ExtendsByEmbedding {
-		extends = "Extends " + w.TypeName(gad.Package, gad.Interface)
+		if gad.TargetAlias != nil {
+			extends = "Extends " + w.TypeName(gad.Package, gad.TargetAlias)
+		} else {
+			extends = "Extends " + w.TypeName(gad.Package, gad.Interface)
+		}
 	}
 
 	fieldDecl := seq.Of(extends)
@@ -607,9 +615,10 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 				retDef := iterate(rets.Len(), rets.At, convVar("ret"))
 
 				return genfp.InterfaceMethodInfo{
-					Name:    v.I1,
-					Args:    argsDef,
-					Returns: retDef,
+					Name:       v.I1,
+					Args:       argsDef,
+					Returns:    retDef,
+					IsVariadic: v.I2.Signature().Variadic(),
 				}
 			})
 
@@ -793,6 +802,9 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 
 	implArgs := option.Map(args, as.Func3(CallArgs.ArgTypeList).ApplyLast2(r.w, r.gad.Package)).Map(func(s string) string {
 		if gad.ExtendsSelfCheck {
+			if gad.TargetAlias != nil {
+				return "self " + r.w.TypeName(gad.Package, gad.TargetAlias) + "," + s
+			}
 			return "self " + r.w.TypeName(gad.Package, gad.Interface) + "," + s
 		}
 		return s
@@ -879,8 +891,9 @@ func (r *implContext) matchSuperMethodArgs(superField string) fp.Option[CallArgs
 }
 
 type typeExpr struct {
-	Type types.Type
-	Expr fp.Option[ast.Expr]
+	Type  types.Type
+	Alias *types.Alias
+	Expr  fp.Option[ast.Expr]
 }
 
 func (r typeExpr) String() string {
@@ -900,9 +913,10 @@ func (r typeExpr) TypeName(w genfp.ImportSet, wp genfp.WorkingPackage) string {
 	return w.TypeName(wp, r.Type)
 }
 
-func namedTypeExpr(tp *types.Named) typeExpr {
+func namedTypeExpr(tp *types.Named, alias *types.Alias) typeExpr {
 	return typeExpr{
-		Type: tp,
+		Type:  tp,
+		Alias: alias,
 	}
 }
 
@@ -915,9 +929,9 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 
 	availableArgs := func() fp.Seq[fp.Entry[typeExpr]] {
 		if gad.ExtendsSelfCheck {
-			return seq.Concat(as.Tuple[string, typeExpr]("self", namedTypeExpr(gad.Interface)), r.argTypes)
+			return seq.Concat(as.Tuple("self", namedTypeExpr(gad.Interface, gad.TargetAlias)), r.argTypes)
 		}
-		return seq.Concat(as.Tuple[string, typeExpr]("r", namedTypeExpr(gad.Interface)), r.argTypes)
+		return seq.Concat(as.Tuple("r", namedTypeExpr(gad.Interface, gad.TargetAlias)), r.argTypes)
 	}()
 
 	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp typeExpr) fp.Try[CallArgs] {
@@ -1237,9 +1251,14 @@ func varTypeExpr(wp genfp.WorkingPackage, t *types.Var) typeExpr {
 		return nil
 
 	}()
+	var alias *types.Alias
+	if a, ok := t.Type().(*types.Alias); ok {
+		alias = a
+	}
 	return typeExpr{
-		Type: t.Type(),
-		Expr: option.NonZero(tpExpr),
+		Alias: alias,
+		Type:  types.Unalias(t.Type()),
+		Expr:  option.NonZero(tpExpr),
 	}
 }
 
@@ -1313,7 +1332,11 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 
 	selfarg := ""
 	if gad.Self {
-		selfarg = "self " + w.TypeName(gad.Package, gad.Interface) + ","
+		if gad.TargetAlias != nil {
+			selfarg = "self " + w.TypeName(gad.Package, gad.TargetAlias) + ","
+		} else {
+			selfarg = "self " + w.TypeName(gad.Package, gad.Interface) + ","
+		}
 	}
 
 	argTypes := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) fp.Entry[typeExpr] {
@@ -1345,7 +1368,11 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 
 	implArgs := argTypeStr
 	if gad.ExtendsSelfCheck {
-		implArgs = "self " + w.TypeName(gad.Package, gad.Interface) + "," + argTypeStr
+		if gad.TargetAlias != nil {
+			implArgs = "self " + w.TypeName(gad.Package, gad.TargetAlias) + "," + argTypeStr
+		} else {
+			implArgs = "self " + w.TypeName(gad.Package, gad.Interface) + "," + argTypeStr
+		}
 	}
 
 	implName := func() string {

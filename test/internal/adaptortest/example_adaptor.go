@@ -331,3 +331,35 @@ func (r *InvokerCheckSelf) InvokeImpl(self Invoker, a1 interface{}) {
 
 	panic("InvokerCheckSelf.Invoke not implemented")
 }
+
+type StringMakerAdaptor struct {
+	Extends  StringMaker
+	DoString func() string
+}
+
+func (r *StringMakerAdaptor) String() string {
+	return r.StringImpl(r)
+}
+
+func (r *StringMakerAdaptor) StringImpl(self StringMaker) string {
+
+	if r.DoString != nil {
+		return r.DoString()
+	}
+
+	if r.Extends != nil {
+		type impl interface {
+			StringImpl(self StringMaker) string
+		}
+
+		if super, ok := r.Extends.(impl); ok {
+			return super.StringImpl(self)
+		}
+
+		return r.Extends.String()
+	}
+
+	return func(self StringMaker) string {
+		return "hello world"
+	}(self)
+}

@@ -464,6 +464,7 @@ type DelegateDirective struct {
 
 type GenerateAdaptorDirective struct {
 	Package             genfp.WorkingPackage
+	TargetAlias         *types.Alias
 	Interface           *types.Named
 	File                string
 	Name                string
@@ -609,7 +610,12 @@ func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 		return ret, fmt.Errorf("invalid number of type argument")
 	}
 
-	argType, ok := lit.Type.TypeArgs().At(0).(*types.Named)
+	aliasType, ok := lit.Type.TypeArgs().At(0).(*types.Alias)
+	if ok {
+		ret.TargetAlias = aliasType
+	}
+
+	argType, ok := types.Unalias(lit.Type.TypeArgs().At(0)).(*types.Named)
 	if !ok {
 		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
 	}
