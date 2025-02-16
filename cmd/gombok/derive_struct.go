@@ -59,8 +59,8 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 			Kind:         fp.GenericKindStruct,
 			Type:         as.Supplier1(sf.typeStr, ctx.working),
 			ReprType:     r.tupleReprType(ctx, sf, true),
-			ToReprExpr:   sf.asMinTuple,
-			FromReprExpr: sf.fromMinTuple,
+			ToReprExpr:   r.intoTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
+			FromReprExpr: r.fromTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
 			ReprExpr: func() SummonExpr {
 				return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
 			},

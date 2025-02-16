@@ -862,6 +862,10 @@ func (r TypeInfo) PkgName() string {
 	}
 	return ""
 }
+
+func (r TypeInfo) PkgId() genfp.PackageId {
+	return genfp.FromTypesPackage(r.Pkg)
+}
 func (r TypeInfo) String() string {
 	name := r.Name().OrZero()
 	if r.Pkg != nil {

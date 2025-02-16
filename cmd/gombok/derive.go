@@ -1570,22 +1570,23 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 		return as.Tuple(v.Name, v.Tag)
 	})
 
-	tupleFuncExpr := func() string {
-		return fmt.Sprintf("%s.AsTuple", typeStr(ctx.working))
-	}
-	applyFuncExpr := func() string {
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+	// tupleFuncExpr := func() string {
+	// 	return fmt.Sprintf("%s.AsTuple", typeStr(ctx.working))
+	// }
 
-		builderreceiver := builderTypeStr(ctx.working)
-		return fmt.Sprintf(`%s.Compose(
-					%s.Curried2(%s.FromTuple)(%s{}),
-					%s.Build,
-					)`,
-			fppk,
-			aspk, builderreceiver, builderreceiver, builderreceiver,
-		)
-	}
+	// applyFuncExpr := func() string {
+	// 	fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+	// 	aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+
+	// 	builderreceiver := builderTypeStr(ctx.working)
+	// 	return fmt.Sprintf(`%s.Compose(
+	// 				%s.Curried2(%s.FromTuple)(%s{}),
+	// 				%s.Build,
+	// 				)`,
+	// 		fppk,
+	// 		aspk, builderreceiver, builderreceiver, builderreceiver,
+	// 	)
+	// }
 
 	asLabelledFuncExpr := func() string {
 		return fmt.Sprintf("%s.AsLabelled", typeStr(ctx.working))
@@ -1615,42 +1616,42 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 	}
 	if !hasUnapply {
 
-		tupleFuncExpr = func() string {
-			p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-				return f.TypeName(r.w, ctx.working)
-			}).MakeString(",")
+		// tupleFuncExpr = func() string {
+		// 	p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+		// 		return f.TypeName(r.w, ctx.working)
+		// 	}).MakeString(",")
 
-			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+		// 	fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		// 	aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-			return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
-			return %s.Tuple%d(%s)
-		}`, typeStr(ctx.working), fppk, fields.Size(), p,
-				aspk, fields.Size(), seq.Map(names, func(v fieldName) string { return "v." + v.I1 }).MakeString(","),
-			)
-		}
+		// 	return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
+		// 	return %s.Tuple%d(%s)
+		// }`, typeStr(ctx.working), fppk, fields.Size(), p,
+		// 		aspk, fields.Size(), seq.Map(names, func(v fieldName) string { return "v." + v.I1 }).MakeString(","),
+		// 	)
+		// }
 
-		applyFuncExpr = func() string {
-			p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-				return f.TypeName(r.w, ctx.working)
-			}).MakeString(",")
+		// applyFuncExpr = func() string {
+		// 	p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+		// 		return f.TypeName(r.w, ctx.working)
+		// 	}).MakeString(",")
 
-			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-			//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+		// 	fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		// 	//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-			assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string {
-				return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
-			}).MakeString(",\n")
-			valuereceiver := typeStr(ctx.working)
-			return fmt.Sprintf(`func(t %s.Tuple%d[%s]) %s {
-					return %s{
-						%s,
-					}
-				}`, fppk, fields.Size(), p, valuereceiver,
-				valuereceiver,
-				assign,
-			)
-		}
+		// 	assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string {
+		// 		return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
+		// 	}).MakeString(",\n")
+		// 	valuereceiver := typeStr(ctx.working)
+		// 	return fmt.Sprintf(`func(t %s.Tuple%d[%s]) %s {
+		// 			return %s{
+		// 				%s,
+		// 			}
+		// 		}`, fppk, fields.Size(), p, valuereceiver,
+		// 		valuereceiver,
+		// 		assign,
+		// 	)
+		// }
 
 		unapplyFunc = func(structIns string) string {
 			return seq.Map(names, func(v fieldName) string { return fmt.Sprintf("%s.%s", structIns, v.I1) }).MakeString(",")
@@ -1719,56 +1720,16 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 		}
 	}
 
-	minTupleFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
-
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
-
-		args := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string { return fmt.Sprintf("I%d : v.%s", v.I1+1, v.I2.I1) }).MakeString(",\n")
-
-		return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
-			return %s.Tuple%d[%s]{
-				%s,
-			}
-		}`, typeStr(ctx.working), fppk, fields.Size(), p,
-			fppk, fields.Size(), p, args,
-		)
-	}
-
-	minApplyFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
-
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
-
-		assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string {
-			return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
-		}).MakeString(",\n")
-		valuereceiver := typeStr(ctx.working)
-		return fmt.Sprintf(`func(t %s.Tuple%d[%s]) %s {
-					return %s{
-						%s,
-					}
-				}`, fppk, fields.Size(), p, valuereceiver,
-			valuereceiver,
-			assign,
-		)
-	}
-
 	sf := structFunctions{
 		pack:           named.Package,
 		name:           named.Name,
 		tpe:            named.Info,
 		fields:         fields,
+		names:          names,
 		typeArgs:       typeArgs,
+		valueGenerated: hasUnapply,
+		builderTypeStr: builderTypeStr,
 		namedGenerated: hasAsLabelled,
-		asTuple:        tupleFuncExpr,
-		asMinTuple:     minTupleFuncExpr,
-		fromTuple:      applyFuncExpr,
-		fromMinTuple:   minApplyFuncExpr,
 		asLabelled:     asLabelledFuncExpr,
 		fromLabelled:   fromLabelledFuncExpr,
 		typeStr:        typeStr,
@@ -1804,75 +1765,40 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx SummonContext, tpe metaf
 		return as.Tuple2(v.Name, v.Tag)
 	})
 
-	tupleFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
+	// tupleFuncExpr := func() string {
+	// 	p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+	// 		return f.TypeName(r.w, ctx.working)
+	// 	}).MakeString(",")
 
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-		aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+	// 	fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+	// 	aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-		return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
-			return %s.Tuple%d(%s)
-		}`, typeStr(ctx.working), fppk, fields.Size(), p,
-			aspk, fields.Size(), seq.Map(names, func(v fieldName) string { return "v." + v.I1 }).MakeString(","),
-		)
-	}
+	// 	return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
+	// 		return %s.Tuple%d(%s)
+	// 	}`, typeStr(ctx.working), fppk, fields.Size(), p,
+	// 		aspk, fields.Size(), seq.Map(names, func(v fieldName) string { return "v." + v.I1 }).MakeString(","),
+	// 	)
+	// }
 
-	applyFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
+	// applyFuncExpr := func() string {
+	// 	p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+	// 		return f.TypeName(r.w, ctx.working)
+	// 	}).MakeString(",")
 
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+	// 	fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
-		assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string {
-			return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
-		}).MakeString(",\n")
-		return fmt.Sprintf(`func(t %s.Tuple%d[%s]) %s {
-					return %s{
-						%s,
-					}
-				}`, fppk, fields.Size(), p, typeStr(ctx.working),
-			typeStr(ctx.working),
-			assign,
-		)
-	}
-
-	minTupleFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
-
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
-
-		return fmt.Sprintf(`func( v %s) %s.Tuple%d[%s] {
-			return %s.AsTuple%d(%s)
-		}`, typeStr(ctx.working), fppk, fields.Size(), p,
-			fppk, fields.Size(), seq.Map(names, func(v fieldName) string { return "v." + v.I1 }).MakeString(","),
-		)
-	}
-
-	minApplyFuncExpr := func() string {
-		p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
-
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
-
-		assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string {
-			return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
-		}).MakeString(",\n")
-		valuereceiver := typeStr(ctx.working)
-		return fmt.Sprintf(`func(t %s.Tuple%d[%s]) %s {
-					return %s{
-						%s,
-					}
-				}`, fppk, fields.Size(), p, valuereceiver,
-			valuereceiver,
-			assign,
-		)
-	}
+	// 	assign := seq.Map(seq.ZipWithIndex(names), func(v fp.Tuple2[int, fieldName]) string {
+	// 		return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
+	// 	}).MakeString(",\n")
+	// 	return fmt.Sprintf(`func(t %s.Tuple%d[%s]) %s {
+	// 				return %s{
+	// 					%s,
+	// 				}
+	// 			}`, fppk, fields.Size(), p, typeStr(ctx.working),
+	// 		typeStr(ctx.working),
+	// 		assign,
+	// 	)
+	// }
 
 	asLabelledFuncExpr := func() string {
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
@@ -1924,14 +1850,13 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx SummonContext, tpe metaf
 	}
 
 	sf := structFunctions{
-		pack:         ctx.working.Package(),
-		tpe:          tpe,
-		fields:       fields,
-		typeArgs:     typeArgs,
-		asTuple:      tupleFuncExpr,
-		asMinTuple:   minTupleFuncExpr,
-		fromTuple:    applyFuncExpr,
-		fromMinTuple: minApplyFuncExpr,
+		pack:     ctx.working.Package(),
+		tpe:      tpe,
+		fields:   fields,
+		names:    names,
+		typeArgs: typeArgs,
+		// asTuple:      tupleFuncExpr,
+		// fromTuple:    applyFuncExpr,
 		asLabelled:   asLabelledFuncExpr,
 		fromLabelled: fromLabelledFuncExpr,
 		typeStr:      typeStr,
@@ -1955,20 +1880,15 @@ type structFunctions struct {
 	tpe            metafp.TypeInfo
 	fields         fp.Seq[metafp.StructField]
 	typeArgs       fp.Seq[metafp.TypeInfoExpr]
+	valueGenerated bool
 	namedGenerated bool
 
-	typeStr func(pk genfp.WorkingPackage) string
-
-	// func( v struct{} ) fp.Tuple2[A,B] {}
-	asTuple    func() string
-	asMinTuple func() string
+	names          fp.Seq[fp.Entry[string]]
+	typeStr        func(pk genfp.WorkingPackage) string
+	builderTypeStr func(pk genfp.WorkingPackage) string
 
 	asLabelled   func() string
 	fromLabelled func() string
-
-	// func(v fp.Tuple2[A,B]) struct{}
-	fromTuple    func() string
-	fromMinTuple func() string
 
 	// v.A , v.B
 	unapply func(structIns string) string
@@ -2009,13 +1929,14 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 			Kind:         fp.GenericKindStruct,
 			Type:         as.Supplier1(sf.typeStr, ctx.working),
 			ReprType:     r.tupleReprType(ctx, sf, false),
-			ToReprExpr:   sf.asTuple,
-			FromReprExpr: sf.fromTuple,
+			ToReprExpr:   r.intoTupleRepr(ctx, sf, tci.Result.TypeArgs.Head()),
+			FromReprExpr: r.fromTupleRepr(ctx, sf, tci.Result.TypeArgs.Head()),
 			ReprExpr: func() SummonExpr {
 				return r.exprTypeClassInstance(ctx, tci, false)
 				//return r.exprTypeClassMember(ctx, tc, result.Get(), typeArgs, option.Some(sf.tpe))
 			},
 		}
+
 	}
 
 	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe), false)
@@ -2055,7 +1976,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 				%s,
 				%s, 
 			)`, fppk,
-					sf.asTuple(),
+					r.intoTupleRepr(ctx, sf, option.None[metafp.TypeInfo]())(),
 					tupleGeneric.ToReprExpr(),
 				)
 			} else {
@@ -2095,7 +2016,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 				//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-				tupleToStruct := sf.fromTuple()
+				tupleToStruct := r.fromTupleRepr(ctx, sf, option.None[metafp.TypeInfo]())()
 				return fmt.Sprintf(`
 				%s.Compose(
 					%s, 

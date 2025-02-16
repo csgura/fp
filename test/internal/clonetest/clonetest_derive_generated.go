@@ -32,7 +32,16 @@ func CloneHasReference() fp.Clone[HasReference] {
 			Type: "clonetest.HasReference",
 			Kind: "Struct",
 			To: func(v HasReference) fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct] {
-				return as.Tuple8(v.A, v.S, v.M, v.RD, v.T, v.MS, v.VS, v.CS)
+				return fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]{
+					I1: v.A,
+					I2: v.S,
+					I3: v.M,
+					I4: v.RD,
+					I5: v.T,
+					I6: v.MS,
+					I7: v.VS,
+					I8: v.CS,
+				}
 			},
 			From: func(t fp.Tuple8[*string, []int, map[string]int, RecursiveDerive, time.Time, MySeq, ValueStruct, CloneStruct]) HasReference {
 				return HasReference{
@@ -60,7 +69,9 @@ func CloneRecursiveDerive() fp.Clone[RecursiveDerive] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v RecursiveDerive) fp.Tuple1[[]string] {
-					return as.Tuple1(v.S)
+					return fp.Tuple1[[]string]{
+						I1: v.S,
+					}
 				},
 				as.HList1[[]string],
 			),

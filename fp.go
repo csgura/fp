@@ -44,6 +44,7 @@ func (r Tuple1[T1]) String() string {
 }
 
 type Entry[V any] = Tuple2[string, V]
+type WithIndex[V any] = Tuple2[int, V]
 
 type Named interface {
 	Name() string

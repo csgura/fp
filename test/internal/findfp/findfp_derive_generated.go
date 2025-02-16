@@ -3,7 +3,6 @@ package findfp
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/test/internal/ngap"
 )
 
@@ -19,7 +18,12 @@ func SplitNgapType() ngap.Split[NgapType] {
 			}
 		},
 		func(v NgapType) fp.Tuple4[int, *int, *string, *float64] {
-			return as.Tuple4(v.Present, v.First, v.Second, v.Third)
+			return fp.Tuple4[int, *int, *string, *float64]{
+				I1: v.Present,
+				I2: v.First,
+				I3: v.Second,
+				I4: v.Third,
+			}
 		},
 	)
 }

@@ -104,7 +104,10 @@ func ShowEmbeddedStruct() mshow.Show[EmbeddedStruct] {
 				Level int
 				Stage string
 			}) minimal.Tuple2[int, string] {
-				return minimal.AsTuple2(v.Level, v.Stage)
+				return minimal.Tuple2[int, string]{
+					I1: v.Level,
+					I2: v.Stage,
+				}
 			},
 		)),
 		func(v EmbeddedStruct) minimal.Tuple2[string, struct {
@@ -134,7 +137,10 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 				Level T
 				Stage string
 			}) minimal.Tuple2[T, string] {
-				return minimal.AsTuple2(v.Level, v.Stage)
+				return minimal.Tuple2[T, string]{
+					I1: v.Level,
+					I2: v.Stage,
+				}
 			},
 		)),
 		func(v EmbeddedTypeParamStruct[T]) minimal.Tuple2[string, struct {

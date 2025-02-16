@@ -17,7 +17,11 @@ func EqNormalStruct() fp.Eq[NormalStruct] {
 	return eq.ContraMap(
 		eq.Tuple3(eq.String, eq.Given[int](), eq.String),
 		func(v NormalStruct) fp.Tuple3[string, int, string] {
-			return as.Tuple3(v.Name, v.Age, v.Address)
+			return fp.Tuple3[string, int, string]{
+				I1: v.Name,
+				I2: v.Age,
+				I3: v.Address,
+			}
 		},
 	)
 }
@@ -33,7 +37,11 @@ func MonoidNormalStruct() fp.Monoid[NormalStruct] {
 			}
 		},
 		func(v NormalStruct) fp.Tuple3[string, int, string] {
-			return as.Tuple3(v.Name, v.Age, v.Address)
+			return fp.Tuple3[string, int, string]{
+				I1: v.Name,
+				I2: v.Age,
+				I3: v.Address,
+			}
 		},
 	)
 }
@@ -45,7 +53,11 @@ func ShowNormalStruct() fp.Show[NormalStruct] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v NormalStruct) fp.Tuple3[string, int, string] {
-					return as.Tuple3(v.Name, v.Age, v.Address)
+					return fp.Tuple3[string, int, string]{
+						I1: v.Name,
+						I2: v.Age,
+						I3: v.Address,
+					}
 				},
 				as.HList3[string, int, string],
 			),
@@ -124,7 +136,10 @@ func ShowTuple2Struct() fp.Show[Tuple2Struct] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v Tuple2Struct) fp.Tuple2[string, int] {
-					return as.Tuple2(v.Name, v.Age)
+					return fp.Tuple2[string, int]{
+						I1: v.Name,
+						I2: v.Age,
+					}
 				},
 				as.HList2[string, int],
 			),
@@ -1014,14 +1029,24 @@ func EqTestpk1LegacyStruct() fp.Eq[testpk1.LegacyStruct] {
 				Hello string
 				World int
 			}) fp.Tuple2[string, int] {
-				return as.Tuple2(v.Hello, v.World)
+				return fp.Tuple2[string, int]{
+					I1: v.Hello,
+					I2: v.World,
+				}
 			},
 		)),
 		func(v testpk1.LegacyStruct) fp.Tuple3[string, int, struct {
 			Hello string
 			World int
 		}] {
-			return as.Tuple3(v.Name, v.Age, v.NoName)
+			return fp.Tuple3[string, int, struct {
+				Hello string
+				World int
+			}]{
+				I1: v.Name,
+				I2: v.Age,
+				I3: v.NoName,
+			}
 		},
 	)
 }
@@ -1046,7 +1071,10 @@ func MonoidTestpk1LegacyStruct() fp.Monoid[testpk1.LegacyStruct] {
 				Hello string
 				World int
 			}) fp.Tuple2[string, int] {
-				return as.Tuple2(v.Hello, v.World)
+				return fp.Tuple2[string, int]{
+					I1: v.Hello,
+					I2: v.World,
+				}
 			},
 		)),
 		func(t fp.Tuple3[string, int, struct {
@@ -1063,7 +1091,14 @@ func MonoidTestpk1LegacyStruct() fp.Monoid[testpk1.LegacyStruct] {
 			Hello string
 			World int
 		}] {
-			return as.Tuple3(v.Name, v.Age, v.NoName)
+			return fp.Tuple3[string, int, struct {
+				Hello string
+				World int
+			}]{
+				I1: v.Name,
+				I2: v.Age,
+				I3: v.NoName,
+			}
 		},
 	)
 }
@@ -1081,7 +1116,14 @@ func ShowTestpk1LegacyStruct() fp.Show[testpk1.LegacyStruct] {
 					Hello string
 					World int
 				}] {
-					return as.Tuple3(v.Name, v.Age, v.NoName)
+					return fp.Tuple3[string, int, struct {
+						Hello string
+						World int
+					}]{
+						I1: v.Name,
+						I2: v.Age,
+						I3: v.NoName,
+					}
 				},
 				as.HList3[string, int, struct {
 					Hello string
@@ -1119,7 +1161,10 @@ func ShowTestpk1LegacyStruct() fp.Show[testpk1.LegacyStruct] {
 									Hello string
 									World int
 								}) fp.Tuple2[string, int] {
-									return as.Tuple2(v.Hello, v.World)
+									return fp.Tuple2[string, int]{
+										I1: v.Hello,
+										I2: v.World,
+									}
 								},
 								as.HList2[string, int],
 							),
@@ -1240,7 +1285,10 @@ func MonoidTestpk1LegacyStructCompose() fp.Monoid[testpk1.LegacyStructCompose] {
 			}
 		},
 		func(v testpk1.LegacyStructCompose) fp.Tuple2[testpk1.LegacyStruct, string] {
-			return as.Tuple2(v.Person, v.Phone)
+			return fp.Tuple2[testpk1.LegacyStruct, string]{
+				I1: v.Person,
+				I2: v.Phone,
+			}
 		},
 	)
 }
@@ -1249,7 +1297,10 @@ func EqTestpk1LegacyPhoneBook() fp.Eq[testpk1.LegacyPhoneBook] {
 	return eq.ContraMap(
 		eq.Tuple2(eq.Given[testpk1.LegacyPerson](), eq.String),
 		func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
-			return as.Tuple2(v.Person, v.Phone)
+			return fp.Tuple2[testpk1.LegacyPerson, string]{
+				I1: v.Person,
+				I2: v.Phone,
+			}
 		},
 	)
 }
@@ -1264,7 +1315,10 @@ func MonoidTestpk1LegacyPhoneBook() fp.Monoid[testpk1.LegacyPhoneBook] {
 			}
 		},
 		func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
-			return as.Tuple2(v.Person, v.Phone)
+			return fp.Tuple2[testpk1.LegacyPerson, string]{
+				I1: v.Person,
+				I2: v.Phone,
+			}
 		},
 	)
 }
@@ -1276,7 +1330,10 @@ func ShowTestpk1LegacyPhoneBook() fp.Show[testpk1.LegacyPhoneBook] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v testpk1.LegacyPhoneBook) fp.Tuple2[testpk1.LegacyPerson, string] {
-					return as.Tuple2(v.Person, v.Phone)
+					return fp.Tuple2[testpk1.LegacyPerson, string]{
+						I1: v.Person,
+						I2: v.Phone,
+					}
 				},
 				as.HList2[testpk1.LegacyPerson, string],
 			),
@@ -1323,7 +1380,11 @@ func EqLocalPhoneBook() fp.Eq[LocalPhoneBook] {
 	return eq.ContraMap(
 		eq.Tuple3(eq.Given[LocalPerson](), eq.String, eq.Given[StringAlias]()),
 		func(v LocalPhoneBook) fp.Tuple3[LocalPerson, string, StringAlias] {
-			return as.Tuple3(v.Person, v.Phone, v.Alias)
+			return fp.Tuple3[LocalPerson, string, StringAlias]{
+				I1: v.Person,
+				I2: v.Phone,
+				I3: v.Alias,
+			}
 		},
 	)
 }
@@ -1339,7 +1400,11 @@ func MonoidLocalPhoneBook() fp.Monoid[LocalPhoneBook] {
 			}
 		},
 		func(v LocalPhoneBook) fp.Tuple3[LocalPerson, string, StringAlias] {
-			return as.Tuple3(v.Person, v.Phone, v.Alias)
+			return fp.Tuple3[LocalPerson, string, StringAlias]{
+				I1: v.Person,
+				I2: v.Phone,
+				I3: v.Alias,
+			}
 		},
 	)
 }
@@ -1351,7 +1416,11 @@ func ShowLocalPhoneBook() fp.Show[LocalPhoneBook] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v LocalPhoneBook) fp.Tuple3[LocalPerson, string, StringAlias] {
-					return as.Tuple3(v.Person, v.Phone, v.Alias)
+					return fp.Tuple3[LocalPerson, string, StringAlias]{
+						I1: v.Person,
+						I2: v.Phone,
+						I3: v.Alias,
+					}
 				},
 				as.HList3[LocalPerson, string, StringAlias],
 			),
@@ -1433,7 +1502,10 @@ func MonoidTestpk1LegacyPerson() fp.Monoid[testpk1.LegacyPerson] {
 			}
 		},
 		func(v testpk1.LegacyPerson) fp.Tuple2[string, int] {
-			return as.Tuple2(v.Name, v.Age)
+			return fp.Tuple2[string, int]{
+				I1: v.Name,
+				I2: v.Age,
+			}
 		},
 	)
 }
@@ -1448,7 +1520,10 @@ func MonoidLocalPerson() fp.Monoid[LocalPerson] {
 			}
 		},
 		func(v LocalPerson) fp.Tuple2[string, int] {
-			return as.Tuple2(v.Name, v.age)
+			return fp.Tuple2[string, int]{
+				I1: v.Name,
+				I2: v.age,
+			}
 		},
 	)
 }

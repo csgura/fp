@@ -1177,14 +1177,25 @@ func EqLegacyStruct() fp.Eq[LegacyStruct] {
 				Hello string
 				World int
 			}) fp.Tuple2[string, int] {
-				return as.Tuple2(v.Hello, v.World)
+				return fp.Tuple2[string, int]{
+					I1: v.Hello,
+					I2: v.World,
+				}
 			},
 		)),
 		func(v LegacyStruct) fp.Tuple4[string, int, string, struct {
 			Hello string
 			World int
 		}] {
-			return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
+			return fp.Tuple4[string, int, string, struct {
+				Hello string
+				World int
+			}]{
+				I1: v.Name,
+				I2: v.Age,
+				I3: v.privacy,
+				I4: v.NoName,
+			}
 		},
 	)
 }
@@ -1239,14 +1250,25 @@ func EqLocalEmbedPrivate() fp.Eq[LocalEmbedPrivate] {
 				Hello string
 				world int
 			}) fp.Tuple2[string, int] {
-				return as.Tuple2(v.Hello, v.world)
+				return fp.Tuple2[string, int]{
+					I1: v.Hello,
+					I2: v.world,
+				}
 			},
 		)),
 		func(v LocalEmbedPrivate) fp.Tuple4[string, int, string, struct {
 			Hello string
 			world int
 		}] {
-			return as.Tuple4(v.Name, v.Age, v.privacy, v.NoName)
+			return fp.Tuple4[string, int, string, struct {
+				Hello string
+				world int
+			}]{
+				I1: v.Name,
+				I2: v.Age,
+				I3: v.privacy,
+				I4: v.NoName,
+			}
 		},
 	)
 }
@@ -1258,7 +1280,10 @@ func ShowUseShow() fp.Show[UseShow] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v UseShow) fp.Tuple2[string, int] {
-					return as.Tuple2(v.hello, v.world)
+					return fp.Tuple2[string, int]{
+						I1: v.hello,
+						I2: v.world,
+					}
 				},
 				as.HList2[string, int],
 			),
@@ -1289,7 +1314,11 @@ func ShowShowHasTypeParam() fp.Show[ShowHasTypeParam] {
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v ShowHasTypeParam) fp.Tuple3[string, int, Container[int]] {
-					return as.Tuple3(v.hello, v.world, v.message)
+					return fp.Tuple3[string, int, Container[int]]{
+						I1: v.hello,
+						I2: v.world,
+						I3: v.message,
+					}
 				},
 				as.HList3[string, int, Container[int]],
 			),
@@ -1324,7 +1353,11 @@ func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint
 			Kind: "Struct",
 			To: fp.Compose(
 				func(v ShowConstraint[T]) fp.Tuple3[string, int, T] {
-					return as.Tuple3(v.hello, v.world, v.message)
+					return fp.Tuple3[string, int, T]{
+						I1: v.hello,
+						I2: v.world,
+						I3: v.message,
+					}
 				},
 				as.HList3[string, int, T],
 			),
