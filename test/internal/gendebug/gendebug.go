@@ -1,17 +1,15 @@
 package gendebug
 
 import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/clone"
+	"github.com/csgura/fp/hlist"
+	"github.com/csgura/fp/mshow"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type MySeq []string
-
-type HasReference struct {
-	MS MySeq
+type HasTuple struct {
+	HList hlist.Cons[string, hlist.Cons[int, hlist.Nil]]
 }
 
-// @fp.Derive(recursive=true)
-var _ clone.Derives[fp.Clone[HasReference]]
+// @fp.Derive
+var _ mshow.Derives[mshow.Show[HasTuple]]

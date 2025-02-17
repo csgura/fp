@@ -695,9 +695,11 @@ func isRecursiveDerivable(req metafp.RequiredInstance) bool {
 
 func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonContext, req metafp.RequiredInstance, strict bool, name ...string) fp.Option[DefinedInstance] {
 
+	f := req.Type
+
+	verbose("lokkup tc instance %s[%s] in primitive pkg, name first = %s, f.TypeArgs.Size = %d", req.TypeClass.Name, req.Type, as.Seq(name).MakeString(","), f.TypeArgs.Size())
 	scope := ctx.primScope(r.tcCache, req.TypeClass)
 
-	f := req.Type
 	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
 		ret := seq.Of(
 			req.TypeClass.Name+publicName(v),

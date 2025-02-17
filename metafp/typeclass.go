@@ -1204,11 +1204,20 @@ func LoadTypeClassInstance(pk *types.Package, tc TypeClass) TypeClassInstancesOf
 
 	}
 	ret.All = seq.Sort(ret.All, OrdTypeClassInstance)
+	ret.WithNamedArg = seq.Sort(ret.WithNamedArg, OrdTypeClassInstance)
 	// ord := seq.Map(ret.All, func(v TypeClassInstance) string {
 	// 	return v.Name
 	// }).MakeString(",")
 	// fmt.Printf("%s sorted =%s\n", tc.Name, ord)
 	return ret
+}
+
+func rank(v TypeInfo) int {
+	if v.TypeArgs.Size() == 0 {
+		return 1
+	}
+
+	return 1 + rank(v.TypeArgs.Head().Get())
 }
 
 var OrdTypeClassInstance = as.Ord(func(a, b TypeClassInstance) bool {
@@ -1227,6 +1236,17 @@ var OrdTypeClassInstance = as.Ord(func(a, b TypeClassInstance) bool {
 		return types.Implements(consA, consB.(*types.Interface))
 
 	}
-	return a.RequiredInstance.Size() < b.RequiredInstance.Size()
+	if a.RequiredInstance.Size() < b.RequiredInstance.Size() {
+		return true
+	}
 
+	if rank(a.Result) > rank(b.Result) {
+		return true
+	}
+
+	if strings.HasPrefix(a.Name, b.Name) {
+		return true
+	}
+
+	return len(a.Name) > len(b.Name)
 })
