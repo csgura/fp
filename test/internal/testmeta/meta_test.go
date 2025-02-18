@@ -381,3 +381,89 @@ func TestShowAny(t *testing.T) {
 	should.BeSome(t, checked)
 
 }
+
+func TestTupleConstraint(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fn := pkgs[0].Types.Scope().Lookup("Struct1Any")
+
+	ft := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("ContainerTuple").Type())
+
+	tc := metafp.AsTypeClassInstance(metafp.TypeClass{
+		Name:    "Show",
+		Package: genfp.NewImportPackage("github.com/csgura/fp/mshow", "mshow"),
+	}, fn)
+	should.BeSome(t, tc)
+
+	res := tc.Get().Check(ft)
+	should.BeSome(t, res)
+
+	fn = pkgs[0].Types.Scope().Lookup("Struct1Closer")
+
+	tc = metafp.AsTypeClassInstance(metafp.TypeClass{
+		Name:    "Show",
+		Package: genfp.NewImportPackage("github.com/csgura/fp/mshow", "mshow"),
+	}, fn)
+	should.BeSome(t, tc)
+
+	res = tc.Get().Check(ft)
+	should.BeSome(t, res)
+
+}
+
+func TestTupleSliceConstraint(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fn := pkgs[0].Types.Scope().Lookup("Struct1CloserSlice")
+
+	ft := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("ContainerListTuple").Type())
+
+	tc := metafp.AsTypeClassInstance(metafp.TypeClass{
+		Name:    "Show",
+		Package: genfp.NewImportPackage("github.com/csgura/fp/mshow", "mshow"),
+	}, fn)
+	should.BeSome(t, tc)
+
+	res := tc.Get().Check(ft)
+	should.BeSome(t, res)
+
+}
+
+func TestTupleSlicePtrConstraint(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fn := pkgs[0].Types.Scope().Lookup("Struct1CloserSlice")
+
+	ft := metafp.GetTypeInfo(pkgs[0].Types.Scope().Lookup("PtCloserListTuple").Type())
+
+	tc := metafp.AsTypeClassInstance(metafp.TypeClass{
+		Name:    "Show",
+		Package: genfp.NewImportPackage("github.com/csgura/fp/mshow", "mshow"),
+	}, fn)
+	should.BeSome(t, tc)
+
+	res := tc.Get().Check(ft)
+	should.BeNone(t, res)
+
+}

@@ -2,6 +2,7 @@ package testmeta
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
@@ -105,4 +106,40 @@ func ShowAny[T any]() fp.Show[T] {
 	return fshow.New(func(t T) string {
 		return fmt.Sprint(t)
 	})
+}
+
+type Container struct {
+	message string
+}
+
+func (r Container) Close() error {
+	return nil
+}
+
+type PtCloser struct {
+	message string
+}
+
+func (r *PtCloser) Close() error {
+	return nil
+}
+
+var ContainerTuple fp.Tuple1[Container]
+var ContainerListTuple fp.Tuple1[[]Container]
+var PtCloserListTuple fp.Tuple1[[]PtCloser]
+
+func Struct1Closer[A io.Closer](ashow mshow.Show[A]) mshow.Show[fp.Tuple1[A]] {
+	panic("")
+}
+
+func Struct1Any[A any](ashow mshow.Show[A]) mshow.Show[fp.Tuple1[A]] {
+	panic("")
+}
+
+func Struct1CloserSlice[A io.Closer](ashow mshow.Show[A]) mshow.Show[fp.Tuple1[[]A]] {
+	panic("")
+}
+
+func instantiate() {
+	// Struct1Closer[PtCloser](nil)
 }

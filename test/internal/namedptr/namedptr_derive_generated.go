@@ -2,6 +2,7 @@
 package namedptr
 
 import (
+	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/minimal"
@@ -24,6 +25,36 @@ func ValidatorHello() Validator[Hello] {
 			h1 := minimal.Concat(i1, h2)
 			h0 := minimal.Concat(i0, h1)
 			return h0
+		},
+	)
+}
+
+func ValidatorContainer() Validator[Container] {
+	return ContraGeneric(
+		"namedptr.Container",
+		"Struct",
+		StructHCons(
+			NamedSlice(as.NameTag(`List`, ``), ValidatorValue()),
+			HNil,
+		),
+		func(v Container) minimal.Cons[[]Value, hlist.Nil] {
+			i0 := v.List
+			h1 := hlist.Empty()
+			h0 := minimal.Concat(i0, h1)
+			return h0
+		},
+	)
+}
+
+func ValidatorValue() Validator[Value] {
+	return ContraGeneric(
+		"namedptr.Value",
+		"Struct",
+		Struct1Container(Int),
+		func(v Value) fp.Tuple1[int] {
+			return fp.Tuple1[int]{
+				I1: v.Present,
+			}
 		},
 	)
 }

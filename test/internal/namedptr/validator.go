@@ -64,6 +64,12 @@ var Int = New(func(t int) error {
 	return nil
 })
 
+func Struct1Container[T any](v Validator[T]) Validator[fp.Tuple1[T]] {
+	return New(func(t fp.Tuple1[T]) error {
+		return nil
+	})
+}
+
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Derive
@@ -73,3 +79,14 @@ type Hello struct {
 	v int
 	s []int
 }
+
+type Container struct {
+	List []Value
+}
+
+type Value struct {
+	Present int
+}
+
+// @fp.Derive(recursive=true)
+var _ Derives[Validator[Container]]

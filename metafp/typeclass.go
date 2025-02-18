@@ -636,6 +636,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 		ctx.ParamMapping = ctx.ParamMapping.Concat(mutable.MapOf(mapping))
 		return ctx
 	}
+	//verbose("instantiate error. sig = %s, param = %s,  err = %T(%s)", sig, paramIns, err, err)
 
 	return ctx.Failed(err)
 }
@@ -677,7 +678,7 @@ func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 	if ret.IsDefined() {
 		argType := r.Result.TypeArgs.Head().Get()
 
-		verbose("check %s.%s : %t(%s), %d with type %s -> %t", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
+		verbose("check %s.%s result : %t(%s), %d with type %s -> %t", r.Package.Name(), r.Name, argType.IsTypeParam(), argType, argType.TypeArgs.Size(), t, ret.IsDefined())
 	}
 
 	return ret
