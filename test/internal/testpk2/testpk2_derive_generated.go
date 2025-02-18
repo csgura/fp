@@ -9,7 +9,6 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/read"
 	"github.com/csgura/fp/test/internal/show"
@@ -131,14 +130,12 @@ func DecoderThree() js.Decoder[Three] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList3,
-			fp.Compose(
-				as.Curried2(ThreeBuilder.FromLabelled)(ThreeBuilder{}),
-				ThreeBuilder.Build,
-			),
-		),
+		func(hl0 hlist.Cons[NamedOneOfThree, hlist.Cons[NamedTwoOfThree, hlist.Cons[NamedThreeOfThree, hlist.Nil]]]) Three {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2 := hlist.Head(hl2)
+			return ThreeBuilder{}.Apply(i0.Value(), i1.Value(), i2.Value()).Build()
+		},
 	)
 }
 

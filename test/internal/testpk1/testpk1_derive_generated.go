@@ -61,14 +61,12 @@ func DecoderWorld() js.Decoder[World] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList3,
-			fp.Compose(
-				as.Curried2(WorldBuilder.FromLabelled)(WorldBuilder{}),
-				WorldBuilder.Build,
-			),
-		),
+		func(hl0 hlist.Cons[NamedMessageOfWorld, hlist.Cons[NamedTimestampOfWorld, hlist.Cons[PubNamedPubOfWorld, hlist.Nil]]]) World {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2 := hlist.Head(hl2)
+			return WorldBuilder{}.Apply(i0.Value(), i1.Value(), i2.Value()).Build()
+		},
 	)
 }
 
@@ -1102,7 +1100,7 @@ func DecoderOver21() js.Decoder[Over21] {
 			i26, hl27 := hlist.Unapply(hl26)
 			i27, hl28 := hlist.Unapply(hl27)
 			i28, hl29 := hlist.Unapply(hl28)
-			i29 := hl29.Head()
+			i29 := hlist.Head(hl29)
 			return Over21Builder{}.Apply(i0.Value(), i1.Value(), i2.Value(), i3.Value(), i4.Value(), i5.Value(), i6.Value(), i7.Value(), i8.Value(), i9.Value(), i10.Value(), i11.Value(), i12.Value(), i13.Value(), i14.Value(), i15.Value(), i16.Value(), i17.Value(), i18.Value(), i19.Value(), i20.Value(), i21.Value(), i22.Value(), i23.Value(), i24.Value(), i25.Value(), i26.Value(), i27.Value(), i28.Value(), i29.Value()).Build()
 		},
 	)
@@ -1168,16 +1166,16 @@ func DecoderLegacyStruct() js.Decoder[LegacyStruct] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList4,
-			func(t fp.Labelled4[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string], fp.RuntimeNamed[struct {
-				Hello string
-				World int
-			}]]) LegacyStruct {
-				return LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value(), privacy: t.I3.Value(), NoName: t.I4.Value()}
-			},
-		),
+		func(hl0 hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}], hlist.Nil]]]]) LegacyStruct {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2, hl3 := hlist.Unapply(hl2)
+			i3 := hlist.Head(hl3)
+			return LegacyStruct{Name: i0.Value(), Age: i1.Value(), privacy: i2.Value(), NoName: i3.Value()}
+		},
 	)
 }
 

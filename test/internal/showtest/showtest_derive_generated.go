@@ -210,12 +210,10 @@ func ShowNoDerive() fp.Show[NoDerive] {
 					hlist.Empty(),
 				)
 			},
-			From: fp.Compose(
-				product.LabelledFromHList1,
-				func(t fp.Labelled1[fp.RuntimeNamed[string]]) NoDerive {
-					return NoDerive{Hello: t.I1.Value()}
-				},
-			),
+			From: func(hl0 hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]) NoDerive {
+				i0 := hlist.Head(hl0)
+				return NoDerive{Hello: i0.Value()}
+			},
 		},
 		show.HConsLabelled(
 			show.Named[fp.RuntimeNamed[string]](show.String),

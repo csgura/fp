@@ -6,7 +6,6 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 )
 
@@ -91,14 +90,17 @@ func DecoderRoot() js.Decoder[Root] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList8,
-			fp.Compose(
-				as.Curried2(RootBuilder.FromLabelled)(RootBuilder{}),
-				RootBuilder.Build,
-			),
-		),
+		func(hl0 hlist.Cons[NamedAOfRoot, hlist.Cons[NamedBOfRoot, hlist.Cons[NamedCOfRoot, hlist.Cons[NamedDOfRoot, hlist.Cons[NamedEOfRoot, hlist.Cons[NamedFOfRoot, hlist.Cons[NamedGOfRoot, hlist.Cons[NamedHOfRoot, hlist.Nil]]]]]]]]) Root {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2, hl3 := hlist.Unapply(hl2)
+			i3, hl4 := hlist.Unapply(hl3)
+			i4, hl5 := hlist.Unapply(hl4)
+			i5, hl6 := hlist.Unapply(hl5)
+			i6, hl7 := hlist.Unapply(hl6)
+			i7 := hlist.Head(hl7)
+			return RootBuilder{}.Apply(i0.Value(), i1.Value(), i2.Value(), i3.Value(), i4.Value(), i5.Value(), i6.Value(), i7.Value()).Build()
+		},
 	)
 }
 
@@ -209,13 +211,9 @@ func DecoderNoPrivate() js.Decoder[NoPrivate] {
 			js.DecoderNamed[PubNamedRootOfNoPrivate](js.DecoderString),
 			js.DecoderHNil,
 		),
-
-		fp.Compose(
-			product.LabelledFromHList1,
-			fp.Compose(
-				as.Curried2(NoPrivateBuilder.FromLabelled)(NoPrivateBuilder{}),
-				NoPrivateBuilder.Build,
-			),
-		),
+		func(hl0 hlist.Cons[PubNamedRootOfNoPrivate, hlist.Nil]) NoPrivate {
+			i0 := hlist.Head(hl0)
+			return NoPrivateBuilder{}.Apply(i0.Value()).Build()
+		},
 	)
 }

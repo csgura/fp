@@ -5,7 +5,6 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/hlist"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/show"
 )
 
@@ -37,12 +36,10 @@ func ShowWorld() fp.Show[World] {
 					hlist.Empty(),
 				)
 			},
-			From: fp.Compose(
-				product.LabelledFromHList1,
-				func(t fp.Labelled1[fp.RuntimeNamed[string]]) World {
-					return World{Loc: t.I1.Value()}
-				},
-			),
+			From: func(hl0 hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]) World {
+				i0 := hlist.Head(hl0)
+				return World{Loc: i0.Value()}
+			},
 		},
 		show.HConsLabelled(
 			show.Named[fp.RuntimeNamed[string]](show.String),

@@ -103,57 +103,79 @@ func (r *TypeClassSummonContext) toLabelledHlistRepr(ctx SummonContext, sf struc
 }
 
 func (r *TypeClassSummonContext) fromLabelledHlistRepr(ctx SummonContext, sf structFunctions, constp fp.Option[metafp.TypeInfo]) func() string {
-	return func() string {
-		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+	type fieldName = fp.Entry[string]
 
-		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-		conspk := r.w.GetImportedName(conspkid)
+	return func() string {
 
 		if sf.typeArgs.Size() == 0 {
+			hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 			valuereceiver := sf.typeStr(ctx.working)
 			return fmt.Sprintf(`func (%s.Nil) %s{
 							return %s{}
 						}`, hlistpk, valuereceiver, valuereceiver)
-		}
+			// } else if sf.typeArgs.Size() < max.Product {
 
-		headfield, tailfield := func() (string, string) {
+			// 	arity := fp.Min(typeArgs.Size(), max.Product-1)
+			// 	//arity := typeArgs.Size()
 
-			if constp.IsDefined() {
-				ct := constp.Get()
-				if ct.Fields().Size() == 2 {
-					if ct.Fields()[0].Public() && ct.Fields()[1].Public() {
-						return ct.Fields()[0].Name, ct.Fields()[1].Name
-					}
-				}
-			}
-			return "", ""
-		}()
+			// 	fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+			// 	productpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/product", "product"))
 
-		hlisttp := seq.Fold(sf.typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
-			return fmt.Sprintf("%s.Cons[%s,%s]", conspk, a.TypeName(r.w, ctx.working), b)
-		})
+			// 	namedTypeArgs := seq.Zip(names, typeArgs)
 
-		expr := seq.Map(iterator.Range(0, sf.typeArgs.Size()).ToSeq(), func(idx int) string {
-			if headfield != "" {
+			// 	hlistToTuple := func() string {
+			// 		if r.implicitTypeInference {
+			// 			return fmt.Sprintf(`%s.LabelledFromHList%d`,
+			// 				productpk,
+			// 				arity,
+			// 			)
+			// 		} else {
+			// 			tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
+			// 				return r.namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, f.I1.I1, sf.namedGenerated, f.I2)
+			// 			}).Take(arity).MakeString(",")
+
+			// 			return fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
+			// 				productpk,
+			// 				arity, tp,
+			// 			)
+			// 		}
+			// 	}()
+
+			// 	tupleToStruct := r.fromLabelledTupleRepr(ctx, sf)()
+			// 	return fmt.Sprintf(`
+			// 				%s.Compose(
+			// 					%s,
+			// 					%s ,
+			// 				)`, fppk, hlistToTuple, tupleToStruct)
+		} else {
+			nilpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+
+			conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+			conspk := r.w.GetImportedName(conspkid)
+
+			namedTypeArgs := seq.Zip(sf.names, sf.typeArgs)
+
+			hlisttp := seq.Fold(namedTypeArgs.Reverse(), nilpk+".Nil", func(b string, t2 fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
+				name, a := t2.Unapply()
+				return fmt.Sprintf("%s.Cons[%s,%s]", conspk, r.namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, name.I1, sf.namedGenerated, a), b)
+			})
+
+			expr := seq.Map(iterator.Range(0, sf.typeArgs.Size()).ToSeq(), func(idx int) string {
 				if idx == sf.typeArgs.Size()-1 {
-					return fmt.Sprintf(`i%d := hl%d.%s`, idx, idx, headfield)
+					return fmt.Sprintf(`i%d := %s.Head(hl%d)`, idx, conspk, idx)
 				}
-				return fmt.Sprintf(`i%d , hl%d := hl%d.%s, hl%d.%s`, idx, idx+1, idx, headfield, idx, tailfield)
-			}
-			if idx == sf.typeArgs.Size()-1 {
-				return fmt.Sprintf(`i%d := %s.Head(hl%d)`, idx, conspk, idx)
-			}
-			return fmt.Sprintf(`i%d , hl%d := %s.Unapply(hl%d)`, idx, idx+1, conspk, idx)
-		}).MakeString("\n")
+				return fmt.Sprintf(`i%d , hl%d := %s.Unapply(hl%d)`, idx, idx+1, conspk, idx)
+			}).MakeString("\n")
 
-		arglist := seq.Map(iterator.Range(0, sf.typeArgs.Size()).ToSeq(), func(idx int) string {
-			return fmt.Sprintf("i%d", idx)
-		})
-		return fmt.Sprintf(`func(hl0 %s) %s {
-		%s
-		return %s
-	}`, hlisttp, sf.typeStr(ctx.working),
-			expr,
-			sf.apply(arglist))
+			arglist := seq.Map(iterator.Range(0, sf.typeArgs.Size()).ToSeq(), func(idx int) string {
+				return fmt.Sprintf("i%d.Value()", idx)
+			})
+			return fmt.Sprintf(`func(hl0 %s) %s {
+								%s
+								return %s
+							}`, hlisttp, sf.typeStr(ctx.working),
+				expr,
+				sf.apply(arglist))
+		}
 	}
 }

@@ -1362,78 +1362,11 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 	}).Or(func() fp.Option[GenericRepr] {
 		return option.Map(r.lookupTypeClassFunc(ctx, tc, "HConsLabelled"), func(hcons metafp.TypeClassInstance) GenericRepr {
 			return GenericRepr{
-				Kind:       fp.GenericKindStruct,
-				Type:       as.Supplier1(sf.typeStr, ctx.working),
-				ReprType:   r.labelledHlistReprType(ctx, sf),
-				ToReprExpr: r.toLabelledHlistRepr(ctx, sf, hcons.Result.TypeArgs.Head()),
-				FromReprExpr: func() string {
-					if typeArgs.Size() == 0 {
-						hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-						valuereceiver := sf.typeStr(ctx.working)
-						return fmt.Sprintf(`func (%s.Nil) %s{
-							return %s{}
-						}`, hlistpk, valuereceiver, valuereceiver)
-					} else if typeArgs.Size() < max.Product {
-						arity := fp.Min(typeArgs.Size(), max.Product-1)
-						//arity := typeArgs.Size()
-
-						fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-						productpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/product", "product"))
-
-						namedTypeArgs := seq.Zip(names, typeArgs)
-
-						hlistToTuple := func() string {
-							if r.implicitTypeInference {
-								return fmt.Sprintf(`%s.LabelledFromHList%d`,
-									productpk,
-									arity,
-								)
-							} else {
-								tp := seq.Map(namedTypeArgs, func(f fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
-									return r.namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, f.I1.I1, sf.namedGenerated, f.I2)
-								}).Take(arity).MakeString(",")
-
-								return fmt.Sprintf(`%s.LabelledFromHList%d[%s]`,
-									productpk,
-									arity, tp,
-								)
-							}
-						}()
-
-						tupleToStruct := r.fromLabelledTupleRepr(ctx, sf)()
-						return fmt.Sprintf(`
-						%s.Compose(
-							%s, 
-							%s ,
-						)`, fppk, hlistToTuple, tupleToStruct)
-					} else {
-						hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-
-						namedTypeArgs := seq.Zip(names, typeArgs)
-
-						hlisttp := seq.Fold(namedTypeArgs.Reverse(), hlistpk+".Nil", func(b string, t2 fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
-							name, a := t2.Unapply()
-							return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, r.namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, name.I1, sf.namedGenerated, a), b)
-						})
-
-						expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
-							if idx == typeArgs.Size()-1 {
-								return fmt.Sprintf(`i%d := hl%d.Head()`, idx, idx)
-							}
-							return fmt.Sprintf(`i%d , hl%d := %s.Unapply(hl%d)`, idx, idx+1, hlistpk, idx)
-						}).MakeString("\n")
-
-						arglist := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
-							return fmt.Sprintf("i%d.Value()", idx)
-						})
-						return fmt.Sprintf(`func(hl0 %s) %s {
-								%s
-								return %s
-							}`, hlisttp, sf.typeStr(ctx.working),
-							expr,
-							sf.apply(arglist))
-					}
-				},
+				Kind:         fp.GenericKindStruct,
+				Type:         as.Supplier1(sf.typeStr, ctx.working),
+				ReprType:     r.labelledHlistReprType(ctx, sf),
+				ToReprExpr:   r.toLabelledHlistRepr(ctx, sf, hcons.Result.TypeArgs.Head()),
+				FromReprExpr: r.fromLabelledHlistRepr(ctx, sf, hcons.Result.TypeArgs.Head()),
 				ReprExpr: func() SummonExpr {
 					//arity := fp.Min(typeArgs.Size(), max.Product-1)
 					arity := typeArgs.Size()

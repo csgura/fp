@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/monoid"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 	"github.com/csgura/fp/test/internal/testpk1"
@@ -116,13 +115,12 @@ func DecoderNormalStruct() js.Decoder[NormalStruct] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList3,
-			func(t fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]]) NormalStruct {
-				return NormalStruct{Name: t.I1.Value(), Age: t.I2.Value(), Address: t.I3.Value()}
-			},
-		),
+		func(hl0 hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]]]) NormalStruct {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2 := hlist.Head(hl2)
+			return NormalStruct{Name: i0.Value(), Age: i1.Value(), Address: i2.Value()}
+		},
 	)
 }
 
@@ -919,7 +917,7 @@ func DecoderOver21[T any](decoderT js.Decoder[T]) js.Decoder[Over21[T]] {
 			i26, hl27 := hlist.Unapply(hl26)
 			i27, hl28 := hlist.Unapply(hl27)
 			i28, hl29 := hlist.Unapply(hl28)
-			i29 := hl29.Head()
+			i29 := hlist.Head(hl29)
 			return Over21[T]{I1: i0.Value(), I2: i1.Value(), I3: i2.Value(), I4: i3.Value(), I5: i4.Value(), I6: i5.Value(), I7: i6.Value(), I8: i7.Value(), I9: i8.Value(), I10: i9.Value(), I11: i10.Value(), I12: i11.Value(), I13: i12.Value(), I14: i13.Value(), I15: i14.Value(), I16: i15.Value(), I17: i16.Value(), I18: i17.Value(), I19: i18.Value(), I20: i19.Value(), I21: i20.Value(), I22: i21.Value(), I23: i22.Value(), I24: i23.Value(), I25: i24.Value(), I26: i25.Value(), I27: i26.Value(), I28: i27.Value(), I29: i28.Value(), I30: i29.Value()}
 		},
 	)
@@ -1151,16 +1149,15 @@ func DecoderTestpk1LegacyStruct() js.Decoder[testpk1.LegacyStruct] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList3,
-			func(t fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
-				Hello string
-				World int
-			}]]) testpk1.LegacyStruct {
-				return testpk1.LegacyStruct{Name: t.I1.Value(), Age: t.I2.Value(), NoName: t.I3.Value()}
-			},
-		),
+		func(hl0 hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}], hlist.Nil]]]) testpk1.LegacyStruct {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2 := hlist.Head(hl2)
+			return testpk1.LegacyStruct{Name: i0.Value(), Age: i1.Value(), NoName: i2.Value()}
+		},
 	)
 }
 
@@ -1362,13 +1359,12 @@ func DecoderLocalPhoneBook() js.Decoder[LocalPhoneBook] {
 				),
 			),
 		),
-
-		fp.Compose(
-			product.LabelledFromHList3,
-			func(t fp.Labelled3[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]]) LocalPhoneBook {
-				return LocalPhoneBook{Person: t.I1.Value(), Phone: t.I2.Value(), Alias: t.I3.Value()}
-			},
-		),
+		func(hl0 hlist.Cons[fp.RuntimeNamed[LocalPerson], hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[StringAlias], hlist.Nil]]]) LocalPhoneBook {
+			i0, hl1 := hlist.Unapply(hl0)
+			i1, hl2 := hlist.Unapply(hl1)
+			i2 := hlist.Head(hl2)
+			return LocalPhoneBook{Person: i0.Value(), Phone: i1.Value(), Alias: i2.Value()}
+		},
 	)
 }
 
