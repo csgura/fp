@@ -194,19 +194,6 @@ func (r *TypeClassSummonContext) labelledHlistReprType(ctx SummonContext, sf str
 	}
 }
 
-func (r *TypeClassSummonContext) labelledTupleReprType(ctx SummonContext, sf structFunctions) func() string {
-	return func() string {
-		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-
-		names := seq.Map(sf.fields, func(v metafp.StructField) string {
-			return r.structFieldNameTypeStr(ctx, sf, v)
-		}).MakeString(",")
-
-		return fmt.Sprintf("%s.Labelled%d[%s]", fppk, sf.fields.Size(), names)
-	}
-
-}
-
 // func (r *TypeClassSummonContext) toLabelledHlistReprType(ctx SummonContext, sf structFunctions, useMinimal bool) func() string {
 // 	return func() string {
 // 		if sf.namedGenerated {
