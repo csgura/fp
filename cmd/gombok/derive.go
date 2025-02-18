@@ -1922,12 +1922,24 @@ func asSummonContext(ctx DeriveContext) SummonContext {
 
 func (r *TypeClassSummonContext) summon(ctx SummonContext, req metafp.RequiredInstance) fp.Option[SummonExpr] {
 	if req.Name && req.NameTag.IsDefined() {
-		return option.Some(newSummonExpr(func() string {
-			name := req.NameTag.Get()
-			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+		if req.NameTag.Get().IsRight() {
+			return option.Some(newSummonExpr(func() string {
+				name := req.NameTag.Get().Get()
+				aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 
-			return fmt.Sprintf("%s.NameTag(`%s`,`%s`)", aspk, name.I1, name.I2)
-		}, nil))
+				return fmt.Sprintf("%s.NameTag(`%s`,`%s`)", aspk, name.I1, name.I2)
+			}, nil))
+		} else {
+			return option.Some(newSummonExpr(func() string {
+				aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+
+				names := seq.Map(req.NameTag.Get().Left(), func(v fp.NameTag) string {
+					return fmt.Sprintf("%s.NameTag(`%s`,`%s`)", aspk, v.I1, v.I2)
+				}).MakeString(",")
+				return fmt.Sprintf("[]%s.Named{%s}", fppk, names)
+			}, nil))
+		}
 	}
 	t := req.Type
 

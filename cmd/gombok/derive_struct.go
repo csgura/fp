@@ -51,7 +51,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 		return v.TypeInfoExpr(ctx.working)
 	})
 
-	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Struct%d", typeArgs.Size()))
+	result := r.lookupTupleLikeTypeClassFunc(ctx, tc, fmt.Sprintf("Struct%d", typeArgs.Size()), names, sf.typeArgs)
 
 	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
 		return GenericRepr{
@@ -61,7 +61,9 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 			ToReprExpr:   r.intoTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
 			FromReprExpr: r.fromTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
 			ReprExpr: func() SummonExpr {
-				return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
+				return r.exprTypeClassInstance(ctx, tm, false)
+
+				// return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
 			},
 		}
 	}).Or(func() fp.Option[GenericRepr] {

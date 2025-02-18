@@ -12,6 +12,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/either"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
@@ -227,7 +228,7 @@ type RequiredInstance struct {
 	Type      TypeInfo
 	Lazy      bool
 	Name      bool
-	NameTag   fp.Option[fp.NameTag]
+	NameTag   fp.Option[fp.Either[fp.Seq[fp.NameTag], fp.NameTag]]
 }
 
 func (r RequiredInstance) String() string {
@@ -643,7 +644,19 @@ func (r TypeClassInstance) CheckWithName(name fp.NameTag, t TypeInfo) fp.Option[
 	return r.Check(t).Map(func(tci TypeClassInstance) TypeClassInstance {
 		tci.RequiredInstance = tci.RequiredInstance.Map(func(ri RequiredInstance) RequiredInstance {
 			if ri.Name {
-				ri.NameTag = option.Some(name)
+				ri.NameTag = option.Some(either.Right[fp.Seq[fp.NameTag]](name))
+			}
+			return ri
+		})
+		return tci
+	})
+}
+
+func (r TypeClassInstance) CheckWithNames(names fp.Seq[fp.NameTag], t TypeInfo) fp.Option[TypeClassInstance] {
+	return r.Check(t).Map(func(tci TypeClassInstance) TypeClassInstance {
+		tci.RequiredInstance = tci.RequiredInstance.Map(func(ri RequiredInstance) RequiredInstance {
+			if ri.Name {
+				ri.NameTag = option.Some(either.NotRight[fp.NameTag](names))
 			}
 			return ri
 		})
@@ -747,6 +760,33 @@ func (r TypeClassInstancesOfPackage) FindByNamePrefix(namePrefix string, t TypeI
 	})
 	return seq.FlatMap(found, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
 		return v.Check(t).ToSeq()
+	}).Head()
+
+}
+
+func (r TypeClassInstancesOfPackage) FindTupleLikeByNamePrefix(namePrefix string, fieldNames fp.Seq[fp.NameTag], t fp.Seq[TypeInfo]) fp.Option[TypeClassInstance] {
+	allAndNamed := iterator.FromSlice(r.All).Concat(iterator.FromSlice(r.WithNamedArg))
+	found := allAndNamed.Filter(func(v TypeClassInstance) bool {
+		if strings.HasPrefix(v.Name, namePrefix) {
+			return true
+		}
+
+		if strings.HasPrefix(v.Name, r.TypeClass.Name+namePrefix) {
+			return true
+		}
+
+		return false
+	}).ToSeq()
+	return seq.FlatMap(found, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+		if v.Result.TypeArgs.Size() > 0 {
+			tptype := v.Result.TypeArgs.Head().Get()
+			if tptype.TypeArgs.Size() == t.Size() {
+				for ins := range tptype.GenericType().Instantiate(t).All() {
+					return v.CheckWithNames(fieldNames, ins).ToSeq()
+				}
+			}
+		}
+		return nil
 	}).Head()
 
 }
@@ -894,6 +934,18 @@ func (r TypeClassScope) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Optio
 	return option.Flatten(ret)
 }
 
+func (r TypeClassScope) FindTupleLikeByNamePrefix(namePrefix string, fieldNames fp.Seq[fp.NameTag], tupleArgs fp.Seq[TypeInfo]) fp.Option[TypeClassInstance] {
+
+	// if name == "ShowHlistHCons" {
+	// 	fmt.Printf("find ShowHlistHCons\n")
+	// }
+	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+		return p.FindTupleLikeByNamePrefix(namePrefix, fieldNames, tupleArgs)
+	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
+
+	return option.Flatten(ret)
+}
+
 func (r TypeClassScope) FindFuncHasNameArg(namePrefix fp.NameTag, t TypeInfo) fp.Option[TypeClassInstance] {
 
 	// if name == "ShowHlistHCons" {
@@ -960,7 +1012,7 @@ func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassS
 
 func asRequired(v TypeInfo) RequiredInstance {
 	tc := TypeClass{
-		Name:    v.Name().Get(),
+		Name:    v.Name().OrElse("Names"),
 		Package: genfp.FromTypesPackage(v.Pkg),
 	}
 
@@ -970,7 +1022,7 @@ func asRequired(v TypeInfo) RequiredInstance {
 		return ret
 	}
 
-	if v.TypeArgs.Size() == 0 {
+	if v.TypeArgs.Size() == 0 || tc.Name == "Names" {
 		return RequiredInstance{
 			TypeClass: tc,
 			Type:      v,
@@ -1011,6 +1063,25 @@ func ObjectIsFunc(ins types.Object) bool {
 	return false
 }
 
+func checkNamedArg(v TypeInfo) bool {
+	if v.Name().IsDefined() {
+
+		if v.Name().Get() == "Named" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
+			return true
+		}
+
+		if v.Name().Get() == "NameTag" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
+			return true
+		}
+
+	}
+	if v.Underlying().IsSlice() {
+		return checkNamedArg(v.ElemType().Get())
+	}
+
+	return false
+}
+
 func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInstance] {
 	insType := typeInfo(ins.Type())
 	name := ins.Name()
@@ -1044,18 +1115,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 			} else {
 
 				fargs := insType.FuncArgs()
-				checkNamedArg := func(v TypeInfo) bool {
-					if v.Name().IsDefined() {
-						if v.Name().Get() == "Named" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
-							return true
-						}
 
-						if v.Name().Get() == "NameTag" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp" {
-							return true
-						}
-					}
-					return false
-				}
 				allArgTypeClass := fargs.ForAll(func(v TypeInfo) bool {
 					if v.Name().IsDefined() && v.TypeArgs.Size() == 1 {
 						if v.Name().Get() == "Eval" && v.Pkg != nil && v.Pkg.Path() == "github.com/csgura/fp/lazy" {
