@@ -58,7 +58,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 		return GenericRepr{
 			Kind:         fp.GenericKindStruct,
 			Type:         as.Supplier1(sf.typeStr, ctx.working),
-			ReprType:     r.tupleReprType(ctx, sf, true),
+			ReprType:     r.tupleReprType(ctx, sf, tm.Result.TypeArgs.Head()),
 			ToReprExpr:   r.intoTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
 			FromReprExpr: r.fromTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
 			ReprExpr: func() SummonExpr {
@@ -148,27 +148,6 @@ func (r *TypeClassSummonContext) hlistReprType(ctx SummonContext, sf structFunct
 		})
 
 		return hlisttp
-	}
-}
-
-func (r *TypeClassSummonContext) tupleReprType(ctx SummonContext, sf structFunctions, useMinimal bool) func() string {
-	return func() string {
-		tuplepk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-		if useMinimal {
-			tuplepk = r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/minimal", "minimal"))
-		}
-
-		fields := sf.fields
-
-		p := seq.Map(sf.typeArgs, func(f metafp.TypeInfoExpr) string {
-			return f.TypeName(r.w, ctx.working)
-		}).MakeString(",")
-
-		if sf.typeArgs.Size() == 0 {
-			return fmt.Sprintf(`%s.Unit`, tuplepk)
-		}
-
-		return fmt.Sprintf("%s.Tuple%d[%s]", tuplepk, fields.Size(), p)
 	}
 }
 

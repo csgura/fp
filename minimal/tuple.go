@@ -1,8 +1,13 @@
 package minimal
 
-import "github.com/csgura/fp/genfp"
+import (
+	"github.com/csgura/fp"
+	"github.com/csgura/fp/genfp"
+)
 
 //go:generate go run github.com/csgura/fp/internal/generator/template_gen
+
+type Unit = fp.Unit
 
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{

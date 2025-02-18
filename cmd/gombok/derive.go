@@ -1930,7 +1930,7 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 		return GenericRepr{
 			Kind:         fp.GenericKindStruct,
 			Type:         as.Supplier1(sf.typeStr, ctx.working),
-			ReprType:     r.tupleReprType(ctx, sf, false),
+			ReprType:     r.tupleReprType(ctx, sf, tci.Result.TypeArgs.Head()),
 			ToReprExpr:   r.intoTupleRepr(ctx, sf, tci.Result.TypeArgs.Head()),
 			FromReprExpr: r.fromTupleRepr(ctx, sf, tci.Result.TypeArgs.Head()),
 			ReprExpr: func() SummonExpr {

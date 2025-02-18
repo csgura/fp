@@ -10,6 +10,25 @@ import (
 	"github.com/csgura/fp/seq"
 )
 
+func (r *TypeClassSummonContext) tupleReprType(ctx SummonContext, sf structFunctions, tptypeOpt fp.Option[metafp.TypeInfo]) func() string {
+	return func() string {
+		tuplepkid := option.Map(tptypeOpt, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		tuplepk := r.w.GetImportedName(tuplepkid)
+
+		fields := sf.fields
+
+		p := seq.Map(sf.typeArgs, func(f metafp.TypeInfoExpr) string {
+			return f.TypeName(r.w, ctx.working)
+		}).MakeString(",")
+
+		if sf.typeArgs.Size() == 0 {
+			return fmt.Sprintf(`%s.Unit`, tuplepk)
+		}
+
+		return fmt.Sprintf("%s.Tuple%d[%s]", tuplepk, fields.Size(), p)
+	}
+}
+
 func (r *TypeClassSummonContext) intoTupleRepr(ctx SummonContext, sf structFunctions, tptypeOpt fp.Option[metafp.TypeInfo]) func() string {
 
 	return func() string {
