@@ -41,14 +41,14 @@ func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctio
 	return func() string {
 		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-		conspk := r.w.GetImportedName(conspkid)
-
 		if sf.typeArgs.Size() == 0 {
 			return fmt.Sprintf(`func (%s) %s.Nil {
 							return %s.Empty()
 						}`, sf.typeStr(ctx.working), hlistpk, hlistpk)
 		}
+
+		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+		conspk := r.w.GetImportedName(conspkid)
 
 		hlisttp := seq.Fold(sf.typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
 			return fmt.Sprintf("%s.Cons[%s,%s]", conspk, a.TypeName(r.w, ctx.working), b)
@@ -77,15 +77,15 @@ func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunct
 	return func() string {
 		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-		conspk := r.w.GetImportedName(conspkid)
-
 		if sf.typeArgs.Size() == 0 {
 			valuereceiver := sf.typeStr(ctx.working)
 			return fmt.Sprintf(`func (%s.Nil) %s{
 							return %s{}
 						}`, hlistpk, valuereceiver, valuereceiver)
 		}
+
+		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+		conspk := r.w.GetImportedName(conspkid)
 
 		headfield, tailfield := func() (string, string) {
 

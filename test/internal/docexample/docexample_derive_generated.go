@@ -3,7 +3,6 @@ package docexample
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
@@ -92,9 +91,15 @@ func EncoderCar() js.Encoder[Car] {
 				),
 			),
 		),
-		fp.Compose(
-			Car.AsLabelled,
-			as.HList3Labelled,
-		),
+		func(v Car) hlist.Cons[NamedCompanyOfCar, hlist.Cons[NamedModelOfCar, hlist.Cons[NamedYearOfCar, hlist.Nil]]] {
+			i0, i1, i2 := v.Unapply()
+			return hlist.Concat(NamedCompanyOfCar{i0},
+				hlist.Concat(NamedModelOfCar{i1},
+					hlist.Concat(NamedYearOfCar{i2},
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }

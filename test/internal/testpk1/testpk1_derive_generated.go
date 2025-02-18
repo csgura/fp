@@ -36,10 +36,16 @@ func EncoderWorld() js.Encoder[World] {
 				),
 			),
 		),
-		fp.Compose(
-			World.AsLabelled,
-			as.HList3Labelled,
-		),
+		func(v World) hlist.Cons[NamedMessageOfWorld, hlist.Cons[NamedTimestampOfWorld, hlist.Cons[PubNamedPubOfWorld, hlist.Nil]]] {
+			i0, i1, i2 := v.Unapply()
+			return hlist.Concat(NamedMessageOfWorld{i0},
+				hlist.Concat(NamedTimestampOfWorld{i1},
+					hlist.Concat(PubNamedPubOfWorld{i2},
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -114,10 +120,18 @@ func EncoderHasOption() js.Encoder[HasOption] {
 				),
 			),
 		),
-		fp.Compose(
-			HasOption.AsLabelled,
-			as.HList4Labelled,
-		),
+		func(v HasOption) hlist.Cons[NamedMessageOfHasOption, hlist.Cons[NamedAddrOfHasOption, hlist.Cons[NamedPhoneOfHasOption, hlist.Cons[NamedEmptySeqOfHasOption, hlist.Nil]]]] {
+			i0, i1, i2, i3 := v.Unapply()
+			return hlist.Concat(NamedMessageOfHasOption{i0},
+				hlist.Concat(NamedAddrOfHasOption{i1},
+					hlist.Concat(NamedPhoneOfHasOption{i2},
+						hlist.Concat(NamedEmptySeqOfHasOption{i3},
+							hlist.Empty(),
+						),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -1310,10 +1324,20 @@ func EncoderCar[S any, T comparable](encoderS js.Encoder[S], encoderT js.Encoder
 				),
 			),
 		),
-		fp.Compose(
-			Car[S, T].AsLabelled,
-			as.HList5Labelled,
-		),
+		func(v Car[S, T]) hlist.Cons[NamedCompanyOfCar, hlist.Cons[NamedModelOfCar, hlist.Cons[NamedYearOfCar, hlist.Cons[NamedSpecOfCar[S], hlist.Cons[NamedOptOfCar[T], hlist.Nil]]]]] {
+			i0, i1, i2, i3, i4 := v.Unapply()
+			return hlist.Concat(NamedCompanyOfCar{i0},
+				hlist.Concat(NamedModelOfCar{i1},
+					hlist.Concat(NamedYearOfCar{i2},
+						hlist.Concat(NamedSpecOfCar[S]{i3},
+							hlist.Concat(NamedOptOfCar[T]{i4},
+								hlist.Empty(),
+							),
+						),
+					),
+				),
+			)
+		},
 	)
 }
 

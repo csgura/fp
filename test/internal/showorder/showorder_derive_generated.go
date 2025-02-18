@@ -31,13 +31,12 @@ func ShowWorld() fp.Show[World] {
 		fp.Generic[World, hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]]{
 			Type: "showorder.World",
 			Kind: "Struct",
-			To: fp.Compose(
-				func(v World) fp.Labelled1[fp.RuntimeNamed[string]] {
-					i0 := v.Loc
-					return as.Labelled1(as.NamedWithTag("Loc", i0, ``))
-				},
-				as.HList1Labelled,
-			),
+			To: func(v World) hlist.Cons[fp.RuntimeNamed[string], hlist.Nil] {
+				i0 := v.Loc
+				return hlist.Concat(as.NamedWithTag("Loc", i0, ``),
+					hlist.Empty(),
+				)
+			},
 			From: fp.Compose(
 				product.LabelledFromHList1,
 				func(t fp.Labelled1[fp.RuntimeNamed[string]]) World {

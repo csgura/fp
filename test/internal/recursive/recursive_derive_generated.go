@@ -91,13 +91,16 @@ func EncoderNormalStruct() js.Encoder[NormalStruct] {
 				),
 			),
 		),
-		fp.Compose(
-			func(v NormalStruct) fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[string]] {
-				i0, i1, i2 := v.Name, v.Age, v.Address
-				return as.Labelled3(as.NamedWithTag("Name", i0, `json:"name"`), as.NamedWithTag("Age", i1, ``), as.NamedWithTag("Address", i2, ``))
-			},
-			as.HList3Labelled,
-		),
+		func(v NormalStruct) hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]]] {
+			i0, i1, i2 := v.Name, v.Age, v.Address
+			return hlist.Concat(as.NamedWithTag("Name", i0, `json:"name"`),
+				hlist.Concat(as.NamedWithTag("Age", i1, ``),
+					hlist.Concat(as.NamedWithTag("Address", i2, ``),
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -1106,16 +1109,19 @@ func EncoderTestpk1LegacyStruct() js.Encoder[testpk1.LegacyStruct] {
 				),
 			),
 		),
-		fp.Compose(
-			func(v testpk1.LegacyStruct) fp.Labelled3[fp.RuntimeNamed[string], fp.RuntimeNamed[int], fp.RuntimeNamed[struct {
-				Hello string
-				World int
-			}]] {
-				i0, i1, i2 := v.Name, v.Age, v.NoName
-				return as.Labelled3(as.NamedWithTag("Name", i0, ``), as.NamedWithTag("Age", i1, ``), as.NamedWithTag("NoName", i2, ``))
-			},
-			as.HList3Labelled,
-		),
+		func(v testpk1.LegacyStruct) hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[struct {
+			Hello string
+			World int
+		}], hlist.Nil]]] {
+			i0, i1, i2 := v.Name, v.Age, v.NoName
+			return hlist.Concat(as.NamedWithTag("Name", i0, ``),
+				hlist.Concat(as.NamedWithTag("Age", i1, ``),
+					hlist.Concat(as.NamedWithTag("NoName", i2, ``),
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -1331,13 +1337,16 @@ func EncoderLocalPhoneBook() js.Encoder[LocalPhoneBook] {
 				),
 			),
 		),
-		fp.Compose(
-			func(v LocalPhoneBook) fp.Labelled3[fp.RuntimeNamed[LocalPerson], fp.RuntimeNamed[string], fp.RuntimeNamed[StringAlias]] {
-				i0, i1, i2 := v.Person, v.Phone, v.Alias
-				return as.Labelled3(as.NamedWithTag("Person", i0, ``), as.NamedWithTag("Phone", i1, ``), as.NamedWithTag("Alias", i2, ``))
-			},
-			as.HList3Labelled,
-		),
+		func(v LocalPhoneBook) hlist.Cons[fp.RuntimeNamed[LocalPerson], hlist.Cons[fp.RuntimeNamed[string], hlist.Cons[fp.RuntimeNamed[StringAlias], hlist.Nil]]] {
+			i0, i1, i2 := v.Person, v.Phone, v.Alias
+			return hlist.Concat(as.NamedWithTag("Person", i0, ``),
+				hlist.Concat(as.NamedWithTag("Phone", i1, ``),
+					hlist.Concat(as.NamedWithTag("Alias", i2, ``),
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 

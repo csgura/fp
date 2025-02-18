@@ -4,6 +4,7 @@ package testjson
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
@@ -38,10 +39,26 @@ func EncoderRoot() js.Encoder[Root] {
 				),
 			),
 		),
-		fp.Compose(
-			Root.AsLabelled,
-			as.HList8Labelled,
-		),
+		func(v Root) hlist.Cons[NamedAOfRoot, hlist.Cons[NamedBOfRoot, hlist.Cons[NamedCOfRoot, hlist.Cons[NamedDOfRoot, hlist.Cons[NamedEOfRoot, hlist.Cons[NamedFOfRoot, hlist.Cons[NamedGOfRoot, hlist.Cons[NamedHOfRoot, hlist.Nil]]]]]]]] {
+			i0, i1, i2, i3, i4, i5, i6, i7 := v.Unapply()
+			return hlist.Concat(NamedAOfRoot{i0},
+				hlist.Concat(NamedBOfRoot{i1},
+					hlist.Concat(NamedCOfRoot{i2},
+						hlist.Concat(NamedDOfRoot{i3},
+							hlist.Concat(NamedEOfRoot{i4},
+								hlist.Concat(NamedFOfRoot{i5},
+									hlist.Concat(NamedGOfRoot{i6},
+										hlist.Concat(NamedHOfRoot{i7},
+											hlist.Empty(),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -118,10 +135,16 @@ func EncoderNode() js.Encoder[Node] {
 				),
 			),
 		),
-		fp.Compose(
-			Node.AsLabelled,
-			as.HList3Labelled,
-		),
+		func(v Node) hlist.Cons[NamedNameOfNode, hlist.Cons[NamedLeftOfNode, hlist.Cons[NamedRightOfNode, hlist.Nil]]] {
+			i0, i1, i2 := v.Unapply()
+			return hlist.Concat(NamedNameOfNode{i0},
+				hlist.Concat(NamedLeftOfNode{i1},
+					hlist.Concat(NamedRightOfNode{i2},
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -160,10 +183,16 @@ func EncoderMovie() js.Encoder[Movie] {
 				),
 			),
 		),
-		fp.Compose(
-			Movie.AsLabelled,
-			as.HList3Labelled,
-		),
+		func(v Movie) hlist.Cons[NamedNameOfMovie, hlist.Cons[NamedCastingOfMovie, hlist.Cons[NamedNotUsedOfMovie, hlist.Nil]]] {
+			i0, i1, i2 := v.Unapply()
+			return hlist.Concat(NamedNameOfMovie{i0},
+				hlist.Concat(NamedCastingOfMovie{i1},
+					hlist.Concat(NamedNotUsedOfMovie{i2},
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 

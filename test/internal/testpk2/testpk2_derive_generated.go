@@ -106,10 +106,16 @@ func EncoderThree() js.Encoder[Three] {
 				),
 			),
 		),
-		fp.Compose(
-			Three.AsLabelled,
-			as.HList3Labelled,
-		),
+		func(v Three) hlist.Cons[NamedOneOfThree, hlist.Cons[NamedTwoOfThree, hlist.Cons[NamedThreeOfThree, hlist.Nil]]] {
+			i0, i1, i2 := v.Unapply()
+			return hlist.Concat(NamedOneOfThree{i0},
+				hlist.Concat(NamedTwoOfThree{i1},
+					hlist.Concat(NamedThreeOfThree{i2},
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -235,9 +241,15 @@ func EncoderTestpk1World() js.Encoder[testpk1.World] {
 				),
 			),
 		),
-		fp.Compose(
-			testpk1.World.AsLabelled,
-			as.HList3Labelled,
-		),
+		func(v testpk1.World) hlist.Cons[testpk1.NamedMessageOfWorld, hlist.Cons[testpk1.NamedTimestampOfWorld, hlist.Cons[testpk1.PubNamedPubOfWorld, hlist.Nil]]] {
+			i0, i1, i2 := v.Unapply()
+			return hlist.Concat(testpk1.NamedMessageOfWorld{i0},
+				hlist.Concat(testpk1.NamedTimestampOfWorld{i1},
+					hlist.Concat(testpk1.PubNamedPubOfWorld{i2},
+						hlist.Empty(),
+					),
+				),
+			)
+		},
 	)
 }

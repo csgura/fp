@@ -204,13 +204,12 @@ func ShowNoDerive() fp.Show[NoDerive] {
 		fp.Generic[NoDerive, hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]]{
 			Type: "showtest.NoDerive",
 			Kind: "Struct",
-			To: fp.Compose(
-				func(v NoDerive) fp.Labelled1[fp.RuntimeNamed[string]] {
-					i0 := v.Hello
-					return as.Labelled1(as.NamedWithTag("Hello", i0, ``))
-				},
-				as.HList1Labelled,
-			),
+			To: func(v NoDerive) hlist.Cons[fp.RuntimeNamed[string], hlist.Nil] {
+				i0 := v.Hello
+				return hlist.Concat(as.NamedWithTag("Hello", i0, ``),
+					hlist.Empty(),
+				)
+			},
 			From: fp.Compose(
 				product.LabelledFromHList1,
 				func(t fp.Labelled1[fp.RuntimeNamed[string]]) NoDerive {

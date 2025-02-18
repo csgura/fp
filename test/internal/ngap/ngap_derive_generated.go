@@ -4,6 +4,7 @@ package ngap
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/hlist"
 )
 
 func SplitTagNgapValue() SplitTag[NgapValue] {
@@ -21,10 +22,18 @@ func SplitTagNgapValue() SplitTag[NgapValue] {
 				),
 			),
 		),
-		fp.Compose(
-			NgapValue.AsLabelled,
-			as.HList4Labelled,
-		),
+		func(v NgapValue) hlist.Cons[NamedPresentOfNgapValue, hlist.Cons[NamedFirstOfNgapValue, hlist.Cons[NamedSecondOfNgapValue, hlist.Cons[NamedThirdOfNgapValue, hlist.Nil]]]] {
+			i0, i1, i2, i3 := v.Unapply()
+			return hlist.Concat(NamedPresentOfNgapValue{i0},
+				hlist.Concat(NamedFirstOfNgapValue{i1},
+					hlist.Concat(NamedSecondOfNgapValue{i2},
+						hlist.Concat(NamedThirdOfNgapValue{i3},
+							hlist.Empty(),
+						),
+					),
+				),
+			)
+		},
 	)
 }
 
@@ -65,12 +74,17 @@ func SplitTagNgapType() SplitTag[NgapType] {
 				),
 			),
 		),
-		fp.Compose(
-			func(v NgapType) fp.Labelled4[fp.RuntimeNamed[int], fp.RuntimeNamed[*int], fp.RuntimeNamed[*string], fp.RuntimeNamed[*float64]] {
-				i0, i1, i2, i3 := v.Present, v.First, v.Second, v.Third
-				return as.Labelled4(as.NamedWithTag("Present", i0, ``), as.NamedWithTag("First", i1, `aper:"id=20"`), as.NamedWithTag("Second", i2, `aper:"id=30"`), as.NamedWithTag("Third", i3, `aper:"id=40"`))
-			},
-			as.HList4Labelled,
-		),
+		func(v NgapType) hlist.Cons[fp.RuntimeNamed[int], hlist.Cons[fp.RuntimeNamed[*int], hlist.Cons[fp.RuntimeNamed[*string], hlist.Cons[fp.RuntimeNamed[*float64], hlist.Nil]]]] {
+			i0, i1, i2, i3 := v.Present, v.First, v.Second, v.Third
+			return hlist.Concat(as.NamedWithTag("Present", i0, ``),
+				hlist.Concat(as.NamedWithTag("First", i1, `aper:"id=20"`),
+					hlist.Concat(as.NamedWithTag("Second", i2, `aper:"id=30"`),
+						hlist.Concat(as.NamedWithTag("Third", i3, `aper:"id=40"`),
+							hlist.Empty(),
+						),
+					),
+				),
+			)
+		},
 	)
 }
