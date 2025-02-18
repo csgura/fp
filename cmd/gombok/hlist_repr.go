@@ -128,3 +128,43 @@ func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunct
 			sf.apply(arglist))
 	}
 }
+
+func (r *TypeClassSummonContext) summonStructHlistGenericRepr(ctx SummonContext, tc metafp.TypeClass, sf structFunctions, consf string, nilf string, force bool) fp.Option[GenericRepr] {
+	shcons := r.lookupTypeClassFunc(ctx, tc, consf)
+	if shcons.IsDefined() || force {
+		constp := option.FlatMap(shcons, func(tci metafp.TypeClassInstance) fp.Option[metafp.TypeInfo] {
+			return tci.Result.TypeArgs.Head()
+		})
+		return option.Some(GenericRepr{
+			Kind:         fp.GenericKindStruct,
+			Type:         as.Supplier1(sf.typeStr, ctx.working),
+			ReprType:     r.hlistReprType(ctx, sf, constp),
+			ToReprExpr:   r.toHlistRepr(ctx, sf, constp),
+			FromReprExpr: r.fromHlistRepr(ctx, sf, constp),
+			ReprExpr: func() SummonExpr {
+				arity := sf.typeArgs.Size()
+				hnil := r.lookupTypeClassFunc(ctx, tc, nilf).OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
+				hlist := seq.Fold(sf.typeArgs.Take(arity).Reverse(), newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
+
+					consname := option.Map(shcons, func(tci metafp.TypeClassInstance) string {
+						return tci.PackagedName(r.w, ctx.working)
+					}).OrElse("HCons")
+
+					instance := r.summonRequired(ctx, metafp.RequiredInstance{
+						TypeClass: ctx.typeClass,
+						Type:      ti.Type,
+					})
+					return newSummonExpr(func() string {
+						return fmt.Sprintf(`%s(
+								%s,
+								%s,
+							)`, consname, instance, tail,
+						)
+					}, instance.paramInstance, tail.paramInstance)
+				})
+				return hlist
+			},
+		})
+	}
+	return option.None[GenericRepr]()
+}

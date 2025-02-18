@@ -1842,10 +1842,6 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 	fields := sf.fields
 	result := r.lookupTupleTypeClassFunc(ctx, tc, fmt.Sprintf("Tuple%d", fields.Size()), sf.typeArgs)
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
-		return v.TypeInfoExpr(ctx.working)
-	})
-
 	if result.IsDefined() {
 
 		tci := result.Get()
@@ -1870,148 +1866,15 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 
 	}
 
-	shcons := r.lookupTypeClassFunc(ctx, tc, "StructHCons")
-	if shcons.IsDefined() {
-		return GenericRepr{
-			Kind:         fp.GenericKindStruct,
-			Type:         as.Supplier1(sf.typeStr, ctx.working),
-			ReprType:     r.hlistReprType(ctx, sf, shcons.Get().Result.TypeArgs.Head()),
-			ToReprExpr:   r.toHlistRepr(ctx, sf, shcons.Get().Result.TypeArgs.Head()),
-			FromReprExpr: r.fromHlistRepr(ctx, sf, shcons.Get().Result.TypeArgs.Head()),
-			ReprExpr: func() SummonExpr {
-				arity := typeArgs.Size()
-				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNil").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
-				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
-					instance := r.summonRequired(ctx, metafp.RequiredInstance{
-						TypeClass: ctx.typeClass,
-						Type:      ti.Type,
-					})
-					return newSummonExpr(func() string {
-						return fmt.Sprintf(`%s(
-								%s,
-								%s,
-							)`, shcons.Get().PackagedName(r.w, ctx.working), instance, tail,
-						)
-					}, instance.paramInstance, tail.paramInstance)
-				})
-				return hlist
-			},
-		}
-	}
+	ret := r.summonStructHlistGenericRepr(ctx, tc, sf, "StructHCons", "StructHNil", false).
+		Or(func() fp.Option[GenericRepr] {
+			return r.summonStructHlistGenericRepr(ctx, tc, sf, "TupleHCons", "TupleHNil", false)
+		}).
+		Or(func() fp.Option[GenericRepr] {
+			return r.summonStructHlistGenericRepr(ctx, tc, sf, "HCons", "HNil", true)
+		})
 
-	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe), false)
-
-	return GenericRepr{
-		Kind:     fp.GenericKindStruct,
-		Type:     as.Supplier1(sf.typeStr, ctx.working),
-		ReprType: r.hlistReprType(ctx, sf, option.None[metafp.TypeInfo]()),
-		ToReprExpr: func() string {
-
-			if typeArgs.Size() >= max.Product {
-				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-
-				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
-					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
-				})
-
-				varlist := iterator.Map(iterator.Range(0, typeArgs.Size()), func(v int) string {
-					return fmt.Sprintf("i%d", v)
-				}).MakeString(",")
-
-				hlistExpr := seq.Fold(as.Seq(iterator.Range(0, typeArgs.Size()).ToSeq()).Reverse(), hlistpk+".Empty()", func(expr string, v int) string {
-					return fmt.Sprintf(`%s.Concat(i%d, 
-						%s,
-					)`, hlistpk, v, expr)
-				})
-				return fmt.Sprintf(`func(v %s) %s {
-					%s := %s
-					return %s
-				}`, sf.typeStr(ctx.working), hlisttp,
-					varlist, sf.unapply("v"),
-					hlistExpr)
-			} else if typeArgs.Size() > 0 {
-				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-
-				return fmt.Sprintf(`%s.Compose(
-				%s,
-				%s, 
-			)`, fppk,
-					r.intoTupleRepr(ctx, sf, option.None[metafp.TypeInfo]())(),
-					tupleGeneric.ToReprExpr(),
-				)
-			} else {
-				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-				return fmt.Sprintf(`func(%s) %s.Nil {
-					return %s.Empty()
-				}`, sf.typeStr(ctx.working), hlistpk, hlistpk)
-			}
-
-		},
-		FromReprExpr: func() string {
-			if typeArgs.Size() >= max.Product {
-				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-
-				hlisttp := seq.Fold(typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
-					return fmt.Sprintf("%s.Cons[%s,%s]", hlistpk, a.TypeName(r.w, ctx.working), b)
-				})
-
-				expr := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
-					if idx == typeArgs.Size()-1 {
-						return fmt.Sprintf(`i%d := hl%d.Head()`, idx, idx)
-					}
-					return fmt.Sprintf(`i%d , hl%d := %s.Unapply(hl%d)`, idx, idx+1, hlistpk, idx)
-				}).MakeString("\n")
-
-				arglist := seq.Map(iterator.Range(0, typeArgs.Size()).ToSeq(), func(idx int) string {
-					return fmt.Sprintf("i%d", idx)
-				})
-				return fmt.Sprintf(`func(hl0 %s) %s {
-					%s
-					return %s
-				}`, hlisttp, sf.typeStr(ctx.working),
-					expr,
-					sf.apply(arglist))
-			} else if typeArgs.Size() > 0 {
-
-				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-				//aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
-
-				tupleToStruct := r.fromTupleRepr(ctx, sf, option.None[metafp.TypeInfo]())()
-				return fmt.Sprintf(`
-				%s.Compose(
-					%s, 
-					%s ,
-				)`, fppk, tupleGeneric.FromReprExpr(), tupleToStruct)
-			} else {
-				hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
-
-				return fmt.Sprintf(`func(%s.Nil) %s {
-					return %s{}
-				}`, hlistpk, sf.typeStr(ctx.working), sf.typeStr(ctx.working))
-			}
-		},
-		ReprExpr: func() SummonExpr {
-			return option.Map(r.lookupTypeClassFunc(ctx, tc, "StructHCons"), func(hcons metafp.TypeClassInstance) SummonExpr {
-				arity := typeArgs.Size()
-				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNil").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
-				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
-					instance := r.summonRequired(ctx, metafp.RequiredInstance{
-						TypeClass: ctx.typeClass,
-						Type:      ti.Type,
-					})
-					return newSummonExpr(func() string {
-						return fmt.Sprintf(`%s(
-								%s,
-								%s,
-							)`, hcons.PackagedName(r.w, ctx.working), instance, tail,
-						)
-					}, instance.paramInstance, tail.paramInstance)
-				})
-				return hlist
-
-			}).OrElseGet(tupleGeneric.ReprExpr)
-		},
-	}
+	return ret.Get()
 
 }
 

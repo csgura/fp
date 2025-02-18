@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp/clone"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/product"
 	"time"
 )
 
@@ -67,22 +66,16 @@ func CloneRecursiveDerive() fp.Clone[RecursiveDerive] {
 		fp.Generic[RecursiveDerive, hlist.Cons[[]string, hlist.Nil]]{
 			Type: "clonetest.RecursiveDerive",
 			Kind: "Struct",
-			To: fp.Compose(
-				func(v RecursiveDerive) fp.Tuple1[[]string] {
-					return fp.Tuple1[[]string]{
-						I1: v.S,
-					}
-				},
-				as.HList1[[]string],
-			),
-			From: fp.Compose(
-				product.TupleFromHList1,
-				func(t fp.Tuple1[[]string]) RecursiveDerive {
-					return RecursiveDerive{
-						S: t.I1,
-					}
-				},
-			),
+			To: func(v RecursiveDerive) hlist.Cons[[]string, hlist.Nil] {
+				i0 := v.S
+				h1 := hlist.Empty()
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[[]string, hlist.Nil]) RecursiveDerive {
+				i0 := hlist.Head(hl0)
+				return RecursiveDerive{S: i0}
+			},
 		},
 		clone.HCons(
 			clone.Slice(clone.Given[string]()),
