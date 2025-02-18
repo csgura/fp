@@ -8,7 +8,6 @@ import (
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/ord"
-	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
 )
@@ -53,17 +52,20 @@ func ShowAddress() fp.Show[Address] {
 		fp.Generic[Address, hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]]]{
 			Type: "docexample.Address",
 			Kind: "Struct",
-			To: fp.Compose(
-				Address.AsTuple,
-				as.HList3[string, string, string],
-			),
-			From: fp.Compose(
-				product.TupleFromHList3,
-				fp.Compose(
-					as.Curried2(AddressBuilder.FromTuple)(AddressBuilder{}),
-					AddressBuilder.Build,
-				),
-			),
+			To: func(v Address) hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]] {
+				i0, i1, i2 := v.Unapply()
+				h3 := hlist.Empty()
+				h2 := hlist.Concat(i2, h3)
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]]) Address {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2 := hlist.Head(hl2)
+				return AddressBuilder{}.Apply(i0, i1, i2).Build()
+			},
 		},
 		show.StructHCons(
 			show.String,

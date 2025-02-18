@@ -141,17 +141,20 @@ func ShowThree() fp.Show[Three] {
 		fp.Generic[Three, hlist.Cons[int, hlist.Cons[string, hlist.Cons[float64, hlist.Nil]]]]{
 			Type: "testpk2.Three",
 			Kind: "Struct",
-			To: fp.Compose(
-				Three.AsTuple,
-				as.HList3[int, string, float64],
-			),
-			From: fp.Compose(
-				product.TupleFromHList3,
-				fp.Compose(
-					as.Curried2(ThreeBuilder.FromTuple)(ThreeBuilder{}),
-					ThreeBuilder.Build,
-				),
-			),
+			To: func(v Three) hlist.Cons[int, hlist.Cons[string, hlist.Cons[float64, hlist.Nil]]] {
+				i0, i1, i2 := v.Unapply()
+				h3 := hlist.Empty()
+				h2 := hlist.Concat(i2, h3)
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[int, hlist.Cons[string, hlist.Cons[float64, hlist.Nil]]]) Three {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2 := hlist.Head(hl2)
+				return ThreeBuilder{}.Apply(i0, i1, i2).Build()
+			},
 		},
 		show.StructHCons(
 			show.Int[int](),

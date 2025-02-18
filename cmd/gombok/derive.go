@@ -1870,12 +1870,41 @@ func (r *TypeClassSummonContext) summonStructGenericRepr(ctx SummonContext, tc m
 
 	}
 
+	shcons := r.lookupTypeClassFunc(ctx, tc, "StructHCons")
+	if shcons.IsDefined() {
+		return GenericRepr{
+			Kind:         fp.GenericKindStruct,
+			Type:         as.Supplier1(sf.typeStr, ctx.working),
+			ReprType:     r.hlistReprType(ctx, sf, shcons.Get().Result.TypeArgs.Head()),
+			ToReprExpr:   r.toHlistRepr(ctx, sf, shcons.Get().Result.TypeArgs.Head()),
+			FromReprExpr: r.fromHlistRepr(ctx, sf, shcons.Get().Result.TypeArgs.Head()),
+			ReprExpr: func() SummonExpr {
+				arity := typeArgs.Size()
+				hnil := r.lookupTypeClassFunc(ctx, tc, "StructHNil").OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
+				hlist := seq.Fold(typeArgs.Take(arity).Reverse(), newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
+					instance := r.summonRequired(ctx, metafp.RequiredInstance{
+						TypeClass: ctx.typeClass,
+						Type:      ti.Type,
+					})
+					return newSummonExpr(func() string {
+						return fmt.Sprintf(`%s(
+								%s,
+								%s,
+							)`, shcons.Get().PackagedName(r.w, ctx.working), instance, tail,
+						)
+					}, instance.paramInstance, tail.paramInstance)
+				})
+				return hlist
+			},
+		}
+	}
+
 	tupleGeneric := r.summonTupleGenericRepr(ctx, tc, typeArgs, option.Some(sf.tpe), false)
 
 	return GenericRepr{
 		Kind:     fp.GenericKindStruct,
 		Type:     as.Supplier1(sf.typeStr, ctx.working),
-		ReprType: r.hlistReprType(ctx, sf, false),
+		ReprType: r.hlistReprType(ctx, sf, option.None[metafp.TypeInfo]()),
 		ToReprExpr: func() string {
 
 			if typeArgs.Size() >= max.Product {

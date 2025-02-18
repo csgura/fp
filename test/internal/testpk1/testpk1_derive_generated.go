@@ -71,17 +71,20 @@ func ShowWorld() fp.Show[World] {
 		fp.Generic[World, hlist.Cons[string, hlist.Cons[time.Time, hlist.Cons[string, hlist.Nil]]]]{
 			Type: "testpk1.World",
 			Kind: "Struct",
-			To: fp.Compose(
-				World.AsTuple,
-				as.HList3[string, time.Time, string],
-			),
-			From: fp.Compose(
-				product.TupleFromHList3,
-				fp.Compose(
-					as.Curried2(WorldBuilder.FromTuple)(WorldBuilder{}),
-					WorldBuilder.Build,
-				),
-			),
+			To: func(v World) hlist.Cons[string, hlist.Cons[time.Time, hlist.Cons[string, hlist.Nil]]] {
+				i0, i1, i2 := v.Unapply()
+				h3 := hlist.Empty()
+				h2 := hlist.Concat(i2, h3)
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[string, hlist.Cons[time.Time, hlist.Cons[string, hlist.Nil]]]) World {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2 := hlist.Head(hl2)
+				return WorldBuilder{}.Apply(i0, i1, i2).Build()
+			},
 		},
 		show.StructHCons(
 			show.String,
@@ -130,17 +133,20 @@ func ShowHListInsideHList() fp.Show[HListInsideHList] {
 		fp.Generic[HListInsideHList, hlist.Cons[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[World, hlist.Nil]]]]{
 			Type: "testpk1.HListInsideHList",
 			Kind: "Struct",
-			To: fp.Compose(
-				HListInsideHList.AsTuple,
-				as.HList3[fp.Tuple2[string, int], string, World],
-			),
-			From: fp.Compose(
-				product.TupleFromHList3,
-				fp.Compose(
-					as.Curried2(HListInsideHListBuilder.FromTuple)(HListInsideHListBuilder{}),
-					HListInsideHListBuilder.Build,
-				),
-			),
+			To: func(v HListInsideHList) hlist.Cons[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[World, hlist.Nil]]] {
+				i0, i1, i2 := v.Unapply()
+				h3 := hlist.Empty()
+				h2 := hlist.Concat(i2, h3)
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[World, hlist.Nil]]]) HListInsideHList {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2 := hlist.Head(hl2)
+				return HListInsideHListBuilder{}.Apply(i0, i1, i2).Build()
+			},
 		},
 		show.StructHCons(
 			show.Generic(
@@ -1278,24 +1284,18 @@ func ShowUseShow() fp.Show[UseShow] {
 		fp.Generic[UseShow, hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
 			Type: "testpk1.UseShow",
 			Kind: "Struct",
-			To: fp.Compose(
-				func(v UseShow) fp.Tuple2[string, int] {
-					return fp.Tuple2[string, int]{
-						I1: v.hello,
-						I2: v.world,
-					}
-				},
-				as.HList2[string, int],
-			),
-			From: fp.Compose(
-				product.TupleFromHList2,
-				func(t fp.Tuple2[string, int]) UseShow {
-					return UseShow{
-						hello: t.I1,
-						world: t.I2,
-					}
-				},
-			),
+			To: func(v UseShow) hlist.Cons[string, hlist.Cons[int, hlist.Nil]] {
+				i0, i1 := v.hello, v.world
+				h2 := hlist.Empty()
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[string, hlist.Cons[int, hlist.Nil]]) UseShow {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1 := hlist.Head(hl1)
+				return UseShow{hello: i0, world: i1}
+			},
 		},
 		show.StructHCons(
 			show.String,
@@ -1312,26 +1312,20 @@ func ShowShowHasTypeParam() fp.Show[ShowHasTypeParam] {
 		fp.Generic[ShowHasTypeParam, hlist.Cons[string, hlist.Cons[int, hlist.Cons[Container[int], hlist.Nil]]]]{
 			Type: "testpk1.ShowHasTypeParam",
 			Kind: "Struct",
-			To: fp.Compose(
-				func(v ShowHasTypeParam) fp.Tuple3[string, int, Container[int]] {
-					return fp.Tuple3[string, int, Container[int]]{
-						I1: v.hello,
-						I2: v.world,
-						I3: v.message,
-					}
-				},
-				as.HList3[string, int, Container[int]],
-			),
-			From: fp.Compose(
-				product.TupleFromHList3,
-				func(t fp.Tuple3[string, int, Container[int]]) ShowHasTypeParam {
-					return ShowHasTypeParam{
-						hello:   t.I1,
-						world:   t.I2,
-						message: t.I3,
-					}
-				},
-			),
+			To: func(v ShowHasTypeParam) hlist.Cons[string, hlist.Cons[int, hlist.Cons[Container[int], hlist.Nil]]] {
+				i0, i1, i2 := v.hello, v.world, v.message
+				h3 := hlist.Empty()
+				h2 := hlist.Concat(i2, h3)
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[string, hlist.Cons[int, hlist.Cons[Container[int], hlist.Nil]]]) ShowHasTypeParam {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2 := hlist.Head(hl2)
+				return ShowHasTypeParam{hello: i0, world: i1, message: i2}
+			},
 		},
 		show.StructHCons(
 			show.String,
@@ -1351,26 +1345,20 @@ func ShowShowConstraint[T fmt.Stringer](showT fp.Show[T]) fp.Show[ShowConstraint
 		fp.Generic[ShowConstraint[T], hlist.Cons[string, hlist.Cons[int, hlist.Cons[T, hlist.Nil]]]]{
 			Type: "testpk1.ShowConstraint",
 			Kind: "Struct",
-			To: fp.Compose(
-				func(v ShowConstraint[T]) fp.Tuple3[string, int, T] {
-					return fp.Tuple3[string, int, T]{
-						I1: v.hello,
-						I2: v.world,
-						I3: v.message,
-					}
-				},
-				as.HList3[string, int, T],
-			),
-			From: fp.Compose(
-				product.TupleFromHList3,
-				func(t fp.Tuple3[string, int, T]) ShowConstraint[T] {
-					return ShowConstraint[T]{
-						hello:   t.I1,
-						world:   t.I2,
-						message: t.I3,
-					}
-				},
-			),
+			To: func(v ShowConstraint[T]) hlist.Cons[string, hlist.Cons[int, hlist.Cons[T, hlist.Nil]]] {
+				i0, i1, i2 := v.hello, v.world, v.message
+				h3 := hlist.Empty()
+				h2 := hlist.Concat(i2, h3)
+				h1 := hlist.Concat(i1, h2)
+				h0 := hlist.Concat(i0, h1)
+				return h0
+			},
+			From: func(hl0 hlist.Cons[string, hlist.Cons[int, hlist.Cons[T, hlist.Nil]]]) ShowConstraint[T] {
+				i0, hl1 := hlist.Unapply(hl0)
+				i1, hl2 := hlist.Unapply(hl1)
+				i2 := hlist.Head(hl2)
+				return ShowConstraint[T]{hello: i0, world: i1, message: i2}
+			},
 		},
 		show.StructHCons(
 			show.String,
