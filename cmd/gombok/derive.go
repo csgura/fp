@@ -950,6 +950,25 @@ func (r *TypeClassSummonContext) summonArgs(ctx SummonContext, args fp.Seq[metaf
 	return collectSummonExpr(list)
 }
 
+func (r *TypeClassSummonContext) summonArgsWithRequiredFound(ctx SummonContext, args fp.Seq[fp.Tuple2[metafp.RequiredInstance, metafp.TypeClassInstance]], explicit bool) SummonExpr {
+	list := seq.Map(args, func(t fp.Tuple2[metafp.RequiredInstance, metafp.TypeClassInstance]) SummonExpr {
+		// TODO: checkRequired 에서  lookup 하는 코드 있음. checkRequired 에서 한번 했으면 안하게 할 필요 있음.
+		ret := r.exprTypeClassInstance(ctx, t.I2, explicit)
+		if t.I1.Lazy {
+
+			return newSummonExpr(func() string {
+				lazypk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/lazy", "lazy"))
+				return fmt.Sprintf(`%s.Call( func() %s[%s] {
+				return %s
+			})`, lazypk, t.I1.TypeClass.PackagedName(r.w, ctx.working), r.w.TypeName(ctx.working, t.I1.Type.Type), ret)
+			}, ret.paramInstance)
+		}
+		return ret
+	})
+
+	return collectSummonExpr(list)
+}
+
 func newSummonExpr(expr func() string, params ...fp.Seq[ParamInstance]) SummonExpr {
 	return SummonExpr{
 		expr:          expr,
@@ -977,6 +996,49 @@ func (r *TypeClassSummonContext) exprTypeClassInstance(ctx SummonContext, lt met
 
 	if len(lt.RequiredInstance) > 0 {
 		list := r.summonArgs(ctx, lt.RequiredInstance)
+
+		instanceExpr := instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
+		retExpr := func() string {
+			tpstr := r.typeParamString(ctx, lt, explicit)
+
+			if tpstr.IsDefined() {
+				return fmt.Sprintf("%s[%s](%s)", instanceExpr, tpstr.Get(), list)
+			} else {
+				return fmt.Sprintf("%s(%s)", instanceExpr, list)
+
+			}
+		}
+
+		return newSummonExpr(
+			retExpr, instanceExpr.paramInstance, list.paramInstance)
+
+	}
+
+	if !lt.Static && len(lt.RequiredInstance) == 0 {
+		instanceExpr := instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
+
+		retExpr := func() string {
+			tpstr := r.typeParamString(ctx, lt, false)
+			if tpstr.IsDefined() {
+				return fmt.Sprintf("%s[%s]()", instanceExpr, tpstr.Get())
+			} else {
+				return fmt.Sprintf("%s()", instanceExpr)
+			}
+		}
+
+		return newSummonExpr(retExpr, instanceExpr.paramInstance)
+
+	}
+
+	return instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
+
+}
+
+func (r *TypeClassSummonContext) exprTypeClassInstanceWithRequiredFound(ctx SummonContext, lt metafp.TypeClassInstance, explicit bool, requiredIns fp.Seq[metafp.TypeClassInstance]) SummonExpr {
+	//fmt.Printf("lt : %s, %v\n", lt.instance(), lt.required())
+
+	if len(lt.RequiredInstance) > 0 {
+		list := r.summonArgsWithRequiredFound(ctx, seq.Zip(lt.RequiredInstance, requiredIns), explicit)
 
 		instanceExpr := instanceExprOfTypeClassInstance(lt, r.w, ctx.working)
 		retExpr := func() string {

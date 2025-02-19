@@ -1013,7 +1013,7 @@ func (r *TypeClassInstanceCache) Get(pk *types.Package, tc TypeClass) TypeClassS
 
 func asRequired(v TypeInfo) RequiredInstance {
 	tc := TypeClass{
-		Name:    v.Name().OrElse("Names"),
+		Name:    v.Name().OrElse("NamedField"),
 		Package: genfp.FromTypesPackage(v.Pkg),
 	}
 
@@ -1023,7 +1023,7 @@ func asRequired(v TypeInfo) RequiredInstance {
 		return ret
 	}
 
-	if v.TypeArgs.Size() == 0 || tc.Name == "Names" {
+	if v.TypeArgs.Size() == 0 || tc.Name == "NamedField" {
 		return RequiredInstance{
 			TypeClass: tc,
 			Type:      v,

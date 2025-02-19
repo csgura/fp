@@ -4,27 +4,18 @@ package namedptr
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
-	"github.com/csgura/fp/hlist"
-	"github.com/csgura/fp/minimal"
 )
 
 func ValidatorHello() Validator[Hello] {
 	return ContraGeneric(
 		"namedptr.Hello",
 		"Struct",
-		StructHCons(
-			NamedInt(as.NameTag(`v`, ``)),
-			StructHCons(
-				NamedSlice(as.NameTag(`s`, ``), Int),
-				HNil,
-			),
-		),
-		func(v Hello) minimal.Cons[int, minimal.Cons[[]int, hlist.Nil]] {
-			i0, i1 := v.v, v.s
-			h2 := hlist.Empty()
-			h1 := minimal.Concat(i1, h2)
-			h0 := minimal.Concat(i0, h1)
-			return h0
+		Struct2(NamedInt(as.NameTag(`v`, ``)), NamedSlice(as.NameTag(`s`, ``), Int)),
+		func(v Hello) fp.Tuple2[int, []int] {
+			return fp.Tuple2[int, []int]{
+				I1: v.v,
+				I2: v.s,
+			}
 		},
 	)
 }
@@ -33,15 +24,11 @@ func ValidatorContainer() Validator[Container] {
 	return ContraGeneric(
 		"namedptr.Container",
 		"Struct",
-		StructHCons(
-			NamedSlice(as.NameTag(`List`, ``), ValidatorValue()),
-			HNil,
-		),
-		func(v Container) minimal.Cons[[]Value, hlist.Nil] {
-			i0 := v.List
-			h1 := hlist.Empty()
-			h0 := minimal.Concat(i0, h1)
-			return h0
+		Struct1Container(NamedSlice(as.NameTag(`List`, ``), ValidatorValue())),
+		func(v Container) fp.Tuple1[[]Value] {
+			return fp.Tuple1[[]Value]{
+				I1: v.List,
+			}
 		},
 	)
 }
@@ -50,7 +37,7 @@ func ValidatorValue() Validator[Value] {
 	return ContraGeneric(
 		"namedptr.Value",
 		"Struct",
-		Struct1Container(Int),
+		Struct1Container(NamedInt(as.NameTag(`Present`, ``))),
 		func(v Value) fp.Tuple1[int] {
 			return fp.Tuple1[int]{
 				I1: v.Present,

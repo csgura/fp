@@ -60,12 +60,24 @@ func NamedSlice[T any](name fp.Named, v Validator[T]) Validator[[]T] {
 	})
 }
 
+func Slice[T any](v Validator[T]) Validator[[]T] {
+	return New(func(t []T) error {
+		return nil
+	})
+}
+
 var Int = New(func(t int) error {
 	return nil
 })
 
 func Struct1Container[T any](v Validator[T]) Validator[fp.Tuple1[T]] {
 	return New(func(t fp.Tuple1[T]) error {
+		return nil
+	})
+}
+
+func Struct2[A, B any](av Validator[A], bv Validator[B]) Validator[fp.Tuple2[A, B]] {
+	return New(func(t fp.Tuple2[A, B]) error {
 		return nil
 	})
 }

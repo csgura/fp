@@ -53,8 +53,34 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 
 	result := r.lookupTupleLikeTypeClassFunc(ctx, tc, fmt.Sprintf("Struct%d", typeArgs.Size()), names, sf.typeArgs)
 
-	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
-		return GenericRepr{
+	verbose("lookupTupleLikeTypeClassFunc Struct%d -> %t", typeArgs.Size(), result.IsDefined())
+	return option.FlatMap(result, func(tm metafp.TypeClassInstance) fp.Option[GenericRepr] {
+
+		requiredAllTypeClass := tm.RequiredInstance.ForAll(func(v metafp.RequiredInstance) bool {
+			return v.TypeClass.Id() == tc.Id()
+		})
+
+		verbose("%s requiredAllTypeClass %t", tm.Name, requiredAllTypeClass)
+		if requiredAllTypeClass {
+			fnamed := option.TraverseSeq(seq.Zip(names, typeArgs), func(a fp.Tuple2[fp.NameTag, metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
+				return r.lookupExplicitNamedFunc(ctx, tc, a.I1, a.I2.Type)
+			})
+			if fnamed.IsDefined() {
+				return option.Some(GenericRepr{
+					Kind:         fp.GenericKindStruct,
+					Type:         as.Supplier1(sf.typeStr, ctx.working),
+					ReprType:     r.tupleReprType(ctx, sf, tm.Result.TypeArgs.Head()),
+					ToReprExpr:   r.intoTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
+					FromReprExpr: r.fromTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
+					ReprExpr: func() SummonExpr {
+						return r.exprTypeClassInstanceWithRequiredFound(ctx, tm, false, fnamed.Get())
+
+						// return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
+					},
+				})
+			}
+		}
+		return option.Some(GenericRepr{
 			Kind:         fp.GenericKindStruct,
 			Type:         as.Supplier1(sf.typeStr, ctx.working),
 			ReprType:     r.tupleReprType(ctx, sf, tm.Result.TypeArgs.Head()),
@@ -65,7 +91,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 
 				// return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
 			},
-		}
+		})
 	}).Or(func() fp.Option[GenericRepr] {
 		for scons := range r.lookupTypeClassFunc(ctx, tc, "StructHCons").All() {
 			fnamed := option.TraverseSeq(seq.Zip(names, typeArgs), func(a fp.Tuple2[fp.NameTag, metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
