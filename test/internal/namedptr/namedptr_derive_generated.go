@@ -4,6 +4,7 @@ package namedptr
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"time"
 )
 
 func ValidatorHello() Validator[Hello] {
@@ -37,10 +38,11 @@ func ValidatorValue() Validator[Value] {
 	return ContraGeneric(
 		"namedptr.Value",
 		"Struct",
-		Struct1Container(NamedInt(as.NameTag(`Present`, ``))),
-		func(v Value) fp.Tuple1[int] {
-			return fp.Tuple1[int]{
+		Struct2(NamedInt(as.NameTag(`Present`, ``)), NamedPtr[time.Time](as.NameTag(`Value`, ``))),
+		func(v Value) fp.Tuple2[int, *time.Time] {
+			return fp.Tuple2[int, *time.Time]{
 				I1: v.Present,
+				I2: v.Value,
 			}
 		},
 	)

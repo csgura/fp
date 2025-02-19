@@ -1,6 +1,8 @@
 package namedptr
 
 import (
+	"time"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/minimal"
@@ -44,6 +46,12 @@ func ContraGeneric[A, Repr any](name string, kind string, reprIns Validator[Repr
 
 func Named[T any](name fp.Named, v Validator[T]) Validator[T] {
 	return New(func(t T) error {
+		return nil
+	})
+}
+
+func NamedPtr[T any](name fp.Named) Validator[*T] {
+	return New(func(t *T) error {
 		return nil
 	})
 }
@@ -98,6 +106,7 @@ type Container struct {
 
 type Value struct {
 	Present int
+	Value   *time.Time
 }
 
 // @fp.Derive(recursive=true)

@@ -54,8 +54,9 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 	result := r.lookupTupleLikeTypeClassFunc(ctx, tc, fmt.Sprintf("Struct%d", typeArgs.Size()), names, sf.typeArgs)
 
 	verbose("lookupTupleLikeTypeClassFunc Struct%d -> %t", typeArgs.Size(), result.IsDefined())
-	return option.FlatMap(result, func(tm metafp.TypeClassInstance) fp.Option[GenericRepr] {
+	return option.FlatMap(result, func(di DefinedInstance) fp.Option[GenericRepr] {
 
+		tm := di.instance
 		requiredAllTypeClass := tm.RequiredInstance.ForAll(func(v metafp.RequiredInstance) bool {
 			return v.TypeClass.Id() == tc.Id()
 		})
@@ -80,18 +81,21 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 				})
 			}
 		}
-		return option.Some(GenericRepr{
-			Kind:         fp.GenericKindStruct,
-			Type:         as.Supplier1(sf.typeStr, ctx.working),
-			ReprType:     r.tupleReprType(ctx, sf, tm.Result.TypeArgs.Head()),
-			ToReprExpr:   r.intoTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
-			FromReprExpr: r.fromTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
-			ReprExpr: func() SummonExpr {
-				return r.exprTypeClassInstance(ctx, tm, false)
+		if di.checked {
+			return option.Some(GenericRepr{
+				Kind:         fp.GenericKindStruct,
+				Type:         as.Supplier1(sf.typeStr, ctx.working),
+				ReprType:     r.tupleReprType(ctx, sf, tm.Result.TypeArgs.Head()),
+				ToReprExpr:   r.intoTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
+				FromReprExpr: r.fromTupleRepr(ctx, sf, tm.Result.TypeArgs.Head()),
+				ReprExpr: func() SummonExpr {
+					return r.exprTypeClassInstance(ctx, tm, false)
 
-				// return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
-			},
-		})
+					// return r.exprTupleWithName(ctx, tc, tm, sf.pack, sf.name, names, typeArgs, sf.namedGenerated)
+				},
+			})
+		}
+		return option.None[GenericRepr]()
 	}).Or(func() fp.Option[GenericRepr] {
 		for scons := range r.lookupTypeClassFunc(ctx, tc, "StructHCons").All() {
 			fnamed := option.TraverseSeq(seq.Zip(names, typeArgs), func(a fp.Tuple2[fp.NameTag, metafp.TypeInfoExpr]) fp.Option[metafp.TypeClassInstance] {
