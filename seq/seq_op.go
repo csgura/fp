@@ -11,23 +11,23 @@ import (
 	"github.com/csgura/fp/product"
 )
 
-func Size[T any](s []T) int {
+func Size[T any](s fp.Seq[T]) int {
 	return len(s)
 }
 
-func Head[T any](s []T) fp.Option[T] {
+func Head[T any](s fp.Seq[T]) fp.Option[T] {
 	return fp.Seq[T](s).Head()
 }
 
-func Init[T any](s []T) fp.Seq[T] {
+func Init[T any](s fp.Seq[T]) fp.Seq[T] {
 	return fp.Seq[T](s).Init()
 }
 
-func Tail[T any](s []T) fp.Seq[T] {
+func Tail[T any](s fp.Seq[T]) fp.Seq[T] {
 	return fp.Seq[T](s).Tail()
 }
 
-func Last[T any](s []T) fp.Option[T] {
+func Last[T any](s fp.Seq[T]) fp.Option[T] {
 	return fp.Seq[T](s).Last()
 }
 

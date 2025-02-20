@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+type Slice[T any] = []T
+
 func SliceCasting[To ~[]T, From ~[]T, T any](a From) To {
 	return To(a)
 }

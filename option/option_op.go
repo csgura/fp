@@ -157,6 +157,13 @@ func ToSeq[T any](r fp.Option[T]) fp.Seq[T] {
 	return nil
 }
 
+func ToSlice[T any](r fp.Option[T]) fp.Slice[T] {
+	if r.IsDefined() {
+		return fp.Slice[T]{r.Get()}
+	}
+	return nil
+}
+
 func Iterator[T any](r fp.Option[T]) fp.Iterator[T] {
 	return fp.IteratorOfSeq(ToSeq(r))
 }

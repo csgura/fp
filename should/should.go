@@ -1,6 +1,7 @@
 package should
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/csgura/fp"
@@ -34,21 +35,55 @@ func NotEqual[T comparable](t testing.TB, a, b T) {
 
 	if a == b {
 		t.Helper()
-		t.Fatalf("expected not equal, actual %v", a)
+		t.Fatalf("expected not equal, actual [%v]", a)
+	}
+}
+
+func BeZero[T comparable](t testing.TB, a T) {
+	var zero T
+	if a != zero {
+		t.Helper()
+		t.Fatalf("expected zero, actual [%v]", a)
+	}
+}
+
+func NotBeZero[T comparable](t testing.TB, a T) {
+	var zero T
+	if a == zero {
+		t.Helper()
+		t.Fatalf("expected not zero")
 	}
 }
 
 func BeNil(t testing.TB, a any) {
 	if a != nil {
-		t.Helper()
-		t.Fatalf("expected nil, actual %v", a)
+		rv := reflect.ValueOf(a)
+		switch rv.Kind() {
+		case reflect.Chan, reflect.Func, reflect.Pointer, reflect.UnsafePointer, reflect.Slice:
+			if !rv.IsNil() {
+				t.Helper()
+				t.Fatalf("expected nil, actual %v", a)
+			}
+		default:
+			t.Helper()
+			t.Fatalf("expected nil, actual %v", a)
+		}
 	}
 }
 
 func NotBeNil(t testing.TB, a any) {
 	if a == nil {
 		t.Helper()
-		t.Fatalf("expected not nil, actual %v", a)
+		t.Fatalf("expected not nil, actual [%v]", a)
+	}
+
+	rv := reflect.ValueOf(a)
+	switch rv.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Pointer, reflect.UnsafePointer, reflect.Slice:
+		if rv.IsNil() {
+			t.Helper()
+			t.Fatalf("expected not nil, actual [%v]", a)
+		}
 	}
 }
 

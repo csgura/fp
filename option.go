@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+type Ptr[T any] = *T
+
 type OptionT[T any] = Try[Option[T]]
 
 type Option[T any] struct {
