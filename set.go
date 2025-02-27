@@ -41,7 +41,7 @@ func (r Set[V]) Iterator() Iterator[V] {
 }
 func (r Set[V]) Incl(v V) Set[V] {
 	if r.set == nil && r.getEmpty == nil {
-		return MakeSet[V](func() SetMinimal[V] {
+		return MakeSet(func() SetMinimal[V] {
 			return UnsafeGoSet[V]{}
 		}, UnsafeGoSet[V]{
 			v: true,

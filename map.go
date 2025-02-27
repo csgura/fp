@@ -51,7 +51,7 @@ func (r Map[K, V]) Removed(k ...K) Map[K, V] {
 }
 func (r Map[K, V]) Updated(k K, v V) Map[K, V] {
 	if r.Base == nil {
-		return MakeMap[K, V](
+		return MakeMap(
 			UnsafeGoMap[K, V]{
 				k: v,
 			},

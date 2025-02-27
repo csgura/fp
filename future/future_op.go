@@ -677,24 +677,51 @@ type ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R any] struct {
 }
 
 {{template "Receiver" .}} ApFuture(a fp.Future[A1]) {{template "Next" .}} {
-
 	return {{template "Next" .}}{Ap(r.fn, a)}
 }
 
-{{template "Receiver" .}} ApTry(a fp.Try[A1]) {{template "Next" .}} {
+{{template "Receiver" .}} ApFutureAll({{DeclTypeClassArgs 1 .N "fp.Future"}}) fp.Future[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApFuture(ins{{inc .}}).
+	{{- end -}}
+		ApFuture(ins{{.N}})
+}
 
+{{template "Receiver" .}} ApTry(a fp.Try[A1]) {{template "Next" .}} {
 	return r.ApFuture(FromTry(a))
 }
 
-{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
+{{template "Receiver" .}} ApTryAll({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Future[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApTry(ins{{inc .}}).
+	{{- end -}}
+		ApTry(ins{{.N}})
+}
 
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
 	return r.ApFuture(FromOption(a))
 }
 
+{{template "Receiver" .}} ApOptionAll({{DeclTypeClassArgs 1 .N "fp.Option"}}) fp.Future[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApOption(ins{{inc .}}).
+	{{- end -}}
+		ApOption(ins{{.N}})
+}
+
 {{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
-
 	return r.ApFuture(Successful(a))
+}
 
+{{template "Receiver" .}} ApAll({{DeclArgs 1 .N}}) fp.Future[R] {
+	return r.
+	{{- range (dec .N) -}}
+		Ap(a{{inc .}}).
+	{{- end -}}
+		Ap(a{{.N}})
 }
 
 {{template "Receiver" .}} ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) {{template "Next" .}} {

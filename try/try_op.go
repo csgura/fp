@@ -528,35 +528,57 @@ type ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R any] struct {
 }
 
 {{template "Receiver" .}} ApTry(a fp.Try[A1]) {{template "Next" .}} {
-
 	return {{template "Next" .}}{Ap(r.fn, a)}
 }
-{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
 
+{{template "Receiver" .}} ApTryAll({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.Try[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApTry(ins{{inc .}}).
+	{{- end -}}
+		ApTry(ins{{.N}})
+}
+
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
 	return r.ApTry(FromOption(a))
 }
+
+{{template "Receiver" .}} ApOptionAll({{DeclTypeClassArgs 1 .N "fp.Option"}}) fp.Try[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApOption(ins{{inc .}}).
+	{{- end -}}
+		ApOption(ins{{.N}})
+}
+
 {{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
-
 	return r.ApTry(Success(a))
-
 }
+
+{{template "Receiver" .}} ApAll({{DeclArgs 1 .N}}) fp.Try[R] {
+	return r.
+	{{- range (dec .N) -}}
+		Ap(a{{inc .}}).
+	{{- end -}}
+		Ap(a{{.N}})
+}
+
 {{template "Receiver" .}} ApTryFunc(a func() fp.Try[A1]) {{template "Next" .}} {
-
 	return {{template "Next" .}}{ApFunc(r.fn, a)}
-
 }
-{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
 
+{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
 
+{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R] {
 	return ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]{Success(curried.Func{{.N}}(fn))}
 }

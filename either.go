@@ -48,7 +48,7 @@ func (r left[L, R]) MarshalJSON() ([]byte, error) {
 }
 
 func (r left[L, R]) Recover(f func() R) Either[L, R] {
-	return Right[L, R](f())
+	return Right[L](f())
 }
 
 func (r left[L, R]) String() string {

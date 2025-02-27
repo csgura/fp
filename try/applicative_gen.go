@@ -596,35 +596,45 @@ type ApplicativeFunctor2[A1, A2, R any] struct {
 }
 
 func (r ApplicativeFunctor2[A1, A2, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor1[A2, R] {
-
 	return ApplicativeFunctor1[A2, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor2[A1, A2, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor1[A2, R] {
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2)
+}
+
+func (r ApplicativeFunctor2[A1, A2, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor1[A2, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor2[A1, A2, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2)
+}
+
 func (r ApplicativeFunctor2[A1, A2, R]) Ap(a A1) ApplicativeFunctor1[A2, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor2[A1, A2, R]) ApAll(a1 A1, a2 A2) fp.Try[R] {
+	return r.Ap(a1).Ap(a2)
+}
+
 func (r ApplicativeFunctor2[A1, A2, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor1[A2, R] {
-
 	return ApplicativeFunctor1[A2, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor2[A1, A2, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor1[A2, R] {
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor1[A2, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor2[A1, A2, R]) ApFunc(a func() A1) ApplicativeFunctor1[A2, R] {
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApFunc(a func() A1) ApplicativeFunctor1[A2, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative2[A1, A2, R any](fn fp.Func2[A1, A2, R]) ApplicativeFunctor2[A1, A2, R] {
 	return ApplicativeFunctor2[A1, A2, R]{Success(curried.Func2(fn))}
 }
@@ -634,35 +644,45 @@ type ApplicativeFunctor3[A1, A2, A3, R any] struct {
 }
 
 func (r ApplicativeFunctor3[A1, A2, A3, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor2[A2, A3, R] {
-
 	return ApplicativeFunctor2[A2, A3, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor2[A2, A3, R] {
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3)
+}
+
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor2[A2, A3, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3)
+}
+
 func (r ApplicativeFunctor3[A1, A2, A3, R]) Ap(a A1) ApplicativeFunctor2[A2, A3, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApAll(a1 A1, a2 A2, a3 A3) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3)
+}
+
 func (r ApplicativeFunctor3[A1, A2, A3, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor2[A2, A3, R] {
-
 	return ApplicativeFunctor2[A2, A3, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor2[A2, A3, R] {
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor2[A2, A3, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor3[A1, A2, A3, R]) ApFunc(a func() A1) ApplicativeFunctor2[A2, A3, R] {
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApFunc(a func() A1) ApplicativeFunctor2[A2, A3, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative3[A1, A2, A3, R any](fn fp.Func3[A1, A2, A3, R]) ApplicativeFunctor3[A1, A2, A3, R] {
 	return ApplicativeFunctor3[A1, A2, A3, R]{Success(curried.Func3(fn))}
 }
@@ -672,35 +692,45 @@ type ApplicativeFunctor4[A1, A2, A3, A4, R any] struct {
 }
 
 func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
-
 	return ApplicativeFunctor3[A2, A3, A4, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4)
+}
+
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4)
+}
+
 func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) Ap(a A1) ApplicativeFunctor3[A2, A3, A4, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4)
+}
+
 func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
-
 	return ApplicativeFunctor3[A2, A3, A4, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApFunc(a func() A1) ApplicativeFunctor3[A2, A3, A4, R] {
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApFunc(a func() A1) ApplicativeFunctor3[A2, A3, A4, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative4[A1, A2, A3, A4, R any](fn fp.Func4[A1, A2, A3, A4, R]) ApplicativeFunctor4[A1, A2, A3, A4, R] {
 	return ApplicativeFunctor4[A1, A2, A3, A4, R]{Success(curried.Func4(fn))}
 }
@@ -710,35 +740,45 @@ type ApplicativeFunctor5[A1, A2, A3, A4, A5, R any] struct {
 }
 
 func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
-
 	return ApplicativeFunctor4[A2, A3, A4, A5, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5)
+}
+
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5)
+}
+
 func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) Ap(a A1) ApplicativeFunctor4[A2, A3, A4, A5, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5)
+}
+
 func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
-
 	return ApplicativeFunctor4[A2, A3, A4, A5, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApFunc(a func() A1) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApFunc(a func() A1) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative5[A1, A2, A3, A4, A5, R any](fn fp.Func5[A1, A2, A3, A4, A5, R]) ApplicativeFunctor5[A1, A2, A3, A4, A5, R] {
 	return ApplicativeFunctor5[A1, A2, A3, A4, A5, R]{Success(curried.Func5(fn))}
 }
@@ -748,35 +788,45 @@ type ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R any] struct {
 }
 
 func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
-
 	return ApplicativeFunctor5[A2, A3, A4, A5, A6, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6)
+}
+
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6)
+}
+
 func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) Ap(a A1) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6)
+}
+
 func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
-
 	return ApplicativeFunctor5[A2, A3, A4, A5, A6, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApFunc(a func() A1) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApFunc(a func() A1) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative6[A1, A2, A3, A4, A5, A6, R any](fn fp.Func6[A1, A2, A3, A4, A5, A6, R]) ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R] {
 	return ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]{Success(curried.Func6(fn))}
 }
@@ -786,35 +836,45 @@ type ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R any] struct {
 }
 
 func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
-
 	return ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6).ApTry(ins7)
+}
+
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6).ApOption(ins7)
+}
+
 func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) Ap(a A1) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6).Ap(a7)
+}
+
 func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
-
 	return ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApFunc(a func() A1) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApFunc(a func() A1) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative7[A1, A2, A3, A4, A5, A6, A7, R any](fn fp.Func7[A1, A2, A3, A4, A5, A6, A7, R]) ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R] {
 	return ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]{Success(curried.Func7(fn))}
 }
@@ -824,35 +884,45 @@ type ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R any] struct {
 }
 
 func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
-
 	return ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7], ins8 fp.Try[A8]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6).ApTry(ins7).ApTry(ins8)
+}
+
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6).ApOption(ins7).ApOption(ins8)
+}
+
 func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) Ap(a A1) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6).Ap(a7).Ap(a8)
+}
+
 func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
-
 	return ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApFunc(a func() A1) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApFunc(a func() A1) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative8[A1, A2, A3, A4, A5, A6, A7, A8, R any](fn fp.Func8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R] {
 	return ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]{Success(curried.Func8(fn))}
 }
@@ -862,35 +932,45 @@ type ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any] struct {
 }
 
 func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
-
 	return ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R]{Ap(r.fn, a)}
 }
-func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7], ins8 fp.Try[A8], ins9 fp.Try[A9]) fp.Try[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6).ApTry(ins7).ApTry(ins8).ApTry(ins9)
+}
+
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return r.ApTry(FromOption(a))
 }
+
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8], ins9 fp.Option[A9]) fp.Try[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6).ApOption(ins7).ApOption(ins8).ApOption(ins9)
+}
+
 func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) Ap(a A1) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
-
 	return r.ApTry(Success(a))
-
 }
+
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Try[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6).Ap(a7).Ap(a8).Ap(a9)
+}
+
 func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTryFunc(a func() fp.Try[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
-
 	return ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R]{ApFunc(r.fn, a)}
-
 }
-func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOptionFunc(a func() fp.Option[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return FromOption(a())
 	})
 }
-func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApFunc(a func() A1) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApFunc(a func() A1) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return r.ApTryFunc(func() fp.Try[A1] {
 		return Success(a())
 	})
 }
+
 func Applicative9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any](fn fp.Func9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]{Success(curried.Func9(fn))}
 }

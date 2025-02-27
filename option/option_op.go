@@ -373,28 +373,39 @@ type ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R any] struct {
 
 
 {{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
-
 	return {{template "Next" .}}{Ap(r.fn, a)}
 }
 
+{{template "Receiver" .}} ApOptionAll({{DeclTypeClassArgs 1 .N "fp.Option"}}) fp.Option[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApOption(ins{{inc .}}).
+	{{- end -}}
+		ApOption(ins{{.N}})
+}
+
 {{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
-
 	return r.ApOption(Some(a))
+}
 
+{{template "Receiver" .}} ApAll({{DeclArgs 1 .N}}) fp.Option[R] {
+	return r.
+	{{- range (dec .N) -}}
+		Ap(a{{inc .}}).
+	{{- end -}}
+		Ap(a{{.N}})
 }
 
 {{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
-
 	return {{template "Next" .}}{ApFunc(r.fn, a)}
-
 }
 
 {{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
-
 	return r.ApOptionFunc(func() fp.Option[A1] {
 		return Some(a())
 	})
 }
+
 func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R] {
 	return ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]{Some(curried.Func{{.N}}(fn))}
 }

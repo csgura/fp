@@ -716,24 +716,35 @@ type ApplicativeFunctor2[A1, A2, R any] struct {
 }
 
 func (r ApplicativeFunctor2[A1, A2, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor1[A2, R] {
-
 	return ApplicativeFunctor1[A2, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor2[A1, A2, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor1[A2, R] {
+func (r ApplicativeFunctor2[A1, A2, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2)
+}
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor1[A2, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor2[A1, A2, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor1[A2, R] {
+func (r ApplicativeFunctor2[A1, A2, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2)
+}
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor1[A2, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2)
+}
+
 func (r ApplicativeFunctor2[A1, A2, R]) Ap(a A1) ApplicativeFunctor1[A2, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor2[A1, A2, R]) ApAll(a1 A1, a2 A2) fp.Future[R] {
+	return r.Ap(a1).Ap(a2)
 }
 
 func (r ApplicativeFunctor2[A1, A2, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor1[A2, R] {
@@ -773,24 +784,35 @@ type ApplicativeFunctor3[A1, A2, A3, R any] struct {
 }
 
 func (r ApplicativeFunctor3[A1, A2, A3, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor2[A2, A3, R] {
-
 	return ApplicativeFunctor2[A2, A3, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor3[A1, A2, A3, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor2[A2, A3, R] {
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3)
+}
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor2[A2, A3, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor2[A2, A3, R] {
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3)
+}
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor2[A2, A3, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3)
+}
+
 func (r ApplicativeFunctor3[A1, A2, A3, R]) Ap(a A1) ApplicativeFunctor2[A2, A3, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor3[A1, A2, A3, R]) ApAll(a1 A1, a2 A2, a3 A3) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3)
 }
 
 func (r ApplicativeFunctor3[A1, A2, A3, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor2[A2, A3, R] {
@@ -830,24 +852,35 @@ type ApplicativeFunctor4[A1, A2, A3, A4, R any] struct {
 }
 
 func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
-
 	return ApplicativeFunctor3[A2, A3, A4, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3).ApFuture(ins4)
+}
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4)
+}
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor3[A2, A3, A4, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4)
+}
+
 func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) Ap(a A1) ApplicativeFunctor3[A2, A3, A4, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4)
 }
 
 func (r ApplicativeFunctor4[A1, A2, A3, A4, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor3[A2, A3, A4, R] {
@@ -887,24 +920,35 @@ type ApplicativeFunctor5[A1, A2, A3, A4, A5, R any] struct {
 }
 
 func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
-
 	return ApplicativeFunctor4[A2, A3, A4, A5, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3).ApFuture(ins4).ApFuture(ins5)
+}
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5)
+}
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor4[A2, A3, A4, A5, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5)
+}
+
 func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) Ap(a A1) ApplicativeFunctor4[A2, A3, A4, A5, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5)
 }
 
 func (r ApplicativeFunctor5[A1, A2, A3, A4, A5, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor4[A2, A3, A4, A5, R] {
@@ -944,24 +988,35 @@ type ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R any] struct {
 }
 
 func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
-
 	return ApplicativeFunctor5[A2, A3, A4, A5, A6, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3).ApFuture(ins4).ApFuture(ins5).ApFuture(ins6)
+}
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6)
+}
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6)
+}
+
 func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) Ap(a A1) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6)
 }
 
 func (r ApplicativeFunctor6[A1, A2, A3, A4, A5, A6, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor5[A2, A3, A4, A5, A6, R] {
@@ -1001,24 +1056,35 @@ type ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R any] struct {
 }
 
 func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
-
 	return ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6], ins7 fp.Future[A7]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3).ApFuture(ins4).ApFuture(ins5).ApFuture(ins6).ApFuture(ins7)
+}
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6).ApTry(ins7)
+}
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6).ApOption(ins7)
+}
+
 func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) Ap(a A1) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6).Ap(a7)
 }
 
 func (r ApplicativeFunctor7[A1, A2, A3, A4, A5, A6, A7, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor6[A2, A3, A4, A5, A6, A7, R] {
@@ -1058,24 +1124,35 @@ type ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R any] struct {
 }
 
 func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
-
 	return ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6], ins7 fp.Future[A7], ins8 fp.Future[A8]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3).ApFuture(ins4).ApFuture(ins5).ApFuture(ins6).ApFuture(ins7).ApFuture(ins8)
+}
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7], ins8 fp.Try[A8]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6).ApTry(ins7).ApTry(ins8)
+}
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6).ApOption(ins7).ApOption(ins8)
+}
+
 func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) Ap(a A1) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6).Ap(a7).Ap(a8)
 }
 
 func (r ApplicativeFunctor8[A1, A2, A3, A4, A5, A6, A7, A8, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor7[A2, A3, A4, A5, A6, A7, A8, R] {
@@ -1115,24 +1192,35 @@ type ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R any] struct {
 }
 
 func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApFuture(a fp.Future[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
-
 	return ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R]{Ap(r.fn, a)}
 }
 
-func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApFutureAll(ins1 fp.Future[A1], ins2 fp.Future[A2], ins3 fp.Future[A3], ins4 fp.Future[A4], ins5 fp.Future[A5], ins6 fp.Future[A6], ins7 fp.Future[A7], ins8 fp.Future[A8], ins9 fp.Future[A9]) fp.Future[R] {
+	return r.ApFuture(ins1).ApFuture(ins2).ApFuture(ins3).ApFuture(ins4).ApFuture(ins5).ApFuture(ins6).ApFuture(ins7).ApFuture(ins8).ApFuture(ins9)
+}
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTry(a fp.Try[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return r.ApFuture(FromTry(a))
 }
 
-func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApTryAll(ins1 fp.Try[A1], ins2 fp.Try[A2], ins3 fp.Try[A3], ins4 fp.Try[A4], ins5 fp.Try[A5], ins6 fp.Try[A6], ins7 fp.Try[A7], ins8 fp.Try[A8], ins9 fp.Try[A9]) fp.Future[R] {
+	return r.ApTry(ins1).ApTry(ins2).ApTry(ins3).ApTry(ins4).ApTry(ins5).ApTry(ins6).ApTry(ins7).ApTry(ins8).ApTry(ins9)
+}
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOption(a fp.Option[A1]) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
 	return r.ApFuture(FromOption(a))
 }
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApOptionAll(ins1 fp.Option[A1], ins2 fp.Option[A2], ins3 fp.Option[A3], ins4 fp.Option[A4], ins5 fp.Option[A5], ins6 fp.Option[A6], ins7 fp.Option[A7], ins8 fp.Option[A8], ins9 fp.Option[A9]) fp.Future[R] {
+	return r.ApOption(ins1).ApOption(ins2).ApOption(ins3).ApOption(ins4).ApOption(ins5).ApOption(ins6).ApOption(ins7).ApOption(ins8).ApOption(ins9)
+}
+
 func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) Ap(a A1) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
-
 	return r.ApFuture(Successful(a))
+}
 
+func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApAll(a1 A1, a2 A2, a3 A3, a4 A4, a5 A5, a6 A6, a7 A7, a8 A8, a9 A9) fp.Future[R] {
+	return r.Ap(a1).Ap(a2).Ap(a3).Ap(a4).Ap(a5).Ap(a6).Ap(a7).Ap(a8).Ap(a9)
 }
 
 func (r ApplicativeFunctor9[A1, A2, A3, A4, A5, A6, A7, A8, A9, R]) ApFutureFunc(a func() fp.Future[A1], ctx ...fp.Executor) ApplicativeFunctor8[A2, A3, A4, A5, A6, A7, A8, A9, R] {
