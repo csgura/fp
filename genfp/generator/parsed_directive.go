@@ -1027,7 +1027,7 @@ type GenerateMonadTransformerDirective struct {
 	Package           genfp.WorkingPackage
 	TargetAlias       *types.Alias
 	TargetType        *types.Named
-	ExposureMonadType *types.Named
+	ExposureMonadType GenericType
 	// 생성될 file 이름
 	File          string
 	TypeParm      *types.TypeParam
@@ -1061,10 +1061,10 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("invalid number of type argument")
 	}
 
-	if monadType, ok := typeArgs.At(0).(*types.Named); ok {
+	if monadType, ok := typeArgs.At(0).(GenericType); ok {
 		ret.ExposureMonadType = monadType
 	} else {
-		return ret, fmt.Errorf("target type is not named type : %s", typeArgs.At(0))
+		return ret, fmt.Errorf("inside type is not named type : %s", typeArgs.At(0))
 	}
 
 	names := []string{"Name", "File", "TypeParm", "GivenMonad", "ExposureMonad", "Sequence", "Transform"}

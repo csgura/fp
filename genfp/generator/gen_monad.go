@@ -33,7 +33,7 @@ func FixedParams(w Writer, pk genfp.WorkingPackage, realtp GenericType, p *types
 	return nil
 }
 
-func VariableParams(w Writer, pk genfp.WorkingPackage, realtp *types.Named, fixedParam []string) []string {
+func VariableParams(w Writer, pk genfp.WorkingPackage, realtp GenericType, fixedParam []string) []string {
 	if realtp.TypeArgs() != nil {
 		args := []string{}
 		for i := 0; i < realtp.TypeArgs().Len(); i++ {
@@ -49,7 +49,7 @@ func VariableParams(w Writer, pk genfp.WorkingPackage, realtp *types.Named, fixe
 	return nil
 }
 
-func TypeParamReplaced(w Writer, pk genfp.WorkingPackage, realtp *types.Named, p *types.TypeParam) func(string, ...any) string {
+func TypeParamReplaced(w Writer, pk genfp.WorkingPackage, realtp GenericType, p *types.TypeParam) func(string, ...any) string {
 	return func(newname string, fmtargs ...any) string {
 		if realtp.TypeArgs() != nil {
 			args := []string{}

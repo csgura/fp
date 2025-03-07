@@ -7,6 +7,8 @@ import (
 
 type Slice[T any] = []T
 
+type SliceT[T any] = Try[Slice[T]]
+
 func SliceCasting[To ~[]T, From ~[]T, T any](a From) To {
 	return To(a)
 }

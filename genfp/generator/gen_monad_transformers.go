@@ -12,7 +12,7 @@ import (
 	"github.com/csgura/fp/genfp"
 )
 
-func InstiateTransfomer(w genfp.Writer, pk genfp.WorkingPackage, aliastp *types.Alias, realtp *types.Named, monadType *types.Named, p *types.TypeParam) func(string, ...any) string {
+func InstiateTransfomer(w genfp.Writer, pk genfp.WorkingPackage, aliastp *types.Alias, realtp *types.Named, monadType GenericType, p *types.TypeParam) func(string, ...any) string {
 
 	if aliastp != nil {
 		return NameParamReplaced(w, pk, aliastp, p)
@@ -121,7 +121,7 @@ func FlatMapRetType(w genfp.Writer, pk genfp.WorkingPackage, tr TypeReference, f
 	if sig, ok := tr.Type.(*types.Signature); ok {
 		if sig.Results().Len() == 1 {
 			rettp := sig.Results().At(0).Type()
-			if named, ok := rettp.(*types.Named); ok {
+			if named, ok := rettp.(GenericType); ok {
 				vp := VariableParams(w, pk, named, fixed)
 				if len(vp) == 1 {
 					return vp[0]
@@ -231,6 +231,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	flatmapf := CallFunc(w, md.ExposureMonad.FlatMap)
 
 	flatmapRet := FlatMapRetType(w, md.Package, md.ExposureMonad.FlatMap, fixedParams)
+	// fmt.Printf("md.TypeParam.String()= %s, flatmapRet = %s\n", md.TypeParm.String(), flatmapRet)
 
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
