@@ -1,4 +1,4 @@
-package optiont
+package ptrt
 
 import (
 	"github.com/csgura/fp"
