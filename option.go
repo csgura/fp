@@ -8,6 +8,8 @@ import (
 
 type Ptr[T any] = *T
 
+type PtrT[T any] = Try[Ptr[T]]
+
 type OptionT[T any] = Try[Option[T]]
 
 type Option[T any] struct {

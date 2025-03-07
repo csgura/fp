@@ -129,11 +129,13 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective, define
 	}
 
 	func Sequence[{{.tpargs}}](tsa []{{monad "A"}}) {{monad "[]A"}} {
-		ret := FoldM(iterator.FromSeq(tsa), fp.Seq[A]{}, func(t1 fp.Seq[A], t2 {{monad "A"}}) {{monad "fp.Seq[A]"}} {
-			return Map(t2, t1.Add)
+		ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 {{monad "A"}}) {{monad "fp.Slice[A]"}} {
+			return Map(t2, func(v A) fp.Slice[A] {
+				return append(t1, v)
+			})
 		})
 	
-		return Map(ret, fp.Seq[A].Widen)
+		return ret
 	}
 
 
