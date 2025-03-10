@@ -97,6 +97,12 @@ func Pure[S, A any](a A) fp.StateT[S, A] {
 	}
 }
 
+func Failure[S, A any](err error) fp.StateT[S, A] {
+	return func(s S) (fp.Try[A], S) {
+		return try.Failure[A](err), s
+	}
+}
+
 func FromTry[S, A any](t fp.Try[A]) fp.StateT[S, A] {
 	return func(s S) (fp.Try[A], S) {
 		return t, s
