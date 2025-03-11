@@ -15,6 +15,10 @@ func None[A any]() fp.PtrT[A] {
 	return try.Success(ptr.None[A]())
 }
 
+func FromTry[A any](v fp.Try[A]) fp.PtrT[A] {
+	return try.Map(v, ptr.Some)
+}
+
 func Fold[T any, U any](ptrT fp.PtrT[T], zero U, f func(U, T) U) U {
 	if ptrT.IsFailure() {
 		return zero

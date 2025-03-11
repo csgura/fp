@@ -15,6 +15,10 @@ func None[A any]() fp.OptionT[A] {
 	return try.Success(option.None[A]())
 }
 
+func FromTry[A any](v fp.Try[A]) fp.OptionT[A] {
+	return try.Map(v, option.Some)
+}
+
 func Fold[T any, U any](optionT fp.OptionT[T], zero U, f func(U, T) U) U {
 	if optionT.IsFailure() {
 		return zero
