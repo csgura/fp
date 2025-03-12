@@ -1,8 +1,11 @@
 package ptrt
 
 import (
+	"iter"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/ptr"
 	"github.com/csgura/fp/try"
 )
@@ -24,6 +27,14 @@ func Fold[T any, U any](ptrT fp.PtrT[T], zero U, f func(U, T) U) U {
 		return zero
 	}
 	return ptr.Fold(ptrT.Get(), zero, f)
+}
+
+func Iterator[T any](optionT fp.PtrT[T]) fp.Iterator[T] {
+	return iterator.FlatMap(try.Iterator(optionT), ptr.Iterator)
+}
+
+func All[T any](optionT fp.PtrT[T]) iter.Seq[T] {
+	return Iterator(optionT).All()
 }
 
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen

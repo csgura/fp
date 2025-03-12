@@ -49,11 +49,13 @@ func FlatMapTraverseSlice[A any, B any](ta fp.OptionT[[]A], f func(v A) fp.Optio
 }
 
 func Sequence[A any](tsa []fp.OptionT[A]) fp.OptionT[[]A] {
-	ret := FoldM(iterator.FromSeq(tsa), fp.Seq[A]{}, func(t1 fp.Seq[A], t2 fp.OptionT[A]) fp.OptionT[fp.Seq[A]] {
-		return Map(t2, t1.Add)
+	ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 fp.OptionT[A]) fp.OptionT[fp.Slice[A]] {
+		return Map(t2, func(v A) fp.Slice[A] {
+			return append(t1, v)
+		})
 	})
 
-	return Map(ret, fp.Seq[A].Widen)
+	return ret
 }
 
 func SequenceIterator[A any](ita fp.Iterator[fp.OptionT[A]]) fp.OptionT[fp.Iterator[A]] {

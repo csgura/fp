@@ -3,6 +3,7 @@ package fp
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 	"net/http"
 )
 
@@ -17,7 +18,7 @@ type Option[T any] struct {
 	v       T
 }
 
-func (r Option[T]) All() func(func(T) bool) {
+func (r Option[T]) All() iter.Seq[T] {
 	return func(f func(T) bool) {
 		if r.IsDefined() {
 			f(r.Get())

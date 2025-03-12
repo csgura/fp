@@ -98,3 +98,10 @@ func Recover[T any](optionT fp.OptionT[T], f func() T) fp.Try[fp.Option[T]] {
 		return fp.Option[T].Recover(insideValue, f)
 	})
 }
+
+func Foreach[T any](optionT fp.OptionT[T], f func(v T)) {
+	try.Map(optionT, func(insideValue fp.Option[T]) error {
+		fp.Option[T].Foreach(insideValue, f)
+		return nil
+	})
+}

@@ -1,12 +1,22 @@
 package seqt
 
 import (
+	"iter"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
+
+func Iterator[T any](optionT fp.SeqT[T]) fp.Iterator[T] {
+	return iterator.FlatMap(try.Iterator(optionT), seq.Iterator)
+}
+
+func All[T any](optionT fp.SeqT[T]) iter.Seq[T] {
+	return Iterator(optionT).All()
+}
 
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 

@@ -1,8 +1,11 @@
 package optiont
 
 import (
+	"iter"
+
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/try"
 )
@@ -24,6 +27,27 @@ func Fold[T any, U any](optionT fp.OptionT[T], zero U, f func(U, T) U) U {
 		return zero
 	}
 	return option.Fold(optionT.Get(), zero, f)
+}
+
+func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.OptionT[B]) fp.OptionT[B] {
+	sum := zero
+	for s.HasNext() {
+		t := f(sum, s.Next())
+		if t.IsSuccess() && t.Get().IsDefined() {
+			sum = t.Get().Get()
+		} else {
+			return t
+		}
+	}
+	return Pure(sum)
+}
+
+func Iterator[T any](optionT fp.OptionT[T]) fp.Iterator[T] {
+	return iterator.FlatMap(try.Iterator(optionT), option.Iterator)
+}
+
+func All[T any](optionT fp.OptionT[T]) iter.Seq[T] {
+	return Iterator(optionT).All()
 }
 
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
@@ -55,21 +79,9 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 			fp.Option[T].OrOption,
 			fp.Option[T].OrPtr,
 			fp.Option[T].Recover,
+			fp.Option[T].Foreach,
 		},
 	}
-}
-
-func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.OptionT[B]) fp.OptionT[B] {
-	sum := zero
-	for s.HasNext() {
-		t := f(sum, s.Next())
-		if t.IsSuccess() && t.Get().IsDefined() {
-			sum = t.Get().Get()
-		} else {
-			return t
-		}
-	}
-	return Pure(sum)
 }
 
 // @internal.Generate
