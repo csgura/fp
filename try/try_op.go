@@ -35,12 +35,20 @@ func FromOption[T any](v fp.Option[T]) fp.Try[T] {
 	}
 }
 
-func FromPtr[T any](v *T) fp.Try[T] {
+func FromOptionT[T any](v fp.OptionT[T]) fp.Try[T] {
+	return FlatMap(v, FromOption)
+}
+
+func FromPtr[T any](v fp.Ptr[T]) fp.Try[T] {
 	if v != nil {
 		return Success(*v)
 	} else {
 		return Failure[T](fp.ErrOptionEmpty)
 	}
+}
+
+func FromPtrT[T any](v fp.PtrT[T]) fp.Try[T] {
+	return FlatMap(v, FromPtr)
 }
 
 type Panic interface {
