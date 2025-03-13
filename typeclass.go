@@ -14,6 +14,12 @@ type ShowOption struct {
 	// true 인 경우, type name 생략
 	OmitTypeName bool
 
+	// Indent 가 설정되어 있을 때  object {} 를 출력안함
+	OmitObjectBrace bool
+
+	// Indent 가 설정되어 있을 때 object attr 사이의 comma 를 출력안함.
+	OmitComma bool
+
 	// true 인 경우  1, 2, 3
 	// false 인 경우 1,2,3
 	SpaceAfterComma bool
@@ -51,6 +57,7 @@ type ShowOption struct {
 
 	UserOptions Map[string, string]
 
+	indentLevel   int
 	currentIndent string
 }
 
@@ -66,6 +73,10 @@ func (r ShowOption) CurrentIndent() string {
 }
 
 func (r ShowOption) IncreaseIndent() ShowOption {
+	r.indentLevel = r.indentLevel + 1
+	if r.indentLevel == 1 && r.OmitObjectBrace {
+		return r
+	}
 	r.currentIndent = r.currentIndent + r.Indent
 	return r
 }

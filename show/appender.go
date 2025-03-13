@@ -7,24 +7,45 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/seq"
 )
 
 type Appender func(buf []string, opt fp.ShowOption) []string
 
-func appendSeq(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.ShowOption) []string {
+func appendSeq(buf []string, typeName string, itr fp.Iterator[Appender], opt fp.ShowOption) []string {
 	childOpt := opt.IncreaseIndent()
 
-	showseq := as.Seq(itr.ToSeq())
-	if opt.OmitEmpty && showseq.IsEmpty() {
+	apdseq := as.Seq(itr.ToSeq())
+	if opt.OmitEmpty && apdseq.IsEmpty() {
 		return nil
 	}
+
+	if opt.OmitObjectBrace {
+		showseq := seq.Map(apdseq, func(v Appender) []string {
+			return v(nil, opt)
+		})
+
+		return append(
+			append(
+				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), arrayOpen(opt), omitBrace("\n", opt), opt.CurrentIndent()),
+				makeArrayString(showseq, "- ", structFieldSeparator(opt))...,
+			),
+			trailingComma(opt), omitBrace("\n", opt), omitBrace(opt.CurrentIndent(), opt), arrayClose(opt),
+		)
+	}
+
+	showseq := seq.Map(apdseq, func(v Appender) []string {
+		return v(nil, childOpt)
+	})
+
 	if opt.Indent != "" && showseq.Exists(func(v []string) bool {
 		return as.Seq(v).Exists(fp.Test(as.Func2(strings.Contains), "\n"))
 	}) {
+
 		return append(
 			append(
-				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), arrayOpen(opt), "\n", childOpt.CurrentIndent()),
-				makeString(showseq, ",\n"+childOpt.CurrentIndent())...,
+				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), arrayOpen(opt), omitBrace("\n", opt), childOpt.CurrentIndent()),
+				makeString(showseq, structFieldSeparator(childOpt))...,
 			),
 			trailingComma(opt), "\n", opt.CurrentIndent(), arrayClose(opt),
 		)
@@ -56,10 +77,10 @@ func appendMap(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 	if opt.Indent != "" {
 		return append(
 			append(
-				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), "{\n", childOpt.CurrentIndent()),
-				makeString(showseq, ",\n"+childOpt.CurrentIndent())...,
+				append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), omitBrace("{\n", opt), childOpt.CurrentIndent()),
+				makeString(showseq, structFieldSeparator(childOpt))...,
 			),
-			trailingComma(opt), "\n", opt.CurrentIndent(), "}",
+			trailingComma(opt), omitBrace("\n", opt), omitBrace(opt.CurrentIndent(), opt), omitBrace("}", opt),
 		)
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
