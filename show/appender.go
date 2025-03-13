@@ -7,16 +7,17 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 )
 
 type Appender func(buf []string, opt fp.ShowOption) []string
 
-func appendSeq(buf []string, typeName string, itr fp.Iterator[Appender], opt fp.ShowOption) []string {
+func appendSeq(buf []string, typeName string, apdseq []Appender, opt fp.ShowOption) []string {
 	childOpt := opt.IncreaseIndent()
 
-	apdseq := as.Seq(itr.ToSeq())
-	if opt.OmitEmpty && apdseq.IsEmpty() {
+	if opt.OmitEmpty && len(apdseq) == 0 {
 		return nil
 	}
 
@@ -34,11 +35,11 @@ func appendSeq(buf []string, typeName string, itr fp.Iterator[Appender], opt fp.
 		)
 	}
 
-	showseq := seq.Map(apdseq, func(v Appender) []string {
+	showseq := slice.Map(apdseq, func(v Appender) []string {
 		return v(nil, childOpt)
 	})
 
-	if opt.Indent != "" && showseq.Exists(func(v []string) bool {
+	if opt.Indent != "" && slice.Exists(showseq, func(v []string) bool {
 		return as.Seq(v).Exists(fp.Test(as.Func2(strings.Contains), "\n"))
 	}) {
 
@@ -52,7 +53,7 @@ func appendSeq(buf []string, typeName string, itr fp.Iterator[Appender], opt fp.
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
 
-		if showseq.IsEmpty() {
+		if slice.IsEmpty(showseq) {
 			return append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), arrayOpen(opt), arrayClose(opt))
 		}
 
@@ -66,13 +67,16 @@ func appendSeq(buf []string, typeName string, itr fp.Iterator[Appender], opt fp.
 	}
 }
 
-func appendMap(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.ShowOption) []string {
+func appendMap(buf []string, typeName string, apdseq []Appender, opt fp.ShowOption) []string {
 	childOpt := opt.IncreaseIndent()
 
-	showseq := as.Seq(itr.ToSeq())
-	if opt.OmitEmpty && showseq.IsEmpty() {
+	if opt.OmitEmpty && slice.IsEmpty(apdseq) {
 		return nil
 	}
+
+	showseq := slice.Map(apdseq, func(v Appender) []string {
+		return v(nil, childOpt)
+	})
 
 	if opt.Indent != "" {
 		return append(
@@ -85,7 +89,7 @@ func appendMap(buf []string, typeName string, itr fp.Iterator[[]string], opt fp.
 		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
 
-		if showseq.IsEmpty() {
+		if slice.IsEmpty(showseq) {
 			return append(buf, omitTypeName(typeName, opt), spaceBetweenTypeAndBrace(opt), " {}")
 		}
 
@@ -103,17 +107,26 @@ func FormatStruct(typeName string, opt fp.ShowOption, fields ...fp.Entry[Appende
 	return strings.Join(AppendStruct(nil, typeName, opt, fields...), "")
 }
 
+func AppendCommaSperated(buf []string, list []Appender, opt fp.ShowOption) []string {
+	showseq := slice.FilterNot(slice.Map(list, func(v Appender) []string {
+		return v(nil, opt)
+	}), isEmptyString)
+	return append(buf, makeString(showseq, structFieldSeparator(opt))...)
+}
+
 func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp.Entry[Appender]) []string {
 
 	childOpt := opt.IncreaseIndent()
 
-	itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Entry[Appender]) []string {
+	itr := iterator.FilterMap(iterator.FromSeq(fields), func(t fp.Entry[Appender]) fp.Option[Appender] {
 		valuestr := t.I2(nil, childOpt)
 		if isEmptyString(valuestr) {
-			return nil
+			return option.None[Appender]()
 		}
-		return append([]string{quoteNames(t.I1, opt), spaceAfterColon(opt)}, valuestr...)
-	}).FilterNot(isZero)
+		return option.Some[Appender](func(buf []string, opt fp.ShowOption) []string {
+			return append([]string{quoteNames(t.I1, opt), spaceAfterColon(opt)}, valuestr...)
+		})
+	}).ToSeq()
 
 	return appendMap(buf, typeName, itr, opt)
 
@@ -121,17 +134,7 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 
 func StructAppender(typeName string, fields ...fp.Entry[Appender]) Appender {
 	return func(buf []string, opt fp.ShowOption) []string {
-		childOpt := opt.IncreaseIndent()
-
-		itr := iterator.Map(iterator.FromSeq(fields), func(t fp.Entry[Appender]) []string {
-			valuestr := t.I2(nil, childOpt)
-			if isEmptyString(valuestr) {
-				return nil
-			}
-			return append([]string{quoteNames(t.I1, opt), spaceAfterColon(opt)}, valuestr...)
-		}).FilterNot(isZero)
-
-		return appendMap(buf, typeName, itr, opt)
+		return AppendStruct(buf, typeName, opt, fields...)
 	}
 }
 
@@ -173,6 +176,14 @@ func AppendSpaceWithinBrace(buf []string, opt fp.ShowOption) []string {
 	return append(buf, spaceWithinBrace(opt))
 }
 
+func AppendSpaceBeforeHCons(buf []string, opt fp.ShowOption) []string {
+	return append(buf, spaceBeforeHCons(opt))
+}
+
+func AppendSpaceAfterHCons(buf []string, opt fp.ShowOption) []string {
+	return append(buf, spaceAfterHCons(opt))
+}
+
 func AppendTypeName(buf []string, typeName string, opt fp.ShowOption) []string {
 	return append(buf, omitTypeName(typeName, opt))
 }
@@ -196,3 +207,54 @@ func AppendTrailingComma(buf []string, opt fp.ShowOption) []string {
 func AppendNewLineWithIndent(buf []string, opt fp.ShowOption) []string {
 	return append(buf, "\n", opt.CurrentIndent())
 }
+
+func AppendSlice(buf []string, typeName string, sl []Appender, opt fp.ShowOption) []string {
+	return appendSeq(buf, typeName, sl, opt)
+}
+
+func AppendMap(buf []string, typeName string, sl []Appender, opt fp.ShowOption) []string {
+	return appendMap(buf, typeName, sl, opt)
+}
+
+func AppendGeneric(buf []string, name string, kind string, reprAppend Appender, opt fp.ShowOption) []string {
+	childOpt := opt.IncreaseIndent()
+	valueStr := reprAppend(nil, childOpt)
+	if opt.OmitEmpty && isEmptyString(valueStr) {
+		return nil
+	}
+
+	if kind == fp.GenericKindNewType {
+		if opt.OmitTypeName {
+			return append(buf, valueStr...)
+		}
+		return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt),
+			omitBrace("(", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace(")", opt))
+	} else if kind == fp.GenericKindTuple {
+		if opt.SquareBracketForArray {
+			return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt),
+				omitBrace("[", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace("]", opt))
+
+		} else {
+			return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), omitBrace("(", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace(")", opt))
+
+		}
+	}
+
+	if opt.Indent != "" {
+		return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), omitBrace("{\n", opt), childOpt.CurrentIndent()), valueStr...), trailingComma(opt), omitBrace("\n", opt), omitBrace(opt.CurrentIndent(), opt), omitBrace("}", opt))
+	} else {
+		return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt), "{", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), "}")
+	}
+}
+
+// var NullAppender = Appender(func(buf []string, opt fp.ShowOption) []string {
+// 	return append(buf, nullForNil(opt))
+// })
+
+// var ColonAppender = Appender(func(buf []string, opt fp.ShowOption) []string {
+// 	return append(buf, spaceAfterColon(opt))
+// })
+
+// var NameAppender = Appender(func(buf []string, opt fp.ShowOption) []string {
+// 	return append(buf, spaceAfterColon(opt))
+// })

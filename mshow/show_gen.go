@@ -3,367 +3,387 @@ package mshow
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/minimal"
+	"github.com/csgura/fp/show"
+	"github.com/csgura/fp/slice"
 )
 
 func Struct3[A1, A2, A3 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3]) Show[minimal.Tuple3[A1, A2, A3]] {
-	return NewAppend(func(buf []string, t minimal.Tuple3[A1, A2, A3], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple3[A1, A2, A3], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct4[A1, A2, A3, A4 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4]) Show[minimal.Tuple4[A1, A2, A3, A4]] {
-	return NewAppend(func(buf []string, t minimal.Tuple4[A1, A2, A3, A4], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple4[A1, A2, A3, A4], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct5[A1, A2, A3, A4, A5 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5]) Show[minimal.Tuple5[A1, A2, A3, A4, A5]] {
-	return NewAppend(func(buf []string, t minimal.Tuple5[A1, A2, A3, A4, A5], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple5[A1, A2, A3, A4, A5], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct6[A1, A2, A3, A4, A5, A6 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6]) Show[minimal.Tuple6[A1, A2, A3, A4, A5, A6]] {
-	return NewAppend(func(buf []string, t minimal.Tuple6[A1, A2, A3, A4, A5, A6], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple6[A1, A2, A3, A4, A5, A6], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct7[A1, A2, A3, A4, A5, A6, A7 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7]) Show[minimal.Tuple7[A1, A2, A3, A4, A5, A6, A7]] {
-	return NewAppend(func(buf []string, t minimal.Tuple7[A1, A2, A3, A4, A5, A6, A7], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple7[A1, A2, A3, A4, A5, A6, A7], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct8[A1, A2, A3, A4, A5, A6, A7, A8 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8]) Show[minimal.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8]] {
-	return NewAppend(func(buf []string, t minimal.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple8[A1, A2, A3, A4, A5, A6, A7, A8], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct9[A1, A2, A3, A4, A5, A6, A7, A8, A9 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9]) Show[minimal.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9]] {
-	return NewAppend(func(buf []string, t minimal.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple9[A1, A2, A3, A4, A5, A6, A7, A8, A9], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10]) Show[minimal.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10]] {
-	return NewAppend(func(buf []string, t minimal.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple10[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11]) Show[minimal.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11]] {
-	return NewAppend(func(buf []string, t minimal.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple11[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12]) Show[minimal.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12]] {
-	return NewAppend(func(buf []string, t minimal.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple12[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13]) Show[minimal.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13]] {
-	return NewAppend(func(buf []string, t minimal.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple13[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14]) Show[minimal.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14]] {
-	return NewAppend(func(buf []string, t minimal.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple14[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15]) Show[minimal.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15]] {
-	return NewAppend(func(buf []string, t minimal.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple15[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16]) Show[minimal.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16]] {
-	return NewAppend(func(buf []string, t minimal.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-			Named(names[15], ins16)(nil, t.I16, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple16[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+			AsAppender(Named(names[15], ins16), t.I16),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17]) Show[minimal.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17]] {
-	return NewAppend(func(buf []string, t minimal.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-			Named(names[15], ins16)(nil, t.I16, opt),
-			Named(names[16], ins17)(nil, t.I17, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple17[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+			AsAppender(Named(names[15], ins16), t.I16),
+			AsAppender(Named(names[16], ins17), t.I17),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18]) Show[minimal.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18]] {
-	return NewAppend(func(buf []string, t minimal.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-			Named(names[15], ins16)(nil, t.I16, opt),
-			Named(names[16], ins17)(nil, t.I17, opt),
-			Named(names[17], ins18)(nil, t.I18, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple18[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+			AsAppender(Named(names[15], ins16), t.I16),
+			AsAppender(Named(names[16], ins17), t.I17),
+			AsAppender(Named(names[17], ins18), t.I18),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19]) Show[minimal.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19]] {
-	return NewAppend(func(buf []string, t minimal.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-			Named(names[15], ins16)(nil, t.I16, opt),
-			Named(names[16], ins17)(nil, t.I17, opt),
-			Named(names[17], ins18)(nil, t.I18, opt),
-			Named(names[18], ins19)(nil, t.I19, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple19[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+			AsAppender(Named(names[15], ins16), t.I16),
+			AsAppender(Named(names[16], ins17), t.I17),
+			AsAppender(Named(names[17], ins18), t.I18),
+			AsAppender(Named(names[18], ins19), t.I19),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19], ins20 Show[A20]) Show[minimal.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20]] {
-	return NewAppend(func(buf []string, t minimal.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-			Named(names[15], ins16)(nil, t.I16, opt),
-			Named(names[16], ins17)(nil, t.I17, opt),
-			Named(names[17], ins18)(nil, t.I18, opt),
-			Named(names[18], ins19)(nil, t.I19, opt),
-			Named(names[19], ins20)(nil, t.I20, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple20[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+			AsAppender(Named(names[15], ins16), t.I16),
+			AsAppender(Named(names[16], ins17), t.I17),
+			AsAppender(Named(names[17], ins18), t.I18),
+			AsAppender(Named(names[18], ins19), t.I19),
+			AsAppender(Named(names[19], ins20), t.I20),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }
 
 func Struct21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21 any](names []fp.Named, ins1 Show[A1], ins2 Show[A2], ins3 Show[A3], ins4 Show[A4], ins5 Show[A5], ins6 Show[A6], ins7 Show[A7], ins8 Show[A8], ins9 Show[A9], ins10 Show[A10], ins11 Show[A11], ins12 Show[A12], ins13 Show[A13], ins14 Show[A14], ins15 Show[A15], ins16 Show[A16], ins17 Show[A17], ins18 Show[A18], ins19 Show[A19], ins20 Show[A20], ins21 Show[A21]) Show[minimal.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21]] {
-	return NewAppend(func(buf []string, t minimal.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], opt fp.ShowOption) []string {
-		return append(buf, makeString(iterator.Of(
-			Named(names[0], ins1)(nil, t.I1, opt),
-			Named(names[1], ins2)(nil, t.I2, opt),
-			Named(names[2], ins3)(nil, t.I3, opt),
-			Named(names[3], ins4)(nil, t.I4, opt),
-			Named(names[4], ins5)(nil, t.I5, opt),
-			Named(names[5], ins6)(nil, t.I6, opt),
-			Named(names[6], ins7)(nil, t.I7, opt),
-			Named(names[7], ins8)(nil, t.I8, opt),
-			Named(names[8], ins9)(nil, t.I9, opt),
-			Named(names[9], ins10)(nil, t.I10, opt),
-			Named(names[10], ins11)(nil, t.I11, opt),
-			Named(names[11], ins12)(nil, t.I12, opt),
-			Named(names[12], ins13)(nil, t.I13, opt),
-			Named(names[13], ins14)(nil, t.I14, opt),
-			Named(names[14], ins15)(nil, t.I15, opt),
-			Named(names[15], ins16)(nil, t.I16, opt),
-			Named(names[16], ins17)(nil, t.I17, opt),
-			Named(names[17], ins18)(nil, t.I18, opt),
-			Named(names[18], ins19)(nil, t.I19, opt),
-			Named(names[19], ins20)(nil, t.I20, opt),
-			Named(names[20], ins21)(nil, t.I21, opt),
-		).FilterNot(isEmptyString).ToSeq(), structFieldSeparator(opt))...)
+	return NewAppend(func(buf Buffer, t minimal.Tuple21[A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21], opt fp.ShowOption) Buffer {
+		fields := slice.Of(
+			AsAppender(Named(names[0], ins1), t.I1),
+			AsAppender(Named(names[1], ins2), t.I2),
+			AsAppender(Named(names[2], ins3), t.I3),
+			AsAppender(Named(names[3], ins4), t.I4),
+			AsAppender(Named(names[4], ins5), t.I5),
+			AsAppender(Named(names[5], ins6), t.I6),
+			AsAppender(Named(names[6], ins7), t.I7),
+			AsAppender(Named(names[7], ins8), t.I8),
+			AsAppender(Named(names[8], ins9), t.I9),
+			AsAppender(Named(names[9], ins10), t.I10),
+			AsAppender(Named(names[10], ins11), t.I11),
+			AsAppender(Named(names[11], ins12), t.I12),
+			AsAppender(Named(names[12], ins13), t.I13),
+			AsAppender(Named(names[13], ins14), t.I14),
+			AsAppender(Named(names[14], ins15), t.I15),
+			AsAppender(Named(names[15], ins16), t.I16),
+			AsAppender(Named(names[16], ins17), t.I17),
+			AsAppender(Named(names[17], ins18), t.I18),
+			AsAppender(Named(names[18], ins19), t.I19),
+			AsAppender(Named(names[19], ins20), t.I20),
+			AsAppender(Named(names[20], ins21), t.I21),
+		)
+		return show.AppendCommaSperated(buf, fields, opt)
 	})
 }

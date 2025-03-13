@@ -319,7 +319,7 @@ func trailingComma(opt fp.ShowOption) string {
 
 func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
 	return NewAppend(func(buf []string, s fp.Seq[T], opt fp.ShowOption) []string {
-		childStr := iterator.Map(iterator.FromSeq(s), as.Curried2(AsAppender[T])(tshow))
+		childStr := iterator.Map(iterator.FromSeq(s), as.Curried2(AsAppender[T])(tshow)).ToSeq()
 		return appendSeq(buf, "Seq", childStr, opt)
 	})
 }
@@ -330,7 +330,7 @@ func Set[V any](showv fp.Show[V]) fp.Show[fp.Set[V]] {
 
 		showset := iterator.Map(v.Iterator(), func(v V) Appender {
 			return AsAppender(showv, v)
-		})
+		}).ToSeq()
 
 		return appendSeq(buf, "Set", showset, opt)
 
@@ -348,16 +348,20 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 
 		keyshow := seq.Sort(iterator.Map(v.Iterator(), as.Func2(product.MapKey[K, V, string]).ApplyLast(showk.Show)).ToSeq(), ord.GivenField(fp.Entry[V].Head))
 
-		showmap := iterator.Map(iterator.FromSeq(keyshow), func(t fp.Entry[V]) []string {
+		showmap := iterator.FilterMap(iterator.FromSeq(keyshow), func(t fp.Entry[V]) fp.Option[Appender] {
 			valuestr := showv.Append(nil, t.I2, childOpt)
 			if isEmptyString(valuestr) {
-				return nil
+				return option.None[Appender]()
 			}
 			if opt.QuoteNames == false && strings.HasPrefix(t.I1, `"`) && strings.HasSuffix(t.I1, `"`) {
-				return append([]string{t.I1[1 : len(t.I1)-1], spaceAfterColon(opt)}, valuestr...)
+				return option.Some[Appender](func(buf []string, opt fp.ShowOption) []string {
+					return append([]string{t.I1[1 : len(t.I1)-1], spaceAfterColon(opt)}, valuestr...)
+				})
 			}
-			return append([]string{t.I1, spaceAfterColon(opt)}, valuestr...)
-		}).FilterNot(isZero)
+			return option.Some[Appender](func(buf []string, opt fp.ShowOption) []string {
+				return append([]string{t.I1, spaceAfterColon(opt)}, valuestr...)
+			})
+		}).ToSeq()
 
 		return appendMap(buf, "Map", showmap, opt)
 
@@ -377,7 +381,7 @@ func Slice[T any](tshow fp.Show[T]) fp.Show[[]T] {
 		for _, v := range s {
 			childStr = append(childStr, AsAppender(tshow, v))
 		}
-		return appendSeq(buf, "Seq", iterator.FromSlice(childStr), opt)
+		return appendSeq(buf, "Seq", childStr, opt)
 	})
 }
 
@@ -524,33 +528,6 @@ func HCons[H any, T hlist.HList](hshow fp.Show[H], tshow fp.Show[T]) fp.Show[hli
 
 func Generic[A, Repr any](gen fp.Generic[A, Repr], reprShow fp.Show[Repr]) fp.Show[A] {
 	return NewAppend(func(buf []string, a A, opt fp.ShowOption) []string {
-		childOpt := opt.IncreaseIndent()
-		valueStr := reprShow.Append(nil, gen.To(a), childOpt)
-		if opt.OmitEmpty && isEmptyString(valueStr) {
-			return nil
-		}
-
-		if gen.Kind == fp.GenericKindNewType {
-			if opt.OmitTypeName {
-				return append(buf, valueStr...)
-			}
-			return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt),
-				omitBrace("(", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace(")", opt))
-		} else if gen.Kind == fp.GenericKindTuple {
-			if opt.SquareBracketForArray {
-				return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt),
-					omitBrace("[", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace("]", opt))
-
-			} else {
-				return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt), omitBrace("(", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace(")", opt))
-
-			}
-		}
-
-		if opt.Indent != "" {
-			return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt), omitBrace("{\n", opt), childOpt.CurrentIndent()), valueStr...), trailingComma(opt), omitBrace("\n", opt), omitBrace(opt.CurrentIndent(), opt), omitBrace("}", opt))
-		} else {
-			return append(append(append(buf, omitTypeName(gen.Type, opt), spaceBetweenTypeAndBrace(opt), "{", spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), "}")
-		}
+		return AppendGeneric(buf, gen.Type, gen.Kind, AsAppender(reprShow, gen.To(a)), opt)
 	})
 }

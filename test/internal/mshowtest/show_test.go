@@ -70,3 +70,65 @@ func TestShow(t *testing.T) {
 
 	fmt.Println("e = ", mshow.FullShow(mshowtest.ShowEmbeddedStruct()).ShowIndent(e, show.JsonSpace))
 }
+
+func TestShowYaml(t *testing.T) {
+	v := mshowtest.Person{Name: "gura", Age: 29}
+	fmt.Printf("%s.\n", mshow.FullShow(mshowtest.ShowPerson()).ShowIndent(v, show.Yaml))
+
+	c := mshowtest.Collection{
+		Index: map[string]mshowtest.Person{
+			"gura":  v,
+			"other": {Name: "other", Age: 30},
+		},
+		List:        []mshowtest.Person{v, {Name: "list", Age: 30}},
+		Description: as.Ptr("example"),
+		Set:         mutable.SetOf(1, 2, 3),
+		Option: option.Some(mshowtest.Person{
+			Name: "opt",
+			Age:  12,
+		}),
+		NoMap: map[string]mshowtest.NoDerive{
+			"hello": {
+				Hello: "world",
+			},
+			"hi": {
+				Hello: "there",
+			},
+		},
+		StringSeq: fp.Seq[string]{"1"},
+	}
+	fmt.Println("yaml output = ")
+	fmt.Println(mshow.FullShow(mshowtest.ShowCollection()).ShowIndent(c, show.Yaml))
+
+}
+
+func TestShowJson(t *testing.T) {
+	v := mshowtest.Person{Name: "gura", Age: 29}
+	fmt.Printf("%s.\n", mshow.FullShow(mshowtest.ShowPerson()).ShowIndent(v, show.PrettyJson))
+
+	c := mshowtest.Collection{
+		Index: map[string]mshowtest.Person{
+			"gura":  v,
+			"other": {Name: "other", Age: 30},
+		},
+		List:        []mshowtest.Person{v, {Name: "list", Age: 30}},
+		Description: as.Ptr("example"),
+		Set:         mutable.SetOf(1, 2, 3),
+		Option: option.Some(mshowtest.Person{
+			Name: "opt",
+			Age:  12,
+		}),
+		NoMap: map[string]mshowtest.NoDerive{
+			"hello": {
+				Hello: "world",
+			},
+			"hi": {
+				Hello: "there",
+			},
+		},
+		StringSeq: fp.Seq[string]{"1"},
+	}
+	fmt.Println("yaml output = ")
+	fmt.Println(mshow.FullShow(mshowtest.ShowCollection()).ShowIndent(c, show.PrettyJson))
+
+}
