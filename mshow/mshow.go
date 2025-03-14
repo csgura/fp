@@ -54,6 +54,10 @@ func (r Buffer) AppendSpaceAfterComma(opt fp.ShowOption) Buffer {
 	return show.AppendSpaceAfterColon(r, opt)
 }
 
+func (r Buffer) AppendStringLiteral(strliteral string, opt fp.ShowOption) Buffer {
+	return show.AppendStringLiteral(r, strliteral, opt)
+}
+
 func (r Buffer) Append(v ...string) Buffer {
 	return append(r, v...)
 }

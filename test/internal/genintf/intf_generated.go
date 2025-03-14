@@ -39,3 +39,8 @@ type MessageToday struct {
 func (r handler) Today() fp.Try[string] {
 	return NewMessageToday().SendRequest(r.ref, r.timeout)
 }
+
+// World HasMethod Size :true
+// World HasMethod Head :false
+
+// World has method Size

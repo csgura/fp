@@ -238,6 +238,16 @@ type StructInfo struct {
 	Fields []StructFieldInfo
 	// 모든 field 목록
 	AllFields []StructFieldInfo
+	Methods   []InterfaceMethodInfo
+}
+
+func (r StructInfo) HasMethod(name string) bool {
+	for _, m := range r.Methods {
+		if m.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (r StructInfo) FieldAt(at int) *StructFieldInfo {
@@ -300,7 +310,7 @@ func (r InterfaceMethodInfo) ArgsDef() string {
 // a,b,c 형태로 이름만 리턴
 func (r InterfaceMethodInfo) ArgsCall() string {
 	return seqMakeString(seqMap(r.Args, func(v VarInfo) string {
-		return fmt.Sprintf("%s", v.Name)
+		return v.Name
 	}), ",")
 }
 

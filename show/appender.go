@@ -164,6 +164,10 @@ func AppendSpaceBetweenTypeAndBrace(buf []string, opt fp.ShowOption) []string {
 	return append(buf, spaceBetweenTypeAndBrace(opt))
 }
 
+func AppendStringLiteral(buf []string, literal string, opt fp.ShowOption) []string {
+	return String.Append(buf, literal, opt)
+}
+
 func AppendSpaceAfterComma(buf []string, opt fp.ShowOption) []string {
 	return append(buf, spaceAfterComma(opt))
 }

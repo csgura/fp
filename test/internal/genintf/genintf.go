@@ -57,6 +57,13 @@ const generateTemplate = `
 		
 `
 
+type World struct {
+}
+
+func (r World) Size() int {
+	return 0
+}
+
 // @fp.Generate
 var _ = genfp.GenerateFromInterfaces{
 	File: "intf_generated.go",
@@ -70,4 +77,21 @@ var _ = genfp.GenerateFromInterfaces{
 		"timeout":  "r.timeout",
 	},
 	Template: generateTemplate,
+}
+
+// @fp.Generate
+var _ = genfp.GenerateFromStructs{
+	File: "intf_generated.go",
+	List: seq.Of(
+		genfp.TypeOf[World](),
+	),
+	Template: `
+		{{$st := .N}}
+		// {{.N}} HasMethod Size :{{.N.HasMethod "Size"}} 
+		// {{.N}} HasMethod Head :{{.N.HasMethod "Head"}} 
+
+		{{range .N.Methods}}
+			// {{$st}} has method {{.Name}}
+		{{end}}
+	`,
 }
