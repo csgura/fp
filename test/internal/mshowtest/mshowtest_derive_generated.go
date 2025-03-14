@@ -191,6 +191,24 @@ func ShowShowtestHasAliasType() mshow.Show[showtest.HasAliasType] {
 	)
 }
 
+func ShowShowtestContainer() mshow.Show[showtest.Container] {
+	return mshow.ContraGeneric(
+		"showtest.Container",
+		"Struct",
+		mshow.Struct2([]fp.Named{as.NameTag(`Payload`, ``), as.NameTag(`TLV`, ``)}, mshow.Ptr(lazy.Call(func() mshow.Show[showtest.HasAliasType] {
+			return ShowShowtestHasAliasType()
+		})), mshow.Ptr(lazy.Call(func() mshow.Show[showtest.PayloadContainer] {
+			return ShowShowtestTLV16()
+		}))),
+		func(v showtest.Container) minimal.Tuple2[*showtest.HasAliasType, *showtest.PayloadContainer] {
+			return minimal.Tuple2[*showtest.HasAliasType, *showtest.PayloadContainer]{
+				I1: v.Payload,
+				I2: v.TLV,
+			}
+		},
+	)
+}
+
 //go:noinline
 func ShowShowtestNoDerive() mshow.Show[showtest.NoDerive] {
 	return mshow.ContraGeneric(
@@ -213,6 +231,19 @@ func ShowRecursiveStringAlias() mshow.Show[recursive.StringAlias] {
 		mshow.String,
 		func(v recursive.StringAlias) string {
 			return string(v)
+		},
+	)
+}
+
+func ShowShowtestTLV16() mshow.Show[showtest.TLV16] {
+	return mshow.ContraGeneric(
+		"showtest.TLV16",
+		"Struct",
+		mshow.Struct1([]fp.Named{as.NameTag(`Value`, ``)}, mshow.Slice(mshow.Int[byte]())),
+		func(v showtest.TLV16) minimal.Tuple1[[]byte] {
+			return minimal.Tuple1[[]byte]{
+				I1: v.Value,
+			}
 		},
 	)
 }

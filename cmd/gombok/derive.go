@@ -1179,6 +1179,13 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 		return lookupTarget{
 			target: either.Right[NotDefinedInstance](either.Right[SummonExprInstance](either.NotRight[DefinedInstance](ret))),
 		}
+	case *types.Alias:
+		ret := r.namedLookup(ctx, req, true, at.Obj().Name())
+		if ret.IsDefined() {
+			return TypeClassInstanceToLookupTarget(ret.Get())
+		}
+		req.Type = req.Type.Rhs()
+		return r.lookupTypeClassInstance(ctx, req)
 	case *types.Named:
 		if at.Obj().Pkg() != nil && at.Obj().Pkg().Path() == "github.com/csgura/fp/hlist" {
 			//fmt.Printf("lookup named hlist %s\n", req.Type)
@@ -1281,6 +1288,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 		panic(fmt.Sprintf("can't summon unnamed chan type, while deriving %s[%s]", ctx.typeClass.Name, ctx.summonFor))
 
 	}
+	// f.Type.String() 은 com/uangel/ 이런식으로 이상하게 출력됨.
 	return r.namedLookupMust(ctx, req, f.Type.String())
 }
 

@@ -1000,6 +1000,14 @@ func (r TypeInfo) IsAlias() bool {
 	return false
 }
 
+func (r TypeInfo) Rhs() TypeInfo {
+	switch rt := r.Type.(type) {
+	case *types.Alias:
+		return GetTypeInfo(rt.Rhs())
+	}
+	return r
+}
+
 func (r TypeInfo) Unalias() TypeInfo {
 	switch rt := r.Type.(type) {
 	case *types.Alias:

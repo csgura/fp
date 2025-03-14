@@ -211,6 +211,66 @@ func ShowEmbeddedTypeParamStruct[T any](showT fp.Show[T]) fp.Show[EmbeddedTypePa
 	)
 }
 
+func ShowEmptyStruct() fp.Show[EmptyStruct] {
+	return show.Generic(
+		fp.Generic[EmptyStruct, hlist.Nil]{
+			Type: "showtest.EmptyStruct",
+			Kind: "Struct",
+			To: func(EmptyStruct) hlist.Nil {
+				return hlist.Empty()
+			},
+			From: func(hlist.Nil) EmptyStruct {
+				return EmptyStruct{}
+			},
+		},
+		show.HNil,
+	)
+}
+
+func ShowHasAliasType() fp.Show[HasAliasType] {
+	return show.Generic(
+		fp.Generic[HasAliasType, hlist.Cons[fp.RuntimeNamed[TLV], hlist.Nil]]{
+			Type: "showtest.HasAliasType",
+			Kind: "Struct",
+			To: func(v HasAliasType) hlist.Cons[fp.RuntimeNamed[TLV], hlist.Nil] {
+				i0 := v.Data
+				return hlist.Concat(as.NamedWithTag("Data", i0, ``),
+					hlist.Empty(),
+				)
+			},
+			From: func(hl0 hlist.Cons[fp.RuntimeNamed[TLV], hlist.Nil]) HasAliasType {
+				i0 := hlist.Head(hl0)
+				return HasAliasType{Data: i0.Value()}
+			},
+		},
+		show.HConsLabelled(
+			show.Named[fp.RuntimeNamed[TLV]](show.Slice(show.Int[byte]())),
+			show.HNil,
+		),
+	)
+}
+
+func ShowContainer() fp.Show[Container] {
+	return show.Generic(
+		fp.Generic[Container, fp.Labelled2[fp.RuntimeNamed[*HasAliasType], fp.RuntimeNamed[*PayloadContainer]]]{
+			Type: "showtest.Container",
+			Kind: "Struct",
+			To: func(v Container) fp.Labelled2[fp.RuntimeNamed[*HasAliasType], fp.RuntimeNamed[*PayloadContainer]] {
+				i0, i1 := v.Payload, v.TLV
+				return as.Labelled2(as.NamedWithTag("Payload", i0, ``), as.NamedWithTag("TLV", i1, ``))
+			},
+			From: func(t fp.Labelled2[fp.RuntimeNamed[*HasAliasType], fp.RuntimeNamed[*PayloadContainer]]) Container {
+				return Container{Payload: t.I1.Value(), TLV: t.I2.Value()}
+			},
+		},
+		show.Labelled2(show.Named[fp.RuntimeNamed[*HasAliasType]](show.Ptr(lazy.Call(func() fp.Show[HasAliasType] {
+			return ShowHasAliasType()
+		}))), show.Named[fp.RuntimeNamed[*PayloadContainer]](show.Ptr(lazy.Call(func() fp.Show[PayloadContainer] {
+			return ShowTLV16()
+		})))),
+	)
+}
+
 func ShowNoDerive() fp.Show[NoDerive] {
 	return show.Generic(
 		fp.Generic[NoDerive, hlist.Cons[fp.RuntimeNamed[string], hlist.Nil]]{
@@ -247,5 +307,28 @@ func ShowRecursiveStringAlias() fp.Show[recursive.StringAlias] {
 			},
 		},
 		show.String,
+	)
+}
+
+func ShowTLV16() fp.Show[TLV16] {
+	return show.Generic(
+		fp.Generic[TLV16, hlist.Cons[fp.RuntimeNamed[[]byte], hlist.Nil]]{
+			Type: "showtest.TLV16",
+			Kind: "Struct",
+			To: func(v TLV16) hlist.Cons[fp.RuntimeNamed[[]byte], hlist.Nil] {
+				i0 := v.Value
+				return hlist.Concat(as.NamedWithTag("Value", i0, ``),
+					hlist.Empty(),
+				)
+			},
+			From: func(hl0 hlist.Cons[fp.RuntimeNamed[[]byte], hlist.Nil]) TLV16 {
+				i0 := hlist.Head(hl0)
+				return TLV16{Value: i0.Value()}
+			},
+		},
+		show.HConsLabelled(
+			show.Named[fp.RuntimeNamed[[]byte]](show.Slice(show.Int[byte]())),
+			show.HNil,
+		),
 	)
 }

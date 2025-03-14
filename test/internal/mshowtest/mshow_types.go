@@ -48,3 +48,6 @@ var _ mshow.Derives[mshow.Show[showtest.EmptyStruct]]
 
 // @fp.Derive
 var _ mshow.Derives[mshow.Show[showtest.HasAliasType]]
+
+// @fp.Derive(recursive=true)
+var _ mshow.Derives[mshow.Show[showtest.Container]]

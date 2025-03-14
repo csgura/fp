@@ -109,5 +109,19 @@ type HasAliasType struct {
 	Data TLV
 }
 
+type TLV16 struct {
+	Value []byte
+}
+
+type PayloadContainer = TLV16
+
 // @fp.Derive
 var _ show.Derives[fp.Show[HasAliasType]]
+
+type Container struct {
+	Payload *HasAliasType
+	TLV     *PayloadContainer
+}
+
+// @fp.Derive(recursive=true)
+var _ show.Derives[fp.Show[Container]]
