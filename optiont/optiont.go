@@ -228,3 +228,24 @@ func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .
 }
 	`,
 }
+
+func _[T any]() genfp.GenerateApplicative[fp.OptionT[T]] {
+	return genfp.GenerateApplicative[fp.OptionT[T]]{
+		File:     "applicative_gen.go",
+		TypeParm: genfp.TypeOf[T](),
+		Mapper: []genfp.Mapping{
+			{
+				Prefix: "Try",
+				Mapper: FromTry[T],
+			},
+			{
+				Prefix: "Option",
+				Mapper: fp.Success[T],
+			},
+			{
+				Prefix: "Pure",
+				Mapper: Some[T],
+			},
+		},
+	}
+}

@@ -317,7 +317,7 @@ func (r InterfaceMethodInfo) ArgsCall() string {
 // TypeDecl .Returns와 다른 점은 import하지 않음.
 func (r InterfaceMethodInfo) ReturnsDef() string {
 	return seqMakeString(seqMap(r.Returns, func(v VarInfo) string {
-		return fmt.Sprintf("%s", v.Type.Complete)
+		return v.Type.Complete
 	}), ",")
 }
 
@@ -420,7 +420,6 @@ type MonadFunctions struct {
 }
 
 type GenerateMonadTransformer[T any] struct {
-	Name string
 	// 생성될 file 이름
 	File string
 
@@ -440,4 +439,20 @@ type GenerateMonadTransformer[T any] struct {
 	// ExposureMonad 를 첫번째 아규먼트로 받는 함수들을 지정하면
 	// Monad transformer 를 아규먼트로 받는 코드를 생성해 줌
 	Transform []any
+}
+
+type Mapping struct {
+	Prefix string
+	Mapper any
+}
+
+type GenerateApplicative[T any] struct {
+	// 생성될 file 이름
+	File string
+
+	// sequence 를 구현할 때는 T 외에 U 같은 타입 파라미터를 더 쓸 수 있기 때문에
+	// 어느 파라미터가  타입 파라미터인지 표시
+	TypeParm TypeTag
+
+	Mapper []Mapping
 }
