@@ -51,6 +51,7 @@ func All[T any](optionT fp.OptionT[T]) iter.Seq[T] {
 }
 
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
+//go:generate go run github.com/csgura/fp/internal/generator/template_gen
 
 // @internal.Generate
 func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
@@ -98,4 +99,132 @@ func _[A any]() genfp.GenerateTraverseFunctions[fp.OptionT[A]] {
 		File:     "optiont_traverse.go",
 		TypeParm: genfp.TypeOf[A](),
 	}
+}
+
+type ApplicativeFunctor1[A, R any] struct {
+	fn fp.OptionT[fp.Func1[A, R]]
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOptionT(a fp.OptionT[A]) fp.OptionT[R] {
+	return Ap(r.fn, a)
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOption(a fp.Option[A]) fp.OptionT[R] {
+	return r.ApOptionT(try.Success(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApTry(a fp.Try[A]) fp.OptionT[R] {
+	return Ap(r.fn, FromTry(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) Ap(a A) fp.OptionT[R] {
+	return r.ApOptionT(Some(a))
+}
+
+func (r ApplicativeFunctor1[A, R]) ApOptionTFunc(a func() fp.OptionT[A]) fp.OptionT[R] {
+	return ApFunc(r.fn, a)
+}
+
+func (r ApplicativeFunctor1[A, R]) ApTryFunc(a func() fp.Try[A]) fp.OptionT[R] {
+	return r.ApOptionTFunc(func() fp.OptionT[A] {
+		return FromTry(a())
+	})
+}
+func (r ApplicativeFunctor1[A, R]) ApOptionFunc(a func() fp.Option[A]) fp.OptionT[R] {
+	return r.ApOptionTFunc(func() fp.OptionT[A] {
+		return try.Success(a())
+	})
+}
+func (r ApplicativeFunctor1[A, R]) ApFunc(a func() A) fp.OptionT[R] {
+	return r.ApOptionTFunc(func() fp.OptionT[A] {
+		return Some(a())
+	})
+}
+
+func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
+	return ApplicativeFunctor1[A, R]{Some(fn)}
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "applicative_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/curried", Name: "curried"},
+	},
+	From:  2,
+	Until: genfp.MaxFunc,
+	Template: `
+{{define "Receiver"}}func (r ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]){{end}}
+{{define "Next"}}ApplicativeFunctor{{dec .N}}[{{TypeArgs 2 .N}}, R]{{end}}
+
+type ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R any] struct {
+	fn fp.OptionT[{{CurriedFunc 1 .N "R"}}]
+}
+
+{{template "Receiver" .}} ApOptionT(a fp.OptionT[A1]) {{template "Next" .}} {
+	return {{template "Next" .}}{Ap(r.fn, a)}
+}
+
+{{template "Receiver" .}} ApTry(a fp.Try[A1]) {{template "Next" .}} {
+	return {{template "Next" .}}{Ap(r.fn, FromTry(a))}
+}
+
+{{template "Receiver" .}} ApTryAll({{DeclTypeClassArgs 1 .N "fp.Try"}}) fp.OptionT[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApTry(ins{{inc .}}).
+	{{- end -}}
+		ApTry(ins{{.N}})
+}
+
+{{template "Receiver" .}} ApOption(a fp.Option[A1]) {{template "Next" .}} {
+	return r.ApOptionT(fp.Success(a))
+}
+
+{{template "Receiver" .}} ApOptionAll({{DeclTypeClassArgs 1 .N "fp.Option"}}) fp.OptionT[R] {
+	return r.
+	{{- range (dec .N) -}}
+		ApOption(ins{{inc .}}).
+	{{- end -}}
+		ApOption(ins{{.N}})
+}
+
+{{template "Receiver" .}} Ap(a A1) {{template "Next" .}} {
+	return r.ApOptionT(Some(a))
+}
+
+{{template "Receiver" .}} ApAll({{DeclArgs 1 .N}}) fp.OptionT[R] {
+	return r.
+	{{- range (dec .N) -}}
+		Ap(a{{inc .}}).
+	{{- end -}}
+		Ap(a{{.N}})
+}
+
+{{template "Receiver" .}} ApOptionTFunc(a func() fp.OptionT[A1]) {{template "Next" .}} {
+	return {{template "Next" .}}{ApFunc(r.fn, a)}
+}
+
+{{template "Receiver" .}} ApTryFunc(a func() fp.Try[A1]) {{template "Next" .}} {
+	return r.ApOptionTFunc(func() fp.OptionT[A1] {
+		return FromTry(a())
+	})}
+
+{{template "Receiver" .}} ApOptionFunc(a func() fp.Option[A1]) {{template "Next" .}} {
+	return r.ApOptionTFunc(func() fp.OptionT[A1] {
+		return fp.Success(a())
+	})
+}
+
+{{template "Receiver" .}} ApFunc(a func() A1) {{template "Next" .}} {
+	return r.ApOptionTFunc(func() fp.OptionT[A1] {
+		return Some(a())
+	})
+}
+
+func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R] {
+	return ApplicativeFunctor{{.N}}[{{TypeArgs 1 .N}}, R]{Some(curried.Func{{.N}}(fn))}
+}
+	`,
 }
