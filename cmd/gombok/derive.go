@@ -1194,8 +1194,40 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 		}
 		return r.namedLookupMust(ctx, req, at.Obj().Name())
 	case *types.Array:
-		panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", req.TypeClass.Name, ctx.summonFor))
+		//panic(fmt.Sprintf("can't summon array type, while deriving %s[%s]", req.TypeClass.Name, ctx.summonFor))
 		//return r.namedLookup(f, "Array")
+
+		ret := func(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
+			sreq := req
+			sreq.Type = metafp.GetTypeInfo(types.NewSlice(at.Elem()))
+
+			return r.summonGeneric(ctx, ctx.typeClass, r.w.TypeName(ctx.working, at), GenericRepr{
+				Kind: fp.GenericKindConversion,
+				Type: func() string {
+					return r.w.TypeName(ctx.working, at)
+				},
+				ReprType: func() string {
+					return r.w.TypeName(ctx.working, sreq.Type.Type)
+				},
+				ToReprExpr: func() string {
+					return fmt.Sprintf(`func(v %s) %s {
+						return v[:]
+					}`, r.w.TypeName(ctx.working, at), r.w.TypeName(ctx.working, sreq.Type.Type))
+				},
+				FromReprExpr: func() string {
+					return fmt.Sprintf(`func(v %s) %s {
+						return %s(v)
+					}`, r.w.TypeName(ctx.working, sreq.Type.Type), r.w.TypeName(ctx.working, at), r.w.TypeName(ctx.working, at))
+				},
+				ReprExpr: func() SummonExpr {
+					return r.summonRequired(ctx, sreq)
+				},
+			})
+		}
+		return lookupTarget{
+			target: either.Right[NotDefinedInstance](either.NotRight[fp.Either[ArgumentInstance, DefinedInstance]](SummonExprInstance{ret})),
+		}
+
 	case *types.Slice:
 		if at.Elem().String() == "byte" {
 			bytesInstance := r.namedLookupMust(ctx,

@@ -35,6 +35,7 @@ type Collection struct {
 	NoMap       map[string]NoDerive
 	Alias       recursive.StringAlias
 	StringSeq   fp.Seq[string]
+	Array       [4]bool
 }
 
 // @fp.Derive(recursive=true)
@@ -95,3 +96,18 @@ func UntypedStructFunc(s struct {
 }) {
 	fmt.Println("Ok")
 }
+
+type EmptyStruct struct {
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[EmptyStruct]]
+
+type TLV = []byte
+
+type HasAliasType struct {
+	Data TLV
+}
+
+// @fp.Derive
+var _ show.Derives[fp.Show[HasAliasType]]

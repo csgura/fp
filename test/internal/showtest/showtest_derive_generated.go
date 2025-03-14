@@ -30,22 +30,34 @@ func ShowPerson() fp.Show[Person] {
 
 func ShowCollection() fp.Show[Collection] {
 	return show.Generic(
-		fp.Generic[Collection, fp.Labelled11[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]]]]{
+		fp.Generic[Collection, fp.Labelled12[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]], fp.RuntimeNamed[[4]bool]]]{
 			Type: "showtest.Collection",
 			Kind: "Struct",
-			To: func(v Collection) fp.Labelled11[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]]] {
-				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10 := v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer, v.BoolPtr, v.NoMap, v.Alias, v.StringSeq
-				return as.Labelled11(as.NamedWithTag("Index", i0, ``), as.NamedWithTag("List", i1, ``), as.NamedWithTag("Description", i2, ``), as.NamedWithTag("Set", i3, ``), as.NamedWithTag("Option", i4, ``), as.NamedWithTag("NoDerive", i5, ``), as.NamedWithTag("Stringer", i6, ``), as.NamedWithTag("BoolPtr", i7, ``), as.NamedWithTag("NoMap", i8, ``), as.NamedWithTag("Alias", i9, ``), as.NamedWithTag("StringSeq", i10, ``))
+			To: func(v Collection) fp.Labelled12[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]], fp.RuntimeNamed[[4]bool]] {
+				i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11 := v.Index, v.List, v.Description, v.Set, v.Option, v.NoDerive, v.Stringer, v.BoolPtr, v.NoMap, v.Alias, v.StringSeq, v.Array
+				return as.Labelled12(as.NamedWithTag("Index", i0, ``), as.NamedWithTag("List", i1, ``), as.NamedWithTag("Description", i2, ``), as.NamedWithTag("Set", i3, ``), as.NamedWithTag("Option", i4, ``), as.NamedWithTag("NoDerive", i5, ``), as.NamedWithTag("Stringer", i6, ``), as.NamedWithTag("BoolPtr", i7, ``), as.NamedWithTag("NoMap", i8, ``), as.NamedWithTag("Alias", i9, ``), as.NamedWithTag("StringSeq", i10, ``), as.NamedWithTag("Array", i11, ``))
 			},
-			From: func(t fp.Labelled11[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]]]) Collection {
-				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value(), NoDerive: t.I6.Value(), Stringer: t.I7.Value(), BoolPtr: t.I8.Value(), NoMap: t.I9.Value(), Alias: t.I10.Value(), StringSeq: t.I11.Value()}
+			From: func(t fp.Labelled12[fp.RuntimeNamed[map[string]Person], fp.RuntimeNamed[[]Person], fp.RuntimeNamed[*string], fp.RuntimeNamed[fp.Set[int]], fp.RuntimeNamed[fp.Option[Person]], fp.RuntimeNamed[NoDerive], fp.RuntimeNamed[HasStringMethod], fp.RuntimeNamed[*bool], fp.RuntimeNamed[map[string]NoDerive], fp.RuntimeNamed[recursive.StringAlias], fp.RuntimeNamed[fp.Seq[string]], fp.RuntimeNamed[[4]bool]]) Collection {
+				return Collection{Index: t.I1.Value(), List: t.I2.Value(), Description: t.I3.Value(), Set: t.I4.Value(), Option: t.I5.Value(), NoDerive: t.I6.Value(), Stringer: t.I7.Value(), BoolPtr: t.I8.Value(), NoMap: t.I9.Value(), Alias: t.I10.Value(), StringSeq: t.I11.Value(), Array: t.I12.Value()}
 			},
 		},
-		show.Labelled11(show.Named[fp.RuntimeNamed[map[string]Person]](show.GoMap(show.String, ShowPerson())), show.Named[fp.RuntimeNamed[[]Person]](show.Slice(ShowPerson())), show.Named[fp.RuntimeNamed[*string]](show.Ptr(lazy.Call(func() fp.Show[string] {
+		show.Labelled12(show.Named[fp.RuntimeNamed[map[string]Person]](show.GoMap(show.String, ShowPerson())), show.Named[fp.RuntimeNamed[[]Person]](show.Slice(ShowPerson())), show.Named[fp.RuntimeNamed[*string]](show.Ptr(lazy.Call(func() fp.Show[string] {
 			return show.String
 		}))), show.Named[fp.RuntimeNamed[fp.Set[int]]](show.Set(show.Int[int]())), show.Named[fp.RuntimeNamed[fp.Option[Person]]](show.Option(ShowPerson())), show.Named[fp.RuntimeNamed[NoDerive]](ShowNoDerive()), show.Named[fp.RuntimeNamed[HasStringMethod]](show.Given[HasStringMethod]()), show.Named[fp.RuntimeNamed[*bool]](show.Ptr(lazy.Call(func() fp.Show[bool] {
 			return show.Bool
-		}))), show.Named[fp.RuntimeNamed[map[string]NoDerive]](show.GoMap(show.String, ShowNoDerive())), show.Named[fp.RuntimeNamed[recursive.StringAlias]](ShowRecursiveStringAlias()), show.Named[fp.RuntimeNamed[fp.Seq[string]]](show.Seq(show.String))),
+		}))), show.Named[fp.RuntimeNamed[map[string]NoDerive]](show.GoMap(show.String, ShowNoDerive())), show.Named[fp.RuntimeNamed[recursive.StringAlias]](ShowRecursiveStringAlias()), show.Named[fp.RuntimeNamed[fp.Seq[string]]](show.Seq(show.String)), show.Named[fp.RuntimeNamed[[4]bool]](show.Generic(
+			fp.Generic[[4]bool, []bool]{
+				Type: "[4]bool",
+				Kind: "Conversion",
+				To: func(v [4]bool) []bool {
+					return v[:]
+				},
+				From: func(v []bool) [4]bool {
+					return [4]bool(v)
+				},
+			},
+			show.Slice(show.Bool),
+		))),
 	)
 }
 

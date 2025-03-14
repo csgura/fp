@@ -13,27 +13,28 @@ import (
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/show"
 	"github.com/csgura/fp/test/internal/mshowtest"
+	"github.com/csgura/fp/test/internal/showtest"
 )
 
 func TestShow(t *testing.T) {
 
-	v := mshowtest.Person{Name: "gura", Age: 29}
+	v := showtest.Person{Name: "gura", Age: 29}
 
-	assert.Equal(mshow.FullShow(mshowtest.ShowPerson()).Show(v), `mshowtest.Person{Name:"gura",Age:29}`)
+	assert.Equal(mshow.FullShow(mshowtest.ShowShowtestPerson()).Show(v), `showtest.Person{Name:"gura",Age:29}`)
 
-	c := mshowtest.Collection{
-		Index: map[string]mshowtest.Person{
+	c := showtest.Collection{
+		Index: map[string]showtest.Person{
 			"gura":  v,
 			"other": {Name: "other", Age: 30},
 		},
-		List:        []mshowtest.Person{v, {Name: "list", Age: 30}},
+		List:        []showtest.Person{v, {Name: "list", Age: 30}},
 		Description: as.Ptr("example"),
 		Set:         mutable.SetOf(1, 2, 3),
-		Option: option.Some(mshowtest.Person{
+		Option: option.Some(showtest.Person{
 			Name: "opt",
 			Age:  12,
 		}),
-		NoMap: map[string]mshowtest.NoDerive{
+		NoMap: map[string]showtest.NoDerive{
 			"hello": {
 				Hello: "world",
 			},
@@ -43,14 +44,14 @@ func TestShow(t *testing.T) {
 		},
 		StringSeq: fp.Seq[string]{"1"},
 	}
-	fmt.Println(mshow.FullShow(mshowtest.ShowCollection()).ShowIndent(c, show.Pretty))
+	fmt.Println(mshow.FullShow(mshowtest.ShowShowtestCollection()).ShowIndent(c, show.Pretty))
 
-	d := mshowtest.HasTuple{
+	d := showtest.HasTuple{
 		Entry: as.Tuple2("hello", 10),
 		HList: hlist.Concat("hello", hlist.Concat(1, hlist.Nil{})),
 	}
 
-	fmt.Printf("d = %s\n", mshow.FullShow(mshowtest.ShowHasTuple()).ShowIndent(d, show.JsonSpace))
+	fmt.Printf("d = %s\n", mshow.FullShow(mshowtest.ShowShowtestHasTuple()).ShowIndent(d, show.JsonSpace))
 	//assert.Equal(mshow.FullShow(mshowtest.ShowHasTuple()).ShowIndent(d, show.JsonSpace.WithNamingCase(fp.CamelCase)), `{ "entry": [ "hello", 10 ], "hlist": "hello", 1 }`)
 
 	// untyped struct 에 private field 있는 경우, 다른 패키지에서 호출 불가능
@@ -72,22 +73,22 @@ func TestShow(t *testing.T) {
 }
 
 func TestShowYaml(t *testing.T) {
-	v := mshowtest.Person{Name: "gura", Age: 29}
-	fmt.Printf("%s.\n", mshow.FullShow(mshowtest.ShowPerson()).ShowIndent(v, show.Yaml))
+	v := showtest.Person{Name: "gura", Age: 29}
+	fmt.Printf("%s.\n", mshow.FullShow(mshowtest.ShowShowtestPerson()).ShowIndent(v, show.Yaml))
 
-	c := mshowtest.Collection{
-		Index: map[string]mshowtest.Person{
+	c := showtest.Collection{
+		Index: map[string]showtest.Person{
 			"gura":  v,
 			"other": {Name: "other", Age: 30},
 		},
-		List:        []mshowtest.Person{v, {Name: "list", Age: 30}},
+		List:        []showtest.Person{v, {Name: "list", Age: 30}},
 		Description: as.Ptr("example"),
 		Set:         mutable.SetOf(1, 2, 3),
-		Option: option.Some(mshowtest.Person{
+		Option: option.Some(showtest.Person{
 			Name: "opt",
 			Age:  12,
 		}),
-		NoMap: map[string]mshowtest.NoDerive{
+		NoMap: map[string]showtest.NoDerive{
 			"hello": {
 				Hello: "world",
 			},
@@ -98,27 +99,27 @@ func TestShowYaml(t *testing.T) {
 		StringSeq: fp.Seq[string]{"1"},
 	}
 	fmt.Println("yaml output = ")
-	fmt.Println(mshow.FullShow(mshowtest.ShowCollection()).ShowIndent(c, show.Yaml))
+	fmt.Println(mshow.FullShow(mshowtest.ShowShowtestCollection()).ShowIndent(c, show.Yaml))
 
 }
 
 func TestShowJson(t *testing.T) {
-	v := mshowtest.Person{Name: "gura", Age: 29}
-	fmt.Printf("%s.\n", mshow.FullShow(mshowtest.ShowPerson()).ShowIndent(v, show.PrettyJson))
+	v := showtest.Person{Name: "gura", Age: 29}
+	fmt.Printf("%s.\n", mshow.FullShow(mshowtest.ShowShowtestPerson()).ShowIndent(v, show.PrettyJson))
 
-	c := mshowtest.Collection{
-		Index: map[string]mshowtest.Person{
+	c := showtest.Collection{
+		Index: map[string]showtest.Person{
 			"gura":  v,
 			"other": {Name: "other", Age: 30},
 		},
-		List:        []mshowtest.Person{v, {Name: "list", Age: 30}},
+		List:        []showtest.Person{v, {Name: "list", Age: 30}},
 		Description: as.Ptr("example"),
 		Set:         mutable.SetOf(1, 2, 3),
-		Option: option.Some(mshowtest.Person{
+		Option: option.Some(showtest.Person{
 			Name: "opt",
 			Age:  12,
 		}),
-		NoMap: map[string]mshowtest.NoDerive{
+		NoMap: map[string]showtest.NoDerive{
 			"hello": {
 				Hello: "world",
 			},
@@ -129,6 +130,6 @@ func TestShowJson(t *testing.T) {
 		StringSeq: fp.Seq[string]{"1"},
 	}
 	fmt.Println("yaml output = ")
-	fmt.Println(mshow.FullShow(mshowtest.ShowCollection()).ShowIndent(c, show.PrettyJson))
+	fmt.Println(mshow.FullShow(mshowtest.ShowShowtestCollection()).ShowIndent(c, show.PrettyJson))
 
 }

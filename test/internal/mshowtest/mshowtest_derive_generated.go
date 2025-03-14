@@ -9,14 +9,15 @@ import (
 	"github.com/csgura/fp/minimal"
 	"github.com/csgura/fp/mshow"
 	"github.com/csgura/fp/test/internal/recursive"
+	"github.com/csgura/fp/test/internal/showtest"
 )
 
-func ShowPerson() mshow.Show[Person] {
+func ShowShowtestPerson() mshow.Show[showtest.Person] {
 	return mshow.ContraGeneric(
-		"mshowtest.Person",
+		"showtest.Person",
 		"Struct",
 		mshow.Struct2([]fp.Named{as.NameTag(`Name`, ``), as.NameTag(`Age`, ``)}, mshow.String, mshow.Int[int]()),
-		func(v Person) minimal.Tuple2[string, int] {
+		func(v showtest.Person) minimal.Tuple2[string, int] {
 			return minimal.Tuple2[string, int]{
 				I1: v.Name,
 				I2: v.Age,
@@ -26,17 +27,24 @@ func ShowPerson() mshow.Show[Person] {
 }
 
 //go:noinline
-func ShowCollection() mshow.Show[Collection] {
+func ShowShowtestCollection() mshow.Show[showtest.Collection] {
 	return mshow.ContraGeneric(
-		"mshowtest.Collection",
+		"showtest.Collection",
 		"Struct",
-		mshow.Struct11([]fp.Named{as.NameTag(`Index`, ``), as.NameTag(`List`, ``), as.NameTag(`Description`, ``), as.NameTag(`Set`, ``), as.NameTag(`Option`, ``), as.NameTag(`NoDerive`, ``), as.NameTag(`Stringer`, ``), as.NameTag(`BoolPtr`, ``), as.NameTag(`NoMap`, ``), as.NameTag(`Alias`, ``), as.NameTag(`StringSeq`, ``)}, mshow.GoMap(mshow.String, ShowPerson()), mshow.Slice(ShowPerson()), mshow.Ptr(lazy.Call(func() mshow.Show[string] {
+		mshow.Struct12([]fp.Named{as.NameTag(`Index`, ``), as.NameTag(`List`, ``), as.NameTag(`Description`, ``), as.NameTag(`Set`, ``), as.NameTag(`Option`, ``), as.NameTag(`NoDerive`, ``), as.NameTag(`Stringer`, ``), as.NameTag(`BoolPtr`, ``), as.NameTag(`NoMap`, ``), as.NameTag(`Alias`, ``), as.NameTag(`StringSeq`, ``), as.NameTag(`Array`, ``)}, mshow.GoMap(mshow.String, ShowShowtestPerson()), mshow.Slice(ShowShowtestPerson()), mshow.Ptr(lazy.Call(func() mshow.Show[string] {
 			return mshow.String
-		})), mshow.Set(mshow.Int[int]()), mshow.Option(ShowPerson()), ShowNoDerive(), mshow.Given[HasStringMethod](), mshow.Ptr(lazy.Call(func() mshow.Show[bool] {
+		})), mshow.Set(mshow.Int[int]()), mshow.Option(ShowShowtestPerson()), ShowShowtestNoDerive(), mshow.Given[showtest.HasStringMethod](), mshow.Ptr(lazy.Call(func() mshow.Show[bool] {
 			return mshow.Bool
-		})), mshow.GoMap(mshow.String, ShowNoDerive()), ShowRecursiveStringAlias(), mshow.Seq(mshow.String)),
-		func(v Collection) minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]] {
-			return minimal.Tuple11[map[string]Person, []Person, *string, fp.Set[int], fp.Option[Person], NoDerive, HasStringMethod, *bool, map[string]NoDerive, recursive.StringAlias, fp.Seq[string]]{
+		})), mshow.GoMap(mshow.String, ShowShowtestNoDerive()), ShowRecursiveStringAlias(), mshow.Seq(mshow.String), mshow.ContraGeneric(
+			"[4]bool",
+			"Conversion",
+			mshow.Slice(mshow.Bool),
+			func(v [4]bool) []bool {
+				return v[:]
+			},
+		)),
+		func(v showtest.Collection) minimal.Tuple12[map[string]showtest.Person, []showtest.Person, *string, fp.Set[int], fp.Option[showtest.Person], showtest.NoDerive, showtest.HasStringMethod, *bool, map[string]showtest.NoDerive, recursive.StringAlias, fp.Seq[string], [4]bool] {
+			return minimal.Tuple12[map[string]showtest.Person, []showtest.Person, *string, fp.Set[int], fp.Option[showtest.Person], showtest.NoDerive, showtest.HasStringMethod, *bool, map[string]showtest.NoDerive, recursive.StringAlias, fp.Seq[string], [4]bool]{
 				I1:  v.Index,
 				I2:  v.List,
 				I3:  v.Description,
@@ -48,18 +56,19 @@ func ShowCollection() mshow.Show[Collection] {
 				I9:  v.NoMap,
 				I10: v.Alias,
 				I11: v.StringSeq,
+				I12: v.Array,
 			}
 		},
 	)
 }
 
-func ShowDupGenerate() mshow.Show[DupGenerate] {
+func ShowShowtestDupGenerate() mshow.Show[showtest.DupGenerate] {
 	return mshow.ContraGeneric(
-		"mshowtest.DupGenerate",
+		"showtest.DupGenerate",
 		"Struct",
-		mshow.Struct2([]fp.Named{as.NameTag(`NoDerive`, ``), as.NameTag(`World`, ``)}, ShowNoDerive(), mshow.String),
-		func(v DupGenerate) minimal.Tuple2[NoDerive, string] {
-			return minimal.Tuple2[NoDerive, string]{
+		mshow.Struct2([]fp.Named{as.NameTag(`NoDerive`, ``), as.NameTag(`World`, ``)}, ShowShowtestNoDerive(), mshow.String),
+		func(v showtest.DupGenerate) minimal.Tuple2[showtest.NoDerive, string] {
+			return minimal.Tuple2[showtest.NoDerive, string]{
 				I1: v.NoDerive,
 				I2: v.World,
 			}
@@ -67,9 +76,9 @@ func ShowDupGenerate() mshow.Show[DupGenerate] {
 	)
 }
 
-func ShowHasTuple() mshow.Show[HasTuple] {
+func ShowShowtestHasTuple() mshow.Show[showtest.HasTuple] {
 	return mshow.ContraGeneric(
-		"mshowtest.HasTuple",
+		"showtest.HasTuple",
 		"Struct",
 		mshow.Struct2([]fp.Named{as.NameTag(`Entry`, ``), as.NameTag(`HList`, ``)}, mshow.ContraGeneric(
 			"fp.Tuple2",
@@ -82,9 +91,9 @@ func ShowHasTuple() mshow.Show[HasTuple] {
 				),
 			),
 			as.HList2[string, int],
-		), mshow.HCons(mshow.String, mshow.HCons(mshow.Int[int](), mshow.HNil))),
-		func(v HasTuple) minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
-			return minimal.Tuple2[fp.Tuple2[string, int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
+		), mshow.TupleHCons(mshow.String, mshow.TupleHCons(mshow.Int[int](), mshow.HNil))),
+		func(v showtest.HasTuple) minimal.Tuple2[fp.Entry[int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]] {
+			return minimal.Tuple2[fp.Entry[int], hlist.Cons[string, hlist.Cons[int, hlist.Nil]]]{
 				I1: v.Entry,
 				I2: v.HList,
 			}
@@ -158,24 +167,24 @@ func ShowEmbeddedTypeParamStruct[T any](showT mshow.Show[T]) mshow.Show[Embedded
 	)
 }
 
-func ShowEmptyStruct() mshow.Show[EmptyStruct] {
+func ShowShowtestEmptyStruct() mshow.Show[showtest.EmptyStruct] {
 	return mshow.ContraGeneric(
-		"mshowtest.EmptyStruct",
+		"showtest.EmptyStruct",
 		"Struct",
 		mshow.HNil,
-		func(EmptyStruct) hlist.Nil {
+		func(showtest.EmptyStruct) hlist.Nil {
 			return hlist.Empty()
 		},
 	)
 }
 
-func ShowHasAliasType() mshow.Show[HasAliasType] {
+func ShowShowtestHasAliasType() mshow.Show[showtest.HasAliasType] {
 	return mshow.ContraGeneric(
-		"mshowtest.HasAliasType",
+		"showtest.HasAliasType",
 		"Struct",
 		mshow.Struct1([]fp.Named{as.NameTag(`Data`, ``)}, mshow.Slice(mshow.Int[byte]())),
-		func(v HasAliasType) minimal.Tuple1[TLV] {
-			return minimal.Tuple1[TLV]{
+		func(v showtest.HasAliasType) minimal.Tuple1[showtest.TLV] {
+			return minimal.Tuple1[showtest.TLV]{
 				I1: v.Data,
 			}
 		},
@@ -183,12 +192,12 @@ func ShowHasAliasType() mshow.Show[HasAliasType] {
 }
 
 //go:noinline
-func ShowNoDerive() mshow.Show[NoDerive] {
+func ShowShowtestNoDerive() mshow.Show[showtest.NoDerive] {
 	return mshow.ContraGeneric(
-		"mshowtest.NoDerive",
+		"showtest.NoDerive",
 		"Struct",
 		mshow.Struct1([]fp.Named{as.NameTag(`Hello`, ``)}, mshow.String),
-		func(v NoDerive) minimal.Tuple1[string] {
+		func(v showtest.NoDerive) minimal.Tuple1[string] {
 			return minimal.Tuple1[string]{
 				I1: v.Hello,
 			}

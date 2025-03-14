@@ -411,6 +411,7 @@ func Builder[T interface{ Builder() B }, B any]() B {
 const GenericKindStruct = "Struct"
 const GenericKindTuple = "Tuple"
 const GenericKindNewType = "NewType"
+const GenericKindConversion = "Conversion"
 
 // Generic 은 shapeless generic trait 같은 것
 //
@@ -423,7 +424,7 @@ type Generic[T, Repr any] struct {
 	// Type 은,  T 의 타입이름.  앞에 패키지 이름 붙어 있음.
 	Type string
 
-	// Kind 는 T 타입의 종류를 표시함. GenericKindStruct, GenericKindTuple , GenericKindNewType 중의 하나
+	// Kind 는 T 타입의 종류를 표시함. GenericKindStruct, GenericKindTuple , GenericKindNewType , GenericKindConversion 중의 하나
 	Kind string
 
 	// To 는  T를  Generic representation 으로 변환하는 함수

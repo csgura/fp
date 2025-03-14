@@ -223,6 +223,9 @@ func AppendGeneric(buf []string, name string, kind string, reprAppend Appender, 
 		return nil
 	}
 
+	if kind == fp.GenericKindConversion {
+		return reprAppend(buf, opt)
+	}
 	if kind == fp.GenericKindNewType {
 		if opt.OmitTypeName {
 			return append(buf, valueStr...)
