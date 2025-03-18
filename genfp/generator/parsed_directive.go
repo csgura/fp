@@ -88,6 +88,63 @@ func asMethodRef(p *packages.Package, receiver ast.Expr, name string) MethodRefe
 	}
 }
 
+func asFuncRef(p *packages.Package, expr ast.Expr, name string) (FuncReference, error) {
+	tr := evalTypeReference(p, expr)
+	tp, err := extractTypeParam(p, expr)
+	if err != nil {
+		return FuncReference{}, err
+	}
+	return FuncReference{
+		TypeReference: tr,
+		TypeParams:    tp,
+		Name:          name,
+	}, nil
+}
+
+func getFuncName(p *packages.Package, e ast.Expr) (string, error) {
+	switch t := e.(type) {
+	case *ast.SelectorExpr:
+		switch t.X.(type) {
+		case *ast.SelectorExpr:
+			return t.Sel.Name, nil
+		// p, err := evalSelectorExpr(x)
+		// if err != nil {
+		// 	return "", err
+		// }
+		// if strings.HasSuffix(p, tname) {
+		// 	return t.Sel.Name, nil
+		// }
+		// return "", fmt.Errorf("invalid method reference : %s", p)
+		case *ast.IndexExpr:
+			return t.Sel.Name, nil
+		case *ast.Ident:
+			return t.Sel.Name, nil
+			// if x.Name == tname {
+			// 	return t.Sel.Name, nil
+			// }
+			// return "", fmt.Errorf("invalid method reference : %s", x.Name)
+		}
+		return "", fmt.Errorf("can't eval %T as func reference. '%s'", t.X, types.ExprString(t.X))
+	case *ast.Ident:
+		return t.Name, nil
+	case *ast.IndexListExpr:
+		return getFuncName(p, t.X)
+	case *ast.IndexExpr:
+		return getFuncName(p, t.X)
+	}
+	return "", fmt.Errorf("can't eval %T as func reference. '%s'", e, types.ExprString(e))
+}
+
+func evalFunctionRef() func(p *packages.Package, e ast.Expr) (FuncReference, error) {
+	return func(p *packages.Package, e ast.Expr) (FuncReference, error) {
+		name, err := getFuncName(p, e)
+		if err != nil {
+			return FuncReference{}, err
+		}
+		return asFuncRef(p, e, name)
+	}
+}
+
 func evalMethodRef(tname string) func(p *packages.Package, e ast.Expr) (MethodReference, error) {
 	return func(p *packages.Package, e ast.Expr) (MethodReference, error) {
 		switch t := e.(type) {
@@ -516,9 +573,8 @@ func extractTypeParam(pk *packages.Package, exp ast.Expr) ([]TypeReference, erro
 			ret = append(ret, evalTypeReference(pk, v))
 		}
 		return ret, nil
-
 	default:
-		return nil, fmt.Errorf("not expected expression : %s", types.ExprString(exp))
+		return nil, fmt.Errorf("not expected expression : %T, %s", exp, types.ExprString(exp))
 	}
 }
 
@@ -1291,5 +1347,125 @@ func ParseGenerateFromInterfaces(tagged TaggedLit) (GenerateFromStructs, error) 
 	}
 
 	return ret, nil
+
+}
+
+type GenerateApplicative struct {
+	Package     genfp.WorkingPackage
+	TargetAlias *types.Alias
+	TargetType  *types.Named
+	// 생성될 file 이름
+	File      string
+	TypeParam *types.TypeParam
+	Mapper    []Mapping
+}
+
+type Mapping struct {
+	Prefix string
+	Mapper FuncReference
+}
+
+func ParseGenerateApplicative(lit TaggedLit) (GenerateApplicative, error) {
+	ret := GenerateApplicative{
+		Package: genfp.NewWorkingPackage(lit.Package.Types, lit.Package.Fset, lit.Package.Syntax),
+	}
+
+	if lit.Type.TypeArgs().Len() != 1 {
+		return ret, fmt.Errorf("invalid number of type argument")
+	}
+
+	aliasType, ok := lit.Type.TypeArgs().At(0).(*types.Alias)
+	if ok {
+		ret.TargetAlias = aliasType
+	}
+
+	argType, ok := types.Unalias(lit.Type.TypeArgs().At(0)).(*types.Named)
+	if !ok {
+		return ret, fmt.Errorf("target type is not named type : %s", lit.Type.TypeArgs().At(0))
+	}
+
+	typeArgs := argType.TypeArgs()
+	if typeArgs.Len() != 1 {
+		return ret, fmt.Errorf("invalid number of type argument")
+	}
+
+	names := []string{"File", "TypeParm", "Mapper"}
+	for idx, e := range lit.Lit.Elts {
+		if idx >= len(names) {
+			return ret, fmt.Errorf("invalid number of literals")
+		}
+		name := names[idx]
+		name, value := asKeyValue(e, name)
+		switch name {
+		case "File":
+			v, err := evalStringValue(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			ret.File = v
+		case "TypeParm":
+			v, err := evalTypeOf(lit.Package)(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			if tp, ok := v.Type.(*types.TypeParam); ok {
+				ret.TypeParam = tp
+			} else {
+				return ret, fmt.Errorf("invalid TypeParam. %s is not type param", v.Type)
+			}
+		case "Mapper":
+			v, err := evalArray(lit.Package, value, evalMapping(lit.Package))
+			if err != nil {
+				return ret, err
+			}
+			ret.Mapper = v
+		}
+	}
+	ctx := types.NewContext()
+
+	ins, err := types.Instantiate(ctx, argType.Origin(), []types.Type{ret.TypeParam}, false)
+
+	if err != nil {
+		return ret, err
+	}
+
+	ret.TargetType = ins.(*types.Named)
+
+	return ret, nil
+}
+
+func evalMapping(pk *packages.Package) func(p *packages.Package, e ast.Expr) (Mapping, error) {
+	return func(p *packages.Package, e ast.Expr) (Mapping, error) {
+		if lt, ok := e.(*ast.CompositeLit); ok {
+			ret := Mapping{}
+			names := []string{"Prefix", "Mapper"}
+			for idx, e := range lt.Elts {
+				if idx >= len(names) {
+					return ret, fmt.Errorf("invalid number of literals")
+				}
+
+				name := names[idx]
+				name, value := asKeyValue(e, name)
+
+				switch name {
+
+				case "Prefix":
+					v, err := evalStringValue(p, value)
+					if err != nil {
+						return ret, err
+					}
+					ret.Prefix = v
+				case "Mapper":
+					m, err := evalFunctionRef()(pk, value)
+					if err != nil {
+						return ret, err
+					}
+					ret.Mapper = m
+				}
+			}
+			return ret, nil
+		}
+		return Mapping{}, fmt.Errorf("expr is not composite expr : %T", e)
+	}
 
 }

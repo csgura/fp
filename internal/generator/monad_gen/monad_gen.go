@@ -28,6 +28,7 @@ func main() {
 	genmonad := generator.FindGenerateMonadFunctions(pkgs, "@internal.Generate")
 	gentraverse := generator.FindGenerateTraverseFunctions(pkgs, "@internal.Generate")
 	monadt := generator.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
+	applicatives := generator.FindGenerateApplicatives(pkgs, "@internal.Generate")
 
 	fileSet := map[string]bool{}
 	for file := range genmonad {
@@ -40,6 +41,12 @@ func main() {
 
 	}
 	for file := range monadt {
+		fullpath := cwd + "/" + file
+		fileSet[fullpath] = true
+
+	}
+
+	for file := range applicatives {
 		fullpath := cwd + "/" + file
 		fileSet[fullpath] = true
 
@@ -84,6 +91,15 @@ func main() {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
 				generator.WriteTraverseFunctions(w, gfu, funcList)
+			}
+		})
+	}
+
+	for file, list := range applicatives {
+
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
+				generator.WriteApplicativeFunctions(w, gfu, funcList)
 			}
 		})
 	}

@@ -101,51 +101,6 @@ func _[A any]() genfp.GenerateTraverseFunctions[fp.OptionT[A]] {
 	}
 }
 
-type ApplicativeFunctor1[A, R any] struct {
-	fn fp.OptionT[fp.Func1[A, R]]
-}
-
-func (r ApplicativeFunctor1[A, R]) ApOptionT(a fp.OptionT[A]) fp.OptionT[R] {
-	return Ap(r.fn, a)
-}
-
-func (r ApplicativeFunctor1[A, R]) ApOption(a fp.Option[A]) fp.OptionT[R] {
-	return r.ApOptionT(try.Success(a))
-}
-
-func (r ApplicativeFunctor1[A, R]) ApTry(a fp.Try[A]) fp.OptionT[R] {
-	return Ap(r.fn, FromTry(a))
-}
-
-func (r ApplicativeFunctor1[A, R]) Ap(a A) fp.OptionT[R] {
-	return r.ApOptionT(Some(a))
-}
-
-func (r ApplicativeFunctor1[A, R]) ApOptionTFunc(a func() fp.OptionT[A]) fp.OptionT[R] {
-	return ApFunc(r.fn, a)
-}
-
-func (r ApplicativeFunctor1[A, R]) ApTryFunc(a func() fp.Try[A]) fp.OptionT[R] {
-	return r.ApOptionTFunc(func() fp.OptionT[A] {
-		return FromTry(a())
-	})
-}
-func (r ApplicativeFunctor1[A, R]) ApOptionFunc(a func() fp.Option[A]) fp.OptionT[R] {
-	return r.ApOptionTFunc(func() fp.OptionT[A] {
-		return try.Success(a())
-	})
-}
-func (r ApplicativeFunctor1[A, R]) ApFunc(a func() A) fp.OptionT[R] {
-	return r.ApOptionTFunc(func() fp.OptionT[A] {
-		return Some(a())
-	})
-}
-
-func Applicative1[A, R any](fn fp.Func1[A, R]) ApplicativeFunctor1[A, R] {
-	return ApplicativeFunctor1[A, R]{Some(fn)}
-}
-
-// @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "applicative_gen.go",
 	Imports: []genfp.ImportPackage{
@@ -229,6 +184,7 @@ func Applicative{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .
 	`,
 }
 
+// @internal.Generate
 func _[T any]() genfp.GenerateApplicative[fp.OptionT[T]] {
 	return genfp.GenerateApplicative[fp.OptionT[T]]{
 		File:     "applicative_gen.go",
@@ -240,7 +196,7 @@ func _[T any]() genfp.GenerateApplicative[fp.OptionT[T]] {
 			},
 			{
 				Prefix: "Option",
-				Mapper: fp.Success[T],
+				Mapper: fp.Success[fp.Option[T]],
 			},
 			{
 				Prefix: "Pure",

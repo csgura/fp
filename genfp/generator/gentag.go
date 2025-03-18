@@ -220,6 +220,23 @@ func FindGenerateMonadTransfomers(p []*packages.Package, tags ...string) map[str
 	return ret
 }
 
+func FindGenerateApplicatives(p []*packages.Package, tags ...string) map[string][]GenerateApplicative {
+	ret := map[string][]GenerateApplicative{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateApplicative", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateApplicative(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s\n", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
+}
+
 func checkType(pk *packages.Package, typeExpr ast.Expr) *types.Named {
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),

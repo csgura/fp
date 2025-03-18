@@ -420,6 +420,10 @@ type MonadFunctions struct {
 }
 
 type GenerateMonadTransformer[T any] struct {
+	// 생성될 함수 이름의 suffix
+	// 지정하지 않으면 GivenMonad 이름이 들어감.
+	Name string
+
 	// 생성될 file 이름
 	File string
 
