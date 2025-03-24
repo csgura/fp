@@ -18,6 +18,10 @@ func None[A any]() fp.OptionT[A] {
 	return try.Success(option.None[A]())
 }
 
+func Failure[T any](err error) fp.OptionT[T] {
+	return try.Failure[fp.Option[T]](err)
+}
+
 func FromTry[A any](v fp.Try[A]) fp.OptionT[A] {
 	return try.Map(v, option.Some)
 }
