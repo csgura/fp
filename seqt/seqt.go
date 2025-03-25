@@ -10,6 +10,14 @@ import (
 	"github.com/csgura/fp/try"
 )
 
+func Of[A any](v ...A) fp.SeqT[A] {
+	return try.Success(seq.Of(v...))
+}
+
+func Failure[A any](err error) fp.SeqT[A] {
+	return try.Failure[fp.Seq[A]](err)
+}
+
 func Iterator[T any](optionT fp.SeqT[T]) fp.Iterator[T] {
 	return iterator.FlatMap(try.Iterator(optionT), seq.Iterator)
 }

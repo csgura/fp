@@ -18,6 +18,10 @@ func None[A any]() fp.PtrT[A] {
 	return try.Success(ptr.None[A]())
 }
 
+func Failure[T any](err error) fp.PtrT[T] {
+	return try.Failure[fp.Ptr[T]](err)
+}
+
 func FromTry[A any](v fp.Try[A]) fp.PtrT[A] {
 	return try.Map(v, ptr.Some)
 }

@@ -10,6 +10,14 @@ import (
 	"github.com/csgura/fp/try"
 )
 
+func Of[A any](v ...A) fp.SliceT[A] {
+	return try.Success(slice.Of(v...))
+}
+
+func Failure[A any](err error) fp.SliceT[A] {
+	return try.Failure[fp.Slice[A]](err)
+}
+
 func Iterator[T any](optionT fp.SliceT[T]) fp.Iterator[T] {
 	return iterator.FlatMap(try.Iterator(optionT), slice.Iterator)
 }
