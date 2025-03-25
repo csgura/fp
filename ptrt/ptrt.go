@@ -62,6 +62,8 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.PtrT[T]] {
 			return try.Success(ptr.None[T]())
 		},
 		Transform: []any{
+			ptr.IsDefined[T],
+			ptr.IsEmpty[T],
 			ptr.Filter[T],
 			ptr.OrElse[T],
 			ptr.OrZero[T],

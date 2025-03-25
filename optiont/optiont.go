@@ -76,6 +76,8 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 			return try.Success(fp.Option[T]{})
 		},
 		Transform: []any{
+			fp.Option[T].IsDefined,
+			fp.Option[T].IsEmpty,
 			fp.Option[T].Filter,
 			fp.Option[T].OrElse,
 			fp.Option[T].OrZero,

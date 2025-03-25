@@ -51,6 +51,18 @@ func FlatMap[A any, B any](t fp.PtrT[A], f func(A) fp.PtrT[B]) fp.PtrT[B] {
 
 }
 
+func IsDefined[T any](ptrT fp.PtrT[T]) fp.Try[bool] {
+	return try.Map(ptrT, func(insideValue fp.Ptr[T]) bool {
+		return ptr.IsDefined[T](insideValue)
+	})
+}
+
+func IsEmpty[T any](ptrT fp.PtrT[T]) fp.Try[bool] {
+	return try.Map(ptrT, func(insideValue fp.Ptr[T]) bool {
+		return ptr.IsEmpty[T](insideValue)
+	})
+}
+
 func Filter[T any](ptrT fp.PtrT[T], p func(v T) bool) fp.Try[fp.Ptr[T]] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) fp.Ptr[T] {
 		return ptr.Filter[T](insideValue, p)

@@ -51,6 +51,18 @@ func FlatMap[A any, B any](t fp.OptionT[A], f func(A) fp.OptionT[B]) fp.OptionT[
 
 }
 
+func IsDefined[T any](optionT fp.OptionT[T]) fp.Try[bool] {
+	return try.Map(optionT, func(insideValue fp.Option[T]) bool {
+		return fp.Option[T].IsDefined(insideValue)
+	})
+}
+
+func IsEmpty[T any](optionT fp.OptionT[T]) fp.Try[bool] {
+	return try.Map(optionT, func(insideValue fp.Option[T]) bool {
+		return fp.Option[T].IsEmpty(insideValue)
+	})
+}
+
 func Filter[T any](optionT fp.OptionT[T], p func(v T) bool) fp.Try[fp.Option[T]] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
 		return fp.Option[T].Filter(insideValue, p)
