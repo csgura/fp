@@ -1,8 +1,21 @@
 package ptr
 
 import (
+	"reflect"
+
 	"github.com/csgura/fp"
 )
+
+func isNil(v reflect.Value) bool {
+	k := v.Kind()
+	switch k {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
+		return v.IsNil()
+	case reflect.Interface, reflect.Slice:
+		return v.IsNil()
+	}
+	return false
+}
 
 func Pure[A any](a A) fp.Ptr[A] {
 	return &a
@@ -21,8 +34,28 @@ func ConstNone[A, B any](a A) fp.Ptr[B] {
 	return nil
 }
 
+func Of[T any](v T) fp.Ptr[T] {
+	var i any = v
+	if i == nil {
+		return None[T]()
+	}
+
+	rv := reflect.ValueOf(i)
+	if isNil(rv) {
+		return None[T]()
+	}
+	return Some(v)
+}
+
 func NonZero[T comparable](t T) fp.Ptr[T] {
 	if t == fp.Zero[T]() {
+		return None[T]()
+	}
+	return Some(t)
+}
+
+func NonEmptySlice[T ~[]E, E any](t T) fp.Ptr[T] {
+	if len(t) == 0 {
 		return None[T]()
 	}
 	return Some(t)

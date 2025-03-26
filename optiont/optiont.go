@@ -2,6 +2,7 @@ package optiont
 
 import (
 	"iter"
+	"reflect"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
@@ -20,6 +21,44 @@ func None[A any]() fp.OptionT[A] {
 
 func Failure[T any](err error) fp.OptionT[T] {
 	return try.Failure[fp.Option[T]](err)
+}
+
+func isNil(v reflect.Value) bool {
+	k := v.Kind()
+	switch k {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Pointer, reflect.UnsafePointer:
+		return v.IsNil()
+	case reflect.Interface, reflect.Slice:
+		return v.IsNil()
+	}
+	return false
+}
+
+func Of[T any](v T) fp.OptionT[T] {
+	var i any = v
+	if i == nil {
+		return None[T]()
+	}
+
+	rv := reflect.ValueOf(i)
+	if isNil(rv) {
+		return None[T]()
+	}
+	return Some(v)
+}
+
+func NonZero[T comparable](t T) fp.OptionT[T] {
+	if t == fp.Zero[T]() {
+		return None[T]()
+	}
+	return Some(t)
+}
+
+func NonEmptySlice[T ~[]E, E any](t T) fp.OptionT[T] {
+	if len(t) == 0 {
+		return None[T]()
+	}
+	return Some(t)
 }
 
 func FromTry[A any](v fp.Try[A]) fp.OptionT[A] {

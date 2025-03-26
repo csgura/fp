@@ -58,6 +58,17 @@ func isNil(v reflect.Value) bool {
 	return false
 }
 
+func Ptr[T any](v *T) fp.Option[T] {
+	if v == nil {
+		return None[T]()
+	}
+	return Some(*v)
+}
+
+func String(v string) fp.Option[string] {
+	return NonZero(v)
+}
+
 func Of[T any](v T) fp.Option[T] {
 	var i any = v
 	if i == nil {
@@ -71,17 +82,6 @@ func Of[T any](v T) fp.Option[T] {
 	return Some(v)
 }
 
-func Ptr[T any](v *T) fp.Option[T] {
-	if v == nil {
-		return None[T]()
-	}
-	return Some(*v)
-}
-
-func String(v string) fp.Option[string] {
-	return NonZero(v)
-}
-
 func NonZero[T comparable](t T) fp.Option[T] {
 	if t == fp.Zero[T]() {
 		return None[T]()
@@ -90,7 +90,7 @@ func NonZero[T comparable](t T) fp.Option[T] {
 }
 
 func NonEmptySlice[T ~[]E, E any](t T) fp.Option[T] {
-	if t == nil {
+	if len(t) == 0 {
 		return None[T]()
 	}
 	return Some(t)
