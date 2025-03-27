@@ -15,6 +15,10 @@ func LiftT[A any](a fp.Try[A]) fp.PtrT[A] {
 	return try.Map(a, ptr.Pure[A])
 }
 
+func Get[T any](v fp.PtrT[T]) fp.Try[T] {
+	return try.FromPtrT(v)
+}
+
 func Map[A any, B any](t fp.PtrT[A], f func(A) B) fp.PtrT[B] {
 	return try.Map(t, func(ma fp.Ptr[A]) fp.Ptr[B] {
 		return ptr.FlatMap[A, B](ma, func(a A) fp.Ptr[B] {

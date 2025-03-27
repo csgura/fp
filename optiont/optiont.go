@@ -23,6 +23,10 @@ func Failure[T any](err error) fp.OptionT[T] {
 	return try.Failure[fp.Option[T]](err)
 }
 
+func Get[T any](v fp.OptionT[T]) fp.Try[T] {
+	return try.FromOptionT(v)
+}
+
 func isNil(v reflect.Value) bool {
 	k := v.Kind()
 	switch k {
