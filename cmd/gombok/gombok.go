@@ -842,7 +842,7 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[st
 	w := ctx.w
 	workingPackage := ctx.workingPackage
 
-	fnName := fmt.Sprintf("New%s", ts.Name)
+	fnName := fmt.Sprintf("New%s", publicName(ts.Name))
 
 	if !genMethod.Contains(fnName) {
 
@@ -899,7 +899,7 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.S
 	w := ctx.w
 	workingPackage := ctx.workingPackage
 
-	fnName := fmt.Sprintf("New%s", ts.Name)
+	fnName := fmt.Sprintf("New%s", publicName(ts.Name))
 
 	if !genMethod.Contains(fnName) {
 
