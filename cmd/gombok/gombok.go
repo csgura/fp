@@ -831,6 +831,37 @@ func processWith(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[strin
 
 				genMethod = genMethod.Incl(funcName)
 			}
+
+			if f.FieldType.IsOption() {
+				optiont := w.TypeName(workingPackage, f.FieldType.TypeArgs.Head().Get().Type)
+				optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
+
+				fnName := "WithSome" + f.Name
+				if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+
+					fmt.Fprintf(w, `
+							func (r %s) %s(v %s) %s {
+								r.%s = %s.Some(v)
+								return r
+							}
+						`, valuereceiver, fnName, optiont, valuereceiver, f.Name, optionpk)
+					genMethod = genMethod.Incl(fnName)
+
+				}
+
+				fnName = "WithNone" + f.Name
+				if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+
+					fmt.Fprintf(w, `
+							func (r %s) %s() %s {
+								r.%s = %s.None[%s]()
+								return r
+							}
+						`, valuereceiver, fnName, valuereceiver, f.Name, optionpk, optiont)
+					genMethod = genMethod.Incl(fnName)
+
+				}
+			}
 		})
 	}
 	return genMethod
