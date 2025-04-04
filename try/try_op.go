@@ -152,7 +152,24 @@ func Traverse_[A, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) error {
 }
 
 func TraverseOption[A, R any](opta fp.Option[A], fa func(A) fp.Try[R]) fp.OptionT[R] {
-	return Map(Traverse(fp.IteratorOfOption(opta), fa), fp.Iterator[R].NextOption)
+
+	if opta.IsEmpty() {
+		return Success(fp.None[R]())
+	}
+
+	return Map(fa(opta.Get()), func(v R) fp.Option[R] {
+		return fp.Some(v)
+	})
+}
+
+func TraversePtr[A, R any](p fp.Ptr[A], fa func(A) fp.Try[R]) fp.PtrT[R] {
+	if p == nil {
+		return Success[fp.Ptr[R]](nil)
+	}
+
+	return Map(fa(*p), func(v R) fp.Ptr[R] {
+		return &v
+	})
 }
 
 func Fold[A, B any](ta fp.Try[A], bzero B, fba func(B, A) B) B {
