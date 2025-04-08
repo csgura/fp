@@ -299,6 +299,87 @@ func removePkgPrefix(v string) string {
 	return v
 }
 
+func toStructInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp.TypeInfo) fp.Try[genfp.StructInfo] {
+
+	name := ti.Name()
+	if name.IsDefined() && ti.Underlying().IsStruct() {
+		//fmt.Printf("generate code of %s\n", name.Get())
+		fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldInfo {
+			tpe := toTypeInfo(is, workingPkg, f.TypeInfoExpr(workingPkg))
+			indtpe := tpe
+			if f.FieldType.IsPtr() {
+				indtpe = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+					Type: f.FieldType.ElemType().Get(),
+				})
+			}
+			return genfp.StructFieldInfo{
+				Name:         f.Name,
+				Type:         tpe,
+				IndirectType: indtpe,
+				Tag:          f.Tag,
+				IsPublic:     f.Public(),
+				IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
+				ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeInfo {
+					return toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+						Type: v,
+					})
+				}).OrZero(),
+			}
+		})
+
+		visible := fields.Filter(func(v genfp.StructFieldInfo) bool {
+			return v.IsVisible
+		})
+
+		ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
+		methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
+			args := v.I2.Signature().Params()
+			convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarInfo {
+				return func(i int, t *types.Var) genfp.VarInfo {
+					name := t.Name()
+					if name == "" {
+						name = fmt.Sprintf("%s%d", vprefix, i)
+					}
+
+					return genfp.VarInfo{
+						Index: i,
+						Name:  t.Name(),
+						Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+							Type: metafp.GetTypeInfo(t.Type()),
+						}),
+					}
+				}
+			}
+			argsDef := iterate(args.Len(), args.At, convVar("arg"))
+
+			rets := v.I2.Signature().Results()
+			retDef := iterate(rets.Len(), rets.At, convVar("ret"))
+
+			return genfp.InterfaceMethodInfo{
+				Name:       v.I1,
+				Args:       argsDef,
+				Returns:    retDef,
+				IsVariadic: v.I2.Signature().Variadic(),
+			}
+		})
+
+		st := genfp.StructInfo{
+			Package:          genfp.FromTypesPackage(ti.Pkg),
+			IsCurrentPackage: ti.IsSamePkg(workingPkg),
+			Name:             name.Get(),
+			AllFields:        fields,
+			Fields:           visible,
+			Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+				Type: ti,
+			}),
+
+			Methods: methods,
+		}
+
+		return try.Success(st)
+	}
+	return try.Failure[genfp.StructInfo](fp.Error(404, "type %s is not struct", ti.String()))
+}
 func toTypeInfo(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.TypeInfoExpr) genfp.TypeInfo {
 	name := v.Type.TypeName
 	if name == "*" {
@@ -554,6 +635,10 @@ func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[g
 
 			return ret.Expr()
 		},
+		"StructInfo": func(v genfp.TypeInfo) (genfp.StructInfo, error) {
+			is := genfp.NewImportSet()
+			return toStructInfo(is, workingPkg, metafp.GetTypeInfo(v.Type)).Unapply()
+		},
 		"FieldDecl": func(v genfp.StructFieldInfo) string {
 			if v.Tag == "" {
 				return v.Name + " " + w.TypeName(workingPkg, v.Type.Type)
@@ -690,83 +775,9 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 	})
 
 	for _, ti := range all {
-
-		name := ti.Name()
-		if name.IsDefined() && ti.Underlying().IsStruct() {
-			//fmt.Printf("generate code of %s\n", name.Get())
-			is := genfp.NewImportSet()
-			fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldInfo {
-				tpe := toTypeInfo(is, workingPkg, f.TypeInfoExpr(workingPkg))
-				indtpe := tpe
-				if f.FieldType.IsPtr() {
-					indtpe = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-						Type: f.FieldType.ElemType().Get(),
-					})
-				}
-				return genfp.StructFieldInfo{
-					Name:         f.Name,
-					Type:         tpe,
-					IndirectType: indtpe,
-					Tag:          f.Tag,
-					IsPublic:     f.Public(),
-					IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
-					ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeInfo {
-						return toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-							Type: v,
-						})
-					}).OrZero(),
-				}
-			})
-
-			visible := fields.Filter(func(v genfp.StructFieldInfo) bool {
-				return v.IsVisible
-			})
-
-			ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
-			methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
-				args := v.I2.Signature().Params()
-				convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarInfo {
-					return func(i int, t *types.Var) genfp.VarInfo {
-						name := t.Name()
-						if name == "" {
-							name = fmt.Sprintf("%s%d", vprefix, i)
-						}
-
-						return genfp.VarInfo{
-							Index: i,
-							Name:  t.Name(),
-							Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-								Type: metafp.GetTypeInfo(t.Type()),
-							}),
-						}
-					}
-				}
-				argsDef := iterate(args.Len(), args.At, convVar("arg"))
-
-				rets := v.I2.Signature().Results()
-				retDef := iterate(rets.Len(), rets.At, convVar("ret"))
-
-				return genfp.InterfaceMethodInfo{
-					Name:       v.I1,
-					Args:       argsDef,
-					Returns:    retDef,
-					IsVariadic: v.I2.Signature().Variadic(),
-				}
-			})
-
-			st := genfp.StructInfo{
-				Package:          genfp.FromTypesPackage(ti.Pkg),
-				IsCurrentPackage: ti.IsSamePkg(workingPkg),
-				Name:             name.Get(),
-				AllFields:        fields,
-				Fields:           visible,
-				Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-					Type: ti,
-				}),
-
-				Methods: methods,
-			}
-
+		is := genfp.NewImportSet()
+		st, err := toStructInfo(is, workingPkg, ti).Unapply()
+		if err == nil {
 			params := map[string]any{
 				"N": st,
 			}

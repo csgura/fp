@@ -252,6 +252,15 @@ func (r StructInfo) HasMethod(name string) bool {
 	return false
 }
 
+func (r StructInfo) HasField(name string) bool {
+	for _, m := range r.Fields {
+		if m.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 func (r StructInfo) FieldAt(at int) *StructFieldInfo {
 	if at < len(r.Fields) {
 		return &r.Fields[at]
