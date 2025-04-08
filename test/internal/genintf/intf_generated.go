@@ -40,6 +40,8 @@ func (r handler) Today() fp.Try[string] {
 	return NewMessageToday().SendRequest(r.ref, r.timeout)
 }
 
+// declared at /Users/gura/git/fp/test/internal/genintf/genintf.go:83
+
 // World HasMethod Size :true
 // World HasMethod Head :false
 

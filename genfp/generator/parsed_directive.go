@@ -409,6 +409,7 @@ func evalMap[K comparable, V any](p *packages.Package, e ast.Expr, kf func(*pack
 }
 
 type GenerateFromUntil struct {
+	Decl           TaggedLit
 	File           string
 	Imports        []genfp.ImportPackage
 	From           int
@@ -421,7 +422,7 @@ type GenerateFromUntil struct {
 func ParseGenerateFromUntil(tagged TaggedLit) (GenerateFromUntil, error) {
 
 	lit := tagged.Lit
-	ret := GenerateFromUntil{}
+	ret := GenerateFromUntil{Decl: tagged}
 
 	names := []string{"File", "Imports", "From", "Until", "Parameters", "Template"}
 	for idx, e := range lit.Elts {
@@ -482,6 +483,7 @@ func ParseGenerateFromUntil(tagged TaggedLit) (GenerateFromUntil, error) {
 }
 
 type GenerateFromList struct {
+	Decl           TaggedLit
 	File           string
 	Imports        []genfp.ImportPackage
 	List           []string
@@ -493,7 +495,7 @@ type GenerateFromList struct {
 func ParseGenerateFromList(tagged TaggedLit) (GenerateFromList, error) {
 
 	lit := tagged.Lit
-	ret := GenerateFromList{}
+	ret := GenerateFromList{Decl: tagged}
 
 	names := []string{"File", "Imports", "List", "Parameters", "TypeReferences", "Template"}
 	for idx, e := range lit.Elts {
@@ -551,6 +553,7 @@ type DelegateDirective struct {
 }
 
 type GenerateAdaptorDirective struct {
+	Decl                TaggedLit
 	Package             genfp.WorkingPackage
 	TargetAlias         *types.Alias
 	Interface           *types.Named
@@ -689,6 +692,7 @@ func evalTypeOf(pk *packages.Package) func(p *packages.Package, exp ast.Expr) (T
 
 func ParseGenerateAdaptor(lit TaggedLit) (GenerateAdaptorDirective, error) {
 	ret := GenerateAdaptorDirective{
+		Decl:    lit,
 		Package: lit.WorkingPackage(),
 		Methods: map[string]ImplOptionDirective{},
 	}
@@ -1044,6 +1048,7 @@ func evalDelegate(pk *packages.Package) func(p *packages.Package, e ast.Expr) (D
 }
 
 type GenerateMonadFunctionsDirective struct {
+	Decl       TaggedLit
 	Package    genfp.WorkingPackage
 	TargetType GenericType
 	// 생성될 file 이름
@@ -1053,6 +1058,7 @@ type GenerateMonadFunctionsDirective struct {
 
 func ParseGenerateMonadFunctions(lit TaggedLit) (GenerateMonadFunctionsDirective, error) {
 	ret := GenerateMonadFunctionsDirective{
+		Decl:    lit,
 		Package: lit.WorkingPackage(),
 	}
 
@@ -1108,6 +1114,7 @@ type MonadFunctions struct {
 }
 
 type GenerateMonadTransformerDirective struct {
+	Decl              TaggedLit
 	Name              string
 	Package           genfp.WorkingPackage
 	TargetAlias       *types.Alias
@@ -1124,6 +1131,7 @@ type GenerateMonadTransformerDirective struct {
 
 func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
 	ret := GenerateMonadTransformerDirective{
+		Decl:    lit,
 		Package: genfp.NewWorkingPackage(lit.Package.Types, lit.Package.Fset, lit.Package.Syntax),
 	}
 
@@ -1263,6 +1271,7 @@ func evalMonadFunctions(p *packages.Package, e ast.Expr) (MonadFunctions, error)
 }
 
 type GenerateFromStructs struct {
+	Decl           TaggedLit
 	File           string
 	Imports        []genfp.ImportPackage
 	List           []TypeReference
@@ -1275,7 +1284,7 @@ type GenerateFromStructs struct {
 func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 
 	lit := tagged.Lit
-	ret := GenerateFromStructs{}
+	ret := GenerateFromStructs{Decl: tagged}
 
 	names := []string{"File", "Imports", "List", "Recursive", "Parameters", "TypeReferences", "Template"}
 	for idx, e := range lit.Elts {
@@ -1338,7 +1347,7 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 func ParseGenerateFromInterfaces(tagged TaggedLit) (GenerateFromStructs, error) {
 
 	lit := tagged.Lit
-	ret := GenerateFromStructs{}
+	ret := GenerateFromStructs{Decl: tagged}
 
 	names := []string{"File", "Imports", "List", "Parameters", "TypeReferences", "Template"}
 	for idx, e := range lit.Elts {
@@ -1393,6 +1402,7 @@ func ParseGenerateFromInterfaces(tagged TaggedLit) (GenerateFromStructs, error) 
 }
 
 type GenerateApplicative struct {
+	Decl        TaggedLit
 	Package     genfp.WorkingPackage
 	TargetAlias *types.Alias
 	TargetType  *types.Named
@@ -1409,6 +1419,7 @@ type Mapping struct {
 
 func ParseGenerateApplicative(lit TaggedLit) (GenerateApplicative, error) {
 	ret := GenerateApplicative{
+		Decl:    lit,
 		Package: genfp.NewWorkingPackage(lit.Package.Types, lit.Package.Fset, lit.Package.Syntax),
 	}
 

@@ -267,6 +267,8 @@ type TaggedLit struct {
 	Package *packages.Package
 	Type    *types.Named
 	Lit     *ast.CompositeLit
+	File    string
+	Line    int
 }
 
 func (r TaggedLit) WorkingPackage() genfp.WorkingPackage {
@@ -305,7 +307,10 @@ func taggedFromFuncDecl(pk *packages.Package, typeName string, gd *ast.FuncDecl,
 							if lastStmt, ok := seqLast(gd.Body.List); ok {
 								if retStmt, ok := lastStmt.(*ast.ReturnStmt); ok && len(retStmt.Results) == 1 {
 									if cl, ok := retStmt.Results[0].(*ast.CompositeLit); ok {
-										return []TaggedLit{{pk, named, cl}}
+										pos := pk.Fset.Position(cl.Pos())
+										file := strings.TrimPrefix(pos.Filename, pk.Dir+"/")
+										line := pos.Line
+										return []TaggedLit{{pk, named, cl, file, line}}
 									}
 								}
 							}
@@ -349,7 +354,10 @@ func taggedFromGenDecl(pk *packages.Package, typeName string, gd *ast.GenDecl, t
 						named := checkType(pk, cl.Type)
 						if named != nil {
 							if named.Obj().Name() == typeName {
-								return []TaggedLit{{pk, named, cl}}
+								pos := pk.Fset.Position(cl.Pos())
+								file := strings.TrimPrefix(pos.Filename, pk.Dir+"/")
+								line := pos.Line
+								return []TaggedLit{{pk, named, cl, file, line}}
 							}
 						}
 					}
