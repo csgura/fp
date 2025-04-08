@@ -311,7 +311,7 @@ func evalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Package,
 		return ret, nil
 
 	} else if ce, ok := e.(*ast.CallExpr); ok {
-		if matchFuncName(ce, "seq.Of") {
+		if matchFuncName(ce, "seq.Of") || matchFuncName(ce, "slice.Of") {
 			var ret []T
 
 			for _, e := range ce.Args {
@@ -342,7 +342,7 @@ func flatEvalArray[T any](p *packages.Package, e ast.Expr, f func(*packages.Pack
 		return ret, nil
 
 	} else if ce, ok := e.(*ast.CallExpr); ok {
-		if matchFuncName(ce, "seq.Of") {
+		if matchFuncName(ce, "seq.Of") || matchFuncName(ce, "slice.Of") {
 			var ret []T
 
 			for _, e := range ce.Args {
@@ -408,15 +408,25 @@ func evalMap[K comparable, V any](p *packages.Package, e ast.Expr, kf func(*pack
 	return nil, fmt.Errorf("expr is not map expr : %T", e)
 }
 
-func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
+type GenerateFromUntil struct {
+	File           string
+	Imports        []genfp.ImportPackage
+	From           int
+	Until          int
+	Parameters     map[string]string
+	TypeReferences map[string]TypeReference
+	Template       string
+}
+
+func ParseGenerateFromUntil(tagged TaggedLit) (GenerateFromUntil, error) {
 
 	lit := tagged.Lit
-	ret := genfp.GenerateFromUntil{}
+	ret := GenerateFromUntil{}
 
 	names := []string{"File", "Imports", "From", "Until", "Parameters", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
-			return genfp.GenerateFromUntil{}, fmt.Errorf("invalid number of literals")
+			return GenerateFromUntil{}, fmt.Errorf("invalid number of literals")
 		}
 
 		name := names[idx]
@@ -425,37 +435,43 @@ func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
 		case "File":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromUntil{}, err
+				return GenerateFromUntil{}, err
 			}
 			ret.File = v
 		case "Imports":
 			v, err := evalImports(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromUntil{}, err
+				return GenerateFromUntil{}, err
 			}
 			ret.Imports = v
 		case "From":
 			v, err := evalIntValue(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromUntil{}, err
+				return GenerateFromUntil{}, err
 			}
 			ret.From = v
 		case "Until":
 			v, err := evalIntValue(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromUntil{}, err
+				return GenerateFromUntil{}, err
 			}
 			ret.Until = v
 		case "Parameters":
 			v, err := evalMap(tagged.Package, value, evalStringValue, evalStringValue)
 			if err != nil {
-				return genfp.GenerateFromUntil{}, err
+				return GenerateFromUntil{}, err
 			}
 			ret.Parameters = v
+		case "TypeReferences":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalTypeOf(tagged.Package))
+			if err != nil {
+				return GenerateFromUntil{}, err
+			}
+			ret.TypeReferences = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromUntil{}, err
+				return GenerateFromUntil{}, err
 			}
 			ret.Template = v
 		}
@@ -465,15 +481,24 @@ func ParseGenerateFromUntil(tagged TaggedLit) (genfp.GenerateFromUntil, error) {
 
 }
 
-func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
+type GenerateFromList struct {
+	File           string
+	Imports        []genfp.ImportPackage
+	List           []string
+	Parameters     map[string]string
+	TypeReferences map[string]TypeReference
+	Template       string
+}
+
+func ParseGenerateFromList(tagged TaggedLit) (GenerateFromList, error) {
 
 	lit := tagged.Lit
-	ret := genfp.GenerateFromList{}
+	ret := GenerateFromList{}
 
-	names := []string{"File", "Imports", "List", "Parameters", "Template"}
+	names := []string{"File", "Imports", "List", "Parameters", "TypeReferences", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
-			return genfp.GenerateFromList{}, fmt.Errorf("invalid number of literals")
+			return GenerateFromList{}, fmt.Errorf("invalid number of literals")
 		}
 
 		name := names[idx]
@@ -482,38 +507,42 @@ func ParseGenerateFromList(tagged TaggedLit) (genfp.GenerateFromList, error) {
 		case "File":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromList{}, err
+				return GenerateFromList{}, err
 			}
 			ret.File = v
 		case "Imports":
 			v, err := evalImports(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromList{}, err
+				return GenerateFromList{}, err
 			}
 			ret.Imports = v
 		case "List":
 			v, err := evalArray(tagged.Package, value, evalStringValue)
 			if err != nil {
-				return genfp.GenerateFromList{}, err
+				return GenerateFromList{}, err
 			}
 			ret.List = v
 		case "Parameters":
 			v, err := evalMap(tagged.Package, value, evalStringValue, evalStringValue)
 			if err != nil {
-				return genfp.GenerateFromList{}, err
+				return GenerateFromList{}, err
 			}
 			ret.Parameters = v
+		case "TypeReferences":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalTypeOf(tagged.Package))
+			if err != nil {
+				return GenerateFromList{}, err
+			}
+			ret.TypeReferences = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
-				return genfp.GenerateFromList{}, err
+				return GenerateFromList{}, err
 			}
 			ret.Template = v
 		}
 	}
-
 	return ret, nil
-
 }
 
 type DelegateDirective struct {
@@ -1234,12 +1263,13 @@ func evalMonadFunctions(p *packages.Package, e ast.Expr) (MonadFunctions, error)
 }
 
 type GenerateFromStructs struct {
-	File       string
-	Imports    []genfp.ImportPackage
-	List       []TypeReference
-	Parameters map[string]string
-	Recursive  bool
-	Template   string
+	File           string
+	Imports        []genfp.ImportPackage
+	List           []TypeReference
+	Recursive      bool
+	Parameters     map[string]string
+	TypeReferences map[string]TypeReference
+	Template       string
 }
 
 func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
@@ -1247,7 +1277,7 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 	lit := tagged.Lit
 	ret := GenerateFromStructs{}
 
-	names := []string{"File", "Imports", "List", "Recursive", "Parameters", "Template"}
+	names := []string{"File", "Imports", "List", "Recursive", "Parameters", "TypeReferences", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
 			return GenerateFromStructs{}, fmt.Errorf("invalid number of literals")
@@ -1286,6 +1316,12 @@ func ParseGenerateFromStructs(tagged TaggedLit) (GenerateFromStructs, error) {
 				return GenerateFromStructs{}, err
 			}
 			ret.Parameters = v
+		case "TypeReferences":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalTypeOf(tagged.Package))
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.TypeReferences = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {
@@ -1304,7 +1340,7 @@ func ParseGenerateFromInterfaces(tagged TaggedLit) (GenerateFromStructs, error) 
 	lit := tagged.Lit
 	ret := GenerateFromStructs{}
 
-	names := []string{"File", "Imports", "List", "Parameters", "Template"}
+	names := []string{"File", "Imports", "List", "Parameters", "TypeReferences", "Template"}
 	for idx, e := range lit.Elts {
 		if idx >= len(names) {
 			return GenerateFromStructs{}, fmt.Errorf("invalid number of literals")
@@ -1337,6 +1373,12 @@ func ParseGenerateFromInterfaces(tagged TaggedLit) (GenerateFromStructs, error) 
 				return GenerateFromStructs{}, err
 			}
 			ret.Parameters = v
+		case "TypeReferences":
+			v, err := evalMap(tagged.Package, value, evalStringValue, evalTypeOf(tagged.Package))
+			if err != nil {
+				return GenerateFromStructs{}, err
+			}
+			ret.TypeReferences = v
 		case "Template":
 			v, err := evalStringValue(tagged.Package, value)
 			if err != nil {

@@ -84,8 +84,8 @@ func seqExists[T any](r []T, p func(v T) bool) bool {
 	return false
 }
 
-func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]genfp.GenerateFromUntil {
-	ret := map[string][]genfp.GenerateFromUntil{}
+func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]GenerateFromUntil {
+	ret := map[string][]GenerateFromUntil{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateFromUntil", tags...)
 	for _, cl := range genseq {
 		gfu, err := ParseGenerateFromUntil(cl)
@@ -101,8 +101,8 @@ func FindGenerateFromUntil(p []*packages.Package, tags ...string) map[string][]g
 	return ret
 }
 
-func FindGenerateFromList(p []*packages.Package, tags ...string) map[string][]genfp.GenerateFromList {
-	ret := map[string][]genfp.GenerateFromList{}
+func FindGenerateFromList(p []*packages.Package, tags ...string) map[string][]GenerateFromList {
+	ret := map[string][]GenerateFromList{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateFromList", tags...)
 	for _, cl := range genseq {
 		gfu, err := ParseGenerateFromList(cl)

@@ -130,20 +130,22 @@ func PrivateName(name string) string {
 }
 
 type GenerateFromUntil struct {
-	File       string
-	Imports    []ImportPackage
-	From       int
-	Until      int
-	Parameters map[string]string
-	Template   string
+	File           string
+	Imports        []ImportPackage
+	From           int
+	Until          int
+	Parameters     map[string]string
+	TypeReferences map[string]TypeTag
+	Template       string
 }
 
 type GenerateFromList struct {
-	File       string
-	Imports    []ImportPackage
-	List       []string
-	Parameters map[string]string
-	Template   string
+	File           string
+	Imports        []ImportPackage
+	List           []string
+	Parameters     map[string]string
+	TypeReferences map[string]TypeTag
+	Template       string
 }
 
 // TypeDecl 을 사용하여 type string 으로 변환 가능
@@ -262,11 +264,12 @@ func (r StructInfo) String() string {
 }
 
 type GenerateFromStructs struct {
-	File       string
-	Imports    []ImportPackage
-	List       []TypeTag
-	Recursive  bool
-	Parameters map[string]string
+	File           string
+	Imports        []ImportPackage
+	List           []TypeTag
+	Recursive      bool
+	Parameters     map[string]string
+	TypeReferences map[string]TypeTag
 	// StructInfo 가 .N 에 들어 있음.
 	Template string
 }
@@ -344,10 +347,11 @@ type InterfaceInfo struct {
 }
 
 type GenerateFromInterfaces struct {
-	File       string
-	Imports    []ImportPackage
-	List       []TypeTag
-	Parameters map[string]string
+	File           string
+	Imports        []ImportPackage
+	List           []TypeTag
+	Parameters     map[string]string
+	TypeReferences map[string]TypeTag
 	// InterfaceInfo 가 .N 에 들어 있음.
 	Template string
 }

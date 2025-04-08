@@ -454,6 +454,15 @@ func genGenerate() {
 							params[k] = v
 						}
 					}
+					for k, v := range gfu.TypeReferences {
+						if k != "N" {
+							is := genfp.NewImportSet()
+
+							params[k] = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+								Type: metafp.GetTypeInfo(v.Type),
+							})
+						}
+					}
 					w.Render(gfu.Template, map[string]any{}, params)
 				}
 			}
@@ -475,6 +484,15 @@ func genGenerate() {
 				for k, v := range gfu.Parameters {
 					if k != "N" {
 						params[k] = v
+					}
+				}
+				for k, v := range gfu.TypeReferences {
+					if k != "N" {
+						is := genfp.NewImportSet()
+
+						params[k] = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+							Type: metafp.GetTypeInfo(v.Type),
+						})
 					}
 				}
 
@@ -535,6 +553,12 @@ func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[g
 			ret := deriveCtx.summonRequired(ctx, rq)
 
 			return ret.Expr()
+		},
+		"FieldDecl": func(v genfp.StructFieldInfo) string {
+			if v.Tag == "" {
+				return v.Name + " " + w.TypeName(workingPkg, v.Type.Type)
+			}
+			return v.Name + " " + w.TypeName(workingPkg, v.Type.Type) + fmt.Sprintf("`%s`", v.Tag)
 		},
 		"TypeDecl": func(v any) string {
 			switch rv := v.(type) {
@@ -641,6 +665,15 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 					params[k] = v
 				}
 			}
+
+			for k, v := range gfu.TypeReferences {
+				if k != "N" {
+					params[k] = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+						Type: metafp.GetTypeInfo(v.Type),
+					})
+				}
+			}
+
 			w.Render(gfu.Template, templFunc(w, workingPkg, gfu.Imports, deriveCtx), params)
 		}
 	}
@@ -741,6 +774,14 @@ func generateFromStruct(w genfp.Writer, workingPkg genfp.WorkingPackage, deriveC
 			for k, v := range gfu.Parameters {
 				if k != "N" {
 					params[k] = v
+				}
+			}
+
+			for k, v := range gfu.TypeReferences {
+				if k != "N" {
+					params[k] = toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+						Type: metafp.GetTypeInfo(v.Type),
+					})
 				}
 			}
 
