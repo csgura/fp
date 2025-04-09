@@ -300,6 +300,58 @@ func removePkgPrefix(v string) string {
 	return v
 }
 
+func toInterfaceInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp.TypeInfo) fp.Try[genfp.InterfaceInfo] {
+	name := ti.Name()
+
+	if name.IsDefined() && ti.Underlying().IsInterface() {
+		is := genfp.NewImportSet()
+
+		ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
+		methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
+			args := v.I2.Signature().Params()
+			convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarInfo {
+				return func(i int, t *types.Var) genfp.VarInfo {
+					varname := t.Name()
+					if varname == "" {
+						varname = fmt.Sprintf("%s%d", vprefix, i)
+					}
+
+					return genfp.VarInfo{
+						Index: i,
+						Name:  varname,
+						Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+							Type: metafp.GetTypeInfo(t.Type()),
+						}),
+					}
+				}
+			}
+			argsDef := iterate(args.Len(), args.At, convVar("arg"))
+
+			rets := v.I2.Signature().Results()
+			retDef := iterate(rets.Len(), rets.At, convVar("ret"))
+
+			return genfp.InterfaceMethodInfo{
+				Name:       v.I1,
+				Args:       argsDef,
+				Returns:    retDef,
+				IsVariadic: v.I2.Signature().Variadic(),
+			}
+		})
+
+		return try.Success(genfp.InterfaceInfo{
+			Package:          genfp.FromTypesPackage(ti.Pkg),
+			IsCurrentPackage: ti.IsSamePkg(workingPkg),
+			Name:             name.Get(),
+			Methods:          methods,
+			Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+				Type: ti,
+			}),
+		})
+	}
+	return try.Failure[genfp.InterfaceInfo](fp.Error(404, "type %s is not interface", ti.String()))
+
+}
+
 func toStructInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp.TypeInfo) fp.Try[genfp.StructInfo] {
 
 	name := ti.Name()
@@ -645,6 +697,10 @@ func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[g
 			is := genfp.NewImportSet()
 			return toStructInfo(is, workingPkg, metafp.GetTypeInfo(v.Type)).Unapply()
 		},
+		"InterfaceInfo": func(v genfp.TypeInfo) (genfp.InterfaceInfo, error) {
+			is := genfp.NewImportSet()
+			return toInterfaceInfo(is, workingPkg, metafp.GetTypeInfo(v.Type)).Unapply()
+		},
 		"FieldDecl": func(v genfp.StructFieldInfo) string {
 			if v.Tag == "" {
 				return v.Name + " " + w.TypeName(workingPkg, v.Type.Type)
@@ -700,52 +756,11 @@ func generateFromInterface(w genfp.Writer, workingPkg genfp.WorkingPackage, deri
 	for _, tr := range gfu.List {
 
 		ti := metafp.GetTypeInfo(tr.Type)
-		name := ti.Name()
+		is := genfp.NewImportSet()
 
-		if name.IsDefined() && ti.Underlying().IsInterface() {
-			is := genfp.NewImportSet()
+		st, err := toInterfaceInfo(is, workingPkg, ti).Unapply()
 
-			ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
-			methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
-				args := v.I2.Signature().Params()
-				convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarInfo {
-					return func(i int, t *types.Var) genfp.VarInfo {
-						name := t.Name()
-						if name == "" {
-							name = fmt.Sprintf("%s%d", vprefix, i)
-						}
-
-						return genfp.VarInfo{
-							Index: i,
-							Name:  t.Name(),
-							Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-								Type: metafp.GetTypeInfo(t.Type()),
-							}),
-						}
-					}
-				}
-				argsDef := iterate(args.Len(), args.At, convVar("arg"))
-
-				rets := v.I2.Signature().Results()
-				retDef := iterate(rets.Len(), rets.At, convVar("ret"))
-
-				return genfp.InterfaceMethodInfo{
-					Name:       v.I1,
-					Args:       argsDef,
-					Returns:    retDef,
-					IsVariadic: v.I2.Signature().Variadic(),
-				}
-			})
-
-			st := genfp.InterfaceInfo{
-				Package:          genfp.FromTypesPackage(ti.Pkg),
-				IsCurrentPackage: ti.IsSamePkg(workingPkg),
-				Name:             name.Get(),
-				Methods:          methods,
-				Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-					Type: ti,
-				}),
-			}
+		if err == nil {
 
 			params := map[string]any{
 				"N": st,
