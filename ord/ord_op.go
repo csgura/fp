@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/slice"
 )
 
 func FromCompare[T any](cmp func(a, b T) int) fp.Ord[T] {
@@ -61,7 +61,15 @@ func Seq[T any](ord fp.Ord[T]) fp.Ord[fp.Seq[T]] {
 }
 
 func Slice[T any](ord fp.Ord[T]) fp.Ord[[]T] {
-	return ContraMap(Seq(ord), as.Seq[T])
+	return New(eq.Slice[T](ord), func(a, b fp.Slice[T]) bool {
+		last := fp.Min(slice.Size(a), slice.Size(b))
+		for i := 0; i < last; i++ {
+			if ord.Less(a[i], b[i]) {
+				return true
+			}
+		}
+		return slice.Size(a) < slice.Size(b)
+	})
 }
 
 var HNil fp.Ord[hlist.Nil] = New(fp.EqGiven[hlist.Nil](), func(a, b hlist.Nil) bool { return false })

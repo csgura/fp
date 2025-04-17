@@ -9,6 +9,7 @@ import (
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
@@ -58,7 +59,7 @@ func GoMap[K comparable, V any](clonek fp.Clone[K], clonev fp.Clone[V]) fp.Clone
 
 func Slice[T any](tclone fp.Clone[T]) fp.Clone[[]T] {
 	return New(func(s []T) []T {
-		return seq.Map(s, tclone.Clone)
+		return slice.Map(s, tclone.Clone)
 	})
 }
 

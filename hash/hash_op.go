@@ -6,7 +6,6 @@ import (
 	"hash/maphash"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
@@ -107,7 +106,13 @@ func Seq[T any](hashT fp.Hashable[T]) fp.Hashable[fp.Seq[T]] {
 }
 
 func Slice[T any](hashT fp.Hashable[T]) fp.Hashable[[]T] {
-	return ContraMap(Seq(hashT), as.Seq[T])
+	return New(eq.Slice[T](hashT), func(a fp.Slice[T]) uint32 {
+		var h uint32
+		for _, t := range a {
+			h = h*31 + hashT.Hash(t)
+		}
+		return h
+	})
 }
 
 func Ptr[T any](hashT lazy.Eval[fp.Hashable[T]]) fp.Hashable[*T] {

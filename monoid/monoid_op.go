@@ -3,7 +3,6 @@ package monoid
 
 import (
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/future"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
@@ -83,9 +82,12 @@ func MergeSeq[T any]() fp.Monoid[fp.Seq[T]] {
 }
 
 func MergeSlice[T any]() fp.Monoid[[]T] {
-	return IMap(MergeSeq[T](), func(b fp.Seq[T]) []T {
-		return b
-	}, as.Seq[T])
+	return New(
+		fp.Zero[fp.Slice[T]],
+		func(a fp.Slice[T], b fp.Slice[T]) fp.Slice[T] {
+			return append(a, b...)
+		},
+	)
 }
 
 var HNil fp.Monoid[hlist.Nil] = fp.SemigroupFunc[hlist.Nil](func(a, b hlist.Nil) hlist.Nil {

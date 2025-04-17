@@ -984,7 +984,7 @@ func (r set[T]) String() string {
 
 func SetMinimal[T any](hasher fp.Hashable[T], v ...T) fp.SetMinimal[T] {
 
-	tp := make(fp.Seq[fp.Tuple2[T, bool]], len(v))
+	tp := make(fp.Slice[fp.Tuple2[T, bool]], len(v))
 	for i, v := range v {
 		tp[i] = as.Tuple2(v, true)
 	}

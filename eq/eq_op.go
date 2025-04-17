@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
@@ -57,7 +56,18 @@ func Seq[T any](eq fp.Eq[T]) fp.Eq[fp.Seq[T]] {
 }
 
 func Slice[T any](eq fp.Eq[T]) fp.Eq[[]T] {
-	return ContraMap(Seq(eq), as.Seq[T])
+	return New(func(a, b fp.Slice[T]) bool {
+		if len(a) != len(b) {
+			return false
+		}
+
+		for i := range a {
+			if !eq.Eqv(a[i], b[i]) {
+				return false
+			}
+		}
+		return true
+	})
 }
 
 var HNil fp.Eq[hlist.Nil] = fp.EqGiven[hlist.Nil]()
