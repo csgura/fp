@@ -196,7 +196,7 @@ func ToSeq[A any](ta fp.Try[A]) fp.Seq[A] {
 }
 
 func Iterator[A any](ta fp.Try[A]) fp.Iterator[A] {
-	return fp.IteratorOfSeq(ToSeq(ta))
+	return fp.IteratorOfSeq(ta.ToSeq())
 }
 
 // foldM : (b -> a -> m b ) -> b -> t a -> m b

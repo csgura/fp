@@ -165,7 +165,7 @@ func ToSlice[T any](r fp.Option[T]) fp.Slice[T] {
 }
 
 func Iterator[T any](r fp.Option[T]) fp.Iterator[T] {
-	return fp.IteratorOfSeq(ToSeq(r))
+	return fp.IteratorOfSeq(r.ToSeq())
 }
 
 func Deref[R any, T fp.Deref[R]](opt fp.Option[T]) fp.Option[R] {
