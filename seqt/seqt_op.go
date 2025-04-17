@@ -105,6 +105,13 @@ func ForAll[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[bool] {
 	})
 }
 
+func Foreach[T any](seqT fp.SeqT[T], f func(v T)) {
+	try.Map(seqT, func(insideValue fp.Seq[T]) error {
+		fp.Seq[T].Foreach(insideValue, f)
+		return nil
+	})
+}
+
 func Get[T any](seqT fp.SeqT[T], idx int) fp.Try[fp.Option[T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Option[T] {
 		return fp.Seq[T].Get(insideValue, idx)

@@ -213,6 +213,19 @@ func FoldM[A, B any](s fp.Iterator[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B]
 	return fp.Success(sum)
 }
 
+func FoldSliceM[A, B any](s fp.Slice[A], zero B, f func(B, A) fp.Try[B]) fp.Try[B] {
+	sum := zero
+	for _, v := range s {
+		t := f(sum, v)
+		if t.IsSuccess() {
+			sum = t.Get()
+		} else {
+			return t
+		}
+	}
+	return fp.Success(sum)
+}
+
 type MonadChain1[H hlist.Header[HT], HT, A, R any] struct {
 	h  fp.Try[H]
 	fn fp.Try[fp.Func1[A, R]]

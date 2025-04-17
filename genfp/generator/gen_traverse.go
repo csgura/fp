@@ -83,6 +83,61 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective, define
 
 	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/iterator", "iterator"))
 
+	if _, ok := definedFunc["FoldSliceM"]; ok {
+		w.Render(`
+			func TraverseSeq[{{.tpargs}}, R any](sa fp.Seq[A], fa func(A) {{monad "R"}}) {{monad "fp.Seq[R]"}} {
+				return FoldSliceM(sa, fp.Seq[R]{}, func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
+						return Map(fa(a), acc.Add)
+				})
+			}
+			
+			func TraverseSlice[{{.tpargs}}, R any](sa fp.Slice[A], fa func(A) {{monad "R"}}) {{monad "fp.Slice[R]"}} {
+				return FoldSliceM(sa, fp.Slice[R]{}, func(acc fp.Slice[R], a A) {{monad "fp.Slice[R]"}} {
+					return Map(fa(a), func(v R) fp.Slice[R] {
+						return append(acc,v)
+					})
+				})
+			}
+
+			func Sequence[{{.tpargs}}](tsa []{{monad "A"}}) {{monad "fp.Slice[A]"}} {
+				ret := FoldSliceM(tsa, fp.Slice[A]{}, func(t1 fp.Slice[A], t2 {{monad "A"}}) {{monad "fp.Slice[A]"}} {
+					return Map(t2, func(v A) fp.Slice[A] {
+						return append(t1, v)
+					})
+				})
+	
+				return ret
+			}
+
+		`, funcs, param)
+	} else {
+		w.Render(`
+			func TraverseSeq[{{.tpargs}}, R any](sa fp.Seq[A], fa func(A) {{monad "R"}}) {{monad "fp.Seq[R]"}} {
+				return FoldM(fp.IteratorOfSeq(sa), fp.Seq[R]{}, func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
+						return Map(fa(a), acc.Add)
+				})
+			}
+			
+			func TraverseSlice[{{.tpargs}}, R any](sa fp.Slice[A], fa func(A) {{monad "R"}}) {{monad "fp.Slice[R]"}} {
+				return FoldM(fp.IteratorOfSeq(sa), fp.Slice[R]{}, func(acc fp.Slice[R], a A) {{monad "fp.Slice[R]"}} {
+					return Map(fa(a), func(v R) fp.Slice[R] {
+						return append(acc,v)
+					})
+				})
+			}
+
+			func Sequence[{{.tpargs}}](tsa []{{monad "A"}}) {{monad "fp.Slice[A]"}} {
+				ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 {{monad "A"}}) {{monad "fp.Slice[A]"}} {
+					return Map(t2, func(v A) fp.Slice[A] {
+						return append(t1, v)
+					})
+				})
+	
+				return ret
+			}
+		`, funcs, param)
+	}
+
 	w.Render(`
 
 	func Traverse[{{.tpargs}}, R any](ia fp.Iterator[A], fn func(A) {{monad "R"}}) {{monad "fp.Iterator[R]"}} {
@@ -91,21 +146,6 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective, define
 		}), iterator.FromSeq)
 	}
 
-	func TraverseSeq[{{.tpargs}}, R any](sa fp.Seq[A], fa func(A) {{monad "R"}}) {{monad "fp.Seq[R]"}} {
-		return FoldM(fp.IteratorOfSeq(sa), fp.Seq[R]{}, func(acc fp.Seq[R], a A) {{monad "fp.Seq[R]"}} {
-			return Map(fa(a), acc.Add)
-		})
-	}
-	
-	func TraverseSlice[{{.tpargs}}, R any](sa fp.Slice[A], fa func(A) {{monad "R"}}) {{monad "fp.Slice[R]"}} {
-		return FoldM(fp.IteratorOfSeq(sa), fp.Slice[R]{}, func(acc fp.Slice[R], a A) {{monad "fp.Slice[R]"}} {
-			return Map(fa(a), func(v R) fp.Slice[R] {
-				return append(acc,v)
-			})
-		})
-	}
-
-	
 	func TraverseFunc[{{.tpargs}}, R any](far func(A) {{monad "R"}}) func(fp.Iterator[A]) {{monad "fp.Iterator[R]"}} {
 		return func(iterA fp.Iterator[A]) {{monad "fp.Iterator[R]"}} {
 			return Traverse(iterA, far)
@@ -130,16 +170,6 @@ func WriteTraverseFunctions(w Writer, md GenerateMonadFunctionsDirective, define
 	
 	func FlatMapTraverseSlice[{{.tpargs}}, B any](ta {{monad "fp.Slice[A]"}}, f func(v A) {{monad "B"}}) {{monad "fp.Slice[B]"}} {
 		return FlatMap(ta, TraverseSliceFunc(f))
-	}
-
-	func Sequence[{{.tpargs}}](tsa []{{monad "A"}}) {{monad "fp.Slice[A]"}} {
-		ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 {{monad "A"}}) {{monad "fp.Slice[A]"}} {
-			return Map(t2, func(v A) fp.Slice[A] {
-				return append(t1, v)
-			})
-		})
-	
-		return ret
 	}
 
 

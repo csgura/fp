@@ -107,6 +107,13 @@ func ForAll[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.Try[bool] {
 	})
 }
 
+func Foreach[T any](sliceT fp.SliceT[T], f func(v T)) {
+	try.Map(sliceT, func(insideValue fp.Slice[T]) error {
+		slice.Foreach[T](insideValue, f)
+		return nil
+	})
+}
+
 func Get[T any](sliceT fp.SliceT[T], idx int) fp.Try[fp.Option[T]] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Option[T] {
 		return slice.Get[T](insideValue, idx)

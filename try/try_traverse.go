@@ -6,24 +6,34 @@ import (
 	"github.com/csgura/fp/iterator"
 )
 
-func Traverse[A any, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
-	return Map(FoldM(ia, fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
-		return Map(fn(a), acc.Add)
-	}), iterator.FromSeq)
-}
-
 func TraverseSeq[A any, R any](sa fp.Seq[A], fa func(A) fp.Try[R]) fp.Try[fp.Seq[R]] {
-	return FoldM(fp.IteratorOfSeq(sa), fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
+	return FoldSliceM(sa, fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
 		return Map(fa(a), acc.Add)
 	})
 }
 
 func TraverseSlice[A any, R any](sa fp.Slice[A], fa func(A) fp.Try[R]) fp.Try[fp.Slice[R]] {
-	return FoldM(fp.IteratorOfSeq(sa), fp.Slice[R]{}, func(acc fp.Slice[R], a A) fp.Try[fp.Slice[R]] {
+	return FoldSliceM(sa, fp.Slice[R]{}, func(acc fp.Slice[R], a A) fp.Try[fp.Slice[R]] {
 		return Map(fa(a), func(v R) fp.Slice[R] {
 			return append(acc, v)
 		})
 	})
+}
+
+func Sequence[A any](tsa []fp.Try[A]) fp.Try[fp.Slice[A]] {
+	ret := FoldSliceM(tsa, fp.Slice[A]{}, func(t1 fp.Slice[A], t2 fp.Try[A]) fp.Try[fp.Slice[A]] {
+		return Map(t2, func(v A) fp.Slice[A] {
+			return append(t1, v)
+		})
+	})
+
+	return ret
+}
+
+func Traverse[A any, R any](ia fp.Iterator[A], fn func(A) fp.Try[R]) fp.Try[fp.Iterator[R]] {
+	return Map(FoldM(ia, fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.Try[fp.Seq[R]] {
+		return Map(fn(a), acc.Add)
+	}), iterator.FromSeq)
 }
 
 func TraverseFunc[A any, R any](far func(A) fp.Try[R]) func(fp.Iterator[A]) fp.Try[fp.Iterator[R]] {
@@ -50,16 +60,6 @@ func FlatMapTraverseSeq[A any, B any](ta fp.Try[fp.Seq[A]], f func(v A) fp.Try[B
 
 func FlatMapTraverseSlice[A any, B any](ta fp.Try[fp.Slice[A]], f func(v A) fp.Try[B]) fp.Try[fp.Slice[B]] {
 	return FlatMap(ta, TraverseSliceFunc(f))
-}
-
-func Sequence[A any](tsa []fp.Try[A]) fp.Try[fp.Slice[A]] {
-	ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 fp.Try[A]) fp.Try[fp.Slice[A]] {
-		return Map(t2, func(v A) fp.Slice[A] {
-			return append(t1, v)
-		})
-	})
-
-	return ret
 }
 
 func SequenceIterator[A any](ita fp.Iterator[fp.Try[A]]) fp.Try[fp.Iterator[A]] {

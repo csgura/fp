@@ -6,20 +6,34 @@ import (
 	"github.com/csgura/fp/iterator"
 )
 
-func Traverse[A any, R any](ia fp.Iterator[A], fn func(A) fp.PtrT[R]) fp.PtrT[fp.Iterator[R]] {
-	return Map(FoldM(ia, fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.PtrT[fp.Seq[R]] {
-		return Map(fn(a), acc.Add)
-	}), iterator.FromSeq)
-}
-
 func TraverseSeq[A any, R any](sa fp.Seq[A], fa func(A) fp.PtrT[R]) fp.PtrT[fp.Seq[R]] {
 	return FoldM(fp.IteratorOfSeq(sa), fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.PtrT[fp.Seq[R]] {
 		return Map(fa(a), acc.Add)
 	})
 }
 
-func TraverseSlice[A any, R any](sa []A, fa func(A) fp.PtrT[R]) fp.PtrT[[]R] {
-	return Map(TraverseSeq(sa, fa), fp.Seq[R].Widen)
+func TraverseSlice[A any, R any](sa fp.Slice[A], fa func(A) fp.PtrT[R]) fp.PtrT[fp.Slice[R]] {
+	return FoldM(fp.IteratorOfSeq(sa), fp.Slice[R]{}, func(acc fp.Slice[R], a A) fp.PtrT[fp.Slice[R]] {
+		return Map(fa(a), func(v R) fp.Slice[R] {
+			return append(acc, v)
+		})
+	})
+}
+
+func Sequence[A any](tsa []fp.PtrT[A]) fp.PtrT[fp.Slice[A]] {
+	ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 fp.PtrT[A]) fp.PtrT[fp.Slice[A]] {
+		return Map(t2, func(v A) fp.Slice[A] {
+			return append(t1, v)
+		})
+	})
+
+	return ret
+}
+
+func Traverse[A any, R any](ia fp.Iterator[A], fn func(A) fp.PtrT[R]) fp.PtrT[fp.Iterator[R]] {
+	return Map(FoldM(ia, fp.Seq[R]{}, func(acc fp.Seq[R], a A) fp.PtrT[fp.Seq[R]] {
+		return Map(fn(a), acc.Add)
+	}), iterator.FromSeq)
 }
 
 func TraverseFunc[A any, R any](far func(A) fp.PtrT[R]) func(fp.Iterator[A]) fp.PtrT[fp.Iterator[R]] {
@@ -34,8 +48,8 @@ func TraverseSeqFunc[A any, R any](far func(A) fp.PtrT[R]) func(fp.Seq[A]) fp.Pt
 	}
 }
 
-func TraverseSliceFunc[A any, R any](far func(A) fp.PtrT[R]) func([]A) fp.PtrT[[]R] {
-	return func(seqA []A) fp.PtrT[[]R] {
+func TraverseSliceFunc[A any, R any](far func(A) fp.PtrT[R]) func(fp.Slice[A]) fp.PtrT[fp.Slice[R]] {
+	return func(seqA fp.Slice[A]) fp.PtrT[fp.Slice[R]] {
 		return TraverseSlice(seqA, far)
 	}
 }
@@ -44,18 +58,8 @@ func FlatMapTraverseSeq[A any, B any](ta fp.PtrT[fp.Seq[A]], f func(v A) fp.PtrT
 	return FlatMap(ta, TraverseSeqFunc(f))
 }
 
-func FlatMapTraverseSlice[A any, B any](ta fp.PtrT[[]A], f func(v A) fp.PtrT[B]) fp.PtrT[[]B] {
+func FlatMapTraverseSlice[A any, B any](ta fp.PtrT[fp.Slice[A]], f func(v A) fp.PtrT[B]) fp.PtrT[fp.Slice[B]] {
 	return FlatMap(ta, TraverseSliceFunc(f))
-}
-
-func Sequence[A any](tsa []fp.PtrT[A]) fp.PtrT[[]A] {
-	ret := FoldM(iterator.FromSlice(tsa), fp.Slice[A]{}, func(t1 fp.Slice[A], t2 fp.PtrT[A]) fp.PtrT[fp.Slice[A]] {
-		return Map(t2, func(v A) fp.Slice[A] {
-			return append(t1, v)
-		})
-	})
-
-	return ret
 }
 
 func SequenceIterator[A any](ita fp.Iterator[fp.PtrT[A]]) fp.PtrT[fp.Iterator[A]] {

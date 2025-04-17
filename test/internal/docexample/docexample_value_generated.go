@@ -7,6 +7,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
+	"iter"
 	"net/http"
 )
 
@@ -846,7 +847,7 @@ func IntoOptionalInt(v fp.Option[int]) OptionalInt {
 	return OptionalInt(v)
 }
 
-func (r OptionalInt) All() func(func(int) bool) {
+func (r OptionalInt) All() iter.Seq[int] {
 	return fp.Option[int](r).All()
 }
 
@@ -950,7 +951,7 @@ func IntoOptionalStringer[T fmt.Stringer](v fp.Option[T]) OptionalStringer[T] {
 	return OptionalStringer[T](v)
 }
 
-func (r OptionalStringer[T]) All() func(func(T) bool) {
+func (r OptionalStringer[T]) All() iter.Seq[T] {
 	return fp.Option[T](r).All()
 }
 
