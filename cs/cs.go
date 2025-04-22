@@ -1,4 +1,4 @@
-package esac
+package cs
 
 import (
 	"github.com/csgura/fp"
