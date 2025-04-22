@@ -11,7 +11,7 @@ type GuardType bool
 
 const Guard GuardType = true
 
-func If(v bool) GuardType {
+func If[T ~bool](v T) GuardType {
 	return GuardType(v)
 }
 
