@@ -72,11 +72,7 @@ func Product[T ImplicitNum]() Monoid[T] {
 	}
 }
 
-type Endo[T any] func(T) T
-
-func (r Endo[T]) AsFunc() func(T) T {
-	return r
-}
+type Endo[T any] = func(T) T
 
 // semigroup 이나 monoid 의 combine 순서를 반대로 하고 싶을 때는 Dual 로 감싸면 된다.
 type Dual[T any] struct {

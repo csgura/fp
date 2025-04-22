@@ -23,7 +23,7 @@ func Product[T fp.ImplicitNum](a, b T) fp.Semigroup[T] {
 
 func Endo[T any]() fp.Semigroup[fp.Endo[T]] {
 	return New(func(a, b fp.Endo[T]) fp.Endo[T] {
-		f := fp.Compose(b.AsFunc(), a.AsFunc())
+		f := fp.Compose(b, a)
 		return fp.Endo[T](f)
 	})
 }

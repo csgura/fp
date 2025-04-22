@@ -476,7 +476,7 @@ func Fold[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 func FoldLeft[A, B any](s fp.List[A], zero B, f func(B, A) B) B {
 	cf := curried.Flip(as.Curried2(f))
 	ret := FoldRight[A, fp.Endo[B]](s, fp.Id, func(a A, endo lazy.Eval[fp.Endo[B]]) lazy.Eval[fp.Endo[B]] {
-		ef := endo.Get().AsFunc()
+		ef := endo.Get()
 		return lazy.Done(fp.Endo[B](fp.Compose(cf(a), ef)))
 	})
 	return ret.Get()(zero)
