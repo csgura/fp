@@ -78,3 +78,14 @@ type Endo[T any] = func(T) T
 type Dual[T any] struct {
 	GetDual T
 }
+
+func ComposeEndo[T any](l []Endo[T]) Endo[T] {
+	if len(l) == 0 {
+		return Id[T]
+	}
+	ret := l[0]
+	for i := 1; i < len(l); i++ {
+		ret = Compose(ret, l[i])
+	}
+	return ret
+}
