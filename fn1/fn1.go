@@ -10,6 +10,10 @@ func Pure[X, A any](v A) fp.Func1[X, A] {
 	return fp.Const[X](v)
 }
 
+func Apply[A, R any](f fp.Func1[A, R], a A) R {
+	return f(a)
+}
+
 func Map[X, A, B any](m fp.Func1[X, A], fn fp.Func1[A, B]) fp.Func1[X, B] {
 	return fp.Compose(m, fn)
 }
@@ -42,5 +46,11 @@ func Memoize[A, B any](f func(A) B) fp.Func1[A, B] {
 			ret = f(a)
 		})
 		return ret
+	}
+}
+
+func Pa1[A, R any](f fp.Func1[A, R], a A) func() R {
+	return func() R {
+		return f(a)
 	}
 }
