@@ -130,7 +130,7 @@ func runCountResume[T any](t lazy.Eval[T]) (T, int) {
 	for {
 		cnt++
 		fmt.Printf("%d resume\n", cnt)
-		result, continuation := t.Resume()
+		result, continuation := lazy.Resume(t)
 
 		if continuation != nil {
 			t = continuation()

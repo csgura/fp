@@ -20,7 +20,7 @@ type Eval[T any] struct {
 // Resume 의 두번째 결과가 함수 타입인 것은 nil 체크를 하기 위함
 // fp 패키지를 참조하지 못하기 때문에  Either[T, EvalT]] 형태로 쓸 수 있는 것을
 // (T, func() Eval[T]) 로 사용함
-func (r Eval[T]) Resume() (T, func() Eval[T]) {
+func Resume[T any](r Eval[T]) (T, func() Eval[T]) {
 
 	firstFunc := r.firstFunc
 	if firstFunc == nil {
@@ -49,6 +49,45 @@ func (r Eval[T]) Resume() (T, func() Eval[T]) {
 }
 
 func (r Eval[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
+	return FlatMap(r, f)
+}
+
+func (r Eval[T]) Map(f func(T) T) Eval[T] {
+	return Map(r, f)
+}
+
+func (r Eval[T]) Get() T {
+	return Run(r)
+}
+
+func Run[T any](t Eval[T]) T {
+	for {
+		result, continuation := Resume(t)
+
+		if continuation != nil {
+			t = continuation()
+			continue
+		}
+
+		return result
+	}
+}
+
+func Map2[T any](a, b Eval[T], f func(T, T) T) Eval[T] {
+	return a.FlatMap(func(v1 T) Eval[T] {
+		return b.Map(func(v2 T) T {
+			return f(v1, v2)
+		})
+	})
+}
+
+func Map[T any](t Eval[T], f func(T) T) Eval[T] {
+	return FlatMap(t, func(value T) Eval[T] {
+		return Done(f(value))
+	})
+}
+
+func FlatMap[T any](r Eval[T], f func(T) Eval[T]) Eval[T] {
 
 	// f는 다음에 실행될 함수
 	// 만약 다음에 실행될 함수가 없으면  f 가 바로 getNextFunc가 됨
@@ -79,45 +118,6 @@ func (r Eval[T]) FlatMap(f func(T) Eval[T]) Eval[T] {
 
 	// 아무리 FlatMap 을 여려번 해도, 첫번째 실행 함수를 계속 유지하고 있기 때문에
 	// stack overflow 없이 첫번째 함수 부터 실행 가능함.
-}
-
-func (r Eval[T]) Map(f func(T) T) Eval[T] {
-	return r.FlatMap(func(value T) Eval[T] {
-		return Done(f(value))
-	})
-}
-
-func (r Eval[T]) Get() T {
-	return Run(r)
-}
-
-func Run[T any](t Eval[T]) T {
-	for {
-		result, continuation := t.Resume()
-
-		if continuation != nil {
-			t = continuation()
-			continue
-		}
-
-		return result
-	}
-}
-
-func Map2[T any](a, b Eval[T], f func(T, T) T) Eval[T] {
-	return a.FlatMap(func(v1 T) Eval[T] {
-		return b.Map(func(v2 T) T {
-			return f(v1, v2)
-		})
-	})
-}
-
-func Map[T any](t Eval[T], f func(T) T) Eval[T] {
-	return t.Map(f)
-}
-
-func FlatMap[T any](t Eval[T], f func(T) Eval[T]) Eval[T] {
-	return t.FlatMap(f)
 }
 
 // type done[T any] struct {

@@ -28,7 +28,20 @@ func Tail[T interface{ Tail() V }, V any](t T) V {
 var _ = genfp.GenerateFromList{
 	File: "xtr_gen.go",
 	List: []string{
-		"List", "Data", "DataList", "Response", "Get", "Left", "Key", "Value", "Meta", "ID", "Id",
+		"List",
+		"Data",
+		"DataList",
+		"Response",
+		"Get",
+		"Left",
+		"Key",
+		"GetKey",
+		"Value",
+		"GetValue",
+		"Meta",
+		"ID",
+		"Id",
+		"Iterator",
 	},
 	Template: `
 		func {{.N}}[T interface{ {{.N}}() V }, V any](t T) V {

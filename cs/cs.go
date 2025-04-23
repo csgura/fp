@@ -11,8 +11,8 @@ type GuardType bool
 
 const Guard GuardType = true
 
-func If[T ~bool](v T) GuardType {
-	return GuardType(v)
+func If[T ~bool](f func() T) GuardType {
+	return GuardType(try.Of(f).OrZero())
 }
 
 func NoMatter[T comparable](v T) T {
