@@ -508,6 +508,8 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 						}
 					`)
 				}
+			} else {
+				fmt.Printf("not generate %s\n", t.Name)
 			}
 		}
 

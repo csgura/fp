@@ -26,6 +26,24 @@ func All[T any](optionT fp.SliceT[T]) iter.Seq[T] {
 	return Iterator(optionT).All()
 }
 
+func MapKey[KA, KB, V any](s fp.SliceT[fp.Tuple2[KA, V]], f func(KA) KB) fp.SliceT[fp.Tuple2[KB, V]] {
+	return Map(s, func(v fp.Tuple2[KA, V]) fp.Tuple2[KB, V] {
+		return fp.Tuple2[KB, V]{
+			I1: f(v.I1),
+			I2: v.I2,
+		}
+	})
+}
+
+func MapValue[K, VA, VB any](s fp.SliceT[fp.Tuple2[K, VA]], f func(VA) VB) fp.SliceT[fp.Tuple2[K, VB]] {
+	return Map(s, func(v fp.Tuple2[K, VA]) fp.Tuple2[K, VB] {
+		return fp.Tuple2[K, VB]{
+			I1: v.I1,
+			I2: f(v.I2),
+		}
+	})
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate

@@ -152,6 +152,24 @@ func Map[T, U any](opt fp.Iterator[T], fn func(v T) U) fp.Iterator[U] {
 	)
 }
 
+func MapKey[KA, KB, V any](s fp.Iterator[fp.Tuple2[KA, V]], f func(KA) KB) fp.Iterator[fp.Tuple2[KB, V]] {
+	return Map(s, func(v fp.Tuple2[KA, V]) fp.Tuple2[KB, V] {
+		return fp.Tuple2[KB, V]{
+			I1: f(v.I1),
+			I2: v.I2,
+		}
+	})
+}
+
+func MapValue[K, VA, VB any](s fp.Iterator[fp.Tuple2[K, VA]], f func(VA) VB) fp.Iterator[fp.Tuple2[K, VB]] {
+	return Map(s, func(v fp.Tuple2[K, VA]) fp.Tuple2[K, VB] {
+		return fp.Tuple2[K, VB]{
+			I1: v.I1,
+			I2: f(v.I2),
+		}
+	})
+}
+
 func Map2[A, B, U any](a fp.Iterator[A], b fp.Iterator[B], f func(A, B) U) fp.Iterator[U] {
 	return FlatMap(a, func(v1 A) fp.Iterator[U] {
 		return Map(b, func(v2 B) U {
