@@ -13,6 +13,7 @@ import (
 	"github.com/csgura/fp/immutable"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
+	"github.com/csgura/fp/xtr"
 )
 
 func Pull[T any](seq iter.Seq[T]) fp.Iterator[T] {
@@ -609,7 +610,11 @@ func Partition[T any](r fp.Iterator[T], p func(T) bool) (fp.Iterator[T], fp.Iter
 	left, right := Duplicate(r)
 
 	return left.Filter(p), right.FilterNot(p)
+}
 
+func PartitionEithers[L, R any](r fp.Iterator[fp.Either[L, R]]) (fp.Iterator[L], fp.Iterator[R]) {
+	left, right := Duplicate(r)
+	return Map(left.Filter(xtr.IsLeft), xtr.Left), Map(right.Filter(xtr.IsRight), xtr.Get)
 }
 
 type seqSorter[T any] struct {

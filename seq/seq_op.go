@@ -458,3 +458,17 @@ func Partition[T any](r fp.Seq[T], p func(T) bool) (fp.Seq[T], fp.Seq[T]) {
 	}
 	return left, right
 }
+
+func PartitionEithers[L, R any](r fp.Seq[fp.Either[L, R]]) (fp.Seq[L], fp.Seq[R]) {
+	left := fp.Seq[L]{}
+	right := fp.Seq[R]{}
+
+	for _, v := range r {
+		if v.IsLeft() {
+			left = append(left, v.Left())
+		} else {
+			right = append(right, v.Get())
+		}
+	}
+	return left, right
+}

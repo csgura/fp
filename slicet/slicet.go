@@ -4,11 +4,13 @@ import (
 	"iter"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/slice"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/xtr"
 )
 
 func Of[A any](v ...A) fp.SliceT[A] {
@@ -55,6 +57,14 @@ func FilterMapValue[K, VA, VB any](s fp.SliceT[fp.Tuple2[K, VA]], f func(VA) fp.
 	return FilterMap(s, func(v fp.Tuple2[K, VA]) fp.Option[fp.Tuple2[K, VB]] {
 		return option.Zip(option.Some(v.I1), f(v.I2))
 	})
+}
+
+func PartitionEithers[L, R any](r fp.SliceT[fp.Either[L, R]]) (fp.SliceT[L], fp.SliceT[R]) {
+	ret := try.Map(r, func(a fp.Slice[fp.Either[L, R]]) fp.Tuple2[fp.Slice[L], fp.Slice[R]] {
+		return as.Tuple(slice.PartitionEithers(a))
+	})
+
+	return try.Map(ret, xtr.Head), try.Map(ret, xtr.Last)
 }
 
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen

@@ -42,9 +42,30 @@ var _ = genfp.GenerateFromList{
 		"ID",
 		"Id",
 		"Iterator",
+		"Len",
+		"Size",
+		"Failed",
 	},
 	Template: `
 		func {{.N}}[T interface{ {{.N}}() V }, V any](t T) V {
+			return t.{{.N}}()
+		}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromList{
+	File: "xtr_gen.go",
+	List: []string{
+		"IsDefined",
+		"IsEmpty",
+		"IsSuccess",
+		"IsFailure",
+		"IsLeft",
+		"IsRight",
+	},
+	Template: `
+		func {{.N}}[T interface{ {{.N}}() bool }](t T) bool {
 			return t.{{.N}}()
 		}
 	`,
