@@ -207,3 +207,9 @@ func Max[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 		return seq.Max[T](insideValue, ord)
 	})
 }
+
+func FilterMap[T any, U any](seqT fp.SeqT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Seq[U]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
+		return seq.FilterMap[T, U](insideValue, fn)
+	})
+}

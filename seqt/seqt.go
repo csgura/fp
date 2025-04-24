@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
@@ -35,12 +36,24 @@ func MapKey[KA, KB, V any](s fp.SeqT[fp.Tuple2[KA, V]], f func(KA) KB) fp.SeqT[f
 	})
 }
 
+func FilterMapKey[KA, KB, V any](s fp.SeqT[fp.Tuple2[KA, V]], f func(KA) fp.Option[KB]) fp.SeqT[fp.Tuple2[KB, V]] {
+	return FilterMap(s, func(v fp.Tuple2[KA, V]) fp.Option[fp.Tuple2[KB, V]] {
+		return option.Zip(f(v.I1), option.Some(v.I2))
+	})
+}
+
 func MapValue[K, VA, VB any](s fp.SeqT[fp.Tuple2[K, VA]], f func(VA) VB) fp.SeqT[fp.Tuple2[K, VB]] {
 	return Map(s, func(v fp.Tuple2[K, VA]) fp.Tuple2[K, VB] {
 		return fp.Tuple2[K, VB]{
 			I1: v.I1,
 			I2: f(v.I2),
 		}
+	})
+}
+
+func FilterMapValue[K, VA, VB any](s fp.SeqT[fp.Tuple2[K, VA]], f func(VA) fp.Option[VB]) fp.SeqT[fp.Tuple2[K, VB]] {
+	return FilterMap(s, func(v fp.Tuple2[K, VA]) fp.Option[fp.Tuple2[K, VB]] {
+		return option.Zip(option.Some(v.I1), f(v.I2))
 	})
 }
 
@@ -91,6 +104,7 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 			seq.Sort[T],
 			seq.Min[T],
 			seq.Max[T],
+			seq.FilterMap[T, U],
 		},
 	}
 }

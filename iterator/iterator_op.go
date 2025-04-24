@@ -161,12 +161,38 @@ func MapKey[KA, KB, V any](s fp.Iterator[fp.Tuple2[KA, V]], f func(KA) KB) fp.It
 	})
 }
 
+func FilterMapKey[KA, KB, V any](s fp.Iterator[fp.Tuple2[KA, V]], f func(KA) fp.Option[KB]) fp.Iterator[fp.Tuple2[KB, V]] {
+	return FilterMap(s, func(v fp.Tuple2[KA, V]) fp.Option[fp.Tuple2[KB, V]] {
+		ov := f(v.I1)
+		if ov.IsDefined() {
+			return fp.Some(fp.Tuple2[KB, V]{
+				I1: ov.Get(),
+				I2: v.I2,
+			})
+		}
+		return fp.None[fp.Tuple2[KB, V]]()
+	})
+}
+
 func MapValue[K, VA, VB any](s fp.Iterator[fp.Tuple2[K, VA]], f func(VA) VB) fp.Iterator[fp.Tuple2[K, VB]] {
 	return Map(s, func(v fp.Tuple2[K, VA]) fp.Tuple2[K, VB] {
 		return fp.Tuple2[K, VB]{
 			I1: v.I1,
 			I2: f(v.I2),
 		}
+	})
+}
+
+func FilterMapValue[K, VA, VB any](s fp.Iterator[fp.Tuple2[K, VA]], f func(VA) fp.Option[VB]) fp.Iterator[fp.Tuple2[K, VB]] {
+	return FilterMap(s, func(v fp.Tuple2[K, VA]) fp.Option[fp.Tuple2[K, VB]] {
+		ov := f(v.I2)
+		if ov.IsDefined() {
+			return fp.Some(fp.Tuple2[K, VB]{
+				I1: v.I1,
+				I2: ov.Get(),
+			})
+		}
+		return fp.None[fp.Tuple2[K, VB]]()
 	})
 }
 

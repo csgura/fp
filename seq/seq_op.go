@@ -104,12 +104,24 @@ func MapKey[KA, KB, V any](s fp.Seq[fp.Tuple2[KA, V]], f func(KA) KB) fp.Seq[fp.
 	})
 }
 
+func FilterMapKey[KA, KB, V any](s fp.Seq[fp.Tuple2[KA, V]], f func(KA) fp.Option[KB]) fp.Seq[fp.Tuple2[KB, V]] {
+	return FilterMap(s, func(v fp.Tuple2[KA, V]) fp.Option[fp.Tuple2[KB, V]] {
+		return option.Zip(f(v.I1), option.Some(v.I2))
+	})
+}
+
 func MapValue[K, VA, VB any](s fp.Seq[fp.Tuple2[K, VA]], f func(VA) VB) fp.Seq[fp.Tuple2[K, VB]] {
 	return Map(s, func(v fp.Tuple2[K, VA]) fp.Tuple2[K, VB] {
 		return fp.Tuple2[K, VB]{
 			I1: v.I1,
 			I2: f(v.I2),
 		}
+	})
+}
+
+func FilterMapValue[K, VA, VB any](s fp.Seq[fp.Tuple2[K, VA]], f func(VA) fp.Option[VB]) fp.Seq[fp.Tuple2[K, VB]] {
+	return FilterMap(s, func(v fp.Tuple2[K, VA]) fp.Option[fp.Tuple2[K, VB]] {
+		return option.Zip(option.Some(v.I1), f(v.I2))
 	})
 }
 

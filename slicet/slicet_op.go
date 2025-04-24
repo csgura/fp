@@ -209,3 +209,9 @@ func Max[T any](sliceT fp.SliceT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 		return slice.Max[T](insideValue, ord)
 	})
 }
+
+func FilterMap[T any, U any](sliceT fp.SliceT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Slice[U]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[U] {
+		return slice.FilterMap[T, U](insideValue, fn)
+	})
+}
