@@ -1150,14 +1150,17 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 	}
 
 	typeArgs := argType.TypeArgs()
-	if typeArgs.Len() != 1 {
+	if typeArgs.Len() == 0 {
 		return ret, fmt.Errorf("invalid number of type argument")
 	}
 
-	if monadType, ok := typeArgs.At(0).(GenericType); ok {
-		ret.ExposureMonadType = monadType
-	} else {
-		return ret, fmt.Errorf("inside type is not named type : %s", typeArgs.At(0))
+	for i := 0; i < typeArgs.Len(); i++ {
+		if monadType, ok := typeArgs.At(i).(GenericType); ok {
+			ret.ExposureMonadType = monadType
+		}
+	}
+	if ret.ExposureMonadType == nil {
+		return ret, fmt.Errorf("inside type is not named type : %s", typeArgs)
 	}
 
 	names := []string{"Name", "File", "TypeParm", "GivenMonad", "ExposureMonad", "Sequence", "Transform"}
@@ -1228,7 +1231,16 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 	}
 	ctx := types.NewContext()
 
-	ins, err := types.Instantiate(ctx, argType.Origin(), []types.Type{ret.TypeParm}, false)
+	insttp := []types.Type{}
+	for i := 0; i < typeArgs.Len(); i++ {
+		if _, ok := typeArgs.At(i).(GenericType); ok {
+			insttp = append(insttp, ret.TypeParm)
+		} else {
+			insttp = append(insttp, typeArgs.At(i))
+		}
+	}
+
+	ins, err := types.Instantiate(ctx, argType.Origin(), insttp, false)
 
 	if err != nil {
 		return ret, err

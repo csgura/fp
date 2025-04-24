@@ -238,7 +238,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 			if fixedStr != "" {
 				return fmt.Sprintf("%s[%s](%s)", givenPure(replaceParam{
 					md.TypeParm.String(): innertype("A"),
-				}), fixedParams, puref(v))
+				}), fixedStr, puref(v))
 			}
 			return fmt.Sprintf("%s(%s)", givenPure(replaceParam{
 				md.TypeParm.String(): innertype("A"),
@@ -395,7 +395,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		}
 
 		ctx.defineFunc(maptname, `
-			func {{.funcname}}[A any, B any](t {{combined "A"}}, f func(A) {{outer "B"}}) {{combined "B"}} {
+			func {{.funcname}}[{{.tpargs}}, B any](t {{combined "A"}}, f func(A) {{outer "B"}}) {{combined "B"}} {
 				sequencef := {{sequence "B"}}
 				return {{.givenFlatMap}}(Map{{.name}}(t,f), sequencef)
 			}
@@ -404,7 +404,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		ctx.param["maptfunc"] = maptname
 
 		ctx.defineFunc("FlatMap"+suffixName, `
-			func {{.funcname}}[A any, B any](t {{combined "A"}}, f func(A) {{combined "B"}}) {{combined "B"}} {
+			func {{.funcname}}[{{.tpargs}}, B any](t {{combined "A"}}, f func(A) {{combined "B"}}) {{combined "B"}} {
 
 				flatten := func(v {{inner (inner "B")}}) {{inner "B"}} {
 					return {{flatmap (inner "B") "B"}}(v , fp.Id)
@@ -467,12 +467,12 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					return w.TypeName(md.Package, t.Type())
 				})
 
-				tp := seqMap(t.TypeParams, func(v TypeReference) string {
+				tp := append(fixedParams, seqMap(t.TypeParams, func(v TypeReference) string {
 					if p, ok := v.Type.(*types.TypeParam); ok {
 						return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package, p.Constraint()))
 					}
 					return ""
-				})
+				})...)
 
 				param["trans"] = t.Name
 				param["args"] = seqMakeString(argTypeStr, ",")
