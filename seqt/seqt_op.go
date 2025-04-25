@@ -53,31 +53,31 @@ func FlatMap[A any, B any](t fp.SeqT[A], f func(A) fp.SeqT[B]) fp.SeqT[B] {
 
 }
 
-func Filter[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[fp.Seq[T]] {
+func Filter[T any](seqT fp.SeqT[T], p func(v T) bool) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Filter(insideValue, p)
 	})
 }
 
-func Add[T any](seqT fp.SeqT[T], item T) fp.Try[fp.Seq[T]] {
+func Add[T any](seqT fp.SeqT[T], item T) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Add(insideValue, item)
 	})
 }
 
-func Append[T any](seqT fp.SeqT[T], items T) fp.Try[fp.Seq[T]] {
+func Append[T any](seqT fp.SeqT[T], items T) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Append(insideValue, items)
 	})
 }
 
-func Concat[T any](seqT fp.SeqT[T], tail fp.Seq[T]) fp.Try[fp.Seq[T]] {
+func Concat[T any](seqT fp.SeqT[T], tail fp.Seq[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Concat(insideValue, tail)
 	})
 }
 
-func Drop[T any](seqT fp.SeqT[T], n int) fp.Try[fp.Seq[T]] {
+func Drop[T any](seqT fp.SeqT[T], n int) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Drop(insideValue, n)
 	})
@@ -89,7 +89,7 @@ func Exists[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[bool] {
 	})
 }
 
-func FilterNot[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[fp.Seq[T]] {
+func FilterNot[T any](seqT fp.SeqT[T], p func(v T) bool) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].FilterNot(insideValue, p)
 	})
@@ -126,13 +126,13 @@ func Head[T any](seqT fp.SeqT[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
-func Tail[T any](seqT fp.SeqT[T]) fp.Try[fp.Seq[T]] {
+func Tail[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Tail(insideValue)
 	})
 }
 
-func Init[T any](seqT fp.SeqT[T]) fp.Try[fp.Seq[T]] {
+func Init[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Init(insideValue)
 	})
@@ -162,7 +162,7 @@ func NonEmpty[T any](seqT fp.SeqT[T]) fp.Try[bool] {
 	})
 }
 
-func Reverse[T any](seqT fp.SeqT[T]) fp.Try[fp.Seq[T]] {
+func Reverse[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Reverse(insideValue)
 	})
@@ -174,9 +174,57 @@ func Size[T any](seqT fp.SeqT[T]) fp.Try[int] {
 	})
 }
 
-func Take[T any](seqT fp.SeqT[T], n int) fp.Try[fp.Seq[T]] {
+func Take[T any](seqT fp.SeqT[T], n int) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Take(insideValue, n)
+	})
+}
+
+func Span[T any](seqT fp.SeqT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
+		return as.Tuple2(seq.Span[T](insideValue, p))
+	})
+}
+
+func Partition[T any](seqT fp.SeqT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
+		return as.Tuple2(seq.Partition[T](insideValue, p))
+	})
+}
+
+func PartitionEithers[T any, U any](seqT fp.SeqT[fp.Either[T, U]]) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[U]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Either[T, U]]) fp.Tuple2[fp.Seq[T], fp.Seq[U]] {
+		return as.Tuple2(seq.PartitionEithers[T, U](insideValue))
+	})
+}
+
+func FilterMap[T any, U any](seqT fp.SeqT[T], fn func(v T) fp.Option[U]) fp.SeqT[U] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
+		return seq.FilterMap[T, U](insideValue, fn)
+	})
+}
+
+func MapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) U) fp.SeqT[fp.Tuple2[U, V]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Seq[fp.Tuple2[U, V]] {
+		return seq.MapKey[T, U, V](insideValue, f)
+	})
+}
+
+func FilterMapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) fp.Option[U]) fp.SeqT[fp.Tuple2[U, V]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Seq[fp.Tuple2[U, V]] {
+		return seq.FilterMapKey[T, U, V](insideValue, f)
+	})
+}
+
+func MapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U) V) fp.SeqT[fp.Tuple2[T, V]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, U]]) fp.Seq[fp.Tuple2[T, V]] {
+		return seq.MapValue[T, U, V](insideValue, f)
+	})
+}
+
+func FilterMapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U) fp.Option[V]) fp.SeqT[fp.Tuple2[T, V]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, U]]) fp.Seq[fp.Tuple2[T, V]] {
+		return seq.FilterMapValue[T, U, V](insideValue, f)
 	})
 }
 
@@ -186,13 +234,13 @@ func Fold[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) U) fp.Try[U] {
 	})
 }
 
-func Scan[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) U) fp.Try[fp.Seq[U]] {
+func Scan[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) U) fp.SeqT[U] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
 		return seq.Scan[T, U](insideValue, zero, f)
 	})
 }
 
-func Sort[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.Try[fp.Seq[T]] {
+func Sort[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return seq.Sort[T](insideValue, ord)
 	})
@@ -210,63 +258,9 @@ func Max[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
-func FilterMap[T any, U any](seqT fp.SeqT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Seq[U]] {
-	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
-		return seq.FilterMap[T, U](insideValue, fn)
-	})
-}
-
-func Partition[T any](seqT fp.SeqT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
-		return as.Tuple2(seq.Partition[T](insideValue, p))
-	})
-}
-
-func PartitionEithers[T any, U any](seqT fp.SeqT[fp.Either[T, U]]) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[U]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Either[T, U]]) fp.Tuple2[fp.Seq[T], fp.Seq[U]] {
-		return as.Tuple2(seq.PartitionEithers[T, U](insideValue))
-	})
-}
-
-func MapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) U) fp.Try[fp.Seq[fp.Tuple2[U, V]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Seq[fp.Tuple2[U, V]] {
-		return seq.MapKey[T, U, V](insideValue, f)
-	})
-}
-
-func FilterMapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) fp.Option[U]) fp.Try[fp.Seq[fp.Tuple2[U, V]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Seq[fp.Tuple2[U, V]] {
-		return seq.FilterMapKey[T, U, V](insideValue, f)
-	})
-}
-
-func MapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U) V) fp.Try[fp.Seq[fp.Tuple2[T, V]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, U]]) fp.Seq[fp.Tuple2[T, V]] {
-		return seq.MapValue[T, U, V](insideValue, f)
-	})
-}
-
-func FilterMapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U) fp.Option[V]) fp.Try[fp.Seq[fp.Tuple2[T, V]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, U]]) fp.Seq[fp.Tuple2[T, V]] {
-		return seq.FilterMapValue[T, U, V](insideValue, f)
-	})
-}
-
 func FoldTry[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
 	return try.FlatMap(seqT, func(insideValue fp.Seq[T]) fp.Try[U] {
 		return seq.FoldTry[T, U](insideValue, zero, f)
-	})
-}
-
-func ToGoMap[K comparable, V any](seqT fp.SeqT[fp.Tuple2[K, V]]) fp.Try[map[K]V] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[K, V]]) map[K]V {
-		return seq.ToGoMap[K, V](insideValue)
-	})
-}
-
-func ToGoSet[K comparable](seqT fp.SeqT[K]) fp.Try[mutable.Set[K]] {
-	return try.Map(seqT, func(insideValue fp.Seq[K]) mutable.Set[K] {
-		return seq.ToGoSet[K](insideValue)
 	})
 }
 
@@ -282,27 +276,21 @@ func Reduce[T any](seqT fp.SeqT[T], m fp.Monoid[T]) fp.Try[T] {
 	})
 }
 
-func Distinct[K comparable](seqT fp.SeqT[K]) fp.Try[fp.Seq[K]] {
+func Distinct[K comparable](seqT fp.SeqT[K]) fp.SeqT[K] {
 	return try.Map(seqT, func(insideValue fp.Seq[K]) fp.Seq[K] {
 		return seq.Distinct[K](insideValue)
 	})
 }
 
-func Flatten[T any](seqT fp.SeqT[fp.Seq[T]]) fp.Try[fp.Seq[T]] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Seq[T]]) fp.Seq[T] {
-		return seq.Flatten[T](insideValue)
+func ToGoMap[K comparable, V any](seqT fp.SeqT[fp.Tuple2[K, V]]) fp.Try[map[K]V] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[K, V]]) map[K]V {
+		return seq.ToGoMap[K, V](insideValue)
 	})
 }
 
-func GroupBy[T any, K comparable](seqT fp.SeqT[T], keyFunc func(T) K) fp.Try[map[K]fp.Seq[T]] {
-	return try.Map(seqT, func(insideValue fp.Seq[T]) map[K]fp.Seq[T] {
-		return seq.GroupBy[T, K](insideValue, keyFunc)
-	})
-}
-
-func ZipWithIndex[T any](seqT fp.SeqT[T]) fp.Try[fp.Seq[fp.Tuple2[int, T]]] {
-	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[fp.Tuple2[int, T]] {
-		return seq.ZipWithIndex[T](insideValue)
+func ToGoSet[K comparable](seqT fp.SeqT[K]) fp.Try[mutable.Set[K]] {
+	return try.Map(seqT, func(insideValue fp.Seq[K]) mutable.Set[K] {
+		return seq.ToGoSet[K](insideValue)
 	})
 }
 
@@ -315,5 +303,23 @@ func ToMap[T any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], hasher fp.Hashable[T]) f
 func ToSet[T any](seqT fp.SeqT[T], hasher fp.Hashable[T]) fp.Try[fp.Set[T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Set[T] {
 		return seq.ToSet[T](insideValue, hasher)
+	})
+}
+
+func GroupBy[T any, K comparable](seqT fp.SeqT[T], keyFunc func(T) K) fp.Try[map[K]fp.Seq[T]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) map[K]fp.Seq[T] {
+		return seq.GroupBy[T, K](insideValue, keyFunc)
+	})
+}
+
+func Flatten[T any](seqT fp.SeqT[fp.Seq[T]]) fp.SeqT[T] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Seq[T]]) fp.Seq[T] {
+		return seq.Flatten[T](insideValue)
+	})
+}
+
+func ZipWithIndex[T any](seqT fp.SeqT[T]) fp.SeqT[fp.Tuple2[int, T]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[fp.Tuple2[int, T]] {
+		return seq.ZipWithIndex[T](insideValue)
 	})
 }

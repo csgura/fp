@@ -235,11 +235,11 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
-			if fixedStr != "" {
-				return fmt.Sprintf("%s[%s](%s)", givenPure(replaceParam{
-					md.TypeParm.String(): innertype("A"),
-				}), fixedStr, puref(v))
-			}
+			// if fixedStr != "" {
+			// 	return fmt.Sprintf("%s[%s](%s)", givenPure(replaceParam{
+			// 		md.TypeParm.String(): innertype("A"),
+			// 	}), fixedStr, puref(v))
+			// }
 			return fmt.Sprintf("%s(%s)", givenPure(replaceParam{
 				md.TypeParm.String(): innertype("A"),
 			}), puref(v))
@@ -520,13 +520,29 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 								}
 							`)
 						} else {
-							ctx.defineFunc(t.Name+suffixName, `
-								func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
-									return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
-										return {{.transExpr}}({{.callArgs}})
-									} )
-								}
-							`)
+							if gt, gtok := sig.Results().At(0).Type().(GenericType); gtok && gt.Obj() == md.ExposureMonadType.Obj() {
+
+								retarg := seqMakeString(iterate(gt.TypeArgs().Len(), gt.TypeArgs().At, func(i int, t types.Type) string {
+									return w.TypeName(md.Package, t)
+								}), ",")
+
+								param["trtype"] = combinedtype(retarg)
+								ctx.defineFunc(t.Name+suffixName, `
+									func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{.trtype}} {
+										return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+											return {{.transExpr}}({{.callArgs}})
+										} )
+									}
+								`)
+							} else {
+								ctx.defineFunc(t.Name+suffixName, `
+									func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
+										return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+											return {{.transExpr}}({{.callArgs}})
+										} )
+									}
+								`)
+							}
 						}
 					} else {
 						param["retType"] = fmt.Sprintf("fp.Tuple%d[%s]", len(retType), seqMakeString(retType, ","))

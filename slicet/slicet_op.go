@@ -55,37 +55,37 @@ func FlatMap[A any, B any](t fp.SliceT[A], f func(A) fp.SliceT[B]) fp.SliceT[B] 
 
 }
 
-func Filter[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.Try[fp.Slice[T]] {
+func Filter[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Filter[T](insideValue, p)
 	})
 }
 
-func Add[T any](sliceT fp.SliceT[T], item T) fp.Try[fp.Slice[T]] {
+func Add[T any](sliceT fp.SliceT[T], item T) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Add[T](insideValue, item)
 	})
 }
 
-func Append[T any](sliceT fp.SliceT[T], items T) fp.Try[fp.Slice[T]] {
+func Append[T any](sliceT fp.SliceT[T], items T) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Append[T](insideValue, items)
 	})
 }
 
-func Prepend[T any](head T, sliceT fp.SliceT[T]) fp.Try[fp.Slice[T]] {
+func Prepend[T any](head T, sliceT fp.SliceT[T]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Prepend[T](head, insideValue)
 	})
 }
 
-func Concat[T any](sliceT fp.SliceT[T], tail fp.Slice[T]) fp.Try[fp.Slice[T]] {
+func Concat[T any](sliceT fp.SliceT[T], tail fp.Slice[T]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Concat[T](insideValue, tail)
 	})
 }
 
-func Drop[T any](sliceT fp.SliceT[T], n int) fp.Try[fp.Slice[T]] {
+func Drop[T any](sliceT fp.SliceT[T], n int) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Drop[T](insideValue, n)
 	})
@@ -97,7 +97,7 @@ func Exists[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.Try[bool] {
 	})
 }
 
-func FilterNot[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.Try[fp.Slice[T]] {
+func FilterNot[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.FilterNot[T](insideValue, p)
 	})
@@ -127,13 +127,13 @@ func Head[T any](sliceT fp.SliceT[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
-func Tail[T any](sliceT fp.SliceT[T]) fp.Try[fp.Slice[T]] {
+func Tail[T any](sliceT fp.SliceT[T]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Tail[T](insideValue)
 	})
 }
 
-func Init[T any](sliceT fp.SliceT[T]) fp.Try[fp.Slice[T]] {
+func Init[T any](sliceT fp.SliceT[T]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Init[T](insideValue)
 	})
@@ -163,7 +163,7 @@ func NonEmpty[T any](sliceT fp.SliceT[T]) fp.Try[bool] {
 	})
 }
 
-func Reverse[T any](sliceT fp.SliceT[T]) fp.Try[fp.Slice[T]] {
+func Reverse[T any](sliceT fp.SliceT[T]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Reverse[T](insideValue)
 	})
@@ -175,7 +175,7 @@ func Size[T any](sliceT fp.SliceT[T]) fp.Try[int] {
 	})
 }
 
-func Take[T any](sliceT fp.SliceT[T], n int) fp.Try[fp.Slice[T]] {
+func Take[T any](sliceT fp.SliceT[T], n int) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Take[T](insideValue, n)
 	})
@@ -193,7 +193,7 @@ func Partition[T any](sliceT fp.SliceT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.S
 	})
 }
 
-func FilterMap[T any, U any](sliceT fp.SliceT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Slice[U]] {
+func FilterMap[T any, U any](sliceT fp.SliceT[T], fn func(v T) fp.Option[U]) fp.SliceT[U] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[U] {
 		return slice.FilterMap[T, U](insideValue, fn)
 	})
@@ -205,13 +205,13 @@ func Fold[T any, U any](sliceT fp.SliceT[T], zero U, f func(U, T) U) fp.Try[U] {
 	})
 }
 
-func Scan[T any, U any](sliceT fp.SliceT[T], zero U, f func(U, T) U) fp.Try[fp.Slice[U]] {
+func Scan[T any, U any](sliceT fp.SliceT[T], zero U, f func(U, T) U) fp.SliceT[U] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[U] {
 		return slice.Scan[T, U](insideValue, zero, f)
 	})
 }
 
-func Sort[T any](sliceT fp.SliceT[T], ord fp.Ord[T]) fp.Try[fp.Slice[T]] {
+func Sort[T any](sliceT fp.SliceT[T], ord fp.Ord[T]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Sort[T](insideValue, ord)
 	})
@@ -247,7 +247,7 @@ func Reduce[T any](sliceT fp.SliceT[T], m fp.Monoid[T]) fp.Try[T] {
 	})
 }
 
-func Distinct[K comparable](sliceT fp.SliceT[K]) fp.Try[fp.Slice[K]] {
+func Distinct[K comparable](sliceT fp.SliceT[K]) fp.SliceT[K] {
 	return try.Map(sliceT, func(insideValue fp.Slice[K]) fp.Slice[K] {
 		return slice.Distinct[K](insideValue)
 	})
@@ -283,13 +283,13 @@ func GroupBy[T any, K comparable](sliceT fp.SliceT[T], keyFunc func(T) K) fp.Try
 	})
 }
 
-func Flatten[T any](sliceT fp.SliceT[fp.Slice[T]]) fp.Try[fp.Slice[T]] {
+func Flatten[T any](sliceT fp.SliceT[fp.Slice[T]]) fp.SliceT[T] {
 	return try.Map(sliceT, func(insideValue fp.Slice[fp.Slice[T]]) fp.Slice[T] {
 		return slice.Flatten[T](insideValue)
 	})
 }
 
-func ZipWithIndex[T any](sliceT fp.SliceT[T]) fp.Try[fp.Slice[fp.Tuple2[int, T]]] {
+func ZipWithIndex[T any](sliceT fp.SliceT[T]) fp.SliceT[fp.Tuple2[int, T]] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[fp.Tuple2[int, T]] {
 		return slice.ZipWithIndex[T](insideValue)
 	})
