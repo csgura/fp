@@ -23,7 +23,7 @@ func _[L, R any]() genfp.GenerateTraverseFunctions[fp.Either[L, R]] {
 	}
 }
 
-func Constructor[L, R any]() (left func(L) fp.Either[L, R], right func(R) fp.Either[L, R]) {
+func Constructors[T fp.Either[L, R], L, R any]() (left func(L) fp.Either[L, R], right func(R) fp.Either[L, R]) {
 	return Left[L, R], Right[L, R]
 }
 
