@@ -29,7 +29,7 @@ func All[T any](optionT fp.SeqT[T]) iter.Seq[T] {
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
-func _[T, U, V any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
+func _[T, U, V any, K comparable]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 	return genfp.GenerateMonadTransformer[fp.SeqT[T]]{
 		File:     "seqt_op.go",
 		TypeParm: genfp.TypeOf[T](),
@@ -80,6 +80,8 @@ func _[T, U, V any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 			seq.FilterMapKey[T, U, V],
 			seq.MapValue[T, U, V],
 			seq.FilterMapValue[T, U, V],
+			seq.ToGoMap[K, V],
+			seq.FoldTry[T, U],
 		},
 	}
 }

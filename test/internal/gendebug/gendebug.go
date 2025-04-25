@@ -11,7 +11,7 @@ import (
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
 // @fp.Generate
-func _[T, U, V any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
+func _[T, U, V any, K comparable]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 	return genfp.GenerateMonadTransformer[fp.SeqT[T]]{
 		File:     "gendebug_generated.go",
 		TypeParm: genfp.TypeOf[T](),
@@ -29,9 +29,8 @@ func _[T, U, V any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 
 		},
 		Transform: []any{
-
-			seq.PartitionEithers[T, U],
-			seq.MapKey[T, U, V],
+			seq.ToGoMap[K, V],
+			seq.FoldTry[T, U],
 		},
 	}
 }

@@ -250,3 +250,15 @@ func FilterMapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U
 		return seq.FilterMapValue[T, U, V](insideValue, f)
 	})
 }
+
+func ToGoMap[K comparable, V any](seqT fp.SeqT[fp.Tuple2[K, V]]) fp.Try[map[K]V] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[K, V]]) map[K]V {
+		return seq.ToGoMap[K, V](insideValue)
+	})
+}
+
+func FoldTry[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
+	return try.FlatMap(seqT, func(insideValue fp.Seq[T]) fp.Try[U] {
+		return seq.FoldTry[T, U](insideValue, zero, f)
+	})
+}

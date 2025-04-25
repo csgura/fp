@@ -511,13 +511,23 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					if len(retType) == 1 {
 						param["retType"] = retType[0]
 
-						ctx.defineFunc(t.Name+suffixName, `
-							func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
-								return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
-									return {{.transExpr}}({{.callArgs}})
-								} )
-							}
-						`)
+						if gt, gtok := sig.Results().At(0).Type().(GenericType); gtok && gt.Obj() == md.TargetType.Obj() {
+							ctx.defineFunc(t.Name+suffixName, `
+								func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{.retType}} {
+									return {{.givenFlatMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+										return {{.transExpr}}({{.callArgs}})
+									} )
+								}
+							`)
+						} else {
+							ctx.defineFunc(t.Name+suffixName, `
+								func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
+									return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+										return {{.transExpr}}({{.callArgs}})
+									} )
+								}
+							`)
+						}
 					} else {
 						param["retType"] = fmt.Sprintf("fp.Tuple%d[%s]", len(retType), seqMakeString(retType, ","))
 						param["asTuple"] = fmt.Sprintf("as.Tuple%d", len(retType))
