@@ -235,11 +235,11 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 	funcs := map[string]any{
 		"puret": func(v string, tpe string) string {
-			// if fixedStr != "" {
-			// 	return fmt.Sprintf("%s[%s](%s)", givenPure(replaceParam{
-			// 		md.TypeParm.String(): innertype("A"),
-			// 	}), fixedStr, puref(v))
-			// }
+			if fixedStr != "" && givenPkg == "" {
+				return fmt.Sprintf("%s[%s](%s)", givenPure(replaceParam{
+					md.TypeParm.String(): innertype("A"),
+				}), fixedStr, puref(v))
+			}
 			return fmt.Sprintf("%s(%s)", givenPure(replaceParam{
 				md.TypeParm.String(): innertype("A"),
 			}), puref(v))
