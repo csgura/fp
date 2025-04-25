@@ -3,6 +3,7 @@ package seqt
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
@@ -211,5 +212,41 @@ func Max[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 func FilterMap[T any, U any](seqT fp.SeqT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Seq[U]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
 		return seq.FilterMap[T, U](insideValue, fn)
+	})
+}
+
+func Partition[T any](seqT fp.SeqT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
+		return as.Tuple2(seq.Partition[T](insideValue, p))
+	})
+}
+
+func PartitionEithers[T any, U any](seqT fp.SeqT[fp.Either[T, U]]) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[U]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Either[T, U]]) fp.Tuple2[fp.Seq[T], fp.Seq[U]] {
+		return as.Tuple2(seq.PartitionEithers[T, U](insideValue))
+	})
+}
+
+func MapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) U) fp.Try[fp.Seq[fp.Tuple2[U, V]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Seq[fp.Tuple2[U, V]] {
+		return seq.MapKey[T, U, V](insideValue, f)
+	})
+}
+
+func FilterMapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) fp.Option[U]) fp.Try[fp.Seq[fp.Tuple2[U, V]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Seq[fp.Tuple2[U, V]] {
+		return seq.FilterMapKey[T, U, V](insideValue, f)
+	})
+}
+
+func MapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U) V) fp.Try[fp.Seq[fp.Tuple2[T, V]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, U]]) fp.Seq[fp.Tuple2[T, V]] {
+		return seq.MapValue[T, U, V](insideValue, f)
+	})
+}
+
+func FilterMapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U) fp.Option[V]) fp.Try[fp.Seq[fp.Tuple2[T, V]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, U]]) fp.Seq[fp.Tuple2[T, V]] {
+		return seq.FilterMapValue[T, U, V](insideValue, f)
 	})
 }

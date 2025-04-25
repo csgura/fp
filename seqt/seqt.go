@@ -4,13 +4,10 @@ import (
 	"iter"
 
 	"github.com/csgura/fp"
-	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/iterator"
-	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
-	"github.com/csgura/fp/xtr"
 )
 
 func Of[A any](v ...A) fp.SeqT[A] {
@@ -29,48 +26,10 @@ func All[T any](optionT fp.SeqT[T]) iter.Seq[T] {
 	return Iterator(optionT).All()
 }
 
-func MapKey[KA, KB, V any](s fp.SeqT[fp.Tuple2[KA, V]], f func(KA) KB) fp.SeqT[fp.Tuple2[KB, V]] {
-	return Map(s, func(v fp.Tuple2[KA, V]) fp.Tuple2[KB, V] {
-		return fp.Tuple2[KB, V]{
-			I1: f(v.I1),
-			I2: v.I2,
-		}
-	})
-}
-
-func FilterMapKey[KA, KB, V any](s fp.SeqT[fp.Tuple2[KA, V]], f func(KA) fp.Option[KB]) fp.SeqT[fp.Tuple2[KB, V]] {
-	return FilterMap(s, func(v fp.Tuple2[KA, V]) fp.Option[fp.Tuple2[KB, V]] {
-		return option.Zip(f(v.I1), option.Some(v.I2))
-	})
-}
-
-func MapValue[K, VA, VB any](s fp.SeqT[fp.Tuple2[K, VA]], f func(VA) VB) fp.SeqT[fp.Tuple2[K, VB]] {
-	return Map(s, func(v fp.Tuple2[K, VA]) fp.Tuple2[K, VB] {
-		return fp.Tuple2[K, VB]{
-			I1: v.I1,
-			I2: f(v.I2),
-		}
-	})
-}
-
-func FilterMapValue[K, VA, VB any](s fp.SeqT[fp.Tuple2[K, VA]], f func(VA) fp.Option[VB]) fp.SeqT[fp.Tuple2[K, VB]] {
-	return FilterMap(s, func(v fp.Tuple2[K, VA]) fp.Option[fp.Tuple2[K, VB]] {
-		return option.Zip(option.Some(v.I1), f(v.I2))
-	})
-}
-
-func PartitionEithers[L, R any](r fp.SeqT[fp.Either[L, R]]) (fp.SeqT[L], fp.SeqT[R]) {
-	ret := try.Map(r, func(a fp.Seq[fp.Either[L, R]]) fp.Tuple2[fp.Seq[L], fp.Seq[R]] {
-		return as.Tuple(seq.PartitionEithers(a))
-	})
-
-	return try.Map(ret, xtr.Head), try.Map(ret, xtr.Last)
-}
-
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
-func _[T, U any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
+func _[T, U, V any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 	return genfp.GenerateMonadTransformer[fp.SeqT[T]]{
 		File:     "seqt_op.go",
 		TypeParm: genfp.TypeOf[T](),
@@ -115,6 +74,12 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 			seq.Min[T],
 			seq.Max[T],
 			seq.FilterMap[T, U],
+			seq.Partition[T],
+			seq.PartitionEithers[T, U],
+			seq.MapKey[T, U, V],
+			seq.FilterMapKey[T, U, V],
+			seq.MapValue[T, U, V],
+			seq.FilterMapValue[T, U, V],
 		},
 	}
 }

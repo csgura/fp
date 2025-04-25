@@ -3,70 +3,35 @@ package gendebug
 import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
-	"github.com/csgura/fp/slice"
+	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/try"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type StateT[C, A any] struct {
-}
-
-func Pure[C, A any](a A) StateT[C, A] {
-	panic("")
-}
-
-func Map[C, A, B any](s StateT[C, A], f func(A) B) StateT[C, B] {
-	panic("")
-}
-
-func FlatMap[C, A, B any](s StateT[C, A], f func(A) StateT[C, B]) StateT[C, B] {
-	panic("")
-}
-
 // @fp.Generate
-func _[C, A, B any]() genfp.GenerateMonadTransformer[StateT[C, fp.Slice[A]]] {
-	return genfp.GenerateMonadTransformer[StateT[C, fp.Slice[A]]]{
-		File:     "slicest_generate.go",
-		TypeParm: genfp.TypeOf[A](),
-		ExposureMonad: genfp.MonadFunctions{
-			Pure:    slice.Pure[A],
-			FlatMap: slice.FlatMap[A, B],
+func _[T, U, V any]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
+	return genfp.GenerateMonadTransformer[fp.SeqT[T]]{
+		File:     "gendebug_generated.go",
+		TypeParm: genfp.TypeOf[T](),
+		GivenMonad: genfp.MonadFunctions{
+			Pure: try.Success[T],
 		},
-		Sequence: func(v fp.Slice[StateT[C, A]]) StateT[C, fp.Slice[A]] {
-			panic("not implemented")
+		ExposureMonad: genfp.MonadFunctions{
+			Pure:    seq.Pure[T],
+			FlatMap: seq.FlatMap[T, U],
+		},
+		Sequence: func(v fp.Seq[fp.Try[T]]) fp.SeqT[T] {
+			return try.FoldM(iterator.FromSeq(v), fp.Seq[T]{}, func(t1 fp.Seq[T], t2 fp.Try[T]) fp.SeqT[T] {
+				return try.Map(t2, t1.Add)
+			})
+
 		},
 		Transform: []any{
-			slice.Filter[A],
-			slice.Add[A],
-			slice.Append[A],
-			slice.Concat[A],
-			slice.Drop[A],
-			slice.Exists[A],
-			slice.FilterNot[A],
-			slice.Find[A],
-			slice.ForAll[A],
-			slice.Foreach[A],
-			slice.Get[A],
-			slice.Head[A],
-			slice.Tail[A],
-			slice.Init[A],
-			slice.IsEmpty[A],
-			slice.Last[A],
-			slice.MakeString[A],
-			slice.NonEmpty[A],
-			slice.Reverse[A],
-			slice.Size[A],
-			slice.Take[A],
-			slice.Fold[A, B],
-			slice.Scan[A, B],
-			slice.Sort[A],
-			slice.Min[A],
-			slice.Max[A],
-			slice.FilterMap[A, B],
 
-			// TODO: SPAN (multi value return)
-			// ToGoMAP :  comparable constraints
-			// FoldTry : -> flatten
+			seq.PartitionEithers[T, U],
+			seq.MapKey[T, U, V],
 		},
 	}
 }

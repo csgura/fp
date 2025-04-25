@@ -432,6 +432,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				return tpe
 			})
 
+			targetParam := md.TypeParm.String()
 			targIdx, ok := seqFirst(seqFilter(iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) int {
 				tpe := argTypes[i]
 				if tpe == innertype(md.TypeParm.String()) {
@@ -440,13 +441,30 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				return -1
 			}), func(v int) bool { return v >= 0 }))
 
+			if !ok {
+				for i := 0; i < sig.Params().Len(); i++ {
+					tpe := sig.Params().At(i)
+					if gt, gtok := tpe.Type().(GenericType); gtok {
+						//fmt.Printf("compare name %s %t\n", gt.Obj().Name(), gt.Obj().Name() == md.ExposureMonadType.Obj().Name())
+						if gt.Obj() == md.ExposureMonadType.Obj() {
+							targIdx = i
+							targetParam = seqMakeString(iterate(gt.TypeArgs().Len(), gt.TypeArgs().At, func(i int, t types.Type) string {
+								return w.TypeName(md.Package, t)
+							}), ",")
+							ok = true
+							break
+						}
+					}
+				}
+			}
+
 			if ok {
 
 				argTypeStr := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 					tpe := argTypes[i]
 
 					if i == targIdx {
-						tpe = combinedtype(md.TypeParm.String())
+						tpe = combinedtype(targetParam)
 						return fmt.Sprintf("%s %s", targName, tpe)
 
 					}
@@ -482,6 +500,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				param["transExpr"] = exprString(t.TypeReference.Expr)
 				param["tparams"] = seqMakeString(tp, ",")
 
+				param["targ"] = targetParam
 				ctx := genFuncContext{
 					w:               w,
 					definedFunction: definedFunc,
@@ -489,19 +508,33 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					param:           param,
 				}
 				if len(retType) > 0 {
-					param["retType"] = retType[0]
+					if len(retType) == 1 {
+						param["retType"] = retType[0]
 
-					ctx.defineFunc(t.Name+suffixName, `
-						func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
-							return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.tp)}}) {{.retType}} {
-								return {{.transExpr}}({{.callArgs}})
-							} )
-						}
-					`)
+						ctx.defineFunc(t.Name+suffixName, `
+							func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
+								return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+									return {{.transExpr}}({{.callArgs}})
+								} )
+							}
+						`)
+					} else {
+						param["retType"] = fmt.Sprintf("fp.Tuple%d[%s]", len(retType), seqMakeString(retType, ","))
+						param["asTuple"] = fmt.Sprintf("as.Tuple%d", len(retType))
+						w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
+
+						ctx.defineFunc(t.Name+suffixName, `
+							func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
+								return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+									return {{.asTuple}}({{.transExpr}}({{.callArgs}}))
+								} )
+							}
+						`)
+					}
 				} else {
 					ctx.defineFunc(t.Name+suffixName, `
 						func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {
-							{{.givenMap}}({{.targName}}, func(insideValue {{inner (.tp)}}) error {
+							{{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) error {
 								{{.transExpr}}({{.callArgs}})
 								return nil
 							} )
