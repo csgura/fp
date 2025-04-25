@@ -9,12 +9,6 @@ import (
 	"github.com/csgura/fp/xtr"
 )
 
-func Flatten[A any](tta fp.SliceT[fp.SliceT[A]]) fp.SliceT[A] {
-	return FlatMap(tta, func(v fp.SliceT[A]) fp.SliceT[A] {
-		return v
-	})
-}
-
 // haskell 의 <$
 // map . const 와 같은 함수
 func Replace[A any, R any](s fp.SliceT[A], b R) fp.SliceT[R] {

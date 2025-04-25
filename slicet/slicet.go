@@ -70,7 +70,7 @@ func PartitionEithers[L, R any](r fp.SliceT[fp.Either[L, R]]) (fp.SliceT[L], fp.
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
-func _[T, U any]() genfp.GenerateMonadTransformer[fp.SliceT[T]] {
+func _[K comparable, T, U, V any]() genfp.GenerateMonadTransformer[fp.SliceT[T]] {
 	return genfp.GenerateMonadTransformer[fp.SliceT[T]]{
 		File:     "slicet_op.go",
 		TypeParm: genfp.TypeOf[T](),
@@ -93,13 +93,13 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.SliceT[T]] {
 			slice.Filter[T],
 			slice.Add[T],
 			slice.Append[T],
+			slice.Prepend[T],
 			slice.Concat[T],
 			slice.Drop[T],
 			slice.Exists[T],
 			slice.FilterNot[T],
 			slice.Find[T],
 			slice.ForAll[T],
-			slice.Foreach[T],
 			slice.Get[T],
 			slice.Head[T],
 			slice.Tail[T],
@@ -111,12 +111,35 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.SliceT[T]] {
 			slice.Reverse[T],
 			slice.Size[T],
 			slice.Take[T],
+
+			slice.Span[T],
+			slice.Partition[T],
+			slice.PartitionEithers[T, U],
+
+			slice.FilterMap[T, U],
+			slice.MapKey[T, U, V],
+			slice.FilterMapKey[T, U, V],
+			slice.MapValue[T, U, V],
+			slice.FilterMapValue[T, U, V],
+
 			slice.Fold[T, U],
 			slice.Scan[T, U],
 			slice.Sort[T],
 			slice.Min[T],
 			slice.Max[T],
-			slice.FilterMap[T, U],
+			slice.FoldTry[T, U],
+			slice.FoldError[T],
+			slice.Reduce[T],
+			slice.Distinct[K],
+
+			slice.ToGoMap[K, V],
+			slice.ToGoSet[K],
+			slice.ToMap[T, V],
+			slice.ToSet[T],
+			slice.GroupBy[T, K],
+
+			slice.Flatten[T],
+			slice.ZipWithIndex[T],
 		},
 	}
 }

@@ -3,7 +3,9 @@ package slicet
 
 import (
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/slice"
 	"github.com/csgura/fp/try"
 )
@@ -71,6 +73,12 @@ func Append[T any](sliceT fp.SliceT[T], items T) fp.Try[fp.Slice[T]] {
 	})
 }
 
+func Prepend[T any](head T, sliceT fp.SliceT[T]) fp.Try[fp.Slice[T]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
+		return slice.Prepend[T](head, insideValue)
+	})
+}
+
 func Concat[T any](sliceT fp.SliceT[T], tail fp.Slice[T]) fp.Try[fp.Slice[T]] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[T] {
 		return slice.Concat[T](insideValue, tail)
@@ -104,13 +112,6 @@ func Find[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.Try[fp.Option[T]] {
 func ForAll[T any](sliceT fp.SliceT[T], p func(v T) bool) fp.Try[bool] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) bool {
 		return slice.ForAll[T](insideValue, p)
-	})
-}
-
-func Foreach[T any](sliceT fp.SliceT[T], f func(v T)) {
-	try.Map(sliceT, func(insideValue fp.Slice[T]) error {
-		slice.Foreach[T](insideValue, f)
-		return nil
 	})
 }
 
@@ -180,6 +181,24 @@ func Take[T any](sliceT fp.SliceT[T], n int) fp.Try[fp.Slice[T]] {
 	})
 }
 
+func Span[T any](sliceT fp.SliceT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Slice[T], fp.Slice[T]]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Tuple2[fp.Slice[T], fp.Slice[T]] {
+		return as.Tuple2(slice.Span[T](insideValue, p))
+	})
+}
+
+func Partition[T any](sliceT fp.SliceT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Slice[T], fp.Slice[T]]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Tuple2[fp.Slice[T], fp.Slice[T]] {
+		return as.Tuple2(slice.Partition[T](insideValue, p))
+	})
+}
+
+func FilterMap[T any, U any](sliceT fp.SliceT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Slice[U]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[U] {
+		return slice.FilterMap[T, U](insideValue, fn)
+	})
+}
+
 func Fold[T any, U any](sliceT fp.SliceT[T], zero U, f func(U, T) U) fp.Try[U] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) U {
 		return slice.Fold[T, U](insideValue, zero, f)
@@ -210,8 +229,68 @@ func Max[T any](sliceT fp.SliceT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
-func FilterMap[T any, U any](sliceT fp.SliceT[T], fn func(v T) fp.Option[U]) fp.Try[fp.Slice[U]] {
-	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[U] {
-		return slice.FilterMap[T, U](insideValue, fn)
+func FoldTry[T any, U any](sliceT fp.SliceT[T], zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
+	return try.FlatMap(sliceT, func(insideValue fp.Slice[T]) fp.Try[U] {
+		return slice.FoldTry[T, U](insideValue, zero, f)
+	})
+}
+
+func FoldError[T any](sliceT fp.SliceT[T], f func(T) error) fp.Try[error] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) error {
+		return slice.FoldError[T](insideValue, f)
+	})
+}
+
+func Reduce[T any](sliceT fp.SliceT[T], m fp.Monoid[T]) fp.Try[T] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) T {
+		return slice.Reduce[T](insideValue, m)
+	})
+}
+
+func Distinct[K comparable](sliceT fp.SliceT[K]) fp.Try[fp.Slice[K]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[K]) fp.Slice[K] {
+		return slice.Distinct[K](insideValue)
+	})
+}
+
+func ToGoMap[K comparable, V any](sliceT fp.SliceT[fp.Tuple2[K, V]]) fp.Try[map[K]V] {
+	return try.Map(sliceT, func(insideValue fp.Slice[fp.Tuple2[K, V]]) map[K]V {
+		return slice.ToGoMap[K, V](insideValue)
+	})
+}
+
+func ToGoSet[K comparable](sliceT fp.SliceT[K]) fp.Try[mutable.Set[K]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[K]) mutable.Set[K] {
+		return slice.ToGoSet[K](insideValue)
+	})
+}
+
+func ToMap[T any, V any](sliceT fp.SliceT[fp.Tuple2[T, V]], hasher fp.Hashable[T]) fp.Try[fp.Map[T, V]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[fp.Tuple2[T, V]]) fp.Map[T, V] {
+		return slice.ToMap[T, V](insideValue, hasher)
+	})
+}
+
+func ToSet[T any](sliceT fp.SliceT[T], hasher fp.Hashable[T]) fp.Try[fp.Set[T]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Set[T] {
+		return slice.ToSet[T](insideValue, hasher)
+	})
+}
+
+func GroupBy[T any, K comparable](sliceT fp.SliceT[T], keyFunc func(T) K) fp.Try[map[K]fp.Slice[T]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) map[K]fp.Slice[T] {
+		return slice.GroupBy[T, K](insideValue, keyFunc)
+	})
+}
+
+func Flatten[T any](sliceT fp.SliceT[fp.Slice[T]]) fp.Try[fp.Slice[T]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[fp.Slice[T]]) fp.Slice[T] {
+		return slice.Flatten[T](insideValue)
+	})
+}
+
+func ZipWithIndex[T any](sliceT fp.SliceT[T]) fp.Try[fp.Slice[fp.Tuple2[int, T]]] {
+	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[fp.Tuple2[int, T]] {
+		return slice.ZipWithIndex[T](insideValue)
 	})
 }

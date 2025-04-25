@@ -5,6 +5,7 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
+	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/try"
 )
@@ -251,14 +252,68 @@ func FilterMapValue[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, U]], f func(U
 	})
 }
 
+func FoldTry[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
+	return try.FlatMap(seqT, func(insideValue fp.Seq[T]) fp.Try[U] {
+		return seq.FoldTry[T, U](insideValue, zero, f)
+	})
+}
+
 func ToGoMap[K comparable, V any](seqT fp.SeqT[fp.Tuple2[K, V]]) fp.Try[map[K]V] {
 	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[K, V]]) map[K]V {
 		return seq.ToGoMap[K, V](insideValue)
 	})
 }
 
-func FoldTry[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
-	return try.FlatMap(seqT, func(insideValue fp.Seq[T]) fp.Try[U] {
-		return seq.FoldTry[T, U](insideValue, zero, f)
+func ToGoSet[K comparable](seqT fp.SeqT[K]) fp.Try[mutable.Set[K]] {
+	return try.Map(seqT, func(insideValue fp.Seq[K]) mutable.Set[K] {
+		return seq.ToGoSet[K](insideValue)
+	})
+}
+
+func FoldError[T any](seqT fp.SeqT[T], f func(T) error) fp.Try[error] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) error {
+		return seq.FoldError[T](insideValue, f)
+	})
+}
+
+func Reduce[T any](seqT fp.SeqT[T], m fp.Monoid[T]) fp.Try[T] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) T {
+		return seq.Reduce[T](insideValue, m)
+	})
+}
+
+func Distinct[K comparable](seqT fp.SeqT[K]) fp.Try[fp.Seq[K]] {
+	return try.Map(seqT, func(insideValue fp.Seq[K]) fp.Seq[K] {
+		return seq.Distinct[K](insideValue)
+	})
+}
+
+func Flatten[T any](seqT fp.SeqT[fp.Seq[T]]) fp.Try[fp.Seq[T]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Seq[T]]) fp.Seq[T] {
+		return seq.Flatten[T](insideValue)
+	})
+}
+
+func GroupBy[T any, K comparable](seqT fp.SeqT[T], keyFunc func(T) K) fp.Try[map[K]fp.Seq[T]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) map[K]fp.Seq[T] {
+		return seq.GroupBy[T, K](insideValue, keyFunc)
+	})
+}
+
+func ZipWithIndex[T any](seqT fp.SeqT[T]) fp.Try[fp.Seq[fp.Tuple2[int, T]]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[fp.Tuple2[int, T]] {
+		return seq.ZipWithIndex[T](insideValue)
+	})
+}
+
+func ToMap[T any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], hasher fp.Hashable[T]) fp.Try[fp.Map[T, V]] {
+	return try.Map(seqT, func(insideValue fp.Seq[fp.Tuple2[T, V]]) fp.Map[T, V] {
+		return seq.ToMap[T, V](insideValue, hasher)
+	})
+}
+
+func ToSet[T any](seqT fp.SeqT[T], hasher fp.Hashable[T]) fp.Try[fp.Set[T]] {
+	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Set[T] {
+		return seq.ToSet[T](insideValue, hasher)
 	})
 }

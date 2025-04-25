@@ -68,20 +68,35 @@ func _[T, U, V any, K comparable]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 			fp.Seq[T].Reverse,
 			fp.Seq[T].Size,
 			fp.Seq[T].Take,
+
+			seq.Span[T],
+			seq.Partition[T],
+			seq.PartitionEithers[T, U],
+
+			seq.FilterMap[T, U],
+			seq.MapKey[T, U, V],
+			seq.FilterMapKey[T, U, V],
+			seq.MapValue[T, U, V],
+			seq.FilterMapValue[T, U, V],
+
 			seq.Fold[T, U],
 			seq.Scan[T, U],
 			seq.Sort[T],
 			seq.Min[T],
 			seq.Max[T],
-			seq.FilterMap[T, U],
-			seq.Partition[T],
-			seq.PartitionEithers[T, U],
-			seq.MapKey[T, U, V],
-			seq.FilterMapKey[T, U, V],
-			seq.MapValue[T, U, V],
-			seq.FilterMapValue[T, U, V],
-			seq.ToGoMap[K, V],
 			seq.FoldTry[T, U],
+			seq.FoldError[T],
+			seq.Reduce[T],
+			seq.Distinct[K],
+
+			seq.ToGoMap[K, V],
+			seq.ToGoSet[K],
+			seq.ToMap[T, V],
+			seq.ToSet[T],
+			seq.GroupBy[T, K],
+
+			seq.Flatten[T],
+			seq.ZipWithIndex[T],
 		},
 	}
 }
