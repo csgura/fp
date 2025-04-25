@@ -9,6 +9,12 @@ import (
 	"github.com/csgura/fp/xtr"
 )
 
+func Flatten[A any](tta fp.SeqT[fp.SeqT[A]]) fp.SeqT[A] {
+	return FlatMap(tta, func(v fp.SeqT[A]) fp.SeqT[A] {
+		return v
+	})
+}
+
 // haskell 의 <$
 // map . const 와 같은 함수
 func Replace[A any, R any](s fp.SeqT[A], b R) fp.SeqT[R] {

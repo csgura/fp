@@ -138,7 +138,7 @@ func _[K comparable, T, U, V any]() genfp.GenerateMonadTransformer[fp.SliceT[T]]
 			slice.ToSet[T],
 			slice.GroupBy[T, K],
 
-			slice.Flatten[T],
+			//slice.Flatten[T],
 			slice.ZipWithIndex[T],
 		},
 	}

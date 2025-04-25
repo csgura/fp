@@ -95,7 +95,7 @@ func _[T, U, V any, K comparable]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 			seq.ToSet[T],
 			seq.GroupBy[T, K],
 
-			seq.Flatten[T],
+			//seq.Flatten[T],
 			seq.ZipWithIndex[T],
 		},
 	}

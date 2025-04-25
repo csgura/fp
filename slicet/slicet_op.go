@@ -283,12 +283,6 @@ func GroupBy[T any, K comparable](sliceT fp.SliceT[T], keyFunc func(T) K) fp.Try
 	})
 }
 
-func Flatten[T any](sliceT fp.SliceT[fp.Slice[T]]) fp.SliceT[T] {
-	return try.Map(sliceT, func(insideValue fp.Slice[fp.Slice[T]]) fp.Slice[T] {
-		return slice.Flatten[T](insideValue)
-	})
-}
-
 func ZipWithIndex[T any](sliceT fp.SliceT[T]) fp.SliceT[fp.Tuple2[int, T]] {
 	return try.Map(sliceT, func(insideValue fp.Slice[T]) fp.Slice[fp.Tuple2[int, T]] {
 		return slice.ZipWithIndex[T](insideValue)

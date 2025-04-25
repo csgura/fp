@@ -312,12 +312,6 @@ func GroupBy[T any, K comparable](seqT fp.SeqT[T], keyFunc func(T) K) fp.Try[map
 	})
 }
 
-func Flatten[T any](seqT fp.SeqT[fp.Seq[T]]) fp.SeqT[T] {
-	return try.Map(seqT, func(insideValue fp.Seq[fp.Seq[T]]) fp.Seq[T] {
-		return seq.Flatten[T](insideValue)
-	})
-}
-
 func ZipWithIndex[T any](seqT fp.SeqT[T]) fp.SeqT[fp.Tuple2[int, T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[fp.Tuple2[int, T]] {
 		return seq.ZipWithIndex[T](insideValue)
