@@ -17,7 +17,7 @@ func BeTrue(t testing.TB, b bool) {
 
 func BeFalse(t testing.TB, b bool) {
 
-	if !b {
+	if b {
 		t.Helper()
 		t.Fatalf("expected false")
 	}
