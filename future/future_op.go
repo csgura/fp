@@ -28,6 +28,10 @@ func getExecutor(ctx ...fp.Executor) fp.Executor {
 	return ctx[0]
 }
 
+func Constructors[T fp.Future[V], V any]() (failed func(error) fp.Future[V], successful func(V) fp.Future[V]) {
+	return Failed[V], Successful[V]
+}
+
 func Successful[T any](v T) fp.Future[T] {
 	p := promise.New[T]()
 	p.Success(v)

@@ -11,6 +11,10 @@ import (
 	"github.com/csgura/fp/try"
 )
 
+func Constructors[T fp.OptionT[V], V any]() (failure func(error) fp.OptionT[V], none fp.OptionT[V], some func(V) fp.OptionT[V]) {
+	return Failure[V], None[V](), Some[V]
+}
+
 func Some[A any](v A) fp.OptionT[A] {
 	return Pure(v)
 }

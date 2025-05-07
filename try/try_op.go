@@ -15,6 +15,10 @@ import (
 	"github.com/csgura/fp/seq"
 )
 
+func Constructors[T fp.Try[V], V any]() (failure func(error) fp.Try[V], success func(V) fp.Try[V]) {
+	return Failure[V], Success[V]
+}
+
 func Pure[T any](t T) fp.Try[T] {
 	return fp.Success(t)
 }
