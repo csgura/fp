@@ -119,7 +119,9 @@ var defaultFunc = map[string]any{
 	"inc": func(n int) int {
 		return n + 1
 	},
-	"strings": stringsFunc,
+	"strings": func() map[string]any {
+		return stringsFunc
+	},
 }
 
 var stringsFunc = map[string]any{
