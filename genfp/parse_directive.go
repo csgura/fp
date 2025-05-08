@@ -119,6 +119,34 @@ var defaultFunc = map[string]any{
 	"inc": func(n int) int {
 		return n + 1
 	},
+	"strings": stringsFunc,
+}
+
+var stringsFunc = map[string]any{
+	"HasSuffix":    strings.HasSuffix,
+	"HasPrefix":    strings.HasPrefix,
+	"Count":        strings.Count,
+	"Contains":     strings.Contains,
+	"ContainsAny":  strings.ContainsAny,
+	"LastIndex":    strings.LastIndex,
+	"IndexAny":     strings.IndexAny,
+	"LastIndexAny": strings.LastIndexAny,
+	"Split":        strings.Split,
+	"Fields":       strings.Fields,
+	"Join":         strings.Join,
+	"Repeat":       strings.Repeat,
+	"ToUpper":      strings.ToUpper,
+	"ToLower":      strings.ToLower,
+	"ToTitle":      strings.ToTitle,
+	"Trim":         strings.Trim,
+	"TrimLeft":     strings.TrimLeft,
+	"TrimRight":    strings.TrimRight,
+	"TrimSpace":    strings.TrimSpace,
+	"TrimPrefix":   strings.TrimPrefix,
+	"TrimSuffix":   strings.TrimSuffix,
+	"Replace":      strings.Replace,
+	"ReplaceAll":   strings.ReplaceAll,
+	"Index":        strings.Index,
 }
 
 func PublicName(name string) string {
