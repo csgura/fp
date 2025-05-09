@@ -355,7 +355,7 @@ func toInterfaceInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti met
 func toStructInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp.TypeInfo) fp.Try[genfp.StructInfo] {
 
 	name := ti.Name()
-	if name.IsDefined() && ti.Underlying().IsStruct() {
+	if ti.IsStruct() || ti.Underlying().IsStruct() {
 		//fmt.Printf("generate code of %s\n", name.Get())
 		fields := seq.Map(ti.Fields(), func(f metafp.StructField) genfp.StructFieldInfo {
 			tpe := toTypeInfo(is, workingPkg, f.TypeInfoExpr(workingPkg))
@@ -419,7 +419,7 @@ func toStructInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp
 		st := genfp.StructInfo{
 			Package:          genfp.FromTypesPackage(ti.Pkg),
 			IsCurrentPackage: ti.IsSamePkg(workingPkg),
-			Name:             name.Get(),
+			Name:             name.OrZero(),
 			AllFields:        fields,
 			Fields:           visible,
 			Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
