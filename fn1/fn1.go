@@ -10,6 +10,10 @@ func Pure[X, A any](v A) fp.Func1[X, A] {
 	return fp.Const[X](v)
 }
 
+func Pipe[A, R any](a A, f func(A) R) R {
+	return f(a)
+}
+
 func Apply[A, R any](f fp.Func1[A, R], a A) R {
 	return f(a)
 }
