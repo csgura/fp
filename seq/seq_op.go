@@ -95,6 +95,16 @@ func Map[T, U any](opt fp.Seq[T], fn func(v T) U) fp.Seq[U] {
 	return ret
 }
 
+func MapWithIndex[T, U any](opt fp.Seq[T], fn func(i int, v T) U) fp.Seq[U] {
+	ret := make(fp.Seq[U], len(opt))
+
+	for i, v := range opt {
+		ret[i] = fn(i, v)
+	}
+
+	return ret
+}
+
 func MapKey[KA, KB, V any](s fp.Seq[fp.Tuple2[KA, V]], f func(KA) KB) fp.Seq[fp.Tuple2[KB, V]] {
 	return Map(s, func(v fp.Tuple2[KA, V]) fp.Tuple2[KB, V] {
 		return fp.Tuple2[KB, V]{

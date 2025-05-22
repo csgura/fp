@@ -95,6 +95,16 @@ func Ap[T, U any](t fp.Slice[fp.Func1[T, U]], a fp.Slice[T]) fp.Slice[U] {
 	})
 }
 
+func MapWithIndex[T, U any](opt fp.Slice[T], fn func(i int, v T) U) fp.Slice[U] {
+	ret := make(fp.Seq[U], len(opt))
+
+	for i, v := range opt {
+		ret[i] = fn(i, v)
+	}
+
+	return ret
+}
+
 func Map2[A, B, U any](a fp.Slice[A], b fp.Slice[B], f func(A, B) U) fp.Slice[U] {
 	return FlatMap(a, func(v1 A) fp.Slice[U] {
 		return Map(b, func(v2 B) U {
