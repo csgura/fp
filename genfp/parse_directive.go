@@ -200,6 +200,7 @@ type TypeInfo struct {
 	// nilable 타입인지 여부
 	IsNilable bool
 
+	// int string 과 같은 기본형 타입인지
 	IsBasic bool
 
 	// pointer 인지 여부
@@ -212,18 +213,28 @@ type TypeInfo struct {
 	IsMap    bool
 	IsFunc   bool
 
-	IsStruct     bool
-	IsInterface  bool
-	IsError      bool
-	IsComparable bool
-	IsAny        bool
+	IsStruct    bool
+	IsInterface bool
 
+	// error 타입인지
+	IsError bool
+
+	// comparable 타입인지
+	IsComparable bool
+
+	// interface{} 타입인지
+	IsAny bool
+
+	// fp.Option 타입인지
 	IsOption bool
-	IsTry    bool
+
+	// fp.Try 타입인지
+	IsTry bool
 
 	// zero 값
 	ZeroExpr string
 
+	// fp.Option[int] 처럼 타입 아규먼트가 있는 경우
 	TypeArgs []TypeInfo
 }
 
@@ -262,15 +273,26 @@ type StructFieldInfo struct {
 }
 
 type StructInfo struct {
-	Package          ImportPackage
+	// struct 가 선언된 패키지
+	Package ImportPackage
+
+	// go generate가 실행된 패키지와 동일한 패키지인지
 	IsCurrentPackage bool
-	Name             string
-	Type             TypeInfo
-	// 참조 가능한 field목록
+
+	// struct 이름
+	Name string
+
+	// struct type 정보
+	Type TypeInfo
+
+	// 참조(public 이거나 같은 package) 가능한 field목록
 	Fields []StructFieldInfo
+
 	// 모든 field 목록
 	AllFields []StructFieldInfo
-	Methods   []InterfaceMethodInfo
+
+	// struct 의 method 목록
+	Methods []InterfaceMethodInfo
 }
 
 func (r StructInfo) HasMethod(name string) bool {
@@ -303,12 +325,29 @@ func (r StructInfo) String() string {
 }
 
 type GenerateFromStructs struct {
-	File           string
-	Imports        []ImportPackage
-	List           []TypeTag
-	Recursive      bool
-	Parameters     map[string]string
+	// 생성될 파일
+	File string
+
+	// 생성될 파일에서 import 할 package 목록
+	// genfp.Imports( "fmt", "os" ) 처럼 할 수도 있고
+	// seq.Of(genfp.PackageOfType[fmt.Stringer]) 형태로도 가능	Imports []ImportPackage
+
+	// 생성에 사용될 struct list
+	List []TypeTag
+
+	// recursive 하게 생성할지 여부
+	// field 타입이 struct 인 경우에, 그 struct에 대해서도 template 이 실행됨.
+	Recursive bool
+
+	// Template 에서 사용할 변수 map
+	// {{.name}} 형태로 참조 가능
+	Parameters map[string]string
+
+	// Template에서 사용할 다른 타입에 대한 참조  map
+	// {{.name}} 형태로 참조 가능
 	TypeReferences map[string]TypeTag
+
+	// golang template
 	// StructInfo 가 .N 에 들어 있음.
 	Template string
 }
@@ -335,6 +374,7 @@ type InterfaceMethodInfo struct {
 	// TypeDecl .Args 하면 type, type 형태로 리턴
 	Args []VarInfo
 
+	// f(v string, args ...any) 형태의 메소드인지
 	IsVariadic bool
 
 	// return type
@@ -378,19 +418,43 @@ func (r InterfaceMethodInfo) ReturnAt(i int) *VarInfo {
 }
 
 type InterfaceInfo struct {
-	Package          ImportPackage
+	// interface의 패키지
+	Package ImportPackage
+
+	// go generate 가 실행된 package 와 동일 package 인지 여부
 	IsCurrentPackage bool
-	Name             string
-	Type             TypeInfo
-	Methods          []InterfaceMethodInfo
+
+	// interface name
+	Name string
+
+	// interface type info
+	Type TypeInfo
+
+	// interface method list
+	Methods []InterfaceMethodInfo
 }
 
 type GenerateFromInterfaces struct {
-	File           string
-	Imports        []ImportPackage
-	List           []TypeTag
-	Parameters     map[string]string
+	// 생성될 파일
+	File string
+
+	// 생성될 파일에서 import 할 package 목록
+	// genfp.Imports( "fmt", "os" ) 처럼 할 수도 있고
+	// seq.Of(genfp.PackageOfType[fmt.Stringer]) 형태로도 가능
+	Imports []ImportPackage
+
+	// 생성에 사용될 interface 목록, seq.Of(genfp.TypeOf[fmt.Stringer]) 형태로 작성
+	List []TypeTag
+
+	// Template 에서 사용할 변수 map
+	// {{.name}} 형태로 참조 가능
+	Parameters map[string]string
+
+	// Template에서 사용할 다른 타입에 대한 참조  map
+	// {{.name}} 형태로 참조 가능
 	TypeReferences map[string]TypeTag
+
+	// golang template
 	// InterfaceInfo 가 .N 에 들어 있음.
 	Template string
 }
