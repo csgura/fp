@@ -20,7 +20,7 @@ func Failure[T any](err error) Try[T] {
 	return Try[T]{false, zero, err}
 }
 
-func (r Try[T]) All() func(func(T) bool) {
+func (r Try[T]) All() GoIter[T] {
 	return func(f func(T) bool) {
 		if r.IsSuccess() {
 			f(r.Get())
@@ -158,13 +158,6 @@ func (r Try[T]) RecoverWith(f func(err error) Try[T]) Try[T] {
 	return f(r.Failed().Get())
 }
 
-// func (r Try[T]) ToOption() Option[T] {
-// 	if r.IsSuccess() {
-// 		return Some(r.v)
-// 	}
-// 	return None[T]()
-// }
-
 func (r Try[T]) String() string {
 	if r.IsSuccess() {
 		return fmt.Sprintf("Success(%v)", r.Get())
@@ -178,7 +171,3 @@ func (r Try[T]) ToSeq() []T {
 	}
 	return nil
 }
-
-// func (r Try[T]) Iterator() Iterator[T] {
-// 	return r.ToSeq().Iterator()
-// }
