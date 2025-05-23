@@ -577,3 +577,35 @@ func Compose4[L any, A1 any, A2, A3, A4, R any](f1 fp.Func1[A1, fp.Either[L, A2]
 func Compose5[L any, A1 any, A2, A3, A4, A5, R any](f1 fp.Func1[A1, fp.Either[L, A2]], f2 fp.Func1[A2, fp.Either[L, A3]], f3 fp.Func1[A3, fp.Either[L, A4]], f4 fp.Func1[A4, fp.Either[L, A5]], f5 fp.Func1[A5, fp.Either[L, R]]) fp.Func1[A1, fp.Either[L, R]] {
 	return Compose2(f1, Compose4(f2, f3, f4, f5))
 }
+
+func MapCompose2[L any, A1 any, A2, R any](m fp.Either[L, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, R]) fp.Either[L, R] {
+	return Map(m, fp.Compose2(f1, f2))
+}
+
+func MapCompose3[L any, A1 any, A2, A3, R any](m fp.Either[L, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, A3], f3 fp.Func1[A3, R]) fp.Either[L, R] {
+	return Map(m, fp.Compose3(f1, f2, f3))
+}
+
+func MapCompose4[L any, A1 any, A2, A3, A4, R any](m fp.Either[L, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, A3], f3 fp.Func1[A3, A4], f4 fp.Func1[A4, R]) fp.Either[L, R] {
+	return Map(m, fp.Compose4(f1, f2, f3, f4))
+}
+
+func MapCompose5[L any, A1 any, A2, A3, A4, A5, R any](m fp.Either[L, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, A3], f3 fp.Func1[A3, A4], f4 fp.Func1[A4, A5], f5 fp.Func1[A5, R]) fp.Either[L, R] {
+	return Map(m, fp.Compose5(f1, f2, f3, f4, f5))
+}
+
+func FlatMapCompose2[L any, A1 any, A2, R any](m fp.Either[L, A1], f1 fp.Func1[A1, fp.Either[L, A2]], f2 fp.Func1[A2, fp.Either[L, R]]) fp.Either[L, R] {
+	return FlatMap(m, Compose2(f1, f2))
+}
+
+func FlatMapCompose3[L any, A1 any, A2, A3, R any](m fp.Either[L, A1], f1 fp.Func1[A1, fp.Either[L, A2]], f2 fp.Func1[A2, fp.Either[L, A3]], f3 fp.Func1[A3, fp.Either[L, R]]) fp.Either[L, R] {
+	return FlatMap(m, Compose3(f1, f2, f3))
+}
+
+func FlatMapCompose4[L any, A1 any, A2, A3, A4, R any](m fp.Either[L, A1], f1 fp.Func1[A1, fp.Either[L, A2]], f2 fp.Func1[A2, fp.Either[L, A3]], f3 fp.Func1[A3, fp.Either[L, A4]], f4 fp.Func1[A4, fp.Either[L, R]]) fp.Either[L, R] {
+	return FlatMap(m, Compose4(f1, f2, f3, f4))
+}
+
+func FlatMapCompose5[L any, A1 any, A2, A3, A4, A5, R any](m fp.Either[L, A1], f1 fp.Func1[A1, fp.Either[L, A2]], f2 fp.Func1[A2, fp.Either[L, A3]], f3 fp.Func1[A3, fp.Either[L, A4]], f4 fp.Func1[A4, fp.Either[L, A5]], f5 fp.Func1[A5, fp.Either[L, R]]) fp.Either[L, R] {
+	return FlatMap(m, Compose5(f1, f2, f3, f4, f5))
+}

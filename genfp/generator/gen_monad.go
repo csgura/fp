@@ -239,6 +239,25 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 			}
 			return f.String()
 		},
+		"funcChain": func(start, until int, funcType ...string) string {
+			ft := "fp.Func1"
+			if len(funcType) > 0 {
+				ft = funcType[0]
+			}
+
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				if j == until {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, "R")
+				} else {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, fmt.Sprintf("A%d", j+1))
+				}
+			}
+			return f.String()
+		},
 		"monadFuncChain": func(start, until int, funcType ...string) string {
 			ft := "fp.Func1"
 			if len(funcType) > 0 {
@@ -607,6 +626,18 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 	ctx.defineFuncs(3, genfp.MaxCompose, "Compose{{.N}}", `
 		func {{.funcname}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any]({{monadFuncChain 1 .N}}) fp.Func1[A1, {{monad "R"}}] {
 			return Compose2(f1, Compose{{dec .N}}({{CallArgs 2 .N "f"}}))
+		}
+	`)
+
+	ctx.defineFuncs(2, genfp.MaxCompose, "MapCompose{{.N}}", `
+		func {{.funcname}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](m {{monad "A1"}}, {{funcChain 1 .N}}) {{monad "R"}} {
+			return Map(m , fp.Compose{{.N}}({{CallArgs 1 .N "f"}}))
+		}
+	`)
+
+	ctx.defineFuncs(2, genfp.MaxCompose, "FlatMapCompose{{.N}}", `
+		func {{.funcname}}[{{.tpargs1}}, {{TypeArgs 2 .N}}, R any](m {{monad "A1"}}, {{monadFuncChain 1 .N}}) {{monad "R"}} {
+			return FlatMap(m , Compose{{.N}}({{CallArgs 1 .N "f"}}))
 		}
 	`)
 }

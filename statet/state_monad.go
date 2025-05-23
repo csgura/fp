@@ -579,3 +579,35 @@ func Compose4[S any, A1 any, A2, A3, A4, R any](f1 fp.Func1[A1, fp.StateT[S, A2]
 func Compose5[S any, A1 any, A2, A3, A4, A5, R any](f1 fp.Func1[A1, fp.StateT[S, A2]], f2 fp.Func1[A2, fp.StateT[S, A3]], f3 fp.Func1[A3, fp.StateT[S, A4]], f4 fp.Func1[A4, fp.StateT[S, A5]], f5 fp.Func1[A5, fp.StateT[S, R]]) fp.Func1[A1, fp.StateT[S, R]] {
 	return Compose2(f1, Compose4(f2, f3, f4, f5))
 }
+
+func MapCompose2[S any, A1 any, A2, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, R]) fp.StateT[S, R] {
+	return Map(m, fp.Compose2(f1, f2))
+}
+
+func MapCompose3[S any, A1 any, A2, A3, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, A3], f3 fp.Func1[A3, R]) fp.StateT[S, R] {
+	return Map(m, fp.Compose3(f1, f2, f3))
+}
+
+func MapCompose4[S any, A1 any, A2, A3, A4, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, A3], f3 fp.Func1[A3, A4], f4 fp.Func1[A4, R]) fp.StateT[S, R] {
+	return Map(m, fp.Compose4(f1, f2, f3, f4))
+}
+
+func MapCompose5[S any, A1 any, A2, A3, A4, A5, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, A2], f2 fp.Func1[A2, A3], f3 fp.Func1[A3, A4], f4 fp.Func1[A4, A5], f5 fp.Func1[A5, R]) fp.StateT[S, R] {
+	return Map(m, fp.Compose5(f1, f2, f3, f4, f5))
+}
+
+func FlatMapCompose2[S any, A1 any, A2, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, fp.StateT[S, A2]], f2 fp.Func1[A2, fp.StateT[S, R]]) fp.StateT[S, R] {
+	return FlatMap(m, Compose2(f1, f2))
+}
+
+func FlatMapCompose3[S any, A1 any, A2, A3, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, fp.StateT[S, A2]], f2 fp.Func1[A2, fp.StateT[S, A3]], f3 fp.Func1[A3, fp.StateT[S, R]]) fp.StateT[S, R] {
+	return FlatMap(m, Compose3(f1, f2, f3))
+}
+
+func FlatMapCompose4[S any, A1 any, A2, A3, A4, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, fp.StateT[S, A2]], f2 fp.Func1[A2, fp.StateT[S, A3]], f3 fp.Func1[A3, fp.StateT[S, A4]], f4 fp.Func1[A4, fp.StateT[S, R]]) fp.StateT[S, R] {
+	return FlatMap(m, Compose4(f1, f2, f3, f4))
+}
+
+func FlatMapCompose5[S any, A1 any, A2, A3, A4, A5, R any](m fp.StateT[S, A1], f1 fp.Func1[A1, fp.StateT[S, A2]], f2 fp.Func1[A2, fp.StateT[S, A3]], f3 fp.Func1[A3, fp.StateT[S, A4]], f4 fp.Func1[A4, fp.StateT[S, A5]], f5 fp.Func1[A5, fp.StateT[S, R]]) fp.StateT[S, R] {
+	return FlatMap(m, Compose5(f1, f2, f3, f4, f5))
+}
