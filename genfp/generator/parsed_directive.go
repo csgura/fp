@@ -853,7 +853,9 @@ type ImplOptionDirective struct {
 	DefaultImplExpr         ast.Expr
 	DefaultImplSignature    *types.Signature
 	DefaultImplImports      []genfp.ImportPackage
-	Delegate                *DelegateDirective
+	DefaultImplOverExtends  bool
+
+	Delegate *DelegateDirective
 
 	Type      *types.Func
 	Signature *types.Signature
@@ -929,7 +931,7 @@ func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Pack
 	return func(p *packages.Package, e ast.Expr) (ImplOptionDirective, error) {
 		if lt, ok := e.(*ast.CompositeLit); ok {
 			ret := ImplOptionDirective{}
-			names := []string{"Method", "Prefix", "Name", "Private", "ValOverride", "OmitGetterIfValOverride", "Delegate", "DefaultImpl"}
+			names := []string{"Method", "Prefix", "Name", "Private", "ValOverride", "OmitGetterIfValOverride", "Delegate", "DefaultImpl", "DefaultImplOverExtends"}
 			for idx, e := range lt.Elts {
 				if idx >= len(names) {
 					return ret, fmt.Errorf("invalid number of literals")
@@ -998,6 +1000,12 @@ func evalImplOption(pk *packages.Package, intfname string) func(p *packages.Pack
 					if sig, ok := found.(*types.Signature); ok {
 						ret.DefaultImplSignature = sig
 					}
+				case "DefaultImplOverExtends":
+					v, err := evalBoolValue(value)
+					if err != nil {
+						return ret, err
+					}
+					ret.DefaultImplOverExtends = v
 
 				}
 			}

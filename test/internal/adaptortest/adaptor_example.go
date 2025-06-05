@@ -478,3 +478,20 @@ var _ = genfp.GenerateAdaptor[StringMaker]{
 		},
 	},
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[Sender]{
+	Name:    "SendOver",
+	File:    "example_adaptor.go",
+	Extends: true,
+	Self:    true,
+	Options: []genfp.ImplOption{
+		{
+			Method:                 Sender.Send,
+			DefaultImplOverExtends: true,
+			DefaultImpl: func(self Sender, msg string) (int, error) {
+				return 0, nil
+			},
+		},
+	},
+}

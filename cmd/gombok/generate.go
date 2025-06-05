@@ -1531,13 +1531,18 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 	defaultField, cbField := ctx.adaptorFields()
 	defaultExpr := ctx.defaultImpl()
 
+	defaultsOverExtends := defaultExpr.IsDefined() && opt.DefaultImplOverExtends
 	delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v generator.DelegateDirective) fp.Option[GeneratedExpr] {
 		return ctx.callExtends(v.Field)
-	})
+	}).
+		FilterNot(fp.Const[GeneratedExpr](defaultsOverExtends))
 
 	unreachable := delegateExpr.IsDefined() && delegateExpr.Get().UnreachableAfter()
 
-	callExtendsExpr := ctx.callExtends(ctx.superField).FilterNot(fp.Const[GeneratedExpr](unreachable))
+	callExtendsExpr := ctx.callExtends(ctx.superField).
+		FilterNot(fp.Const[GeneratedExpr](unreachable)).
+		FilterNot(fp.Const[GeneratedExpr](defaultsOverExtends))
+
 	unreachable = unreachable || callExtendsExpr.IsDefined() && callExtendsExpr.Get().unreachableAfter
 
 	cbExpr := option.FlatMap(cbField, func(v string) fp.Option[string] { return ctx.callCb() })

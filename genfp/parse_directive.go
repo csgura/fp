@@ -503,6 +503,9 @@ type ImplOption struct {
 	OmitGetterIfValOverride bool
 	Delegate                Delegate
 	DefaultImpl             any
+
+	// DefaultImpl을 지정하면  Extends 호출 전에 먼저 호출됨.
+	DefaultImplOverExtends bool
 }
 
 func ZeroReturn() {
