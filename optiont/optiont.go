@@ -101,6 +101,15 @@ func All[T any](optionT fp.OptionT[T]) iter.Seq[T] {
 	return Iterator(optionT).All()
 }
 
+func OrT[T any](optionT fp.OptionT[T], f func() fp.OptionT[T]) fp.OptionT[T] {
+	return try.FlatMap(optionT, func(insideValue fp.Option[T]) fp.OptionT[T] {
+		if insideValue.IsEmpty() {
+			return f()
+		}
+		return try.Success(insideValue)
+	})
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 //go:generate go run github.com/csgura/fp/internal/generator/template_gen
 
