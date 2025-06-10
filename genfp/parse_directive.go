@@ -330,7 +330,8 @@ type GenerateFromStructs struct {
 
 	// 생성될 파일에서 import 할 package 목록
 	// genfp.Imports( "fmt", "os" ) 처럼 할 수도 있고
-	// seq.Of(genfp.PackageOfType[fmt.Stringer]) 형태로도 가능	Imports []ImportPackage
+	// seq.Of(genfp.PackageOfType[fmt.Stringer]) 형태로도 가능
+	Imports []ImportPackage
 
 	// 생성에 사용될 struct list
 	List []TypeTag
