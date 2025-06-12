@@ -58,6 +58,16 @@ func (r Buffer) AppendStringLiteral(strliteral string, opt fp.ShowOption) Buffer
 	return show.AppendStringLiteral(r, strliteral, opt)
 }
 
+func (r Buffer) AppendStruct(name string, reprAppend func(buf Buffer, opt fp.ShowOption) Buffer, opt fp.ShowOption) Buffer {
+	return show.AppendGeneric(r, name, fp.GenericKindStruct, func(buf []string, opt fp.ShowOption) []string {
+		return reprAppend(buf, opt)
+	}, opt)
+}
+
+func (r Buffer) AppendFieldName(name string, fieldName string, opt fp.ShowOption) Buffer {
+	return show.AppendFieldName(r, fieldName, opt)
+}
+
 func (r Buffer) Append(v ...string) Buffer {
 	return append(r, v...)
 }
