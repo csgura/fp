@@ -19,6 +19,7 @@ import (
 	"github.com/csgura/fp/product"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/show"
+	"github.com/csgura/fp/slice"
 )
 
 type Derives[T any] interface {
@@ -26,8 +27,8 @@ type Derives[T any] interface {
 
 type Buffer []string
 
-func (r Buffer) AppendSpaceAfterColon(opt fp.ShowOption) Buffer {
-	return show.AppendSpaceAfterColon(r, opt)
+func (r Buffer) AppendColon(opt fp.ShowOption) Buffer {
+	return show.AppendColon(r, opt)
 }
 
 func (r Buffer) AppendSpaceBetweenTypeAndBrace(opt fp.ShowOption) Buffer {
@@ -50,18 +51,20 @@ func (r Buffer) AppendSpaceWithinBrace(opt fp.ShowOption) Buffer {
 	return show.AppendSpaceWithinBrace(r, opt)
 }
 
-func (r Buffer) AppendSpaceAfterComma(opt fp.ShowOption) Buffer {
-	return show.AppendSpaceAfterColon(r, opt)
+func (r Buffer) AppendComma(opt fp.ShowOption) Buffer {
+	return show.AppendComma(r, opt)
 }
 
 func (r Buffer) AppendStringLiteral(strliteral string, opt fp.ShowOption) Buffer {
 	return show.AppendStringLiteral(r, strliteral, opt)
 }
 
-func (r Buffer) AppendStruct(name string, reprAppend func(buf Buffer, opt fp.ShowOption) Buffer, opt fp.ShowOption) Buffer {
-	return show.AppendGeneric(r, name, fp.GenericKindStruct, func(buf []string, opt fp.ShowOption) []string {
-		return reprAppend(buf, opt)
-	}, opt)
+func (r Buffer) AppendStruct(name string, opt fp.ShowOption, fields ...fp.Tuple2[string, func(Buffer, fp.ShowOption) Buffer]) Buffer {
+	return show.AppendStruct(r, name, opt, slice.MapValue(fields, func(a func(Buffer, fp.ShowOption) Buffer) show.Appender {
+		return func(buf []string, opt fp.ShowOption) []string {
+			return a(buf, opt)
+		}
+	})...)
 }
 
 func (r Buffer) AppendFieldName(name string, fieldName string, opt fp.ShowOption) Buffer {
@@ -211,11 +214,11 @@ func Map[K, V any](showk Show[K], showv Show[V]) Show[fp.Map[K, V]] {
 			}
 			if opt.QuoteNames == false && strings.HasPrefix(t.I1, `"`) && strings.HasSuffix(t.I1, `"`) {
 				return option.Some[show.Appender](func(buf []string, opt fp.ShowOption) []string {
-					return Buffer(buf).Append(t.I1[1 : len(t.I1)-1]).AppendSpaceAfterColon(opt).Append(valuestr...)
+					return Buffer(buf).Append(t.I1[1 : len(t.I1)-1]).AppendColon(opt).Append(valuestr...)
 				})
 			}
 			return option.Some[show.Appender](func(buf []string, opt fp.ShowOption) []string {
-				return Buffer(buf).Append(t.I1).AppendSpaceAfterColon(opt).Append(valuestr...)
+				return Buffer(buf).Append(t.I1).AppendColon(opt).Append(valuestr...)
 			})
 		}).ToSeq()
 
@@ -287,7 +290,7 @@ func Named[T any](name fp.Named, ashow Show[T]) Show[T] {
 			return nil
 		}
 		buf = show.AppendFieldName(buf, fp.ConvertNaming(name.Name(), opt.NamingCase), opt)
-		buf = show.AppendSpaceAfterColon(buf, opt)
+		buf = show.AppendColon(buf, opt)
 		return append(buf, valuestr...)
 	})
 }
@@ -355,7 +358,7 @@ func StructHCons[H any, T minimal.HList](hshow Show[H], tshow Show[T]) Show[mini
 			if opt.Indent != "" {
 				return append(append(append(buf, hstr...), ",\n", opt.CurrentIndent()), tstr...)
 			}
-			return buf.Append(hstr...).AppendSpaceAfterComma(opt).Append(tstr...)
+			return buf.Append(hstr...).AppendComma(opt).Append(tstr...)
 		}
 		return append(buf, hstr...)
 	})
@@ -368,7 +371,7 @@ func TupleHCons[H any, T hlist.HList](hshow Show[H], tshow Show[T]) Show[hlist.C
 		tstr := tshow(nil, hlist.Tail(list), opt)
 
 		if !hlist.IsNil(hlist.Tail(list)) {
-			return hstr.AppendSpaceAfterComma(opt).Append(tstr...)
+			return hstr.AppendComma(opt).Append(tstr...)
 		}
 		return hstr
 	})
@@ -384,7 +387,7 @@ func HCons[H any, T hlist.HList](hshow Show[H], tshow Show[T]) Show[hlist.Cons[H
 
 			if !hlist.IsNil(hlist.Tail(list)) {
 				hstr := hshow(buf, list.Head(), opt)
-				hstr = hstr.AppendSpaceAfterComma(opt)
+				hstr = hstr.AppendComma(opt)
 				return tshow(hstr, hlist.Tail(list), opt)
 			}
 

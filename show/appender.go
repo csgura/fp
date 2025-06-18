@@ -168,11 +168,11 @@ func AppendStringLiteral(buf []string, literal string, opt fp.ShowOption) []stri
 	return String.Append(buf, literal, opt)
 }
 
-func AppendSpaceAfterComma(buf []string, opt fp.ShowOption) []string {
+func AppendComma(buf []string, opt fp.ShowOption) []string {
 	return append(buf, spaceAfterComma(opt))
 }
 
-func AppendSpaceAfterColon(buf []string, opt fp.ShowOption) []string {
+func AppendColon(buf []string, opt fp.ShowOption) []string {
 	return append(buf, spaceAfterColon(opt))
 }
 
