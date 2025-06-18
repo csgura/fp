@@ -867,7 +867,7 @@ func processWith(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[strin
 	return genMethod
 }
 
-func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], funcList map[string]bool) fp.Set[string] {
 
 	ts := ctx.ts
 	w := ctx.w
@@ -875,7 +875,7 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[st
 
 	fnName := fmt.Sprintf("New%s", publicName(ts.Name))
 
-	if !genMethod.Contains(fnName) {
+	if !genMethod.Contains(fnName) && funcList[fnName] == false {
 
 		allFields := applyFields(ts)
 
@@ -925,14 +925,14 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[st
 	return genMethod
 }
 
-func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], funcList map[string]bool) fp.Set[string] {
 	ts := ctx.ts
 	w := ctx.w
 	workingPackage := ctx.workingPackage
 
 	fnName := fmt.Sprintf("New%s", publicName(ts.Name))
 
-	if !genMethod.Contains(fnName) {
+	if !genMethod.Contains(fnName) && funcList[fnName] == false {
 
 		allFields := applyFields(ts).FilterNot(func(v metafp.StructField) bool {
 			return v.FieldType.IsPtr() || v.FieldType.IsOption()
@@ -984,13 +984,13 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.S
 	return genMethod
 }
 
-func processAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+func processAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], funcList map[string]bool) fp.Set[string] {
 	ts := ctx.ts
 
 	if _, ok := ts.Tags.Get("@fp.AllArgsConstructor").Unapply(); ok {
-		genMethod = genAllArgsCons(ctx, genMethod)
+		genMethod = genAllArgsCons(ctx, genMethod, funcList)
 	} else if _, ok := ts.Tags.Get("@fp.RequiredArgsConstructor").Unapply(); ok {
-		genMethod = genRequiredArgsCons(ctx, genMethod)
+		genMethod = genRequiredArgsCons(ctx, genMethod, funcList)
 	}
 	return genMethod
 }
@@ -1003,7 +1003,7 @@ type TaggedStructContext struct {
 	derives        fp.Seq[metafp.TypeClassDerive]
 }
 
-func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext) {
+func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.Seq[metafp.TaggedStruct], summonCtx *TypeClassSummonContext, funcList map[string]bool) {
 
 	st.Foreach(func(ts metafp.TaggedStruct) {
 		genMethod := fp.Set[string]{}
@@ -1018,7 +1018,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 			derives:        stDerives,
 			summCtx:        summonCtx,
 		}
-		genMethod = processAllArgsCons(ctx, genMethod)
+		genMethod = processAllArgsCons(ctx, genMethod, funcList)
 
 		genMethod = processValue(ctx, genMethod)
 
@@ -1561,7 +1561,8 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 func genValueAndGetter() {
 	pack := os.Getenv("GOPACKAGE")
 
-	genfp.Generate(pack, value_generated_file_name(pack), func(w genfp.Writer) {
+	filename := value_generated_file_name(pack)
+	genfp.Generate(pack, filename, func(w genfp.Writer) {
 
 		cwd, _ := os.Getwd()
 
@@ -1589,6 +1590,10 @@ func genValueAndGetter() {
 
 		workingPackage := genfp.NewWorkingPackage(remains[0].Types, remains[0].Fset, remains[0].Syntax)
 
+		funcList := metafp.GetFunctionList(remains, map[string]bool{
+			filename: true,
+		})
+
 		st := metafp.FindTaggedStruct(remains,
 			"@fp.Value",
 			"@fp.GetterPubField",
@@ -1608,7 +1613,7 @@ func genValueAndGetter() {
 
 		deriveCtx := NewTypeClassSummonContext(remains, genfp.NewImportSet(), fpPkg.Head().Get().Types, hlistPkg.Head().Get().Types)
 
-		genTaggedStruct(w, workingPackage, st, deriveCtx)
+		genTaggedStruct(w, workingPackage, st, deriveCtx, funcList)
 
 	})
 }

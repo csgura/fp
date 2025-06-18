@@ -558,20 +558,7 @@ func genGenerate() {
 		fileSet[fullpath] = true
 	}
 
-	funcList := map[string]bool{}
-	for _, p := range pkgs {
-		s := p.Types.Scope()
-		for _, n := range s.Names() {
-			o := s.Lookup(n)
-			if _, ok := o.Type().(*types.Signature); ok {
-				file := p.Fset.Position(o.Pos()).Filename
-				if !fileSet[file] {
-					funcList[o.Name()] = true
-				}
-
-			}
-		}
-	}
+	funcList := metafp.GetFunctionList(pkgs, fileSet)
 	for file := range filelist {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range genlist[file] {
