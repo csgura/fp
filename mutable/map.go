@@ -112,3 +112,13 @@ func (r Map[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 
 	return fp.IteratorOfGoMap(r)
 }
+
+func (r Map[K, V]) All() fp.GoIter[fp.Tuple2[K, V]] {
+	return func(yield func(fp.Tuple2[K, V]) bool) {
+		for k, v := range r {
+			if !yield(fp.Tuple2[K, V]{I1: k, I2: v}) {
+				return
+			}
+		}
+	}
+}
