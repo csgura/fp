@@ -156,3 +156,7 @@ func (r *CopyOnWriteMap[K, V]) UpdatedWith(k K, remap func(fp.Option[V]) fp.Opti
 func (r *CopyOnWriteMap[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	return r.load().Iterator()
 }
+
+func (r *CopyOnWriteMap[K, V]) All() fp.GoIter[fp.Tuple2[K, V]] {
+	return r.load().All()
+}
