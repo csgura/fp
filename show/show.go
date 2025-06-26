@@ -337,10 +337,6 @@ func Set[V any](showv fp.Show[V]) fp.Show[fp.Set[V]] {
 	})
 }
 
-func isZero(s []string) bool {
-	return len(s) == 0
-}
-
 func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 	return NewAppend(func(buf []string, v fp.Map[K, V], opt fp.ShowOption) []string {
 
@@ -353,7 +349,7 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 			if isEmptyString(valuestr) {
 				return option.None[Appender]()
 			}
-			if opt.QuoteNames == false && strings.HasPrefix(t.I1, `"`) && strings.HasSuffix(t.I1, `"`) {
+			if !opt.QuoteNames && strings.HasPrefix(t.I1, `"`) && strings.HasSuffix(t.I1, `"`) {
 				return option.Some[Appender](func(buf []string, opt fp.ShowOption) []string {
 					return append([]string{t.I1[1 : len(t.I1)-1], spaceAfterColon(opt)}, valuestr...)
 				})

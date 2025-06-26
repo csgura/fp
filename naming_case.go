@@ -36,12 +36,12 @@ func spanSlice[T any](s []T, p func(T) bool) ([]T, []T) {
 	return left, right
 }
 
-func firstLower(name string) string {
-	if name == "" {
-		return ""
-	}
-	return strings.ToLower(name[:1]) + name[1:]
-}
+// func firstLower(name string) string {
+// 	if name == "" {
+// 		return ""
+// 	}
+// 	return strings.ToLower(name[:1]) + name[1:]
+// }
 
 func firstSeriesLower(name string) string {
 	l, r := spanSlice([]rune(name), unicode.IsUpper)

@@ -47,7 +47,7 @@ func (r Set[V]) Excl(v V) fp.SetMinimal[V] {
 }
 
 func AsFpSet[V comparable](s Set[V]) fp.Set[V] {
-	return fp.MakeSet[V](func() fp.SetMinimal[V] {
+	return fp.MakeSet(func() fp.SetMinimal[V] {
 		return Set[V]{}
 	}, s)
 }
@@ -64,11 +64,11 @@ func EmptySet[V comparable]() fp.Set[V] {
 }
 
 func MapOf[K comparable, V any](m map[K]V) fp.Map[K, V] {
-	return fp.MakeMap[K, V](Map[K, V](m))
+	return fp.MakeMap(Map[K, V](m))
 }
 
 func EmptyMap[K comparable, V any]() fp.Map[K, V] {
-	return fp.MakeMap[K, V](Map[K, V]{})
+	return fp.MakeMap(Map[K, V]{})
 }
 
 type Map[K comparable, V any] map[K]V

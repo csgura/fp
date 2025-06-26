@@ -50,7 +50,6 @@ func appendSeq(buf []string, typeName string, apdseq []Appender, opt fp.ShowOpti
 			),
 			trailingComma(opt), "\n", opt.CurrentIndent(), arrayClose(opt),
 		)
-		//		return fmt.Sprintf("%s {\n%s%s\n%s}", typeName, childOpt.CurrentIndent(), showseq.MakeString(",\n"+childOpt.CurrentIndent()), opt.CurrentIndent())
 	} else {
 
 		if slice.IsEmpty(showseq) {
@@ -227,16 +226,16 @@ func AppendGeneric(buf []string, name string, kind string, reprAppend Appender, 
 		return nil
 	}
 
-	if kind == fp.GenericKindConversion {
+	switch kind {
+	case fp.GenericKindConversion:
 		return reprAppend(buf, opt)
-	}
-	if kind == fp.GenericKindNewType {
+	case fp.GenericKindNewType:
 		if opt.OmitTypeName {
 			return append(buf, valueStr...)
 		}
 		return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt),
 			omitBrace("(", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace(")", opt))
-	} else if kind == fp.GenericKindTuple {
+	case fp.GenericKindTuple:
 		if opt.SquareBracketForArray {
 			return append(append(append(buf, omitTypeName(name, opt), spaceBetweenTypeAndBrace(opt),
 				omitBrace("[", opt), spaceWithinBrace(opt)), valueStr...), spaceWithinBrace(opt), omitBrace("]", opt))
