@@ -7,7 +7,6 @@ import (
 	"go/types"
 	"path"
 	"strconv"
-	"strings"
 
 	"github.com/csgura/fp/genfp"
 	"golang.org/x/tools/go/packages"
@@ -23,26 +22,34 @@ func asKeyValue(e ast.Expr, defName string) (string, ast.Expr) {
 }
 
 func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
-	switch t := e.(type) {
-	case *ast.BasicLit:
-		if strings.HasPrefix(t.Value, `"`) && strings.HasSuffix(t.Value, `"`) {
-			return t.Value[1 : len(t.Value)-1], nil
-		} else if strings.HasPrefix(t.Value, "`") && strings.HasSuffix(t.Value, "`") {
-			return t.Value[1 : len(t.Value)-1], nil
-		}
-	case *ast.Ident:
-		v, _ := evalConst(p, e)
-		if v.Kind() == constant.String {
-			//fmt.Printf("eval const : %s, %T\n", v.String(), v)
+	v, _ := evalConst(p, e)
+	if v.Kind() == constant.String {
+		//fmt.Printf("eval const : %s, %T\n", v.String(), v)
 
-			return constant.StringVal(v), nil
-		}
-	case *ast.SelectorExpr:
-		v, _ := evalConst(p, e)
-		if v.Kind() == constant.String {
-			return constant.StringVal(v), nil
-		}
+		return constant.StringVal(v), nil
 	}
+	/*
+		switch t := e.(type) {
+		case *ast.BasicLit:
+			if strings.HasPrefix(t.Value, `"`) && strings.HasSuffix(t.Value, `"`) {
+				return t.Value[1 : len(t.Value)-1], nil
+			} else if strings.HasPrefix(t.Value, "`") && strings.HasSuffix(t.Value, "`") {
+				return t.Value[1 : len(t.Value)-1], nil
+			}
+		case *ast.Ident:
+			v, _ := evalConst(p, e)
+			if v.Kind() == constant.String {
+				//fmt.Printf("eval const : %s, %T\n", v.String(), v)
+
+				return constant.StringVal(v), nil
+			}
+		case *ast.SelectorExpr:
+			v, _ := evalConst(p, e)
+			if v.Kind() == constant.String {
+				return constant.StringVal(v), nil
+			}
+		}
+	*/
 	return "", fmt.Errorf("can't eval %T as string", e)
 }
 
