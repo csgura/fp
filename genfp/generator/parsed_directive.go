@@ -23,11 +23,14 @@ func asKeyValue(e ast.Expr, defName string) (string, ast.Expr) {
 
 func evalStringValue(p *packages.Package, e ast.Expr) (string, error) {
 	v, _ := evalConst(p, e)
-	if v.Kind() == constant.String {
-		//fmt.Printf("eval const : %s, %T\n", v.String(), v)
+	if v != nil {
+		if v.Kind() == constant.String {
+			//fmt.Printf("eval const : %s, %T\n", v.String(), v)
 
-		return constant.StringVal(v), nil
+			return constant.StringVal(v), nil
+		}
 	}
+
 	/*
 		switch t := e.(type) {
 		case *ast.BasicLit:
