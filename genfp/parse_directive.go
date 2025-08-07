@@ -122,6 +122,9 @@ var defaultFunc = map[string]any{
 	"strings": func() map[string]any {
 		return stringsFunc
 	},
+	"tag": func(name string, value string) string {
+		return "`" + name + `:"` + value + `"` + "`"
+	},
 }
 
 var stringsFunc = map[string]any{
