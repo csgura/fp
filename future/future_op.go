@@ -63,6 +63,23 @@ func Apply[T any](f func() T, ctx ...fp.Executor) fp.Future[T] {
 	return p.Future()
 }
 
+func ApplyT[T any](f func() fp.Try[T], ctx ...fp.Executor) fp.Future[T] {
+	p := promise.New[T]()
+
+	getExecutor(ctx...).ExecuteUnsafe(fp.RunnableFunc(func() {
+		defer func() {
+			if err := recover(); err != nil {
+				p.Failure(fp.PanicError(err))
+			}
+		}()
+
+		rt := f()
+		p.Complete(rt)
+	}))
+
+	return p.Future()
+}
+
 func Apply2[T any](f func() (T, error), ctx ...fp.Executor) fp.Future[T] {
 	p := promise.New[T]()
 
