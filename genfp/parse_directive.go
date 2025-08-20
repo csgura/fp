@@ -122,8 +122,9 @@ var defaultFunc = map[string]any{
 	"strings": func() map[string]any {
 		return stringsFunc
 	},
-	"tag": func(name string, value string) string {
-		return "`" + name + `:"` + value + `"` + "`"
+	"tag": func(name string, value ...string) string {
+		tags := seqFilter(value, func(v string) bool { return v != "" })
+		return "`" + name + `:"` + seqMakeString(tags, ",") + `"` + "`"
 	},
 }
 
