@@ -17,6 +17,8 @@ func New[T any](f func(a, b T) bool) fp.Eq[T] {
 
 var Time fp.Eq[time.Time] = New(time.Time.Equal)
 var Bytes fp.Eq[[]byte] = New(bytes.Equal)
+var String = Given[string]()
+var PtrBytes fp.Eq[*[]byte] = Ptr(lazy.Done(Bytes))
 
 func Tuple1[A any](a fp.Eq[A]) fp.Eq[fp.Tuple1[A]] {
 	return New(
@@ -133,8 +135,6 @@ func ContraMap[T, U any](instance fp.Eq[T], fn func(U) T) fp.Eq[U] {
 type Derives[T any] interface {
 	Target() T
 }
-
-var String = Given[string]()
 
 func GoMap[K comparable, V any](eqV fp.Eq[V]) fp.Eq[map[K]V] {
 	return New(func(a, b map[K]V) bool {
