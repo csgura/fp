@@ -335,7 +335,7 @@ func (r *writer) makeFile() (string, error) {
 			lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
 		}
 
-		return "", fmt.Errorf("format error : %s\n%s", err, strings.Join(lines, "\n"))
+		return "", fmt.Errorf("%s\nformat error : %s", strings.Join(lines, "\n"), err)
 	}
 
 	return string(formatted), nil
