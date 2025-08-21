@@ -613,7 +613,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkgLazy(ctx Sum
 }
 
 func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.TypeClassInstance, required fp.Seq[metafp.RequiredInstance]) bool {
-	verbose("check required for %s", tci.Name)
+	verbose("going check required for %s", tci.Name)
 	for _, v := range required {
 		//fmt.Printf("check %s required of %s\n", v.String(), tci.String())
 		if v.Name {
@@ -633,10 +633,10 @@ func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.Typ
 
 		} else {
 			// TODO: summonArgs에서 다시  lookup 하는 코드 있음.
-			verbose("lookup type class %s[%s], for check required for %s ", v.TypeClass.Name, v.Type, tci.Name)
+			verbose("going lookup type class %s[%s], for check required for %s ", v.TypeClass.Name, v.Type, tci.Name)
 
 			res := r.lookupTypeClassInstance(ctx, v)
-			verbose("lookup type class result = %s(%s[%s]), for check required for %s ", res.target, v.TypeClass.Name, v.Type, tci.Name)
+			verbose("done lookup type class result = %s(%s[%s]), for check required for %s ", res.target, v.TypeClass.Name, v.Type, tci.Name)
 			if res.target.IsLeft() {
 				tc, rgen := ctx.recursiveDerive(v, res.target.Left()).Unapply()
 				if rgen {
@@ -697,7 +697,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 
 	f := req.Type
 
-	verbose("lokkup tc instance %s[%s] in primitive pkg, name first = %s, f.TypeArgs.Size = %d", req.TypeClass.Name, req.Type, as.Seq(name).MakeString(","), f.TypeArgs.Size())
+	verbose("going lokkup tc instance %s[%s] in primitive pkg, name first = %s, f.TypeArgs.Size = %d", req.TypeClass.Name, req.Type, as.Seq(name).MakeString(","), f.TypeArgs.Size())
 	scope := ctx.primScope(r.tcCache, req.TypeClass)
 
 	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
@@ -790,13 +790,13 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx SummonContex
 
 func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.RequiredInstance, strict bool, name string) fp.Option[DefinedInstance] {
 
-	verbose("named lookup name = %s, type = %s[%s], strict %t", name, req.TypeClass.Name, req.Type, strict)
+	verbose("going named lookup name = %s, type = %s[%s], strict %t", name, req.TypeClass.Name, req.Type, strict)
 	localInsOpt := r.lookupTypeClassInstanceLocalDeclared(ctx, req, strict, name)
 	if localInsOpt.IsDefined() {
 
 		localIns := localInsOpt.Get()
 		if !localIns.instance.IsGivenAny() {
-			verbose("named lookup name = %s, type = %s[%s]. found = %s", name, req.TypeClass.Name, req.Type, localIns.instance.Name)
+			verbose("done named lookup name = %s, type = %s[%s]. found = %s", name, req.TypeClass.Name, req.Type, localIns.instance.Name)
 
 			return localInsOpt
 
@@ -810,7 +810,7 @@ func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.Requi
 	if localInsOpt.IsDefined() && ret.IsDefined() {
 		retIns := ret.Get()
 		if retIns.instance.IsGivenAny() {
-			verbose("named lookup name = %s, type = %s[%s]. found = %s", name, req.TypeClass.Name, req.Type, localInsOpt.Get().instance.Name)
+			verbose("done named lookup name = %s, type = %s[%s]. found = %s", name, req.TypeClass.Name, req.Type, localInsOpt.Get().instance.Name)
 
 			return localInsOpt
 		}
@@ -818,7 +818,7 @@ func (r *TypeClassSummonContext) namedLookup(ctx SummonContext, req metafp.Requi
 	}
 
 	result := ret.OrOption(localInsOpt)
-	verbose("named lookup name = %s, type = %s[%s]. found = %t", name, req.TypeClass.Name, req.Type, result.IsDefined())
+	verbose("done named lookup name = %s, type = %s[%s]. found = %t", name, req.TypeClass.Name, req.Type, result.IsDefined())
 
 	return result
 
@@ -1163,7 +1163,7 @@ func (r *TypeClassSummonContext) exprTypeClassMemberLabelled(ctx SummonContext, 
 }
 
 func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req metafp.RequiredInstance) lookupTarget {
-	verbose("lookup tc instance %s[%s]", req.TypeClass.Name, req.Type)
+	verbose("going lookup tc instance %s[%s]", req.TypeClass.Name, req.Type)
 
 	f := req.Type
 

@@ -122,6 +122,12 @@ func Ptr[T any](eq lazy.Eval[fp.Eq[T]]) fp.Eq[*T] {
 	})
 }
 
+func UnPtr[T any](eqp fp.Eq[*T]) fp.Eq[T] {
+	return New(func(a T, b T) bool {
+		return eqp.Eqv(&a, &b)
+	})
+}
+
 func PtrGiven[T comparable]() fp.Eq[*T] {
 	return Ptr(lazy.Done(Given[T]()))
 }

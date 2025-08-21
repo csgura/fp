@@ -666,7 +666,7 @@ func (r TypeClassInstance) CheckWithNames(names fp.Seq[fp.NameTag], t TypeInfo) 
 }
 func (r TypeClassInstance) Check(t TypeInfo) fp.Option[TypeClassInstance] {
 
-	verbose("check %s.%s with type %s", r.Package.Name(), r.Name, t)
+	verbose("going check %s.%s with type %s", r.Package.Name(), r.Name, t)
 
 	ret := r.check(t)
 
@@ -1088,6 +1088,10 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 	name := ins.Name()
 	rType := TypeClassInstanceType(insType)
 
+	// TODO: recursive check 처리 필요
+	if name == "UnPtr" {
+		return option.None[TypeClassInstance]()
+	}
 	if _, ok := ins.(*types.TypeName); ok {
 		return option.None[TypeClassInstance]()
 	}
