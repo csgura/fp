@@ -361,6 +361,10 @@ func (r *writer) saveFile() {
 				base := r.Filename[0 : len(r.Filename)-len(ext)]
 				filename = fmt.Sprintf("%s%d%s", base, r.numSaved, ext)
 			}
+			d := path.Dir(filename)
+			if d != "." && d != "/" {
+				os.MkdirAll(d, 0755)
+			}
 			err = os.WriteFile(filename, []byte(formatted), 0644)
 			if err != nil {
 				return
