@@ -283,6 +283,16 @@ func (r *importSet) GetImportedName(p PackageId) string {
 	}
 }
 
+func (r *importSet) All() func(yield func(PackageId) bool) {
+	return func(yield func(PackageId) bool) {
+		for _, v := range r.PathToName {
+			if !yield(NewImportPackage(v.path, v.alias)) {
+				return
+			}
+		}
+	}
+}
+
 func NewImportSet() ImportSet {
 	return &importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}
 }
@@ -342,16 +352,16 @@ func (r *writer) makeFile() (string, error) {
 
 }
 
-func (r *writer) saveFile() {
+func (r *writer) saveFile() error {
 	if r.Buffer.Len() == 0 {
-		return
+		return nil
 	}
 
-	func() {
+	err := func() error {
 		formatted, err := r.makeFile()
 		if err != nil {
 			log.Println(err)
-			return
+			return err
 		}
 
 		if r.Filename != "" {
@@ -367,17 +377,19 @@ func (r *writer) saveFile() {
 			}
 			err = os.WriteFile(filename, []byte(formatted), 0644)
 			if err != nil {
-				return
+				return err
 			}
 		} else {
 			fmt.Printf("%s", formatted)
 			fmt.Println()
 		}
+		return nil
 	}()
 
 	r.importSet = importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}
 	r.numSaved = r.numSaved + 1
 	r.Buffer = &bytes.Buffer{}
+	return err
 }
 
 func (r *importSet) ZeroExpr(pk WorkingPackage, tpe types.Type) string {
@@ -732,6 +744,7 @@ type ImportSet interface {
 	GetImportedName(p PackageId) string
 	TypeName(pk WorkingPackage, tpe types.Type) string
 	ZeroExpr(pk WorkingPackage, tpe types.Type) string
+	All() func(yield func(PackageId) bool)
 }
 
 type Writer interface {
@@ -759,7 +772,7 @@ func GenerateString(packname string, writeFunc func(w Writer)) (string, error) {
 	return f.makeFile()
 }
 
-func Generate(packname string, filename string, writeFunc func(w Writer)) {
+func Generate(packname string, filename string, writeFunc func(w Writer)) (ImportSet, error) {
 
 	cmdName := path.Base(os.Args[0])
 	if filename != "" {
@@ -778,7 +791,7 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) {
 
 	writeFunc(f)
 
-	f.saveFile()
+	return &f.importSet, f.saveFile()
 
 }
 
