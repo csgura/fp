@@ -9,6 +9,7 @@ import (
 	"go/types"
 	"io"
 	"log"
+	"maps"
 	"os"
 	"path"
 	"strings"
@@ -352,9 +353,9 @@ func (r *writer) makeFile() (string, error) {
 
 }
 
-func (r *writer) saveFile() error {
+func (r *writer) saveFile() (ImportSet, error) {
 	if r.Buffer.Len() == 0 {
-		return nil
+		return &r.importSet, nil
 	}
 
 	err := func() error {
@@ -386,12 +387,22 @@ func (r *writer) saveFile() error {
 		return nil
 	}()
 
+	ret := &importSet{
+		PathToName: r.importSet.PathToName,
+		NameToPath: r.importSet.NameToPath,
+	}
 	r.importSet = importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}
 	r.numSaved = r.numSaved + 1
 	r.Buffer = &bytes.Buffer{}
-	return err
+	return ret, err
 }
 
+func (r *importSet) Clonse() ImportSet {
+	return &importSet{
+		PathToName: maps.Clone(r.PathToName),
+		NameToPath: maps.Clone(r.NameToPath),
+	}
+}
 func (r *importSet) ZeroExpr(pk WorkingPackage, tpe types.Type) string {
 	switch realtp := tpe.(type) {
 	case *types.Named:
@@ -791,7 +802,7 @@ func Generate(packname string, filename string, writeFunc func(w Writer)) (Impor
 
 	writeFunc(f)
 
-	return &f.importSet, f.saveFile()
+	return f.saveFile()
 
 }
 
