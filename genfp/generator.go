@@ -343,7 +343,7 @@ func (r *writer) makeFile() (string, error) {
 	if err != nil {
 		lines := strings.Split(wholeSource.String(), "\n")
 		for i := range lines {
-			lines[i] = fmt.Sprintf("%d: %s", i, lines[i])
+			lines[i] = fmt.Sprintf("%d: %s", i+1, lines[i])
 		}
 
 		return "", fmt.Errorf("%s\nformat error : %s", strings.Join(lines, "\n"), err)
