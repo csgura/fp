@@ -37,6 +37,10 @@ func Given[T comparable]() Eq[T] {
 	}
 }
 
+func PtrGiven[T comparable]() Eq[*T] {
+	return Ptr(Given[T]())
+}
+
 func UnPtr[T any](eqp Eq[*T]) Eq[T] {
 	return func(t1, t2 T) bool {
 		return eqp(&t1, &t2)
