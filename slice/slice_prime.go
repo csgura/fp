@@ -3,7 +3,7 @@ package slice
 import "github.com/csgura/fp"
 
 func Map[T, U any](opt fp.Slice[T], fn func(v T) U) fp.Slice[U] {
-	ret := make(fp.Seq[U], len(opt))
+	ret := make(fp.Slice[U], len(opt))
 
 	for i, v := range opt {
 		ret[i] = fn(v)
