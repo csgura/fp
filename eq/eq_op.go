@@ -72,6 +72,19 @@ func Slice[T any](eq fp.Eq[T]) fp.Eq[[]T] {
 	})
 }
 
+func Either[L, R any](leq fp.Eq[L], req fp.Eq[R]) fp.Eq[fp.Either[L, R]] {
+	return New(func(a, b fp.Either[L, R]) bool {
+		if a.IsLeft() && b.IsLeft() {
+			return leq.Eqv(a.Left(), b.Left())
+		}
+
+		if a.IsRight() && b.IsRight() {
+			return req.Eqv(a.Get(), b.Get())
+		}
+		return false
+	})
+}
+
 var HNil fp.Eq[hlist.Nil] = fp.EqGiven[hlist.Nil]()
 
 func HCons[H any, T hlist.HList](heq fp.Eq[H], teq fp.Eq[T]) fp.Eq[hlist.Cons[H, T]] {

@@ -62,6 +62,19 @@ func Slice[T any](eq Eq[T]) Eq[fp.Slice[T]] {
 	}
 }
 
+func Either[L, R any](leq Eq[L], req Eq[R]) Eq[fp.Either[L, R]] {
+	return func(a, b fp.Either[L, R]) bool {
+		if a.IsLeft() && b.IsLeft() {
+			return leq(a.Left(), b.Left())
+		}
+
+		if a.IsRight() && b.IsRight() {
+			return req(a.Get(), b.Get())
+		}
+		return false
+	}
+}
+
 func GoMap[K comparable, V any](eqV Eq[V]) Eq[map[K]V] {
 	return func(a, b map[K]V) bool {
 		if len(a) != len(b) {
