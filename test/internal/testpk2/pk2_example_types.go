@@ -210,6 +210,11 @@ func (r AliasedStruct) String() string {
 	return "AliasedStruct"
 }
 
+// @fp.GetterPubField
+// @fp.Deref
+// @fp.WithPubField
+type AliasedStruct2 testpk1.Alias
+
 // @fp.GetterPubField(override=true)
 // @fp.Deref
 type GetterOverride testpk1.DefinedOtherPackage

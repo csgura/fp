@@ -1997,6 +1997,72 @@ func (r AliasedStruct) WithPrivField(v string) testpk1.DefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).WithPrivField(v)
 }
 
+func (r AliasedStruct2) GetPubField() string {
+	return r.PubField
+}
+
+func (r AliasedStruct2) WithPubField(v string) AliasedStruct2 {
+	r.PubField = v
+	return r
+}
+
+func (r AliasedStruct2) WithDupGetter(v string) AliasedStruct2 {
+	r.DupGetter = v
+	return r
+}
+
+func (r AliasedStruct2) Deref() testpk1.Alias {
+	return testpk1.Alias(r)
+}
+
+func IntoAliasedStruct2(v testpk1.Alias) AliasedStruct2 {
+	return AliasedStruct2(v)
+}
+
+func (r AliasedStruct2) AsMap() map[string]any {
+	return testpk1.Alias(r).AsMap()
+}
+
+func (r AliasedStruct2) AsMutable() testpk1.DefinedOtherPackageMutable {
+	return testpk1.Alias(r).AsMutable()
+}
+
+func (r AliasedStruct2) AsTuple() fp.Tuple3[string, string, string] {
+	return testpk1.Alias(r).AsTuple()
+}
+
+func (r AliasedStruct2) Builder() testpk1.DefinedOtherPackageBuilder {
+	return testpk1.Alias(r).Builder()
+}
+
+func (r *AliasedStruct2) GetDupGetter() string {
+	return (*testpk1.Alias)(r).GetDupGetter()
+}
+
+func (r AliasedStruct2) PrivField() string {
+	return testpk1.Alias(r).PrivField()
+}
+
+func (r *AliasedStruct2) PtrRecv() {
+	(*testpk1.Alias)(r).PtrRecv()
+}
+
+func (r *AliasedStruct2) PtrRecvRet() string {
+	return (*testpk1.Alias)(r).PtrRecvRet()
+}
+
+func (r AliasedStruct2) String() string {
+	return testpk1.Alias(r).String()
+}
+
+func (r AliasedStruct2) Unapply() (string, string, string) {
+	return testpk1.Alias(r).Unapply()
+}
+
+func (r AliasedStruct2) WithPrivField(v string) testpk1.DefinedOtherPackage {
+	return testpk1.Alias(r).WithPrivField(v)
+}
+
 func (r GetterOverride) GetPubField() string {
 	return r.PubField
 }

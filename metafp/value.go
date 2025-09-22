@@ -299,7 +299,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 									fmt.Printf("selector err = %s\n", err)
 								}
 								ti := info.Types[ts.Type]
-								if _, ok := ti.Type.(*types.Named); ok {
+								if _, ok := ti.Type.(generator.GenericType); ok {
 									ret.RhsType = option.Some(typeInfo(ti.Type))
 
 								} else {

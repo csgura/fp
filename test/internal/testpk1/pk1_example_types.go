@@ -288,6 +288,8 @@ func (r *DefinedOtherPackage) GetDupGetter() string {
 	return "dup"
 }
 
+type Alias = DefinedOtherPackage
+
 type LegacyStruct struct {
 	Name    string
 	Age     int
