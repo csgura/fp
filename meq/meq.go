@@ -75,6 +75,20 @@ func Either[L, R any](leq Eq[L], req Eq[R]) Eq[fp.Either[L, R]] {
 	}
 }
 
+func Option[T any](eq Eq[T]) Eq[fp.Option[T]] {
+	return fp.EqFunc[fp.Option[T]](func(t1 fp.Option[T], t2 fp.Option[T]) bool {
+		if t1.IsEmpty() && t2.IsEmpty() {
+			return true
+		}
+
+		if t1.IsDefined() && t2.IsDefined() {
+			return eq(t1.Get(), t2.Get())
+		}
+
+		return false
+	})
+}
+
 func GoMap[K comparable, V any](eqV Eq[V]) Eq[map[K]V] {
 	return func(a, b map[K]V) bool {
 		if len(a) != len(b) {
