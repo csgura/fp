@@ -21,6 +21,11 @@ func Replace[A any, R any](s fp.SeqT[A], b R) fp.SeqT[R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[A any](s fp.SeqT[A]) fp.SeqT[fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[A any, B, R any](first fp.SeqT[A], second fp.SeqT[B], fab func(A, B) R) fp.SeqT[R] {
 	return FlatMap(first, func(a A) fp.SeqT[R] {
 		return Map(second, func(b B) R {

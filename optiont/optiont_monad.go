@@ -21,6 +21,11 @@ func Replace[A any, R any](s fp.OptionT[A], b R) fp.OptionT[R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[A any](s fp.OptionT[A]) fp.OptionT[fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[A any, B, R any](first fp.OptionT[A], second fp.OptionT[B], fab func(A, B) R) fp.OptionT[R] {
 	return FlatMap(first, func(a A) fp.OptionT[R] {
 		return Map(second, func(b B) R {

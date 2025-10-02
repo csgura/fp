@@ -27,6 +27,11 @@ func Replace[S any, A any, R any](s fp.StateT[S, A], b R) fp.StateT[S, R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[S any, A any](s fp.StateT[S, A]) fp.StateT[S, fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[S any, A any, B, R any](first fp.StateT[S, A], second fp.StateT[S, B], fab func(A, B) R) fp.StateT[S, R] {
 	return FlatMap(first, func(a A) fp.StateT[S, R] {
 		return Map(second, func(b B) R {

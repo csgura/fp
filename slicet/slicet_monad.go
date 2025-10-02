@@ -21,6 +21,11 @@ func Replace[A any, R any](s fp.SliceT[A], b R) fp.SliceT[R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[A any](s fp.SliceT[A]) fp.SliceT[fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[A any, B, R any](first fp.SliceT[A], second fp.SliceT[B], fab func(A, B) R) fp.SliceT[R] {
 	return FlatMap(first, func(a A) fp.SliceT[R] {
 		return Map(second, func(b B) R {

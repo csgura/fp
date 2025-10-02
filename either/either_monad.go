@@ -25,6 +25,11 @@ func Replace[L any, A any, R any](s fp.Either[L, A], b R) fp.Either[L, R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[L any, A any](s fp.Either[L, A]) fp.Either[L, fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[L any, A any, B, R any](first fp.Either[L, A], second fp.Either[L, B], fab func(A, B) R) fp.Either[L, R] {
 	return FlatMap(first, func(a A) fp.Either[L, R] {
 		return Map(second, func(b B) R {

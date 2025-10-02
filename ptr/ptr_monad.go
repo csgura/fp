@@ -21,6 +21,11 @@ func Replace[A any, R any](s fp.Ptr[A], b R) fp.Ptr[R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[A any](s fp.Ptr[A]) fp.Ptr[fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[A any, B, R any](first fp.Ptr[A], second fp.Ptr[B], fab func(A, B) R) fp.Ptr[R] {
 	return FlatMap(first, func(a A) fp.Ptr[R] {
 		return Map(second, func(b B) R {

@@ -21,6 +21,11 @@ func Replace[A any, R any](s fp.Try[A], b R) fp.Try[R] {
 	return Map(s, fp.Const[A](b))
 }
 
+// Replace fp.Unit{}
+func Void[A any](s fp.Try[A]) fp.Try[fp.Unit] {
+	return Replace(s, fp.Unit{})
+}
+
 func Map2[A any, B, R any](first fp.Try[A], second fp.Try[B], fab func(A, B) R) fp.Try[R] {
 	return FlatMap(first, func(a A) fp.Try[R] {
 		return Map(second, func(b B) R {

@@ -314,6 +314,13 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 		}
 	`, tpargs, srctype, rettype("R")))
 
+	ctx.defineFunc("Void", fmt.Sprintf(`
+		// Replace fp.Unit{} 
+		func {{.funcname}}[%s](s %s) %s {
+			return Replace(s, fp.Unit{})
+		}
+	`, tpargs, srctype, rettype("fp.Unit")))
+
 	ctx.defineFunc("Map2", fmt.Sprintf(`
 		func {{.funcname}}[%s, B, R any](first %s, second %s, fab func(A, B) R) %s {
 			return FlatMap(first, func(a A) %s {
