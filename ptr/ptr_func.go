@@ -17,6 +17,13 @@ func isNil(v reflect.Value) bool {
 	return false
 }
 
+func Apply[T any](v T, ok bool) fp.Ptr[T] {
+	if ok {
+		return Some(v)
+	}
+	return None[T]()
+}
+
 func Pure[A any](a A) fp.Ptr[A] {
 	return &a
 }

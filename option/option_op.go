@@ -28,6 +28,13 @@ func _[A any]() genfp.GenerateTraverseFunctions[fp.Option[A]] {
 	}
 }
 
+func Apply[T any](v T, ok bool) fp.Option[T] {
+	if ok {
+		return Some(v)
+	}
+	return None[T]()
+}
+
 func Constructors[T fp.Option[V], V any]() (none fp.Option[V], some func(V) fp.Option[V]) {
 	return None[V](), Some[V]
 }
