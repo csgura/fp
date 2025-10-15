@@ -10,7 +10,6 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/slice"
 )
 
 func FromCompare[T any](cmp func(a, b T) int) fp.Ord[T] {
@@ -62,13 +61,13 @@ func Seq[T any](ord fp.Ord[T]) fp.Ord[fp.Seq[T]] {
 
 func Slice[T any](ord fp.Ord[T]) fp.Ord[[]T] {
 	return New(eq.Slice[T](ord), func(a, b fp.Slice[T]) bool {
-		last := fp.Min(slice.Size(a), slice.Size(b))
+		last := fp.Min(len(a), len(b))
 		for i := 0; i < last; i++ {
 			if ord.Less(a[i], b[i]) {
 				return true
 			}
 		}
-		return slice.Size(a) < slice.Size(b)
+		return len(a) < len(b)
 	})
 }
 
@@ -99,6 +98,10 @@ func GivenField[S any, T fp.ImplicitOrd](getter func(S) T) fp.Ord[S] {
 
 func GivenKey[K fp.ImplicitOrd, V any]() fp.Ord[fp.Tuple2[K, V]] {
 	return ContraMap(Given[K](), fp.Tuple2[K, V].Head)
+}
+
+func Key[K, V any](kord fp.Ord[K]) fp.Ord[fp.Tuple2[K, V]] {
+	return ContraMap(kord, fp.Tuple2[K, V].Head)
 }
 
 func ContraMap[T, U any](instance fp.Ord[T], fn func(U) T) fp.Ord[U] {

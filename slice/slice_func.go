@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
+	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/product"
 )
 
@@ -331,6 +332,14 @@ func ToMap[K, V any](s fp.Slice[fp.Tuple2[K, V]], hasher fp.Hashable[K]) fp.Map[
 	}
 
 	return ret.Build()
+}
+
+func ToSortedMap[K, V any](s fp.Slice[fp.Tuple2[K, V]], kord fp.Ord[K]) SortedMap[K, V] {
+	sorted := Sort(s, ord.Key[K, V](kord))
+	return SortedMap[K, V]{
+		ord:    kord,
+		sorted: sorted,
+	}
 }
 
 func ToGoMap[K comparable, V any](s fp.Slice[fp.Tuple2[K, V]]) map[K]V {
