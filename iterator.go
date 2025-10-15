@@ -443,7 +443,6 @@ func MakeIterator[T any](has func() bool, next func() T) Iterator[T] {
 
 type pull[T any] struct {
 	nextfn func() (T, bool)
-	stop   func()
 	val    T
 	ok     bool
 }
@@ -464,25 +463,22 @@ func (r *pull[T]) next() T {
 	return ret
 }
 
-func (r *pull[T]) Close() error {
-
-	r.stop()
-
-	return nil
-}
-
 func MakePullIterator[T any](seq iter.Seq[T]) Iterator[T] {
 	nextfn, stopfn := iter.Pull(seq)
 
 	nv, ok := nextfn()
+
 	ret := &pull[T]{
 		nextfn: nextfn,
-		stop:   stopfn,
 		val:    nv,
 		ok:     ok,
 	}
 
-	runtime.SetFinalizer(ret, (*pull[T]).Close)
+	runtime.AddCleanup(ret, func(s func()) {
+		s()
+	}, stopfn)
+
+	//runtime.SetFinalizer(ret, (*pull[T]).Close)
 
 	return MakeIterator(ret.hasNext, ret.next)
 
