@@ -43,6 +43,7 @@ func (r Tuple1[T1]) String() string {
 	return fmt.Sprintf("(%v)", r.I1)
 }
 
+type Tuple[A, B any] = Tuple2[A, B]
 type Entry[V any] = Tuple2[string, V]
 type WithIndex[V any] = Tuple2[int, V]
 
