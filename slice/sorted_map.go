@@ -52,6 +52,40 @@ func (r SortedMap[K, V]) TailMap(fromKey K) SortedMap[K, V] {
 	}
 }
 
+func (r SortedMap[K, V]) Head() fp.Option[V] {
+	if len(r.sorted) == 0 {
+		return fp.None[V]()
+	}
+	return fp.Some(r.sorted[1].I2)
+}
+
+func (r SortedMap[K, V]) Last() fp.Option[V] {
+	if len(r.sorted) == 0 {
+		return fp.None[V]()
+	}
+	return fp.Some(r.sorted[len(r.sorted)-1].I2)
+}
+
+func (r SortedMap[K, V]) Init() SortedMap[K, V] {
+	if len(r.sorted) == 0 {
+		return SortedMap[K, V]{}
+	}
+	return SortedMap[K, V]{
+		ord:    r.ord,
+		sorted: r.sorted[:len(r.sorted)-1],
+	}
+}
+
+func (r SortedMap[K, V]) Tail() SortedMap[K, V] {
+	if len(r.sorted) == 0 {
+		return SortedMap[K, V]{}
+	}
+	return SortedMap[K, V]{
+		ord:    r.ord,
+		sorted: r.sorted[1:],
+	}
+}
+
 func (r SortedMap[K, V]) Get(k K) fp.Option[V] {
 	idx := bsearchKey(r.sorted, r.ord, k)
 	if idx < 0 {
