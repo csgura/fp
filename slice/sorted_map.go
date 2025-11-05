@@ -56,21 +56,21 @@ func (r SortedMap[K, V]) Head() fp.Option[fp.Tuple2[K, V]] {
 	if len(r.sorted) == 0 {
 		return fp.None[fp.Tuple2[K, V]]()
 	}
-	return fp.Some(r.sorted[1])
+	return fp.Some(r.sorted[0])
 }
 
 func (r SortedMap[K, V]) HeadKey() fp.Option[K] {
 	if len(r.sorted) == 0 {
 		return fp.None[K]()
 	}
-	return fp.Some(r.sorted[1].I1)
+	return fp.Some(r.sorted[0].I1)
 }
 
 func (r SortedMap[K, V]) HeadValue() fp.Option[V] {
 	if len(r.sorted) == 0 {
 		return fp.None[V]()
 	}
-	return fp.Some(r.sorted[1].I2)
+	return fp.Some(r.sorted[0].I2)
 }
 
 func (r SortedMap[K, V]) Last() fp.Option[fp.Tuple2[K, V]] {
