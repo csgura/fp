@@ -46,6 +46,7 @@ var _ = genfp.GenerateFromList{
 		"Size",
 		"Failed",
 		"Context",
+		"Unwrap",
 	},
 	Template: `
 		func {{.N}}[T interface{ {{.N}}() V }, V any](t T) V {
