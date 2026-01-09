@@ -9,6 +9,10 @@ type SortedMap[K, V any] struct {
 	sorted []fp.Tuple2[K, V]
 }
 
+func (r SortedMap[K, V]) String() string {
+	return "{" + MakeString(r.sorted, ",") + "}"
+}
+
 func (r SortedMap[K, V]) Size() int {
 	return len(r.sorted)
 }
