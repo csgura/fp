@@ -6,6 +6,23 @@ import (
 	"net/http"
 )
 
+type Ref[T any] struct {
+	ref *T
+}
+
+func (r Ref[T]) Get() T {
+	if r.ref == nil {
+		panic("fp.Ref not initialized correctly")
+	}
+	return *r.ref
+}
+
+func RefOf[T any](v *T) Ref[T] {
+	return Ref[T]{
+		ref: v,
+	}
+}
+
 type Ptr[T any] = *T
 
 type PtrT[T any] = Try[Ptr[T]]
