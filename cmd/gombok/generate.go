@@ -1040,6 +1040,9 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 
 	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp typeExpr) fp.Try[CallArgs] {
 		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Entry[typeExpr]) bool {
+			// TODO: type 이 alias 인 경우 type string 비교하면 달라서
+			// matching 이 안됨
+			// type alias 의 경우 원래 타입 으로 비교 필요
 			return t.I2.String() != tp.String()
 		})
 
