@@ -1,19 +1,25 @@
 package gendebug
 
 import (
-	"github.com/csgura/fp"
-	"github.com/csgura/fp/eq"
+	"fmt"
+	"io"
+
+	"github.com/csgura/fp/genfp"
 )
 
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-type World struct {
-	Value string
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[fmt.Stringer]{
+	ExtendsWith: map[string]genfp.TypeTag{
+		"Closer": genfp.TypeOf[io.Closer](),
+	},
+	Options: []genfp.ImplOption{
+		{
+			Method: fmt.Stringer.String,
+			DefaultImpl: func(closer io.Closer) string {
+				return "hello"
+			},
+		},
+	},
 }
-
-type Hello struct {
-	A *World
-}
-
-// @fp.Derive(recursive=true)
-var _ eq.Derives[fp.Eq[Hello]]

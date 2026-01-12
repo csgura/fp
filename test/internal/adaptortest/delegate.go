@@ -122,3 +122,21 @@ var _ = genfp.GenerateAdaptor[ComplexIntf]{
 		},
 	},
 }
+
+// @fp.Generate
+var _ = genfp.GenerateAdaptor[ComplexIntf]{
+	File: "delegate_generated.go",
+	Name: "ExtendsArgs",
+	Self: true,
+	ExtendsWith: map[string]genfp.TypeTag{
+		"Extends": genfp.TypeOf[SimpleIntf](),
+	},
+	Options: []genfp.ImplOption{
+		{
+			Method: ComplexIntf.Hello,
+			DefaultImpl: func(s SimpleIntf) string {
+				return s.Hello("world")
+			},
+		},
+	},
+}

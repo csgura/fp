@@ -1031,6 +1031,13 @@ func (r *implContext) matchFuncArgs(ms *types.Signature) fp.Try[CallArgs] {
 		return seq.Concat(as.Tuple("r", namedTypeExpr(gad.Interface, gad.TargetAlias)), r.argTypes)
 	}()
 
+	for k, v := range r.gad.ExtendsWith {
+		availableArgs = append(availableArgs, as.Tuple("r."+k, typeExpr{
+			Type: v.Type,
+			Expr: option.Some(v.Expr),
+		}))
+	}
+
 	args := seq.FoldTry(defImplArgs, CallArgs{avail: availableArgs}, func(args CallArgs, tp typeExpr) fp.Try[CallArgs] {
 		init, tail := iterator.Span(iterator.FromSeq(args.avail), func(t fp.Entry[typeExpr]) bool {
 			return t.I2.String() != tp.String()
