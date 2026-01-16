@@ -414,6 +414,9 @@ func (r *writer) makeFile() (string, *FormattingError) {
 	return string(formatted), nil
 
 }
+func (r *writer) Save() (ImportSet, error) {
+	return r.saveFile()
+}
 
 func (r *writer) saveFile() (ImportSet, error) {
 	if r.Buffer.Len() == 0 {
@@ -830,6 +833,11 @@ type Writer interface {
 	CheckMaxFileSize(maxSize int)
 }
 
+type Generator interface {
+	Writer
+	Save() (ImportSet, error)
+}
+
 func GenerateString(packname string, writeFunc func(w Writer)) (string, error) {
 
 	cmdName := path.Base(os.Args[0])
@@ -853,33 +861,7 @@ func GenerateString(packname string, writeFunc func(w Writer)) (string, error) {
 	return ret, nil
 }
 
-func Generate(packname string, filename string, writeFunc func(w Writer)) (ImportSet, error) {
-
-	cmdName := path.Base(os.Args[0])
-	if filename != "" {
-		fmt.Printf("%s generate %s", cmdName, filename)
-		fmt.Println()
-		os.Remove(filename)
-	}
-
-	f := &writer{
-		"",
-		packname,
-		filename,
-		cmdName,
-		&bytes.Buffer{},
-		&bytes.Buffer{},
-		0,
-		importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}}
-
-	writeFunc(f)
-
-	return f.saveFile()
-
-}
-
-func GenerateWithBuildFlag(buildFlag string, packname string, filename string, writeFunc func(w Writer)) (ImportSet, error) {
-
+func newWriter(packname string, filename string, buildFlag string) *writer {
 	cmdName := path.Base(os.Args[0])
 	if filename != "" {
 		fmt.Printf("%s generate %s", cmdName, filename)
@@ -896,7 +878,25 @@ func GenerateWithBuildFlag(buildFlag string, packname string, filename string, w
 		&bytes.Buffer{},
 		0,
 		importSet{PathToName: map[string]importAlias{}, NameToPath: map[string]importAlias{}}}
+	return f
+}
 
+func NewGenerator(packname string, filename string) Generator {
+	return newWriter(packname, filename, "")
+}
+
+func Generate(packname string, filename string, writeFunc func(w Writer)) (ImportSet, error) {
+
+	f := newWriter(packname, filename, "")
+	writeFunc(f)
+
+	return f.saveFile()
+
+}
+
+func GenerateWithBuildFlag(buildFlag string, packname string, filename string, writeFunc func(w Writer)) (ImportSet, error) {
+
+	f := newWriter(packname, filename, buildFlag)
 	writeFunc(f)
 
 	return f.saveFile()
