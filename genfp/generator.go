@@ -248,6 +248,14 @@ type importAlias struct {
 }
 
 func (r *importSet) AddImport(p PackageId) bool {
+	if p == nil {
+		return false
+	}
+
+	if p.Path() == "" {
+		return false
+	}
+
 	alias := p.Alias()
 
 	_, ok := r.NameToPath[alias]
