@@ -13,16 +13,6 @@ import (
 
 // https://github.com/benbjohnson/immutable/blob/master/immutable.go
 
-// hashUint64 returns a 32-bit hash for a 64-bit value.
-func hashUint64(value uint64) uint32 {
-	hash := value
-	for value > 0xffffffff {
-		value /= 0xffffffff
-		hash ^= value
-	}
-	return uint32(hash)
-}
-
 // Size thresholds for each type of branch node.
 const (
 	maxArrayMapSize      = 8
@@ -91,7 +81,11 @@ func (m *hamt[K, V]) Get(key K) fp.Option[V] {
 		return fp.None[V]()
 	}
 	keyHash := m.hasher.Hash(key)
-	return m.root.get(key, 0, keyHash, m.hasher)
+	ret := m.root.get(key, 0, keyHash, m.hasher)
+	if ret == nil {
+		return fp.None[V]()
+	}
+	return fp.Some(*ret)
 }
 
 // Set returns a map with the key set to the new value. A nil value is allowed.
@@ -255,7 +249,7 @@ func (b *mapBuilder[K, V]) Add(key K, value V) *mapBuilder[K, V] {
 
 // mapNode represents any node in the map tree.
 type mapNode[K, V any] interface {
-	get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V]
+	get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Ptr[V]
 	set(key K, value V, shift uint, keyHash uint32, h fp.Hashable[K], mutable bool, resized *bool) mapNode[K, V]
 	delete(key K, shift uint, keyHash uint32, h fp.Hashable[K], mutable bool, resized *bool) mapNode[K, V]
 }
@@ -293,12 +287,12 @@ func (n *mapArrayNode[K, V]) indexOf(key K, h fp.Hashable[K]) int {
 }
 
 // get returns the value for the given key.
-func (n *mapArrayNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
+func (n *mapArrayNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Ptr[V] {
 	i := n.indexOf(key, h)
 	if i == -1 {
-		return fp.None[V]()
+		return nil
 	}
-	return fp.Some(n.entries[i].value)
+	return &n.entries[i].value
 }
 
 // set inserts or updates the value for a given key. If the key is inserted and
@@ -386,10 +380,10 @@ type mapBitmapIndexedNode[K, V any] struct {
 }
 
 // get returns the value for the given key.
-func (n *mapBitmapIndexedNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
+func (n *mapBitmapIndexedNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Ptr[V] {
 	bit := uint32(1) << ((keyHash >> shift) & mapNodeMask)
 	if (n.bitmap & bit) == 0 {
-		return fp.None[V]()
+		return nil
 	}
 	child := n.nodes[bits.OnesCount32(n.bitmap&(bit-1))]
 	return child.get(key, shift+mapNodeBits, keyHash, h)
@@ -538,10 +532,10 @@ func (n *mapHashArrayNode[K, V]) clone() *mapHashArrayNode[K, V] {
 }
 
 // get returns the value for the given key.
-func (n *mapHashArrayNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
+func (n *mapHashArrayNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Ptr[V] {
 	node := n.nodes[(keyHash>>shift)&mapNodeMask]
 	if node == nil {
-		return fp.None[V]()
+		return nil
 	}
 	return node.get(key, shift+mapNodeBits, keyHash, h)
 }
@@ -643,11 +637,11 @@ func (n *mapValueNode[K, V]) keyHashValue() uint32 {
 }
 
 // get returns the value for the given key.
-func (n *mapValueNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
+func (n *mapValueNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Ptr[V] {
 	if !h.Eqv(n.key, key) {
-		return fp.None[V]()
+		return nil
 	}
-	return fp.Some(n.value)
+	return &n.value
 }
 
 // set returns a new node with the new value set for the key. If the key equals
@@ -670,7 +664,7 @@ func (n *mapValueNode[K, V]) set(key K, value V, shift uint, keyHash uint32, h f
 
 	// Recursively merge nodes together if key hashes are different.
 	if n.keyHash != keyHash {
-		return mergeIntoNode[K, V](n, shift, keyHash, key, value)
+		return mergeIntoNode(n, shift, keyHash, key, value)
 	}
 
 	// Merge into collision node if hash matches.
@@ -716,13 +710,13 @@ func (n *mapHashCollisionNode[K, V]) indexOf(key K, h fp.Hashable[K]) int {
 }
 
 // get returns the value for the given key.
-func (n *mapHashCollisionNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Option[V] {
+func (n *mapHashCollisionNode[K, V]) get(key K, shift uint, keyHash uint32, h fp.Hashable[K]) fp.Ptr[V] {
 	for i := range n.entries {
 		if h.Eqv(n.entries[i].key, key) {
-			return fp.Some(n.entries[i].value)
+			return &n.entries[i].value
 		}
 	}
-	return fp.None[V]()
+	return nil
 }
 
 // set returns a copy of the node with key set to the given value.
@@ -730,7 +724,7 @@ func (n *mapHashCollisionNode[K, V]) set(key K, value V, shift uint, keyHash uin
 	// Merge node with key/value pair if this is not a hash collision.
 	if n.keyHash != keyHash {
 		*resized = true
-		return mergeIntoNode[K, V](n, shift, keyHash, key, value)
+		return mergeIntoNode(n, shift, keyHash, key, value)
 	}
 
 	// Update in-place if mutable.
@@ -1008,7 +1002,7 @@ func (r *setBuilder[V]) Add(v V) *setBuilder[V] {
 }
 
 func (r *setBuilder[V]) Build() fp.Set[V] {
-	return fp.MakeSet[V](func() fp.SetMinimal[V] {
+	return fp.MakeSet(func() fp.SetMinimal[V] {
 		return SetMinimal(r.m.hasher)
 	}, set[V]{r.m})
 }
