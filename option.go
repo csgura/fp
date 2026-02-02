@@ -58,11 +58,13 @@ func (r Option[T]) IsEmpty() bool {
 	return !r.IsDefined()
 }
 
+var optionEmptyMessage any = "Option.empty"
+
 func (r Option[T]) Get() T {
 	if r.IsDefined() {
 		return r.v
 	}
-	panic("Option.empty")
+	panic(optionEmptyMessage)
 }
 
 func (r Option[T]) Unapply() (T, bool) {

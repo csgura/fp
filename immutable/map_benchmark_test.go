@@ -7,6 +7,8 @@ import (
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/immutable"
+	"github.com/csgura/fp/ord"
+	"github.com/csgura/fp/slice"
 )
 
 type String struct {
@@ -58,5 +60,29 @@ func BenchmarkFpHashedMap8(b *testing.B) {
 		obj.Get(version)
 		obj.Get(method)
 		obj.Get(service_name)
+	}
+}
+
+func BenchmarkSortedMap(b *testing.B) {
+
+	obj := slice.ToSortedMap(slice.Of(
+		as.Tuple("nf_service_op", "Update"),
+		as.Tuple("nf_type", "nf_type"),
+		as.Tuple("api_root", "api_root"),
+		as.Tuple("version", "version"),
+		as.Tuple("method", "method"),
+		as.Tuple("service_name", "service_name"),
+		as.Tuple("path", "path"),
+		as.Tuple("description", "description"),
+		as.Tuple("world", "world"),
+	), ord.Given[string]())
+
+	for b.Loop() {
+		obj.Get("nf_service_op")
+		obj.Get("nf_type")
+		obj.Get("api_root")
+		obj.Get("version")
+		obj.Get("method")
+		obj.Get("service_name")
 	}
 }
