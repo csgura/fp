@@ -139,6 +139,14 @@ func (r SortedMap[K, V]) Get(k K) fp.Option[V] {
 	return fp.Some(r.sorted[idx].I2)
 }
 
+func (r SortedMap[K, V]) GetAt(idx int) fp.Option[V] {
+	if r.Size() > idx {
+		return fp.Some(r.sorted[idx].I2)
+	} else {
+		return fp.None[V]()
+	}
+}
+
 func (r SortedMap[K, V]) Iterator() fp.Iterator[fp.Tuple2[K, V]] {
 	return fp.IteratorOfSeq(r.sorted)
 }
