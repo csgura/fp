@@ -110,6 +110,15 @@ func OrT[T any](optionT fp.OptionT[T], f func() fp.OptionT[T]) fp.OptionT[T] {
 	})
 }
 
+func OrElseGetT[T any](optionT fp.OptionT[T], f func() fp.Try[T]) fp.Try[T] {
+	return try.FlatMap(optionT, func(insideValue fp.Option[T]) fp.Try[T] {
+		if insideValue.IsEmpty() {
+			return f()
+		}
+		return try.Success(insideValue.Get())
+	})
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 //go:generate go run github.com/csgura/fp/internal/generator/template_gen
 
