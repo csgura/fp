@@ -33,7 +33,7 @@ func Get[T any](r fp.Ptr[T]) T {
 	if IsDefined(r) {
 		return *r
 	}
-	panic("Ptr.empty")
+	panic(fp.ErrOptionEmpty)
 }
 
 func Unapply[T any](r fp.Ptr[T]) (T, bool) {

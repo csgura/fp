@@ -24,7 +24,7 @@ func Empty[T any]() fp.Iterator[T] {
 	return fp.MakeIterator(func() bool {
 		return false
 	}, func() T {
-		panic("next on empty iterator")
+		panic(fp.ErrIteratorEmpty)
 	})
 }
 
@@ -49,7 +49,7 @@ func FromList[T any](list fp.List[T]) fp.Iterator[T] {
 				current = current.Tail()
 				return ret
 			}
-			panic("next on empty iterator")
+			panic(fp.ErrIteratorEmpty)
 		},
 	)
 }
@@ -79,7 +79,7 @@ func ReverseSeq[T any](seq []T) fp.Iterator[T] {
 				idx--
 				return ret
 			}
-			panic("next on empty iterator")
+			panic(fp.ErrIteratorEmpty)
 		},
 	)
 }
@@ -235,7 +235,7 @@ func FlatMap[T, U any](opt fp.Iterator[T], fn func(v T) fp.Iterator[U]) fp.Itera
 			if hasNext() {
 				return current.Get().Next()
 			}
-			panic("next on empty iterator")
+			panic(fp.ErrIteratorEmpty)
 		},
 	)
 }
@@ -472,7 +472,7 @@ func Scan[A, B any](s fp.Iterator[A], zero B, f func(B, A) B) fp.Iterator[B] {
 				sum = f(sum, s.Next())
 				return sum
 			}
-			panic("next on empty iterator")
+			panic(fp.ErrIteratorEmpty)
 		},
 	)
 }
@@ -497,7 +497,7 @@ func Range(from, exclusive int) fp.Iterator[int] {
 				i++
 				return ret
 			}
-			panic("next on empty iterator")
+			panic(fp.ErrIteratorEmpty)
 		},
 	)
 }
@@ -514,7 +514,7 @@ func RangeClosed(from, inclusive int) fp.Iterator[int] {
 				i++
 				return ret
 			}
-			panic("next on empty iterator")
+			panic(fp.ErrIteratorEmpty)
 		},
 	)
 }

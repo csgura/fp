@@ -234,7 +234,7 @@ func IteratorOfSeq[T any](r []T) Iterator[T] {
 				idx++
 				return ret
 			}
-			panic("next on empty iterator")
+			panic(ErrIteratorEmpty)
 		},
 	)
 }
@@ -251,7 +251,7 @@ func IteratorOfOption[T any](r Option[T]) Iterator[T] {
 				first = false
 				return r.Get()
 			}
-			panic("next on empty iterator")
+			panic(ErrIteratorEmpty)
 		},
 	)
 }

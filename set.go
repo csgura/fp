@@ -1,6 +1,8 @@
 package fp
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type SetMinimal[V any] interface {
 	Contains(v V) bool
@@ -33,7 +35,7 @@ func (r Set[V]) Iterator() Iterator[V] {
 		return MakeIterator(func() bool {
 			return false
 		}, func() V {
-			panic("next on empty iterator")
+			panic(ErrIteratorEmpty)
 		})
 	}
 

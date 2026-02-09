@@ -900,7 +900,7 @@ func MapIterator[K, V any](m *hamt[K, V]) fp.Iterator[fp.Tuple2[K, V]] {
 
 	next := func() fp.Tuple2[K, V] {
 		if !hasNext() {
-			panic("next on empty")
+			panic(fp.ErrIteratorEmpty)
 		}
 
 		var key K

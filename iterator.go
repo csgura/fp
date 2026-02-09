@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"iter"
+	"net/http"
 	"runtime"
 )
 
@@ -128,8 +129,10 @@ func (r Iterator[T]) Take(n int) Iterator[T] {
 	)
 }
 
+var ErrIteratorEmpty = Error(http.StatusNotFound, "next on empty iterator")
+
 func (r Iterator[T]) nextOnEmpty() T {
-	panic("next on empty iterator")
+	panic(ErrIteratorEmpty)
 }
 
 func (r Iterator[T]) TakeWhile(p func(T) bool) Iterator[T] {
@@ -349,7 +352,7 @@ func (r Iterator[T]) Concat(tail Iterator[T]) Iterator[T] {
 				currentNextChecked = false
 				return currentItr.Get().Next()
 			}
-			panic("next on empty iterator")
+			panic(ErrIteratorEmpty)
 		},
 	)
 	ret.concat = alliter
@@ -393,7 +396,7 @@ func (r Iterator[T]) FlatMap(mf func(T) Iterator[T]) Iterator[T] {
 			if hasNext() {
 				return current.Get().Next()
 			}
-			panic("next on empty iterator")
+			panic(ErrIteratorEmpty)
 		},
 	)
 }
@@ -453,7 +456,7 @@ func (r *pull[T]) hasNext() bool {
 
 func (r *pull[T]) next() T {
 	if !r.ok {
-		panic("next on empty iterator")
+		panic(ErrIteratorEmpty)
 	}
 
 	ret := r.val

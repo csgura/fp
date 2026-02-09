@@ -81,7 +81,7 @@ func (r Map[K, V]) Iterator() Iterator[Tuple2[K, V]] {
 		return MakeIterator(func() bool {
 			return false
 		}, func() Tuple2[K, V] {
-			panic("next on empty iterator")
+			panic(ErrIteratorEmpty)
 		})
 	}
 	return r.Base.Iterator()

@@ -10,9 +10,11 @@ type Ref[T any] struct {
 	ref *T
 }
 
+var ErrInvalidRef = Error(http.StatusBadRequest, "fp.Ref not initialized correctly")
+
 func (r Ref[T]) Get() T {
 	if r.ref == nil {
-		panic("fp.Ref not initialized correctly")
+		panic(ErrInvalidRef)
 	}
 	return *r.ref
 }
@@ -58,13 +60,11 @@ func (r Option[T]) IsEmpty() bool {
 	return !r.IsDefined()
 }
 
-var optionEmptyMessage any = "Option.empty"
-
 func (r Option[T]) Get() T {
 	if r.IsDefined() {
 		return r.v
 	}
-	panic(optionEmptyMessage)
+	panic(ErrOptionEmpty)
 }
 
 func (r Option[T]) Unapply() (T, bool) {
