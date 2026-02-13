@@ -32,21 +32,36 @@ var _ = genfp.GenerateFromList{
 		"Data",
 		"DataList",
 		"Response",
-		"Get",
 		"Left",
 		"Key",
-		"GetKey",
+		"Name",
 		"Value",
-		"GetValue",
 		"Meta",
 		"ID",
 		"Id",
-		"Iterator",
 		"Len",
 		"Size",
 		"Failed",
 		"Context",
+	},
+	Template: `
+		func {{.N}}[T interface{ {{.N}}() V }, V any](t T) V {
+			return t.{{.N}}()
+		}
+
+		func Get{{.N}}[T interface{ Get{{.N}}() V }, V any](t T) V {
+			return t.Get{{.N}}()
+		}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromList{
+	File: "xtr_gen.go",
+	List: []string{
+		"Get",
 		"Unwrap",
+		"Iterator",
 	},
 	Template: `
 		func {{.N}}[T interface{ {{.N}}() V }, V any](t T) V {
