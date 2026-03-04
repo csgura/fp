@@ -36,6 +36,10 @@ func Of[T any](list ...T) fp.Slice[T] {
 	return list
 }
 
+func OfMutable[M interface{ AsImmutable() T }, T any](list ...M) fp.Slice[T] {
+	return Map(list, M.AsImmutable)
+}
+
 func MapKey[KA, KB, V any](s fp.Slice[fp.Tuple2[KA, V]], f func(KA) KB) fp.Slice[fp.Tuple2[KB, V]] {
 	return Map(s, func(v fp.Tuple2[KA, V]) fp.Tuple2[KB, V] {
 		return fp.Tuple2[KB, V]{
