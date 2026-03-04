@@ -9,6 +9,7 @@ import (
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/show"
+	"time"
 )
 
 func EqPerson() fp.Eq[Person] {
@@ -48,24 +49,26 @@ func EqCarsOwned() fp.Eq[CarsOwned] {
 
 func ShowAddress() fp.Show[Address] {
 	return show.Generic(
-		fp.Generic[Address, hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Nil]]]]]{
+		fp.Generic[Address, hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Cons[time.Time, hlist.Nil]]]]]]{
 			Type: "docexample.Address",
 			Kind: "Struct",
-			To: func(v Address) hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Nil]]]] {
-				i0, i1, i2, i3 := v.Unapply()
-				h4 := hlist.Empty()
+			To: func(v Address) hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Cons[time.Time, hlist.Nil]]]]] {
+				i0, i1, i2, i3, i4 := v.Unapply()
+				h5 := hlist.Empty()
+				h4 := hlist.Concat(i4, h5)
 				h3 := hlist.Concat(i3, h4)
 				h2 := hlist.Concat(i2, h3)
 				h1 := hlist.Concat(i1, h2)
 				h0 := hlist.Concat(i0, h1)
 				return h0
 			},
-			From: func(hl0 hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Nil]]]]) Address {
+			From: func(hl0 hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Cons[time.Time, hlist.Nil]]]]]) Address {
 				i0, hl1 := hlist.Unapply(hl0)
 				i1, hl2 := hlist.Unapply(hl1)
 				i2, hl3 := hlist.Unapply(hl2)
-				i3 := hlist.Head(hl3)
-				return AddressBuilder{}.Apply(i0, i1, i2, i3).Build()
+				i3, hl4 := hlist.Unapply(hl3)
+				i4 := hlist.Head(hl4)
+				return AddressBuilder{}.Apply(i0, i1, i2, i3, i4).Build()
 			},
 		},
 		show.StructHCons(
@@ -76,7 +79,10 @@ func ShowAddress() fp.Show[Address] {
 					show.String,
 					show.StructHCons(
 						show.Given[Properties](),
-						show.HNil,
+						show.StructHCons(
+							show.Time,
+							show.HNil,
+						),
 					),
 				),
 			),

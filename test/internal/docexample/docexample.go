@@ -2,6 +2,7 @@ package docexample
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/eq"
@@ -46,6 +47,7 @@ type Address struct {
 	city       string
 	street     string
 	properties Properties
+	date       time.Time
 }
 
 // @fp.Value

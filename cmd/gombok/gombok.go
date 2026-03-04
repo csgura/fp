@@ -1285,6 +1285,8 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 						}
 						if v.FieldType.IsNilable() || v.FieldType.IsOption() {
 							tag = tag + fmt.Sprintf(`json:"%s,omitempty"`, v.Name)
+						} else if v.FieldType.Method.Contains("IsZero") {
+							tag = tag + fmt.Sprintf(`json:"%s,omitzero"`, v.Name)
 						} else {
 							tag = tag + fmt.Sprintf(`json:"%s"`, v.Name)
 						}

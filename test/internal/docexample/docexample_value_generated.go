@@ -8,6 +8,7 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/option"
 	"net/http"
+	"time"
 )
 
 func (r Person) Name() string {
@@ -127,6 +128,10 @@ func (r Address) Properties() Properties {
 	return r.properties
 }
 
+func (r Address) Date() time.Time {
+	return r.date
+}
+
 func (r Address) WithCountry(v string) Address {
 	r.country = v
 	return r
@@ -147,16 +152,21 @@ func (r Address) WithProperties(v Properties) Address {
 	return r
 }
 
+func (r Address) WithDate(v time.Time) Address {
+	r.date = v
+	return r
+}
+
 func (r Address) String() string {
-	return fmt.Sprintf("docexample.Address{country:%v, city:%v, street:%v, properties:%v}", r.country, r.city, r.street, r.properties)
+	return fmt.Sprintf("docexample.Address{country:%v, city:%v, street:%v, properties:%v, date:%v}", r.country, r.city, r.street, r.properties, r.date)
 }
 
-func (r Address) AsTuple() fp.Tuple4[string, string, string, Properties] {
-	return as.Tuple4(r.country, r.city, r.street, r.properties)
+func (r Address) AsTuple() fp.Tuple5[string, string, string, Properties, time.Time] {
+	return as.Tuple5(r.country, r.city, r.street, r.properties, r.date)
 }
 
-func (r Address) Unapply() (string, string, string, Properties) {
-	return r.country, r.city, r.street, r.properties
+func (r Address) Unapply() (string, string, string, Properties, time.Time) {
+	return r.country, r.city, r.street, r.properties, r.date
 }
 
 func (r Address) AsMap() map[string]any {
@@ -165,6 +175,7 @@ func (r Address) AsMap() map[string]any {
 	m["city"] = r.city
 	m["street"] = r.street
 	m["properties"] = r.properties
+	m["date"] = r.date
 	return m
 }
 
@@ -215,19 +226,26 @@ func (r AddressBuilder) Properties(v Properties) AddressBuilder {
 	return r
 }
 
-func (r AddressBuilder) FromTuple(t fp.Tuple4[string, string, string, Properties]) AddressBuilder {
+func (r AddressBuilder) Date(v time.Time) AddressBuilder {
+	r.date = v
+	return r
+}
+
+func (r AddressBuilder) FromTuple(t fp.Tuple5[string, string, string, Properties, time.Time]) AddressBuilder {
 	r.country = t.I1
 	r.city = t.I2
 	r.street = t.I3
 	r.properties = t.I4
+	r.date = t.I5
 	return r
 }
 
-func (r AddressBuilder) Apply(country string, city string, street string, properties Properties) AddressBuilder {
+func (r AddressBuilder) Apply(country string, city string, street string, properties Properties, date time.Time) AddressBuilder {
 	r.country = country
 	r.city = city
 	r.street = street
 	r.properties = properties
+	r.date = date
 	return r
 }
 
@@ -249,6 +267,10 @@ func (r AddressBuilder) FromMap(m map[string]any) AddressBuilder {
 		r.properties = v
 	}
 
+	if v, ok := m["date"].(time.Time); ok {
+		r.date = v
+	}
+
 	return r
 }
 
@@ -257,6 +279,7 @@ type AddressMutable struct {
 	City       string     `json:"city,omitempty"`
 	Street     string     `json:"street,omitempty"`
 	Properties Properties `json:"properties,omitempty"`
+	Date       time.Time  `json:"date,omitzero"`
 }
 
 func (r Address) AsMutable() AddressMutable {
@@ -265,6 +288,7 @@ func (r Address) AsMutable() AddressMutable {
 		City:       r.city,
 		Street:     r.street,
 		Properties: r.properties,
+		Date:       r.date,
 	}
 }
 
@@ -274,6 +298,7 @@ func (r AddressMutable) AsImmutable() Address {
 		city:       r.City,
 		street:     r.Street,
 		properties: r.Properties,
+		date:       r.Date,
 	}
 }
 
