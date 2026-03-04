@@ -123,6 +123,10 @@ func (r Address) Street() string {
 	return r.street
 }
 
+func (r Address) Properties() Properties {
+	return r.properties
+}
+
 func (r Address) WithCountry(v string) Address {
 	r.country = v
 	return r
@@ -138,16 +142,21 @@ func (r Address) WithStreet(v string) Address {
 	return r
 }
 
+func (r Address) WithProperties(v Properties) Address {
+	r.properties = v
+	return r
+}
+
 func (r Address) String() string {
-	return fmt.Sprintf("docexample.Address{country:%v, city:%v, street:%v}", r.country, r.city, r.street)
+	return fmt.Sprintf("docexample.Address{country:%v, city:%v, street:%v, properties:%v}", r.country, r.city, r.street, r.properties)
 }
 
-func (r Address) AsTuple() fp.Tuple3[string, string, string] {
-	return as.Tuple3(r.country, r.city, r.street)
+func (r Address) AsTuple() fp.Tuple4[string, string, string, Properties] {
+	return as.Tuple4(r.country, r.city, r.street, r.properties)
 }
 
-func (r Address) Unapply() (string, string, string) {
-	return r.country, r.city, r.street
+func (r Address) Unapply() (string, string, string, Properties) {
+	return r.country, r.city, r.street, r.properties
 }
 
 func (r Address) AsMap() map[string]any {
@@ -155,6 +164,7 @@ func (r Address) AsMap() map[string]any {
 	m["country"] = r.country
 	m["city"] = r.city
 	m["street"] = r.street
+	m["properties"] = r.properties
 	return m
 }
 
@@ -200,17 +210,24 @@ func (r AddressBuilder) Street(v string) AddressBuilder {
 	return r
 }
 
-func (r AddressBuilder) FromTuple(t fp.Tuple3[string, string, string]) AddressBuilder {
-	r.country = t.I1
-	r.city = t.I2
-	r.street = t.I3
+func (r AddressBuilder) Properties(v Properties) AddressBuilder {
+	r.properties = v
 	return r
 }
 
-func (r AddressBuilder) Apply(country string, city string, street string) AddressBuilder {
+func (r AddressBuilder) FromTuple(t fp.Tuple4[string, string, string, Properties]) AddressBuilder {
+	r.country = t.I1
+	r.city = t.I2
+	r.street = t.I3
+	r.properties = t.I4
+	return r
+}
+
+func (r AddressBuilder) Apply(country string, city string, street string, properties Properties) AddressBuilder {
 	r.country = country
 	r.city = city
 	r.street = street
+	r.properties = properties
 	return r
 }
 
@@ -228,28 +245,35 @@ func (r AddressBuilder) FromMap(m map[string]any) AddressBuilder {
 		r.street = v
 	}
 
+	if v, ok := m["properties"].(Properties); ok {
+		r.properties = v
+	}
+
 	return r
 }
 
 type AddressMutable struct {
-	Country string `json:"country,omitempty"`
-	City    string `json:"city,omitempty"`
-	Street  string `json:"street,omitempty"`
+	Country    string     `json:"country,omitempty"`
+	City       string     `json:"city,omitempty"`
+	Street     string     `json:"street,omitempty"`
+	Properties Properties `json:"properties,omitempty"`
 }
 
 func (r Address) AsMutable() AddressMutable {
 	return AddressMutable{
-		Country: r.country,
-		City:    r.city,
-		Street:  r.street,
+		Country:    r.country,
+		City:       r.city,
+		Street:     r.street,
+		Properties: r.properties,
 	}
 }
 
 func (r AddressMutable) AsImmutable() Address {
 	return Address{
-		country: r.Country,
-		city:    r.City,
-		street:  r.Street,
+		country:    r.Country,
+		city:       r.City,
+		street:     r.Street,
+		properties: r.Properties,
 	}
 }
 

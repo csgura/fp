@@ -35,12 +35,17 @@ func (r Person) Hashcode() uint32 {
 	return HashablePerson().Hash(r)
 }
 
+type Properties interface {
+	Get() string
+}
+
 // @fp.Value
 // @fp.Json
 type Address struct {
-	country string
-	city    string
-	street  string
+	country    string
+	city       string
+	street     string
+	properties Properties
 }
 
 // @fp.Value

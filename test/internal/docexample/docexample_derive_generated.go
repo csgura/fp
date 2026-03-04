@@ -48,22 +48,24 @@ func EqCarsOwned() fp.Eq[CarsOwned] {
 
 func ShowAddress() fp.Show[Address] {
 	return show.Generic(
-		fp.Generic[Address, hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]]]{
+		fp.Generic[Address, hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Nil]]]]]{
 			Type: "docexample.Address",
 			Kind: "Struct",
-			To: func(v Address) hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]] {
-				i0, i1, i2 := v.Unapply()
-				h3 := hlist.Empty()
+			To: func(v Address) hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Nil]]]] {
+				i0, i1, i2, i3 := v.Unapply()
+				h4 := hlist.Empty()
+				h3 := hlist.Concat(i3, h4)
 				h2 := hlist.Concat(i2, h3)
 				h1 := hlist.Concat(i1, h2)
 				h0 := hlist.Concat(i0, h1)
 				return h0
 			},
-			From: func(hl0 hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Nil]]]) Address {
+			From: func(hl0 hlist.Cons[string, hlist.Cons[string, hlist.Cons[string, hlist.Cons[Properties, hlist.Nil]]]]) Address {
 				i0, hl1 := hlist.Unapply(hl0)
 				i1, hl2 := hlist.Unapply(hl1)
-				i2 := hlist.Head(hl2)
-				return AddressBuilder{}.Apply(i0, i1, i2).Build()
+				i2, hl3 := hlist.Unapply(hl2)
+				i3 := hlist.Head(hl3)
+				return AddressBuilder{}.Apply(i0, i1, i2, i3).Build()
 			},
 		},
 		show.StructHCons(
@@ -72,7 +74,10 @@ func ShowAddress() fp.Show[Address] {
 				show.String,
 				show.StructHCons(
 					show.String,
-					show.HNil,
+					show.StructHCons(
+						show.Given[Properties](),
+						show.HNil,
+					),
 				),
 			),
 		),

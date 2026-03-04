@@ -1284,6 +1284,7 @@ func (r TypeInfo) IsError() bool {
 }
 
 func (r TypeInfo) IsNilable() bool {
+
 	switch atp := r.Type.(type) {
 	case *types.Alias:
 		return r.Unalias().IsNilable()
@@ -1299,6 +1300,8 @@ func (r TypeInfo) IsNilable() bool {
 		return true
 	case *types.Interface:
 		return true
+	case *types.Named:
+		return r.AsNamed().Get().Underlying.IsNilable()
 	case *types.Basic:
 		return atp.Kind() == types.String
 	}
