@@ -80,6 +80,7 @@ var _ = genfp.GenerateFromList{
 		"IsFailure",
 		"IsLeft",
 		"IsRight",
+		"IsZero",
 	},
 	Template: `
 		func {{.N}}[T interface{ {{.N}}() bool }](t T) bool {
