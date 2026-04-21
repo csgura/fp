@@ -462,6 +462,7 @@ func toTypeInfo(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.Typ
 		IsOption:         v.Type.IsOption(),
 		IsError:          v.Type.IsError(),
 		IsTry:            v.Type.IsTry(),
+		IsFuture:         v.Type.IsFuture(),
 		IsComparable:     types.Comparable(v.Type.Type),
 		IsAny:            v.Type.IsAny(),
 		ZeroExpr:         w.ZeroExpr(workingPkg, v.Type.Type),

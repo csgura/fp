@@ -1273,6 +1273,18 @@ func (r TypeInfo) IsTry() bool {
 	return false
 }
 
+func (r TypeInfo) IsFuture() bool {
+	switch nt := r.Type.(type) {
+	case *types.Alias:
+		return r.Unalias().IsFuture()
+	case *types.Named:
+		if nt.Obj().Pkg() != nil && nt.Obj().Pkg().Path() == "github.com/csgura/fp" && nt.Obj().Name() == "Future" {
+			return true
+		}
+	}
+	return false
+}
+
 func (r TypeInfo) IsError() bool {
 	switch nt := r.Type.(type) {
 	case *types.Alias:

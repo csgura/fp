@@ -235,6 +235,9 @@ type TypeInfo struct {
 	// fp.Try 타입인지
 	IsTry bool
 
+	// fp.Future 타입인지
+	IsFuture bool
+
 	// zero 값
 	ZeroExpr string
 
@@ -387,6 +390,37 @@ type InterfaceMethodInfo struct {
 	Returns []VarInfo
 }
 
+func (r InterfaceMethodInfo) HasPrefix(names ...string) bool {
+	for _, v := range names {
+		if strings.HasPrefix(r.Name, v) {
+			return true
+		}
+	}
+	return true
+}
+
+func (r InterfaceMethodInfo) HasSuffix(names ...string) bool {
+	for _, v := range names {
+		if strings.HasSuffix(r.Name, v) {
+			return true
+		}
+	}
+	return true
+}
+
+func (r InterfaceMethodInfo) NotIn(names ...string) bool {
+	for _, v := range names {
+		if r.Name == v {
+			return false
+		}
+	}
+	return true
+}
+
+func (r InterfaceMethodInfo) NumArgs() int {
+	return len(r.Args)
+}
+
 // TypeDecl .Args와 다른 점은 import하지 않음.
 func (r InterfaceMethodInfo) ArgsDef() string {
 	return seqMakeString(seqMap(r.Args, func(v VarInfo) string {
@@ -420,6 +454,34 @@ func (r InterfaceMethodInfo) ReturnAt(i int) *VarInfo {
 		return &r.Returns[i]
 	}
 	return nil
+}
+
+func (r InterfaceMethodInfo) ReturnTry() bool {
+	if len(r.Returns) > 0 {
+		return r.Returns[0].Type.IsTry
+	}
+	return false
+}
+
+func (r InterfaceMethodInfo) ReturnOption() bool {
+	if len(r.Returns) > 0 {
+		return r.Returns[0].Type.IsOption
+	}
+	return false
+}
+
+func (r InterfaceMethodInfo) ReturnFuture() bool {
+	if len(r.Returns) > 0 {
+		return r.Returns[0].Type.IsFuture
+	}
+	return false
+}
+
+func (r InterfaceMethodInfo) ReturnError() bool {
+	if len(r.Returns) > 0 {
+		return r.Returns[len(r.Returns)-1].Type.IsError
+	}
+	return false
 }
 
 type InterfaceInfo struct {
