@@ -279,6 +279,33 @@ type StructFieldInfo struct {
 	IsPublic bool
 }
 
+func (r StructFieldInfo) HasPrefix(names ...string) bool {
+	for _, v := range names {
+		if strings.HasPrefix(r.Name, v) {
+			return true
+		}
+	}
+	return true
+}
+
+func (r StructFieldInfo) HasSuffix(names ...string) bool {
+	for _, v := range names {
+		if strings.HasSuffix(r.Name, v) {
+			return true
+		}
+	}
+	return true
+}
+
+func (r StructFieldInfo) NotIn(names ...string) bool {
+	for _, v := range names {
+		if r.Name == v {
+			return false
+		}
+	}
+	return true
+}
+
 type StructInfo struct {
 	// struct 가 선언된 패키지
 	Package ImportPackage
