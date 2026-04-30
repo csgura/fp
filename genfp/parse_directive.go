@@ -462,6 +462,24 @@ func (r InterfaceMethodInfo) ArgsCall() string {
 	}), ",")
 }
 
+func (r InterfaceMethodInfo) RequiredArgsCall() string {
+	return seqMakeString(
+		seqMap(
+			seqFilter(r.Args, func(v VarInfo) bool {
+				return !v.Type.IsOption
+			}),
+			func(v VarInfo) string {
+				return v.Name
+			}),
+		",")
+}
+
+func (r InterfaceMethodInfo) OptionArgs() []VarInfo {
+	return seqFilter(r.Args, func(v VarInfo) bool {
+		return v.Type.IsOption
+	})
+}
+
 // TypeDecl .Returns와 다른 점은 import하지 않음.
 func (r InterfaceMethodInfo) ReturnsDef() string {
 	return seqMakeString(seqMap(r.Returns, func(v VarInfo) string {
