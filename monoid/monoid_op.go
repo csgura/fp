@@ -42,9 +42,16 @@ func Product[T fp.ImplicitNum]() fp.Monoid[T] {
 func Option[T any](m fp.Monoid[T]) fp.Monoid[fp.Option[T]] {
 	return New(
 		func() fp.Option[T] {
-			return option.Some(m.Empty())
+			return option.None[T]()
 		},
 		func(a fp.Option[T], b fp.Option[T]) fp.Option[T] {
+			if a.IsEmpty() {
+				return b
+			}
+
+			if b.IsEmpty() {
+				return a
+			}
 			return option.Map2(a, b, m.Combine)
 		},
 	)

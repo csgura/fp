@@ -29,7 +29,7 @@ func TestMonoid(t *testing.T) {
 	assert.Equal(seq.Reduce(optseq, monoid.Option(monoid.Sum[int]())).Get(), 3)
 
 	optseq = seq.Of(option.Some(1), option.None[int]())
-	assert.True(seq.Reduce(optseq, monoid.Option(monoid.Sum[int]())).IsEmpty())
+	assert.True(seq.Reduce(optseq, monoid.Option(monoid.Sum[int]())).IsDefined())
 
 	vecseq := seq.Of(product.Tuple2(1, 2), product.Tuple2(5, 6))
 	assert.Equal(seq.Reduce(vecseq, monoid.Tuple2(monoid.Sum[int](), monoid.Sum[int]())), product.Tuple2(6, 8))
