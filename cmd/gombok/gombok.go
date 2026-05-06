@@ -451,13 +451,17 @@ func genUnapply(ctx TaggedStructContext, allFields fp.Seq[metafp.StructField], g
 			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Take(arity).MakeString(",")
+			valuetpdec := ts.Info.TypeParamDecl(w, workingPackage)
 
 			fmt.Fprintf(w, `
-					func(r %s) AsTuple() %s.Tuple%d[%s] {
+					type TupleRepr%s%s = %s.Tuple%d[%s]
+					
+					func(r %s) AsTuple() TupleRepr%s {
 						return %s.Tuple%d(%s)
 					}
 
-				`, valuereceiver, fppkg, arity, tp,
+				`, ts.Name, valuetpdec, fppkg, arity, tp,
+				valuereceiver, valuereceiver,
 				asalias, arity, fields,
 			)
 			genMethod = genMethod.Incl("AsTuple")
@@ -1029,9 +1033,20 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 
 		//lint:ignore SA4006 for future
 		genMethod = processBuilder(ctx, genMethod)
+		genMethod = processTuple(ctx, genMethod)
 
 	})
 
+}
+
+func processTuple(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+	ts := ctx.ts
+
+	if _, ok := ts.Tags.Get("@fp.Tuple").Unapply(); ok {
+		allFields := applyFields(ts)
+		genMethod = genUnapply(ctx, allFields, genMethod)
+	}
+	return genMethod
 }
 
 func genPrivateGetters(ctx TaggedStructContext, privateFields fp.Seq[metafp.StructField], genMethod fp.Set[string]) fp.Set[string] {

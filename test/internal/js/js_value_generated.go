@@ -32,7 +32,9 @@ func (r DecoderContext) String() string {
 	return fmt.Sprintf("js.DecoderContext{workingObject:%v}", r.workingObject)
 }
 
-func (r DecoderContext) AsTuple() fp.Tuple1[fp.Option[map[string]json.RawMessage]] {
+type TupleReprDecoderContext = fp.Tuple1[fp.Option[map[string]json.RawMessage]]
+
+func (r DecoderContext) AsTuple() TupleReprDecoderContext {
 	return as.Tuple1(r.workingObject)
 }
 

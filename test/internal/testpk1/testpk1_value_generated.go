@@ -34,7 +34,9 @@ func (r World) String() string {
 	return fmt.Sprintf("testpk1.World{message:%v, timestamp:%v, Pub:%v}", r.message, r.timestamp, r.Pub)
 }
 
-func (r World) AsTuple() fp.Tuple3[string, time.Time, string] {
+type TupleReprWorld = fp.Tuple3[string, time.Time, string]
+
+func (r World) AsTuple() TupleReprWorld {
 	return as.Tuple3(r.message, r.timestamp, r.Pub)
 }
 
@@ -197,7 +199,7 @@ func (r WorldBuilder) FromLabelled(t fp.Labelled3[NamedMessageOfWorld, NamedTime
 
 type WorldMutable struct {
 	Message    string    `hello:"message" json:"message,omitempty"`
-	Timestamp  time.Time `json:"timestamp"`
+	Timestamp  time.Time `json:"timestamp,omitzero"`
 	Pub        string    `json:"Pub,omitempty"`
 	_notExport string
 }
@@ -268,7 +270,9 @@ func (r HasOption) String() string {
 	return fmt.Sprintf("testpk1.HasOption{message:%v, addr:%v, phone:%v, emptySeq:%v}", r.message, r.addr, r.phone, r.emptySeq)
 }
 
-func (r HasOption) AsTuple() fp.Tuple4[string, fp.Option[string], []string, []int] {
+type TupleReprHasOption = fp.Tuple4[string, fp.Option[string], []string, []int]
+
+func (r HasOption) AsTuple() TupleReprHasOption {
 	return as.Tuple4(r.message, r.addr, r.phone, r.emptySeq)
 }
 
@@ -504,7 +508,9 @@ func (r CustomValue) String() string {
 	return fmt.Sprintf("testpk1.CustomValue{a:%v, b:%v}", r.a, r.b)
 }
 
-func (r CustomValue) AsTuple() fp.Tuple2[string, int] {
+type TupleReprCustomValue = fp.Tuple2[string, int]
+
+func (r CustomValue) AsTuple() TupleReprCustomValue {
 	return as.Tuple2(r.a, r.b)
 }
 
@@ -598,7 +604,9 @@ func (r AliasedStruct) String() string {
 	return fmt.Sprintf("testpk1.AliasedStruct{message:%v, timestamp:%v, Pub:%v}", r.message, r.timestamp, r.Pub)
 }
 
-func (r AliasedStruct) AsTuple() fp.Tuple3[string, time.Time, string] {
+type TupleReprAliasedStruct = fp.Tuple3[string, time.Time, string]
+
+func (r AliasedStruct) AsTuple() TupleReprAliasedStruct {
 	return as.Tuple3(r.message, r.timestamp, r.Pub)
 }
 
@@ -719,7 +727,9 @@ func (r HListInsideHList) String() string {
 	return fmt.Sprintf("testpk1.HListInsideHList{tp:%v, value:%v, hello:%v}", r.tp, r.value, r.hello)
 }
 
-func (r HListInsideHList) AsTuple() fp.Tuple3[fp.Tuple2[string, int], string, World] {
+type TupleReprHListInsideHList = fp.Tuple3[fp.Tuple2[string, int], string, World]
+
+func (r HListInsideHList) AsTuple() TupleReprHListInsideHList {
 	return as.Tuple3(r.tp, r.value, r.hello)
 }
 
@@ -826,7 +836,9 @@ func (r Wrapper[T]) String() string {
 	return fmt.Sprintf("testpk1.Wrapper{unwrap:%v}", r.unwrap)
 }
 
-func (r Wrapper[T]) AsTuple() fp.Tuple1[T] {
+type TupleReprWrapper[T any] = fp.Tuple1[T]
+
+func (r Wrapper[T]) AsTuple() TupleReprWrapper[T] {
 	return as.Tuple1(r.unwrap)
 }
 
@@ -912,7 +924,9 @@ func (r TestOrderedEq) String() string {
 	return fmt.Sprintf("testpk1.TestOrderedEq{list:%v, tlist:%v}", r.list, r.tlist)
 }
 
-func (r TestOrderedEq) AsTuple() fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]] {
+type TupleReprTestOrderedEq = fp.Tuple2[fp.Seq[int], fp.Seq[fp.Tuple2[int, int]]]
+
+func (r TestOrderedEq) AsTuple() TupleReprTestOrderedEq {
 	return as.Tuple2(r.list, r.tlist)
 }
 
@@ -1013,7 +1027,9 @@ func (r MapEq) String() string {
 	return fmt.Sprintf("testpk1.MapEq{m:%v, m2:%v}", r.m, r.m2)
 }
 
-func (r MapEq) AsTuple() fp.Tuple2[map[string]World, fp.Map[string, World]] {
+type TupleReprMapEq = fp.Tuple2[map[string]World, fp.Map[string, World]]
+
+func (r MapEq) AsTuple() TupleReprMapEq {
 	return as.Tuple2(r.m, r.m2)
 }
 
@@ -1132,7 +1148,9 @@ func (r SeqMonoid) String() string {
 	return fmt.Sprintf("testpk1.SeqMonoid{v:%v, s:%v, m:%v, m2:%v}", r.v, r.s, r.m, r.m2)
 }
 
-func (r SeqMonoid) AsTuple() fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]] {
+type TupleReprSeqMonoid = fp.Tuple4[string, fp.Seq[string], map[string]int, fp.Map[string, World]]
+
+func (r SeqMonoid) AsTuple() TupleReprSeqMonoid {
 	return as.Tuple4(r.v, r.s, r.m, r.m2)
 }
 
@@ -1254,7 +1272,9 @@ func (r MapEqParam[K, V]) String() string {
 	return fmt.Sprintf("testpk1.MapEqParam{m:%v}", r.m)
 }
 
-func (r MapEqParam[K, V]) AsTuple() fp.Tuple1[fp.Map[K, V]] {
+type TupleReprMapEqParam[K any, V any] = fp.Tuple1[fp.Map[K, V]]
+
+func (r MapEqParam[K, V]) AsTuple() TupleReprMapEqParam[K, V] {
 	return as.Tuple1(r.m)
 }
 
@@ -1331,7 +1351,9 @@ func (r NotUsedProblem) String() string {
 	return fmt.Sprintf("testpk1.NotUsedProblem{m:%v}", r.m)
 }
 
-func (r NotUsedProblem) AsTuple() fp.Tuple1[MapEqParam[string, int]] {
+type TupleReprNotUsedProblem = fp.Tuple1[MapEqParam[string, int]]
+
+func (r NotUsedProblem) AsTuple() TupleReprNotUsedProblem {
 	return as.Tuple1(r.m)
 }
 
@@ -1426,7 +1448,9 @@ func (r Node) String() string {
 	return fmt.Sprintf("testpk1.Node{value:%v, left:%v, right:%v}", r.value, r.left, r.right)
 }
 
-func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
+type TupleReprNode = fp.Tuple3[string, *Node, *Node]
+
+func (r Node) AsTuple() TupleReprNode {
 	return as.Tuple3(r.value, r.left, r.right)
 }
 
@@ -1524,7 +1548,9 @@ func (r NoPrivate) String() string {
 	return fmt.Sprintf("testpk1.NoPrivate{Value:%v}", r.Value)
 }
 
-func (r NoPrivate) AsTuple() fp.Tuple1[int] {
+type TupleReprNoPrivate = fp.Tuple1[int]
+
+func (r NoPrivate) AsTuple() TupleReprNoPrivate {
 	return as.Tuple1(r.Value)
 }
 
@@ -2991,7 +3017,9 @@ func (r DefinedOtherPackage) String() string {
 	return fmt.Sprintf("testpk1.DefinedOtherPackage{PubField:%v, privField:%v, DupGetter:%v}", r.PubField, r.privField, r.DupGetter)
 }
 
-func (r DefinedOtherPackage) AsTuple() fp.Tuple3[string, string, string] {
+type TupleReprDefinedOtherPackage = fp.Tuple3[string, string, string]
+
+func (r DefinedOtherPackage) AsTuple() TupleReprDefinedOtherPackage {
 	return as.Tuple3(r.PubField, r.privField, r.DupGetter)
 }
 
@@ -3262,7 +3290,9 @@ func (r UseExplicitShowVar) String() string {
 	return ShowUseExplicitShowVar.Show(r)
 }
 
-func (r UseExplicitShowVar) AsTuple() fp.Tuple2[string, int] {
+type TupleReprUseExplicitShowVar = fp.Tuple2[string, int]
+
+func (r UseExplicitShowVar) AsTuple() TupleReprUseExplicitShowVar {
 	return as.Tuple2(r.hello, r.world)
 }
 
@@ -3412,7 +3442,9 @@ func (r Car[S, T]) String() string {
 	return fmt.Sprintf("testpk1.Car{company:%v, model:%v, year:%v, spec:%v, opt:%v}", r.company, r.model, r.year, r.spec, r.opt)
 }
 
-func (r Car[S, T]) AsTuple() fp.Tuple5[string, string, int, S, fp.Option[T]] {
+type TupleReprCar[S any, T comparable] = fp.Tuple5[string, string, int, S, fp.Option[T]]
+
+func (r Car[S, T]) AsTuple() TupleReprCar[S, T] {
 	return as.Tuple5(r.company, r.model, r.year, r.spec, r.opt)
 }
 

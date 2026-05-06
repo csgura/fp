@@ -38,7 +38,7 @@ func (r *TypeClassSummonContext) intoTupleRepr(ctx SummonContext, sf structFunct
 
 				possible := func() bool {
 					if tptypeOpt.IsDefined() {
-						rett := metafp.GetTypeInfo(rt.At(0).Type())
+						rett := metafp.GetTypeInfo(rt.At(0).Type()).Unalias()
 						if rt.Len() == 1 && rett.PkgName() == tptypeOpt.Get().PkgName() {
 							return true
 						}
@@ -95,7 +95,7 @@ func (r TypeClassSummonContext) fromTupleRepr(ctx SummonContext, sf structFuncti
 
 				possible := func() bool {
 					if tptypeOpt.IsDefined() {
-						rett := metafp.GetTypeInfo(rt.At(0).Type())
+						rett := metafp.GetTypeInfo(rt.At(0).Type()).Unalias()
 						if rt.Len() == 1 && rett.PkgName() == tptypeOpt.Get().PkgName() {
 							return true
 						}

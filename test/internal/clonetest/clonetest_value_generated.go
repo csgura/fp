@@ -29,7 +29,9 @@ func (r ValueStruct) String() string {
 	return fmt.Sprintf("clonetest.ValueStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
-func (r ValueStruct) AsTuple() fp.Tuple2[string, int] {
+type TupleReprValueStruct = fp.Tuple2[string, int]
+
+func (r ValueStruct) AsTuple() TupleReprValueStruct {
 	return as.Tuple2(r.hello, r.world)
 }
 
@@ -130,7 +132,9 @@ func (r CloneStruct) String() string {
 	return fmt.Sprintf("clonetest.CloneStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
-func (r CloneStruct) AsTuple() fp.Tuple2[string, int] {
+type TupleReprCloneStruct = fp.Tuple2[string, int]
+
+func (r CloneStruct) AsTuple() TupleReprCloneStruct {
 	return as.Tuple2(r.hello, r.world)
 }
 

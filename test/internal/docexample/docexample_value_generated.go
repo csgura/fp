@@ -33,7 +33,9 @@ func (r Person) String() string {
 	return fmt.Sprintf("docexample.Person{name:%v, age:%v}", r.name, r.age)
 }
 
-func (r Person) AsTuple() fp.Tuple2[string, int] {
+type TupleReprPerson = fp.Tuple2[string, int]
+
+func (r Person) AsTuple() TupleReprPerson {
 	return as.Tuple2(r.name, r.age)
 }
 
@@ -161,7 +163,9 @@ func (r Address) String() string {
 	return fmt.Sprintf("docexample.Address{country:%v, city:%v, street:%v, properties:%v, date:%v}", r.country, r.city, r.street, r.properties, r.date)
 }
 
-func (r Address) AsTuple() fp.Tuple5[string, string, string, Properties, time.Time] {
+type TupleReprAddress = fp.Tuple5[string, string, string, Properties, time.Time]
+
+func (r Address) AsTuple() TupleReprAddress {
 	return as.Tuple5(r.country, r.city, r.street, r.properties, r.date)
 }
 
@@ -333,7 +337,9 @@ func (r Car) String() string {
 	return fmt.Sprintf("docexample.Car{company:%v, model:%v, year:%v}", r.company, r.model, r.year)
 }
 
-func (r Car) AsTuple() fp.Tuple3[string, string, int] {
+type TupleReprCar = fp.Tuple3[string, string, int]
+
+func (r Car) AsTuple() TupleReprCar {
 	return as.Tuple3(r.company, r.model, r.year)
 }
 
@@ -526,7 +532,9 @@ func (r Entry[A, B]) String() string {
 	return fmt.Sprintf("docexample.Entry{key:%v, value:%v}", r.key, r.value)
 }
 
-func (r Entry[A, B]) AsTuple() fp.Tuple2[A, B] {
+type TupleReprEntry[A comparable, B any] = fp.Tuple2[A, B]
+
+func (r Entry[A, B]) AsTuple() TupleReprEntry[A, B] {
 	return as.Tuple2(r.key, r.value)
 }
 
@@ -627,7 +635,9 @@ func (r CarsOwned) String() string {
 	return fmt.Sprintf("docexample.CarsOwned{owner:%v, cars:%v}", r.owner, r.cars)
 }
 
-func (r CarsOwned) AsTuple() fp.Tuple2[Person, fp.Seq[Car]] {
+type TupleReprCarsOwned = fp.Tuple2[Person, fp.Seq[Car]]
+
+func (r CarsOwned) AsTuple() TupleReprCarsOwned {
 	return as.Tuple2(r.owner, r.cars)
 }
 
@@ -747,7 +757,9 @@ func (r User) String() string {
 	return fmt.Sprintf("docexample.User{name:%v, email:%v, active:%v}", r.name, r.email, r.active)
 }
 
-func (r User) AsTuple() fp.Tuple3[string, fp.Option[string], bool] {
+type TupleReprUser = fp.Tuple3[string, fp.Option[string], bool]
+
+func (r User) AsTuple() TupleReprUser {
 	return as.Tuple3(r.name, r.email, r.active)
 }
 

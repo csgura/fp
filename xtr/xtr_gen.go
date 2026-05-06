@@ -162,3 +162,7 @@ func IsLeft[T interface{ IsLeft() bool }](t T) bool {
 func IsRight[T interface{ IsRight() bool }](t T) bool {
 	return t.IsRight()
 }
+
+func IsZero[T interface{ IsZero() bool }](t T) bool {
+	return t.IsZero()
+}

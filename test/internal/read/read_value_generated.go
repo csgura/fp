@@ -29,7 +29,9 @@ func (r Result[T]) String() string {
 	return fmt.Sprintf("read.Result{value:%v, remains:%v}", r.value, r.remains)
 }
 
-func (r Result[T]) AsTuple() fp.Tuple2[T, string] {
+type TupleReprResult[T any] = fp.Tuple2[T, string]
+
+func (r Result[T]) AsTuple() TupleReprResult[T] {
 	return as.Tuple2(r.value, r.remains)
 }
 

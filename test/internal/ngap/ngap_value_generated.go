@@ -47,7 +47,9 @@ func (r NgapValue) String() string {
 	return fmt.Sprintf("ngap.NgapValue{present:%v, first:%v, second:%v, third:%v}", r.present, r.first, r.second, r.third)
 }
 
-func (r NgapValue) AsTuple() fp.Tuple4[int, *int, *string, *float64] {
+type TupleReprNgapValue = fp.Tuple4[int, *int, *string, *float64]
+
+func (r NgapValue) AsTuple() TupleReprNgapValue {
 	return as.Tuple4(r.present, r.first, r.second, r.third)
 }
 

@@ -38,7 +38,9 @@ func (r Hello) String() string {
 	return fmt.Sprintf("testpk2.Hello{world:%v, hi:%v}", r.world, r.hi)
 }
 
-func (r Hello) AsTuple() fp.Tuple2[string, int] {
+type TupleReprHello = fp.Tuple2[string, int]
+
+func (r Hello) AsTuple() TupleReprHello {
 	return as.Tuple2(r.world, r.hi)
 }
 
@@ -325,14 +327,16 @@ func (r AllKindTypes) String() string {
 	return fmt.Sprintf("testpk2.AllKindTypes{hi:%v, tpe:%v, arr:%v, m:%v, a:%v, p:%v, l:%v, t:%v, m2:%v, mm:%v, intf:%v, ch:%v, ch2:%v, ch3:%v, arr2:%v, st:%v, i2:%v}", r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.arr2, r.st, r.i2)
 }
 
-func (r AllKindTypes) AsTuple() fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.OptionT[Local], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
+type TupleReprAllKindTypes = fp.Tuple20[fp.Option[int], rf.Type, []os.File, map[string]int, any, *int, Local, fp.OptionT[Local], map[string]atomic.Bool, fp.Map[string, int], fp.Future[int], chan fp.Try[fp.Either[int, string]], chan<- int, <-chan int, fp.Func1[int, fp.Try[string]], func(a string) fp.Try[int], func(fp.Try[string]) (result int, err error), [2]int, struct {
 	Embed
 	A int
 	B fp.Option[string]
 }, interface {
 	io.Closer
 	Hello() fp.Try[int]
-}] {
+}]
+
+func (r AllKindTypes) AsTuple() TupleReprAllKindTypes {
 	return as.Tuple20(r.hi, r.tpe, r.arr, r.m, r.a, r.p, r.l, r.t, r.m2, r.mm, r.intf, r.ch, r.ch2, r.ch3, r.fn3, r.fn, r.fn2, r.arr2, r.st, r.i2)
 }
 
@@ -824,7 +828,9 @@ func (r Person) String() string {
 	return fmt.Sprintf("testpk2.Person{name:%v, age:%v, height:%v, phone:%v, addr:%v, list:%v, seq:%v, blob:%v}", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
-func (r Person) AsTuple() fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte] {
+type TupleReprPerson = fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte]
+
+func (r Person) AsTuple() TupleReprPerson {
 	return as.Tuple8(r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
@@ -1030,7 +1036,9 @@ func (r Wallet) String() string {
 	return fmt.Sprintf("testpk2.Wallet{owner:%v, amount:%v}", r.owner, r.amount)
 }
 
-func (r Wallet) AsTuple() fp.Tuple2[Person, int64] {
+type TupleReprWallet = fp.Tuple2[Person, int64]
+
+func (r Wallet) AsTuple() TupleReprWallet {
 	return as.Tuple2(r.owner, r.amount)
 }
 
@@ -1140,7 +1148,11 @@ func (r Entry[A, B, C, D]) String() string {
 	return fmt.Sprintf("testpk2.Entry{name:%v, value:%v, tuple:%v}", r.name, r.value, r.tuple)
 }
 
-func (r Entry[A, B, C, D]) AsTuple() fp.Tuple3[string, A, fp.Tuple2[A, B]] {
+type TupleReprEntry[A comparable, B any, C fmt.Stringer, D interface {
+	Hello() string
+}] = fp.Tuple3[string, A, fp.Tuple2[A, B]]
+
+func (r Entry[A, B, C, D]) AsTuple() TupleReprEntry[A, B, C, D] {
 	return as.Tuple3(r.name, r.value, r.tuple)
 }
 
@@ -1269,7 +1281,9 @@ func (r Key) String() string {
 	return fmt.Sprintf("testpk2.Key{a:%v, b:%v, c:%v}", r.a, r.b, r.c)
 }
 
-func (r Key) AsTuple() fp.Tuple3[int, float32, []byte] {
+type TupleReprKey = fp.Tuple3[int, float32, []byte]
+
+func (r Key) AsTuple() TupleReprKey {
 	return as.Tuple3(r.a, r.b, r.c)
 }
 
@@ -1390,7 +1404,9 @@ func (r Point) WithZ(v fp.Tuple2[int, int]) Point {
 	return r
 }
 
-func (r Point) AsTuple() fp.Tuple3[int, int, fp.Tuple2[int, int]] {
+type TupleReprPoint = fp.Tuple3[int, int, fp.Tuple2[int, int]]
+
+func (r Point) AsTuple() TupleReprPoint {
 	return as.Tuple3(r.x, r.y, r.z)
 }
 
@@ -1506,7 +1522,9 @@ func (r Greeting) String() string {
 	return fmt.Sprintf("testpk2.Greeting{hello:%v, language:%v}", r.hello, r.language)
 }
 
-func (r Greeting) AsTuple() fp.Tuple2[testpk1.World, string] {
+type TupleReprGreeting = fp.Tuple2[testpk1.World, string]
+
+func (r Greeting) AsTuple() TupleReprGreeting {
 	return as.Tuple2(r.hello, r.language)
 }
 
@@ -1687,7 +1705,9 @@ func (r Three) String() string {
 	return fmt.Sprintf("testpk2.Three{one:%v, two:%v, three:%v}", r.one, r.two, r.three)
 }
 
-func (r Three) AsTuple() fp.Tuple3[int, string, float64] {
+type TupleReprThree = fp.Tuple3[int, string, float64]
+
+func (r Three) AsTuple() TupleReprThree {
 	return as.Tuple3(r.one, r.two, r.three)
 }
 
@@ -1871,7 +1891,9 @@ func (r Tree) String() string {
 	return fmt.Sprintf("testpk2.Tree{root:%v}", r.root)
 }
 
-func (r Tree) AsTuple() fp.Tuple1[testpk1.Node] {
+type TupleReprTree = fp.Tuple1[testpk1.Node]
+
+func (r Tree) AsTuple() TupleReprTree {
 	return as.Tuple1(r.root)
 }
 
@@ -1965,7 +1987,7 @@ func (r AliasedStruct) AsMutable() testpk1.DefinedOtherPackageMutable {
 	return testpk1.DefinedOtherPackage(r).AsMutable()
 }
 
-func (r AliasedStruct) AsTuple() fp.Tuple3[string, string, string] {
+func (r AliasedStruct) AsTuple() testpk1.TupleReprDefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).AsTuple()
 }
 
@@ -2027,7 +2049,7 @@ func (r AliasedStruct2) AsMutable() testpk1.DefinedOtherPackageMutable {
 	return testpk1.Alias(r).AsMutable()
 }
 
-func (r AliasedStruct2) AsTuple() fp.Tuple3[string, string, string] {
+func (r AliasedStruct2) AsTuple() testpk1.TupleReprDefinedOtherPackage {
 	return testpk1.Alias(r).AsTuple()
 }
 
@@ -2087,7 +2109,7 @@ func (r GetterOverride) AsMutable() testpk1.DefinedOtherPackageMutable {
 	return testpk1.DefinedOtherPackage(r).AsMutable()
 }
 
-func (r GetterOverride) AsTuple() fp.Tuple3[string, string, string] {
+func (r GetterOverride) AsTuple() testpk1.TupleReprDefinedOtherPackage {
 	return testpk1.DefinedOtherPackage(r).AsTuple()
 }
 
@@ -2141,7 +2163,9 @@ func (r AliasTest) String() string {
 	return fmt.Sprintf("testpk2.AliasTest{ctx:%v, other:%v}", r.ctx, r.other)
 }
 
-func (r AliasTest) AsTuple() fp.Tuple2[testpk1.Pk1Context, Pk1Context] {
+type TupleReprAliasTest = fp.Tuple2[testpk1.Pk1Context, Pk1Context]
+
+func (r AliasTest) AsTuple() TupleReprAliasTest {
 	return as.Tuple2(r.ctx, r.other)
 }
 
@@ -2233,7 +2257,9 @@ func (r NotIgnored) String() string {
 	return fmt.Sprintf("testpk2.NotIgnored{ig:%v}", r.ig)
 }
 
-func (r NotIgnored) AsTuple() fp.Tuple1[int] {
+type TupleReprNotIgnored = fp.Tuple1[int]
+
+func (r NotIgnored) AsTuple() TupleReprNotIgnored {
 	return as.Tuple1(r.ig)
 }
 

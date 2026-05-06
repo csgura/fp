@@ -35,10 +35,12 @@ func (r EmbeddedStruct) String() string {
 	return fmt.Sprintf("mshowtest.EmbeddedStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
-func (r EmbeddedStruct) AsTuple() fp.Tuple2[string, struct {
+type TupleReprEmbeddedStruct = fp.Tuple2[string, struct {
 	Level int
 	Stage string
-}] {
+}]
+
+func (r EmbeddedStruct) AsTuple() TupleReprEmbeddedStruct {
 	return as.Tuple2(r.hello, r.world)
 }
 
@@ -163,10 +165,12 @@ func (r EmbeddedTypeParamStruct[T]) String() string {
 	return fmt.Sprintf("mshowtest.EmbeddedTypeParamStruct{hello:%v, world:%v}", r.hello, r.world)
 }
 
-func (r EmbeddedTypeParamStruct[T]) AsTuple() fp.Tuple2[string, struct {
+type TupleReprEmbeddedTypeParamStruct[T any] = fp.Tuple2[string, struct {
 	Level T
 	Stage string
-}] {
+}]
+
+func (r EmbeddedTypeParamStruct[T]) AsTuple() TupleReprEmbeddedTypeParamStruct[T] {
 	return as.Tuple2(r.hello, r.world)
 }
 

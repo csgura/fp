@@ -83,7 +83,9 @@ func (r Root) String() string {
 	return fmt.Sprintf("testjson.Root{a:%v, b:%v, c:%v, d:%v, e:%v, f:%v, g:%v, h:%v}", r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
 }
 
-func (r Root) AsTuple() fp.Tuple8[int, string, float64, bool, *int, []int, map[string]int, Child] {
+type TupleReprRoot = fp.Tuple8[int, string, float64, bool, *int, []int, map[string]int, Child]
+
+func (r Root) AsTuple() TupleReprRoot {
 	return as.Tuple8(r.a, r.b, r.c, r.d, r.e, r.f, r.g, r.h)
 }
 
@@ -466,7 +468,9 @@ func (r Child) String() string {
 	return fmt.Sprintf("testjson.Child{a:%v, b:%v}", r.a, r.b)
 }
 
-func (r Child) AsTuple() fp.Tuple2[map[string]any, any] {
+type TupleReprChild = fp.Tuple2[map[string]any, any]
+
+func (r Child) AsTuple() TupleReprChild {
 	return as.Tuple2(r.a, r.b)
 }
 
@@ -630,7 +634,9 @@ func (r Node) String() string {
 	return fmt.Sprintf("testjson.Node{name:%v, left:%v, right:%v}", r.name, r.left, r.right)
 }
 
-func (r Node) AsTuple() fp.Tuple3[string, *Node, *Node] {
+type TupleReprNode = fp.Tuple3[string, *Node, *Node]
+
+func (r Node) AsTuple() TupleReprNode {
 	return as.Tuple3(r.name, r.left, r.right)
 }
 
@@ -814,7 +820,9 @@ func (r Tree) String() string {
 	return fmt.Sprintf("testjson.Tree{root:%v}", r.root)
 }
 
-func (r Tree) AsTuple() fp.Tuple1[*Node] {
+type TupleReprTree = fp.Tuple1[*Node]
+
+func (r Tree) AsTuple() TupleReprTree {
 	return as.Tuple1(r.root)
 }
 
@@ -931,7 +939,9 @@ func (r Entry[V]) String() string {
 	return fmt.Sprintf("testjson.Entry{name:%v, value:%v}", r.name, r.value)
 }
 
-func (r Entry[V]) AsTuple() fp.Tuple2[string, V] {
+type TupleReprEntry[V any] = fp.Tuple2[string, V]
+
+func (r Entry[V]) AsTuple() TupleReprEntry[V] {
 	return as.Tuple2(r.name, r.value)
 }
 
@@ -1086,7 +1096,9 @@ func (r NotUsedParam[K, V]) String() string {
 	return fmt.Sprintf("testjson.NotUsedParam{param:%v, value:%v}", r.param, r.value)
 }
 
-func (r NotUsedParam[K, V]) AsTuple() fp.Tuple2[string, V] {
+type TupleReprNotUsedParam[K any, V any] = fp.Tuple2[string, V]
+
+func (r NotUsedParam[K, V]) AsTuple() TupleReprNotUsedParam[K, V] {
 	return as.Tuple2(r.param, r.value)
 }
 
@@ -1250,7 +1262,9 @@ func (r Movie) String() string {
 	return fmt.Sprintf("testjson.Movie{name:%v, casting:%v, notUsed:%v}", r.name, r.casting, r.notUsed)
 }
 
-func (r Movie) AsTuple() fp.Tuple3[string, Entry[string], NotUsedParam[int, string]] {
+type TupleReprMovie = fp.Tuple3[string, Entry[string], NotUsedParam[int, string]]
+
+func (r Movie) AsTuple() TupleReprMovie {
 	return as.Tuple3(r.name, r.casting, r.notUsed)
 }
 
@@ -1425,7 +1439,9 @@ func (r NoPrivate) String() string {
 	return fmt.Sprintf("testjson.NoPrivate{Root:%v}", r.Root)
 }
 
-func (r NoPrivate) AsTuple() fp.Tuple1[string] {
+type TupleReprNoPrivate = fp.Tuple1[string]
+
+func (r NoPrivate) AsTuple() TupleReprNoPrivate {
 	return as.Tuple1(r.Root)
 }
 
