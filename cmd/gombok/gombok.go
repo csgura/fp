@@ -231,8 +231,10 @@ func processGetter(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[str
 	w := ctx.w
 	workingPackage := ctx.workingPackage
 	if _, ok := ts.Tags.Get("@fp.Getter").Unapply(); ok {
-		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
-
+		allFields := applyFields(ts)
+		privateFields := allFields.Filter(func(v metafp.StructField) bool {
+			return !v.Public() || v.Embedded
+		})
 		genMethod = genPrivateGetters(ctx, privateFields, genMethod)
 	}
 
@@ -791,7 +793,10 @@ func processWith(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[strin
 	workingPackage := ctx.workingPackage
 
 	if _, ok := ts.Tags.Get("@fp.With").Unapply(); ok {
-		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
+		allFields := applyFields(ts)
+		privateFields := allFields.Filter(func(v metafp.StructField) bool {
+			return !v.Public() || v.Embedded
+		})
 
 		genMethod = genPrivateWiths(ctx, privateFields, genMethod)
 	}
@@ -1396,8 +1401,10 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 
 	if _, ok := ts.Tags.Get("@fp.Value").Unapply(); ok {
 
-		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
 		allFields := applyFields(ts)
+		privateFields := allFields.Filter(func(v metafp.StructField) bool {
+			return !v.Public() || v.Embedded
+		})
 
 		if allFields.Size() == 0 {
 			return genMethod
