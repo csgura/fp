@@ -1,6 +1,7 @@
 package docexample
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -111,3 +112,9 @@ type OptionalInt fp.Option[int]
 
 // @fp.Deref
 type OptionalStringer[T fmt.Stringer] fp.Option[T]
+
+// @fp.Value
+type EmbedContext struct {
+	context.Context
+	hello string
+}
