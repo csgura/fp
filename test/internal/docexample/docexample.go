@@ -126,3 +126,15 @@ type GrandContext struct {
 	world string
 	email string
 }
+
+// @fp.Value
+type privateContext struct {
+	hello string
+}
+
+// @fp.Value
+type EmbedPrivate struct {
+	privateContext
+	world string
+	email string
+}

@@ -1414,3 +1414,205 @@ func (r GrandContextMutable) AsImmutable() GrandContext {
 		email:        r.Email,
 	}
 }
+
+func (r privateContext) Hello() string {
+	return r.hello
+}
+
+func (r privateContext) WithHello(v string) privateContext {
+	r.hello = v
+	return r
+}
+
+func (r privateContext) String() string {
+	return fmt.Sprintf("docexample.privateContext{hello:%v}", r.hello)
+}
+
+type TupleReprprivateContext = fp.Tuple1[string]
+
+func (r privateContext) AsTuple() TupleReprprivateContext {
+	return as.Tuple1(r.hello)
+}
+
+func (r privateContext) Unapply() string {
+	return r.hello
+}
+
+func (r privateContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["hello"] = r.hello
+	return m
+}
+
+type privateContextBuilder privateContext
+
+func (r privateContextBuilder) Build() privateContext {
+	return privateContext(r)
+}
+
+func (r privateContext) Builder() privateContextBuilder {
+	return privateContextBuilder(r)
+}
+
+func (r privateContextBuilder) Hello(v string) privateContextBuilder {
+	r.hello = v
+	return r
+}
+
+func (r privateContextBuilder) FromTuple(t fp.Tuple1[string]) privateContextBuilder {
+	r.hello = t.I1
+	return r
+}
+
+func (r privateContextBuilder) Apply(hello string) privateContextBuilder {
+	r.hello = hello
+	return r
+}
+
+func (r privateContextBuilder) FromMap(m map[string]any) privateContextBuilder {
+
+	if v, ok := m["hello"].(string); ok {
+		r.hello = v
+	}
+
+	return r
+}
+
+type privateContextMutable struct {
+	Hello string
+}
+
+func (r privateContext) AsMutable() privateContextMutable {
+	return privateContextMutable{
+		Hello: r.hello,
+	}
+}
+
+func (r privateContextMutable) AsImmutable() privateContext {
+	return privateContext{
+		hello: r.Hello,
+	}
+}
+
+func (r EmbedPrivate) PrivateContext() privateContext {
+	return r.privateContext
+}
+
+func (r EmbedPrivate) World() string {
+	return r.world
+}
+
+func (r EmbedPrivate) Email() string {
+	return r.email
+}
+
+func (r EmbedPrivate) GetprivateContext() privateContext {
+	return r.privateContext
+}
+
+func (r EmbedPrivate) GetBase() privateContext {
+	return r.privateContext
+}
+
+func (r EmbedPrivate) WithPrivateContext(v privateContext) EmbedPrivate {
+	r.privateContext = v
+	return r
+}
+
+func (r EmbedPrivate) WithWorld(v string) EmbedPrivate {
+	r.world = v
+	return r
+}
+
+func (r EmbedPrivate) WithEmail(v string) EmbedPrivate {
+	r.email = v
+	return r
+}
+
+func (r EmbedPrivate) WithBase(v privateContext) EmbedPrivate {
+	r.privateContext = v
+	return r
+}
+
+func (r EmbedPrivate) WithHello(v string) EmbedPrivate {
+	r.hello = v
+	return r
+}
+
+func (r EmbedPrivate) String() string {
+	return fmt.Sprintf("docexample.EmbedPrivate{privateContext:%v, world:%v, email:%v}", r.privateContext, r.world, r.email)
+}
+
+type TupleReprEmbedPrivate = fp.Tuple3[privateContext, string, string]
+
+func (r EmbedPrivate) AsTuple() TupleReprEmbedPrivate {
+	return as.Tuple3(r.privateContext, r.world, r.email)
+}
+
+func (r EmbedPrivate) Unapply() (privateContext, string, string) {
+	return r.privateContext, r.world, r.email
+}
+
+func (r EmbedPrivate) AsMap() map[string]any {
+	m := map[string]any{}
+	m["privateContext"] = r.privateContext
+	m["world"] = r.world
+	m["email"] = r.email
+	return m
+}
+
+type EmbedPrivateBuilder EmbedPrivate
+
+func (r EmbedPrivateBuilder) Build() EmbedPrivate {
+	return EmbedPrivate(r)
+}
+
+func (r EmbedPrivate) Builder() EmbedPrivateBuilder {
+	return EmbedPrivateBuilder(r)
+}
+
+func (r EmbedPrivateBuilder) PrivateContext(v privateContext) EmbedPrivateBuilder {
+	r.privateContext = v
+	return r
+}
+
+func (r EmbedPrivateBuilder) World(v string) EmbedPrivateBuilder {
+	r.world = v
+	return r
+}
+
+func (r EmbedPrivateBuilder) Email(v string) EmbedPrivateBuilder {
+	r.email = v
+	return r
+}
+
+func (r EmbedPrivateBuilder) FromTuple(t fp.Tuple3[privateContext, string, string]) EmbedPrivateBuilder {
+	r.privateContext = t.I1
+	r.world = t.I2
+	r.email = t.I3
+	return r
+}
+
+func (r EmbedPrivateBuilder) Apply(privateContext privateContext, world string, email string) EmbedPrivateBuilder {
+	r.privateContext = privateContext
+	r.world = world
+	r.email = email
+	return r
+}
+
+func (r EmbedPrivateBuilder) FromMap(m map[string]any) EmbedPrivateBuilder {
+
+	if v, ok := m["privateContext"].(privateContext); ok {
+		r.privateContext = v
+	}
+
+	if v, ok := m["world"].(string); ok {
+		r.world = v
+	}
+
+	if v, ok := m["email"].(string); ok {
+		r.email = v
+	}
+
+	return r
+}

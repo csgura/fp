@@ -1460,9 +1460,14 @@ func genTypeClassMethod(ctx TaggedStructContext, derives fp.Seq[metafp.TypeClass
 }
 
 func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
+
 	ts := ctx.ts
 	w := ctx.w
 	workingPackage := ctx.workingPackage
+
+	if ts.HasPrivateEmbedField() {
+		return genMethod
+	}
 
 	allFields := applyFields(ts)
 
@@ -1546,18 +1551,19 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 	}
 
-	if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
+	if !ts.HasPrivateEmbedField() {
+		if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
 
-		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-			fname := publicName(f.Name)
-			if fname != f.Name && ts.GetField(fname).IsDefined() {
-				fname = fname + "2"
-			}
+			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+				fname := publicName(f.Name)
+				if fname != f.Name && ts.GetField(fname).IsDefined() {
+					fname = fname + "2"
+				}
 
-			return fmt.Sprintf(`%s : r.%s`, f.Name, fname)
-		}).MakeString(",\n")
+				return fmt.Sprintf(`%s : r.%s`, f.Name, fname)
+			}).MakeString(",\n")
 
-		fmt.Fprintf(w, `
+			fmt.Fprintf(w, `
 					func(r %s) AsImmutable() %s {
 						return %s{
 							%s,
@@ -1565,8 +1571,9 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 					}
 
 				`, mutablereceiver, valuereceiver,
-			valuereceiver, fields,
-		)
+				valuereceiver, fields,
+			)
+		}
 	}
 
 	return genMethod

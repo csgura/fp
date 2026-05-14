@@ -67,6 +67,12 @@ func (r TaggedStruct) GetField(name string) fp.Option[StructField] {
 	})
 }
 
+func (r TaggedStruct) HasPrivateEmbedField() bool {
+	return r.Fields.Find(func(v StructField) bool {
+		return v.Embedded && !v.Public()
+	}).IsDefined()
+}
+
 type TypeInfoExpr struct {
 	Type TypeInfo
 	Expr fp.Option[ast.Expr]
