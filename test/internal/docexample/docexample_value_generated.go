@@ -1144,6 +1144,31 @@ func (r EmbedContext) WithUser(v User) EmbedContext {
 	return r
 }
 
+func (r EmbedContext) WithName(v string) EmbedContext {
+	r.name = v
+	return r
+}
+
+func (r EmbedContext) WithEmail(v fp.Option[string]) EmbedContext {
+	r.email = v
+	return r
+}
+
+func (r EmbedContext) WithSomeEmail(v string) EmbedContext {
+	r.email = option.Some(v)
+	return r
+}
+
+func (r EmbedContext) WithNoneEmail() EmbedContext {
+	r.email = option.None[string]()
+	return r
+}
+
+func (r EmbedContext) WithActive(v bool) EmbedContext {
+	r.active = v
+	return r
+}
+
 func (r EmbedContext) String() string {
 	return fmt.Sprintf("docexample.EmbedContext{Context:%v, User:%v, hello:%v}", r.Context, r.User, r.hello)
 }
@@ -1231,5 +1256,161 @@ func (r EmbedContextMutable) AsImmutable() EmbedContext {
 		Context: r.Context,
 		User:    r.User,
 		hello:   r.Hello,
+	}
+}
+
+func (r GrandContext) World() string {
+	return r.world
+}
+
+func (r GrandContext) Email() string {
+	return r.email
+}
+
+func (r GrandContext) GetEmbedContext() EmbedContext {
+	return r.EmbedContext
+}
+
+func (r GrandContext) GetBase() EmbedContext {
+	return r.EmbedContext
+}
+
+func (r GrandContext) WithWorld(v string) GrandContext {
+	r.world = v
+	return r
+}
+
+func (r GrandContext) WithEmail(v string) GrandContext {
+	r.email = v
+	return r
+}
+
+func (r GrandContext) WithEmbedContext(v EmbedContext) GrandContext {
+	r.EmbedContext = v
+	return r
+}
+
+func (r GrandContext) WithBase(v EmbedContext) GrandContext {
+	r.EmbedContext = v
+	return r
+}
+
+func (r GrandContext) WithContext(v context.Context) GrandContext {
+	r.Context = v
+	return r
+}
+
+func (r GrandContext) WithUser(v User) GrandContext {
+	r.User = v
+	return r
+}
+
+func (r GrandContext) WithHello(v string) GrandContext {
+	r.hello = v
+	return r
+}
+
+func (r GrandContext) WithName(v string) GrandContext {
+	r.name = v
+	return r
+}
+
+func (r GrandContext) WithActive(v bool) GrandContext {
+	r.active = v
+	return r
+}
+
+func (r GrandContext) String() string {
+	return fmt.Sprintf("docexample.GrandContext{EmbedContext:%v, world:%v, email:%v}", r.EmbedContext, r.world, r.email)
+}
+
+type TupleReprGrandContext = fp.Tuple3[EmbedContext, string, string]
+
+func (r GrandContext) AsTuple() TupleReprGrandContext {
+	return as.Tuple3(r.EmbedContext, r.world, r.email)
+}
+
+func (r GrandContext) Unapply() (EmbedContext, string, string) {
+	return r.EmbedContext, r.world, r.email
+}
+
+func (r GrandContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["EmbedContext"] = r.EmbedContext
+	m["world"] = r.world
+	m["email"] = r.email
+	return m
+}
+
+type GrandContextBuilder GrandContext
+
+func (r GrandContextBuilder) Build() GrandContext {
+	return GrandContext(r)
+}
+
+func (r GrandContext) Builder() GrandContextBuilder {
+	return GrandContextBuilder(r)
+}
+
+func (r GrandContextBuilder) World(v string) GrandContextBuilder {
+	r.world = v
+	return r
+}
+
+func (r GrandContextBuilder) Email(v string) GrandContextBuilder {
+	r.email = v
+	return r
+}
+
+func (r GrandContextBuilder) FromTuple(t fp.Tuple3[EmbedContext, string, string]) GrandContextBuilder {
+	r.EmbedContext = t.I1
+	r.world = t.I2
+	r.email = t.I3
+	return r
+}
+
+func (r GrandContextBuilder) Apply(EmbedContext EmbedContext, world string, email string) GrandContextBuilder {
+	r.EmbedContext = EmbedContext
+	r.world = world
+	r.email = email
+	return r
+}
+
+func (r GrandContextBuilder) FromMap(m map[string]any) GrandContextBuilder {
+
+	if v, ok := m["EmbedContext"].(EmbedContext); ok {
+		r.EmbedContext = v
+	}
+
+	if v, ok := m["world"].(string); ok {
+		r.world = v
+	}
+
+	if v, ok := m["email"].(string); ok {
+		r.email = v
+	}
+
+	return r
+}
+
+type GrandContextMutable struct {
+	EmbedContext
+	World string
+	Email string
+}
+
+func (r GrandContext) AsMutable() GrandContextMutable {
+	return GrandContextMutable{
+		EmbedContext: r.EmbedContext,
+		World:        r.world,
+		Email:        r.email,
+	}
+}
+
+func (r GrandContextMutable) AsImmutable() GrandContext {
+	return GrandContext{
+		EmbedContext: r.EmbedContext,
+		world:        r.World,
+		email:        r.Email,
 	}
 }

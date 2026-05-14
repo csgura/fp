@@ -61,6 +61,12 @@ func (r TaggedStruct) PackagedName(w genfp.ImportSet, workingPackage *types.Pack
 	return fmt.Sprintf("%s.%s", pk, r.Name)
 }
 
+func (r TaggedStruct) GetField(name string) fp.Option[StructField] {
+	return r.Fields.Find(func(v StructField) bool {
+		return v.Name == name
+	})
+}
+
 type TypeInfoExpr struct {
 	Type TypeInfo
 	Expr fp.Option[ast.Expr]

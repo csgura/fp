@@ -300,6 +300,22 @@ func removePkgPrefix(v string) string {
 	return v
 }
 
+func convVar(is genfp.ImportSet, workingPkg genfp.WorkingPackage, vprefix string) func(i int, t *types.Var) genfp.VarInfo {
+	return func(i int, t *types.Var) genfp.VarInfo {
+		varname := t.Name()
+		if varname == "" {
+			varname = fmt.Sprintf("%s%d", vprefix, i)
+		}
+
+		return genfp.VarInfo{
+			Index: i,
+			Name:  varname,
+			Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+				Type: metafp.GetTypeInfo(t.Type()),
+			}),
+		}
+	}
+}
 func toInterfaceInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp.TypeInfo) fp.Try[genfp.InterfaceInfo] {
 	name := ti.Name()
 
@@ -309,26 +325,10 @@ func toInterfaceInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti met
 		ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
 		methods := seq.Map(ml, func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
 			args := v.I2.Signature().Params()
-			convVar := func(vprefix string) func(i int, t *types.Var) genfp.VarInfo {
-				return func(i int, t *types.Var) genfp.VarInfo {
-					varname := t.Name()
-					if varname == "" {
-						varname = fmt.Sprintf("%s%d", vprefix, i)
-					}
-
-					return genfp.VarInfo{
-						Index: i,
-						Name:  varname,
-						Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-							Type: metafp.GetTypeInfo(t.Type()),
-						}),
-					}
-				}
-			}
-			argsDef := iterate(args.Len(), args.At, convVar("arg"))
+			argsDef := iterate(args.Len(), args.At, convVar(is, workingPkg, "arg"))
 
 			rets := v.I2.Signature().Results()
-			retDef := iterate(rets.Len(), rets.At, convVar("ret"))
+			retDef := iterate(rets.Len(), rets.At, convVar(is, workingPkg, "ret"))
 
 			return genfp.InterfaceMethodInfo{
 				Name:       v.I1,
@@ -729,6 +729,22 @@ func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[g
 			case []genfp.VarInfo:
 				return seq.Map(rv, func(v genfp.VarInfo) string {
 					return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPkg, v.Type.Type))
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+		},
+		"VarName": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.VarInfo:
+				return rv.Name
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					return rv.Name
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					return v.Name
 				}).MakeString(",")
 			}
 			return fmt.Sprint(v)

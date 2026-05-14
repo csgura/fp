@@ -162,6 +162,12 @@ func MapKey[KA, KB, V any](s fp.Iterator[fp.Tuple2[KA, V]], f func(KA) KB) fp.It
 	})
 }
 
+func FilterKey[K, V any](s fp.Iterator[fp.Tuple2[K, V]], f func(K) bool) fp.Iterator[fp.Tuple2[K, V]] {
+	return s.Filter(func(t fp.Tuple2[K, V]) bool {
+		return f(t.I1)
+	})
+}
+
 func FilterMapKey[KA, KB, V any](s fp.Iterator[fp.Tuple2[KA, V]], f func(KA) fp.Option[KB]) fp.Iterator[fp.Tuple2[KB, V]] {
 	return FilterMap(s, func(v fp.Tuple2[KA, V]) fp.Option[fp.Tuple2[KB, V]] {
 		ov := f(v.I1)
@@ -181,6 +187,16 @@ func MapValue[K, VA, VB any](s fp.Iterator[fp.Tuple2[K, VA]], f func(VA) VB) fp.
 			I1: v.I1,
 			I2: f(v.I2),
 		}
+	})
+}
+
+func FilterValue[K, V any](s fp.Iterator[fp.Tuple2[K, V]], f func(V) bool) fp.Iterator[fp.Tuple2[K, V]] {
+	return FilterMap(s, func(v fp.Tuple2[K, V]) fp.Option[fp.Tuple2[K, V]] {
+		ov := f(v.I2)
+		if ov {
+			return fp.Some(v)
+		}
+		return fp.None[fp.Tuple2[K, V]]()
 	})
 }
 

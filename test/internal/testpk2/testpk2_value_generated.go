@@ -2,6 +2,7 @@
 package testpk2
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
@@ -14,6 +15,7 @@ import (
 	"os"
 	rf "reflect"
 	"sync/atomic"
+	"time"
 )
 
 func (r Hello) World() string {
@@ -2241,6 +2243,250 @@ func (r AliasTestMutable) AsImmutable() AliasTest {
 	return AliasTest{
 		ctx:   r.Ctx,
 		other: r.Other,
+	}
+}
+
+func (r EmbedOtherPackage) Universe() string {
+	return r.universe
+}
+
+func (r EmbedOtherPackage) GetWorld() testpk1.World {
+	return r.World
+}
+
+func (r EmbedOtherPackage) GetBase() testpk1.World {
+	return r.World
+}
+
+func (r EmbedOtherPackage) WithUniverse(v string) EmbedOtherPackage {
+	r.universe = v
+	return r
+}
+
+func (r EmbedOtherPackage) WithWorld(v testpk1.World) EmbedOtherPackage {
+	r.World = v
+	return r
+}
+
+func (r EmbedOtherPackage) WithBase(v testpk1.World) EmbedOtherPackage {
+	r.World = v
+	return r
+}
+
+func (r EmbedOtherPackage) WithMessage(v string) EmbedOtherPackage {
+	r.World = r.World.WithMessage(v)
+	return r
+}
+
+func (r EmbedOtherPackage) WithTimestamp(v time.Time) EmbedOtherPackage {
+	r.World = r.World.WithTimestamp(v)
+	return r
+}
+
+func (r EmbedOtherPackage) String() string {
+	return fmt.Sprintf("testpk2.EmbedOtherPackage{World:%v, universe:%v}", r.World, r.universe)
+}
+
+type TupleReprEmbedOtherPackage = fp.Tuple2[testpk1.World, string]
+
+func (r EmbedOtherPackage) AsTuple() TupleReprEmbedOtherPackage {
+	return as.Tuple2(r.World, r.universe)
+}
+
+func (r EmbedOtherPackage) Unapply() (testpk1.World, string) {
+	return r.World, r.universe
+}
+
+func (r EmbedOtherPackage) AsMap() map[string]any {
+	m := map[string]any{}
+	m["World"] = r.World
+	m["universe"] = r.universe
+	return m
+}
+
+type EmbedOtherPackageBuilder EmbedOtherPackage
+
+func (r EmbedOtherPackageBuilder) Build() EmbedOtherPackage {
+	return EmbedOtherPackage(r)
+}
+
+func (r EmbedOtherPackage) Builder() EmbedOtherPackageBuilder {
+	return EmbedOtherPackageBuilder(r)
+}
+
+func (r EmbedOtherPackageBuilder) Universe(v string) EmbedOtherPackageBuilder {
+	r.universe = v
+	return r
+}
+
+func (r EmbedOtherPackageBuilder) FromTuple(t fp.Tuple2[testpk1.World, string]) EmbedOtherPackageBuilder {
+	r.World = t.I1
+	r.universe = t.I2
+	return r
+}
+
+func (r EmbedOtherPackageBuilder) Apply(World testpk1.World, universe string) EmbedOtherPackageBuilder {
+	r.World = World
+	r.universe = universe
+	return r
+}
+
+func (r EmbedOtherPackageBuilder) FromMap(m map[string]any) EmbedOtherPackageBuilder {
+
+	if v, ok := m["World"].(testpk1.World); ok {
+		r.World = v
+	}
+
+	if v, ok := m["universe"].(string); ok {
+		r.universe = v
+	}
+
+	return r
+}
+
+type EmbedOtherPackageMutable struct {
+	testpk1.World
+	Universe string
+}
+
+func (r EmbedOtherPackage) AsMutable() EmbedOtherPackageMutable {
+	return EmbedOtherPackageMutable{
+		World:    r.World,
+		Universe: r.universe,
+	}
+}
+
+func (r EmbedOtherPackageMutable) AsImmutable() EmbedOtherPackage {
+	return EmbedOtherPackage{
+		World:    r.World,
+		universe: r.Universe,
+	}
+}
+
+func (r ThirdContext) Universe() string {
+	return r.universe
+}
+
+func (r ThirdContext) GetSecondContext() testpk1.SecondContext {
+	return r.SecondContext
+}
+
+func (r ThirdContext) GetBase() testpk1.SecondContext {
+	return r.SecondContext
+}
+
+func (r ThirdContext) WithUniverse(v string) ThirdContext {
+	r.universe = v
+	return r
+}
+
+func (r ThirdContext) WithSecondContext(v testpk1.SecondContext) ThirdContext {
+	r.SecondContext = v
+	return r
+}
+
+func (r ThirdContext) WithBase(v testpk1.SecondContext) ThirdContext {
+	r.SecondContext = v
+	return r
+}
+
+func (r ThirdContext) WithBaseContext(v testpk1.BaseContext) ThirdContext {
+	r.SecondContext = r.SecondContext.WithBaseContext(v)
+	return r
+}
+
+func (r ThirdContext) WithContext(v context.Context) ThirdContext {
+	r.SecondContext = r.SecondContext.WithContext(v)
+	return r
+}
+
+func (r ThirdContext) WithHello(v string) ThirdContext {
+	r.SecondContext = r.SecondContext.WithHello(v)
+	return r
+}
+
+func (r ThirdContext) WithWorld(v string) ThirdContext {
+	r.SecondContext = r.SecondContext.WithWorld(v)
+	return r
+}
+
+func (r ThirdContext) String() string {
+	return fmt.Sprintf("testpk2.ThirdContext{SecondContext:%v, universe:%v}", r.SecondContext, r.universe)
+}
+
+type TupleReprThirdContext = fp.Tuple2[testpk1.SecondContext, string]
+
+func (r ThirdContext) AsTuple() TupleReprThirdContext {
+	return as.Tuple2(r.SecondContext, r.universe)
+}
+
+func (r ThirdContext) Unapply() (testpk1.SecondContext, string) {
+	return r.SecondContext, r.universe
+}
+
+func (r ThirdContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["SecondContext"] = r.SecondContext
+	m["universe"] = r.universe
+	return m
+}
+
+type ThirdContextBuilder ThirdContext
+
+func (r ThirdContextBuilder) Build() ThirdContext {
+	return ThirdContext(r)
+}
+
+func (r ThirdContext) Builder() ThirdContextBuilder {
+	return ThirdContextBuilder(r)
+}
+
+func (r ThirdContextBuilder) Universe(v string) ThirdContextBuilder {
+	r.universe = v
+	return r
+}
+
+func (r ThirdContextBuilder) FromTuple(t fp.Tuple2[testpk1.SecondContext, string]) ThirdContextBuilder {
+	r.SecondContext = t.I1
+	r.universe = t.I2
+	return r
+}
+
+func (r ThirdContextBuilder) Apply(SecondContext testpk1.SecondContext, universe string) ThirdContextBuilder {
+	r.SecondContext = SecondContext
+	r.universe = universe
+	return r
+}
+
+func (r ThirdContextBuilder) FromMap(m map[string]any) ThirdContextBuilder {
+
+	if v, ok := m["SecondContext"].(testpk1.SecondContext); ok {
+		r.SecondContext = v
+	}
+
+	if v, ok := m["universe"].(string); ok {
+		r.universe = v
+	}
+
+	return r
+}
+
+type ThirdContextMutable struct {
+	testpk1.SecondContext
+	Universe string
+}
+
+func (r ThirdContext) AsMutable() ThirdContextMutable {
+	return ThirdContextMutable{
+		SecondContext: r.SecondContext,
+		Universe:      r.universe,
+	}
+}
+
+func (r ThirdContextMutable) AsImmutable() ThirdContext {
+	return ThirdContext{
+		SecondContext: r.SecondContext,
+		universe:      r.Universe,
 	}
 }
 

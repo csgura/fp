@@ -582,7 +582,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 		uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
 
-		if !isMethodDefined(workingPackage, builderTypeName, uname) {
+		if ts.GetField(uname).IsEmpty() && !isMethodDefined(workingPackage, builderTypeName, uname) {
 			ftp := f.TypeName(w, workingPackage)
 
 			fmt.Fprintf(w, `
@@ -816,9 +816,6 @@ func genPublicWiths(
 	anno metafp.Annotation,
 	genMethod fp.Set[string],
 ) fp.Set[string] {
-	ts := ctx.ts
-	w := ctx.w
-	workingPackage := ctx.workingPackage
 
 	if publicFields.Size() == 0 {
 		return genMethod
@@ -827,88 +824,176 @@ func genPublicWiths(
 	//valuetpdec := ""
 
 	//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-	valuetp := ts.Info.TypeParamIns(w, workingPackage)
-
-	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
 	publicFields.Foreach(func(f metafp.StructField) {
 
-		funcName := fmt.Sprintf("With%s", f.Name)
-		genMethod = genWith(ctx, funcName, f, anno, genMethod)
-		if f.Embedded && f.FieldIndex == 0 {
-			genMethod = genWith(ctx, "WithBase", f, anno, genMethod)
+		genMethod = genWith(ctx, f.Name, f, anno, genMethod)
+		if f.Embedded && f.FieldIndex == 0 && !f.FieldType.IsOption() {
+			genMethod = genWith(ctx, "Base", f, anno, genMethod)
 		}
 
-		if f.FieldType.IsOption() {
-			optiont := w.TypeName(workingPackage, f.FieldType.TypeArgs.Head().Get().Type)
-			optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
-
-			fnName := "WithSome" + f.Name
-			if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
-
-				fmt.Fprintf(w, `
-							func (r %s) %s(v %s) %s {
-								r.%s = %s.Some(v)
-								return r
-							}
-						`, valuereceiver, fnName, optiont, valuereceiver, f.Name, optionpk)
-				genMethod = genMethod.Incl(fnName)
-
-			}
-
-			fnName = "WithNone" + f.Name
-			if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
-
-				fmt.Fprintf(w, `
-							func (r %s) %s() %s {
-								r.%s = %s.None[%s]()
-								return r
-							}
-						`, valuereceiver, fnName, valuereceiver, f.Name, optionpk, optiont)
-				genMethod = genMethod.Incl(fnName)
-
-			}
+		if f.Embedded {
+			genMethod = exposeWith(ctx, f, anno, genMethod)
 		}
+
 	})
+	return genMethod
+}
+
+func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annotation, genMethod fp.Set[string]) fp.Set[string] {
+
+	if f.FieldType.IsSamePkg(ctx.workingPackage) {
+		embedFieldList := ctx.GeneratedWithFuncList(f.FieldType)
+		for _, ef := range embedFieldList {
+			genMethod = genWith(ctx, ef.Name, ef, anno, genMethod)
+		}
+	} else {
+		allMethods := f.FieldType.Method.Iterator()
+		withMethods := iterator.FilterKey(allMethods, func(k string) bool {
+			return strings.HasPrefix(k, "With")
+		})
+		checkedMethods := iterator.FilterValue(withMethods, func(v *types.Func) bool {
+			if v.Signature().Results().Len() != 1 {
+				return false
+			}
+
+			rett := metafp.GetTypeInfo(v.Signature().Results().At(0).Type())
+
+			return rett.ID == f.FieldType.ID
+		})
+
+		w := ctx.w
+
+		ts := ctx.ts
+
+		workingPackage := ctx.workingPackage
+		valuetp := ts.Info.TypeParamIns(w, workingPackage)
+
+		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+
+		methods := iterator.Sort(checkedMethods, ord.Key[string, *types.Func](ord.Given[string]()))
+		for _, v := range methods {
+			func() {
+				withName := v.I1
+				if ts.Info.Method.Get(withName).IsEmpty() && !genMethod.Contains(withName) {
+
+					if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
+						if ts.RhsType.Get().Method.Contains(withName) {
+							return
+						}
+					}
+
+					//ftp := f.TypeName(w, workingPackage)
+					args := v.I2.Signature().Params()
+
+					argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg")).Widen()
+
+					params := map[string]any{
+						"receiver": valuereceiver,
+						"withfunc": withName,
+						"args":     argsDef,
+						"field":    f,
+					}
+					w.Render(`
+						func (r {{.receiver}}) {{.withfunc}}({{.args | VarDecl }}) {{.receiver}} {
+							r.{{.field.Name}} = r.{{.field.Name}}.{{.withfunc}}({{.args | VarName}})
+							return r
+						}
+					`, templFunc(w, workingPackage, nil, ctx.summCtx), params)
+
+					genMethod = genMethod.Incl(withName)
+				}
+			}()
+
+		}
+
+		// embedsEmbdes := f.FieldType.Fields().Filter(func(v metafp.StructField) bool {
+		// 	return v.Embedded
+		// })
+		// for _, e := range embedsEmbdes {
+		// 	genMethod = exposeWith(ctx, e, anno, genMethod)
+		// }
+		//		slice.FilterMapValue(methods, func(v VA) fp.Option[VB] {})
+		/*
+					func (r EmbedOtherPackage) WithMessage(v string) EmbedOtherPackage {
+				r.World = r.World.WithMessage(v)
+				return r
+			}
+		*/
+	}
 	return genMethod
 }
 
 func genWith(
 	ctx TaggedStructContext,
-	withName string,
+	fieldName string,
 	f metafp.StructField,
-
 	anno metafp.Annotation,
 	genMethod fp.Set[string],
 ) fp.Set[string] {
 	ts := ctx.ts
 	w := ctx.w
 	workingPackage := ctx.workingPackage
+	valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
-	if ts.Info.Method.Get(withName).IsEmpty() && !genMethod.Contains(withName) {
+	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
 
-		if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
-			if ts.RhsType.Get().Method.Contains(withName) {
-				return genMethod
+	func() {
+		withName := fmt.Sprintf("With%s", publicName(fieldName))
+		if ts.Info.Method.Get(withName).IsEmpty() && !genMethod.Contains(withName) {
+
+			if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
+				if ts.RhsType.Get().Method.Contains(withName) {
+					return
+				}
 			}
-		}
 
-		valuetp := ts.Info.TypeParamIns(w, workingPackage)
+			ftp := f.TypeName(w, workingPackage)
 
-		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
-
-		ftp := f.TypeName(w, workingPackage)
-
-		fmt.Fprintf(w, `
+			fmt.Fprintf(w, `
 						func (r %s) %s(v %s) %s {
 							r.%s = v
 							return r
 						}
 					`, valuereceiver, withName, ftp, valuereceiver,
-			f.Name,
-		)
+				f.Name,
+			)
 
-		genMethod = genMethod.Incl(withName)
+			genMethod = genMethod.Incl(withName)
+		}
+	}()
+
+	fmine := ts.GetField(fieldName).OrElse(f)
+
+	if f.FieldType.IsOption() && fmine.FieldType.ID == f.FieldType.ID {
+		optiont := w.TypeName(workingPackage, f.FieldType.TypeArgs.Head().Get().Type)
+		optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
+
+		fnName := "WithSome" + publicName(fieldName)
+		if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+
+			fmt.Fprintf(w, `
+							func (r %s) %s(v %s) %s {
+								r.%s = %s.Some(v)
+								return r
+							}
+						`, valuereceiver, fnName, optiont, valuereceiver, fieldName, optionpk)
+			genMethod = genMethod.Incl(fnName)
+
+		}
+
+		fnName = "WithNone" + publicName(fieldName)
+		if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+
+			fmt.Fprintf(w, `
+							func (r %s) %s() %s {
+								r.%s = %s.None[%s]()
+								return r
+							}
+						`, valuereceiver, fnName, valuereceiver, fieldName, optionpk, optiont)
+			genMethod = genMethod.Incl(fnName)
+
+		}
 	}
 	return genMethod
 }
@@ -916,13 +1001,14 @@ func genWith(
 func processWith(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
 	ts := ctx.ts
 
-	if _, ok := ts.Tags.Get("@fp.With").Unapply(); ok {
+	if anno, ok := ts.Tags.Get("@fp.With").Unapply(); ok {
 		allFields := applyFields(ts)
-		privateFields := allFields.Filter(func(v metafp.StructField) bool {
-			return !v.Public() || v.Embedded
+		privateFields := ts.Fields.FilterNot(metafp.StructField.Public)
+		embedField := allFields.Filter(func(v metafp.StructField) bool {
+			return v.Embedded
 		})
-
 		genMethod = genPrivateWiths(ctx, privateFields, genMethod)
+		genMethod = genPublicWiths(ctx, embedField, anno, genMethod)
 	}
 
 	if anno, ok := ts.Tags.Get("@fp.WithPubField").Unapply(); ok {
@@ -1066,6 +1152,7 @@ type TaggedStructContext struct {
 	w              genfp.Writer
 	workingPackage genfp.WorkingPackage
 	ts             metafp.TaggedStruct
+	others         fp.Seq[metafp.TaggedStruct]
 	summCtx        *TypeClassSummonContext
 	derives        fp.Seq[metafp.TypeClassDerive]
 }
@@ -1082,6 +1169,7 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 			w:              w,
 			workingPackage: workingPackage,
 			ts:             ts,
+			others:         st,
 			derives:        stDerives,
 			summCtx:        summonCtx,
 		}
@@ -1100,6 +1188,44 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 
 	})
 
+}
+
+func (r TaggedStructContext) GeneratedWithFuncList(stType metafp.TypeInfo) fp.Seq[metafp.StructField] {
+	for _, ts := range r.others {
+		if ts.Info.ID == stType.ID {
+			if ts.Tags.Get("@fp.Value").IsDefined() || ts.Tags.Get("@fp.With").IsDefined() {
+				allFields := applyFields(ts)
+				privateFields := allFields.Filter(func(v metafp.StructField) bool {
+					return !v.Public() || v.Embedded
+				})
+
+				embedField := allFields.Filter(func(v metafp.StructField) bool {
+					return v.Embedded
+				})
+
+				supers := embedField.FlatMap(func(sf metafp.StructField) fp.Seq[metafp.StructField] {
+					return r.GeneratedWithFuncList(sf.FieldType)
+				})
+
+				return privateFields.Concat(supers)
+			}
+
+			if ts.Tags.Get("@fp.WithPubField").IsDefined() {
+				allFields := applyFields(ts)
+
+				embedField := allFields.Filter(func(v metafp.StructField) bool {
+					return v.Embedded
+				})
+
+				supers := embedField.FlatMap(func(sf metafp.StructField) fp.Seq[metafp.StructField] {
+					return r.GeneratedWithFuncList(sf.FieldType)
+				})
+
+				return allFields.Filter(metafp.StructField.Public).Concat(supers)
+			}
+		}
+	}
+	return nil
 }
 
 func processTuple(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
@@ -1125,7 +1251,7 @@ func genPrivateGetters(ctx TaggedStructContext, privateFields fp.Seq[metafp.Stru
 		uname := strings.ToUpper(f.Name[:1]) + f.Name[1:]
 
 		fnName := uname
-		if ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
+		if ts.GetField(fnName).IsEmpty() && ts.Info.Method.Get(fnName).IsEmpty() && !genMethod.Contains(fnName) {
 			ftp := f.TypeName(w, workingPackage)
 
 			fmt.Fprintf(w, `
@@ -1374,7 +1500,11 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 			name := fp.Seq[string]{}
 			if !v.Embedded {
-				name = name.Append(publicName(v.Name))
+				fname := publicName(v.Name)
+				if fname != v.Name && ts.GetField(fname).IsDefined() {
+					fname = fname + "2"
+				}
+				name = name.Append(fname)
 			}
 
 			name = name.Append(v.TypeName(w, workingPackage))
@@ -1395,7 +1525,11 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	if ts.Info.Method.Get("AsMutable").IsEmpty() {
 
 		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-			return fmt.Sprintf(`%s : r.%s`, publicName(f.Name), f.Name)
+			fname := publicName(f.Name)
+			if fname != f.Name && ts.GetField(fname).IsDefined() {
+				fname = fname + "2"
+			}
+			return fmt.Sprintf(`%s : r.%s`, fname, f.Name)
 		}).MakeString(",\n")
 
 		fmt.Fprintf(w, `
@@ -1415,7 +1549,12 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
 
 		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
-			return fmt.Sprintf(`%s : r.%s`, f.Name, publicName(f.Name))
+			fname := publicName(f.Name)
+			if fname != f.Name && ts.GetField(fname).IsDefined() {
+				fname = fname + "2"
+			}
+
+			return fmt.Sprintf(`%s : r.%s`, f.Name, fname)
 		}).MakeString(",\n")
 
 		fmt.Fprintf(w, `

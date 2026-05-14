@@ -119,3 +119,10 @@ type EmbedContext struct {
 	User
 	hello string
 }
+
+// @fp.Value
+type GrandContext struct {
+	EmbedContext
+	world string
+	email string
+}

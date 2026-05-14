@@ -3704,3 +3704,227 @@ func (r CarMutable[S, T]) AsImmutable() Car[S, T] {
 		opt:     r.Opt,
 	}
 }
+
+func (r BaseContext) Hello() string {
+	return r.hello
+}
+
+func (r BaseContext) GetContext() context.Context {
+	return r.Context
+}
+
+func (r BaseContext) GetBase() context.Context {
+	return r.Context
+}
+
+func (r BaseContext) WithHello(v string) BaseContext {
+	r.hello = v
+	return r
+}
+
+func (r BaseContext) WithContext(v context.Context) BaseContext {
+	r.Context = v
+	return r
+}
+
+func (r BaseContext) WithBase(v context.Context) BaseContext {
+	r.Context = v
+	return r
+}
+
+func (r BaseContext) String() string {
+	return fmt.Sprintf("testpk1.BaseContext{Context:%v, hello:%v}", r.Context, r.hello)
+}
+
+type TupleReprBaseContext = fp.Tuple2[context.Context, string]
+
+func (r BaseContext) AsTuple() TupleReprBaseContext {
+	return as.Tuple2(r.Context, r.hello)
+}
+
+func (r BaseContext) Unapply() (context.Context, string) {
+	return r.Context, r.hello
+}
+
+func (r BaseContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["Context"] = r.Context
+	m["hello"] = r.hello
+	return m
+}
+
+type BaseContextBuilder BaseContext
+
+func (r BaseContextBuilder) Build() BaseContext {
+	return BaseContext(r)
+}
+
+func (r BaseContext) Builder() BaseContextBuilder {
+	return BaseContextBuilder(r)
+}
+
+func (r BaseContextBuilder) Hello(v string) BaseContextBuilder {
+	r.hello = v
+	return r
+}
+
+func (r BaseContextBuilder) FromTuple(t fp.Tuple2[context.Context, string]) BaseContextBuilder {
+	r.Context = t.I1
+	r.hello = t.I2
+	return r
+}
+
+func (r BaseContextBuilder) Apply(Context context.Context, hello string) BaseContextBuilder {
+	r.Context = Context
+	r.hello = hello
+	return r
+}
+
+func (r BaseContextBuilder) FromMap(m map[string]any) BaseContextBuilder {
+
+	if v, ok := m["Context"].(context.Context); ok {
+		r.Context = v
+	}
+
+	if v, ok := m["hello"].(string); ok {
+		r.hello = v
+	}
+
+	return r
+}
+
+type BaseContextMutable struct {
+	context.Context
+	Hello string
+}
+
+func (r BaseContext) AsMutable() BaseContextMutable {
+	return BaseContextMutable{
+		Context: r.Context,
+		Hello:   r.hello,
+	}
+}
+
+func (r BaseContextMutable) AsImmutable() BaseContext {
+	return BaseContext{
+		Context: r.Context,
+		hello:   r.Hello,
+	}
+}
+
+func (r SecondContext) World() string {
+	return r.world
+}
+
+func (r SecondContext) GetBaseContext() BaseContext {
+	return r.BaseContext
+}
+
+func (r SecondContext) GetBase() BaseContext {
+	return r.BaseContext
+}
+
+func (r SecondContext) WithWorld(v string) SecondContext {
+	r.world = v
+	return r
+}
+
+func (r SecondContext) WithBaseContext(v BaseContext) SecondContext {
+	r.BaseContext = v
+	return r
+}
+
+func (r SecondContext) WithBase(v BaseContext) SecondContext {
+	r.BaseContext = v
+	return r
+}
+
+func (r SecondContext) WithContext(v context.Context) SecondContext {
+	r.Context = v
+	return r
+}
+
+func (r SecondContext) WithHello(v string) SecondContext {
+	r.hello = v
+	return r
+}
+
+func (r SecondContext) String() string {
+	return fmt.Sprintf("testpk1.SecondContext{BaseContext:%v, world:%v}", r.BaseContext, r.world)
+}
+
+type TupleReprSecondContext = fp.Tuple2[BaseContext, string]
+
+func (r SecondContext) AsTuple() TupleReprSecondContext {
+	return as.Tuple2(r.BaseContext, r.world)
+}
+
+func (r SecondContext) Unapply() (BaseContext, string) {
+	return r.BaseContext, r.world
+}
+
+func (r SecondContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["BaseContext"] = r.BaseContext
+	m["world"] = r.world
+	return m
+}
+
+type SecondContextBuilder SecondContext
+
+func (r SecondContextBuilder) Build() SecondContext {
+	return SecondContext(r)
+}
+
+func (r SecondContext) Builder() SecondContextBuilder {
+	return SecondContextBuilder(r)
+}
+
+func (r SecondContextBuilder) World(v string) SecondContextBuilder {
+	r.world = v
+	return r
+}
+
+func (r SecondContextBuilder) FromTuple(t fp.Tuple2[BaseContext, string]) SecondContextBuilder {
+	r.BaseContext = t.I1
+	r.world = t.I2
+	return r
+}
+
+func (r SecondContextBuilder) Apply(BaseContext BaseContext, world string) SecondContextBuilder {
+	r.BaseContext = BaseContext
+	r.world = world
+	return r
+}
+
+func (r SecondContextBuilder) FromMap(m map[string]any) SecondContextBuilder {
+
+	if v, ok := m["BaseContext"].(BaseContext); ok {
+		r.BaseContext = v
+	}
+
+	if v, ok := m["world"].(string); ok {
+		r.world = v
+	}
+
+	return r
+}
+
+type SecondContextMutable struct {
+	BaseContext
+	World string
+}
+
+func (r SecondContext) AsMutable() SecondContextMutable {
+	return SecondContextMutable{
+		BaseContext: r.BaseContext,
+		World:       r.world,
+	}
+}
+
+func (r SecondContextMutable) AsImmutable() SecondContext {
+	return SecondContext{
+		BaseContext: r.BaseContext,
+		world:       r.World,
+	}
+}

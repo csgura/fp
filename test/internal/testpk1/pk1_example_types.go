@@ -466,3 +466,15 @@ var _ js.Derives[js.Encoder[Car[any, any]]]
 
 // @fp.Summon
 var kcar js.Encoder[Car[string, int]]
+
+// @fp.Value
+type BaseContext struct {
+	context.Context
+	hello string
+}
+
+// @fp.Value
+type SecondContext struct {
+	BaseContext
+	world string
+}

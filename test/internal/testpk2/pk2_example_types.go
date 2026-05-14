@@ -253,3 +253,15 @@ var _ = genfp.GenerateAdaptor[AliasIntf]{
 	File: "adaptor.go",
 	Self: true,
 }
+
+// @fp.Value
+type EmbedOtherPackage struct {
+	testpk1.World
+	universe string
+}
+
+// @fp.Value
+type ThirdContext struct {
+	testpk1.SecondContext
+	universe string
+}
