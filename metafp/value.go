@@ -95,11 +95,12 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 			f := st.Field(i)
 			tn := typeInfo(f.Type())
 			return StructField{
-				Name:      f.Name(),
-				FieldType: tn,
-				Tag:       st.Tag(i),
-				Embedded:  f.Embedded(),
-				Pos:       f.Pos(),
+				Name:       f.Name(),
+				FieldIndex: i,
+				FieldType:  tn,
+				Tag:        st.Tag(i),
+				Embedded:   f.Embedded(),
+				Pos:        f.Pos(),
 			}
 		}).ToSeq()
 
@@ -572,11 +573,12 @@ func (r TypeInfo) Fields() fp.Seq[StructField] {
 
 			tn := typeInfo(f.Type())
 			return StructField{
-				Name:      f.Name(),
-				FieldType: tn,
-				Tag:       at.Tag(i),
-				Embedded:  f.Embedded(),
-				Pos:       f.Pos(),
+				Name:       f.Name(),
+				FieldIndex: i,
+				FieldType:  tn,
+				Tag:        at.Tag(i),
+				Embedded:   f.Embedded(),
+				Pos:        f.Pos(),
 			}
 		})
 	}
@@ -741,6 +743,14 @@ func noNamedInterfaceTypeArgs(intf *types.Interface) fp.Seq[TypeInfo] {
 	// fmt.Printf("merged = %s\n", merged)
 
 	return merged
+}
+func (r TypeInfo) HasField(name string) bool {
+	for _, v := range r.Fields() {
+		if v.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (r TypeInfo) HasMethod(ctx ConstraintCheckResult, typeParam fp.Seq[TypeParam], fn *types.Func) ConstraintCheckResult {
@@ -1390,11 +1400,12 @@ func (r TypeInfo) PtrType() TypeInfo {
 }
 
 type StructField struct {
-	Name      string
-	FieldType TypeInfo
-	Tag       string
-	Embedded  bool
-	Pos       token.Pos
+	Name       string
+	FieldIndex int
+	FieldType  TypeInfo
+	Tag        string
+	Embedded   bool
+	Pos        token.Pos
 }
 
 func (r StructField) TypeInfoExpr(wp genfp.WorkingPackage) TypeInfoExpr {

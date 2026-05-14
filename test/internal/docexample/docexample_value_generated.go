@@ -1116,6 +1116,14 @@ func (r EmbedContext) GetContext() context.Context {
 	return r.Context
 }
 
+func (r EmbedContext) GetBase() context.Context {
+	return r.Context
+}
+
+func (r EmbedContext) GetUser() User {
+	return r.User
+}
+
 func (r EmbedContext) WithHello(v string) EmbedContext {
 	r.hello = v
 	return r
@@ -1126,23 +1134,34 @@ func (r EmbedContext) WithContext(v context.Context) EmbedContext {
 	return r
 }
 
-func (r EmbedContext) String() string {
-	return fmt.Sprintf("docexample.EmbedContext{Context:%v, hello:%v}", r.Context, r.hello)
+func (r EmbedContext) WithBase(v context.Context) EmbedContext {
+	r.Context = v
+	return r
 }
 
-type TupleReprEmbedContext = fp.Tuple2[context.Context, string]
+func (r EmbedContext) WithUser(v User) EmbedContext {
+	r.User = v
+	return r
+}
+
+func (r EmbedContext) String() string {
+	return fmt.Sprintf("docexample.EmbedContext{Context:%v, User:%v, hello:%v}", r.Context, r.User, r.hello)
+}
+
+type TupleReprEmbedContext = fp.Tuple3[context.Context, User, string]
 
 func (r EmbedContext) AsTuple() TupleReprEmbedContext {
-	return as.Tuple2(r.Context, r.hello)
+	return as.Tuple3(r.Context, r.User, r.hello)
 }
 
-func (r EmbedContext) Unapply() (context.Context, string) {
-	return r.Context, r.hello
+func (r EmbedContext) Unapply() (context.Context, User, string) {
+	return r.Context, r.User, r.hello
 }
 
 func (r EmbedContext) AsMap() map[string]any {
 	m := map[string]any{}
 	m["Context"] = r.Context
+	m["User"] = r.User
 	m["hello"] = r.hello
 	return m
 }
@@ -1162,14 +1181,16 @@ func (r EmbedContextBuilder) Hello(v string) EmbedContextBuilder {
 	return r
 }
 
-func (r EmbedContextBuilder) FromTuple(t fp.Tuple2[context.Context, string]) EmbedContextBuilder {
+func (r EmbedContextBuilder) FromTuple(t fp.Tuple3[context.Context, User, string]) EmbedContextBuilder {
 	r.Context = t.I1
-	r.hello = t.I2
+	r.User = t.I2
+	r.hello = t.I3
 	return r
 }
 
-func (r EmbedContextBuilder) Apply(Context context.Context, hello string) EmbedContextBuilder {
+func (r EmbedContextBuilder) Apply(Context context.Context, User User, hello string) EmbedContextBuilder {
 	r.Context = Context
+	r.User = User
 	r.hello = hello
 	return r
 }
@@ -1178,6 +1199,10 @@ func (r EmbedContextBuilder) FromMap(m map[string]any) EmbedContextBuilder {
 
 	if v, ok := m["Context"].(context.Context); ok {
 		r.Context = v
+	}
+
+	if v, ok := m["User"].(User); ok {
+		r.User = v
 	}
 
 	if v, ok := m["hello"].(string); ok {
@@ -1189,12 +1214,14 @@ func (r EmbedContextBuilder) FromMap(m map[string]any) EmbedContextBuilder {
 
 type EmbedContextMutable struct {
 	context.Context
+	User
 	Hello string
 }
 
 func (r EmbedContext) AsMutable() EmbedContextMutable {
 	return EmbedContextMutable{
 		Context: r.Context,
+		User:    r.User,
 		Hello:   r.hello,
 	}
 }
@@ -1202,6 +1229,7 @@ func (r EmbedContext) AsMutable() EmbedContextMutable {
 func (r EmbedContextMutable) AsImmutable() EmbedContext {
 	return EmbedContext{
 		Context: r.Context,
+		User:    r.User,
 		hello:   r.Hello,
 	}
 }

@@ -116,5 +116,6 @@ type OptionalStringer[T fmt.Stringer] fp.Option[T]
 // @fp.Value
 type EmbedContext struct {
 	context.Context
+	User
 	hello string
 }
