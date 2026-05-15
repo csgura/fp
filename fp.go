@@ -27,6 +27,8 @@ func (r *Unit) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type Nothing struct{}
+
 type Tuple1[T1 any] struct {
 	I1 T1
 }
