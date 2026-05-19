@@ -465,8 +465,14 @@ func toTypeInfo(w genfp.ImportSet, workingPkg genfp.WorkingPackage, v metafp.Typ
 		IsFuture:         v.Type.IsFuture(),
 		IsComparable:     types.Comparable(v.Type.Type),
 		IsAny:            v.Type.IsAny(),
+		IsAlias:          v.Type.IsAlias(),
 		ZeroExpr:         w.ZeroExpr(workingPkg, v.Type.Type),
-		TypeArgs: seq.Map(v.Type.TypeArgs, func(v metafp.TypeInfo) genfp.TypeInfo {
+		AliasTypeArgs: seq.Map(v.Type.TypeArgs, func(v metafp.TypeInfo) genfp.TypeInfo {
+			return toTypeInfo(w, workingPkg, metafp.TypeInfoExpr{
+				Type: v,
+			})
+		}),
+		TypeArgs: seq.Map(v.Type.Unalias().TypeArgs, func(v metafp.TypeInfo) genfp.TypeInfo {
 			return toTypeInfo(w, workingPkg, metafp.TypeInfoExpr{
 				Type: v,
 			})

@@ -238,11 +238,20 @@ type TypeInfo struct {
 	// fp.Future 타입인지
 	IsFuture bool
 
+	// Alias 인지
+	IsAlias bool
+
 	// zero 값
 	ZeroExpr string
 
-	// fp.Option[int] 처럼 타입 아규먼트가 있는 경우
+	// fp.Option[int] 처럼 타입 아규먼트가 있는 경우 값이 있음.
+	// fp.OptionT[int] 와 같이 alias된 경우,
+	// 실제 타입인 fp.Try[fp.Option[int]]의 타입 아규먼트인 fp.Option[int] 이 있음.
 	TypeArgs []TypeInfo
+
+	// type OptionT[A] = fp.Try[fp.Option[T]]
+	// 위와 같이 alias 되어 있는 경우, A 의 값을 리턴함
+	AliasTypeArgs []TypeInfo
 }
 
 func (r TypeInfo) String() string {
@@ -252,6 +261,13 @@ func (r TypeInfo) String() string {
 func (r TypeInfo) TypeArgAt(i int) *TypeInfo {
 	if i < len(r.TypeArgs) {
 		return &r.TypeArgs[i]
+	}
+	return nil
+}
+
+func (r TypeInfo) AliasTypeArgsAt(i int) *TypeInfo {
+	if i < len(r.AliasTypeArgs) {
+		return &r.AliasTypeArgs[i]
 	}
 	return nil
 }

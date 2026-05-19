@@ -10,6 +10,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/minimal"
 	"github.com/csgura/fp/mshow"
+	"github.com/csgura/fp/optiont"
 	fshow "github.com/csgura/fp/show"
 	"github.com/csgura/fp/test/internal/js"
 	"github.com/csgura/fp/test/internal/ngap"
@@ -142,4 +143,8 @@ func Struct1CloserSlice[A io.Closer](ashow mshow.Show[A]) mshow.Show[fp.Tuple1[[
 
 func instantiate() {
 	// Struct1Closer[PtCloser](nil)
+}
+
+func ReturnOptionT() fp.OptionT[int] {
+	return optiont.Some(1)
 }

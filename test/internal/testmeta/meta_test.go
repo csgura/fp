@@ -467,3 +467,26 @@ func TestTupleSlicePtrConstraint(t *testing.T) {
 	should.BeNone(t, res)
 
 }
+
+func TestTypeArgsOfAliasType(t *testing.T) {
+	cwd, _ := os.Getwd()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedImports | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedModule,
+	}
+
+	pkgs, err := packages.Load(cfg, cwd)
+	should.BeNil(t, err)
+
+	fn := pkgs[0].Types.Scope().Lookup("ReturnOptionT").Type().(*types.Signature)
+
+	ti := metafp.GetTypeInfo(fn.Results().At(0).Type())
+	firsttp := ti.TypeArgs.Get(0).Get()
+	should.Equal(t, firsttp.TypeName, "int")
+
+	unaliased := ti.Unalias()
+	firsttp = unaliased.TypeArgs.Get(0).Get()
+	w := genfp.NewImportSet()
+	typestr := fmt.Sprintf("%s", w.TypeName(genfp.NewWorkingPackage(pkgs[0].Types, pkgs[0].Fset, pkgs[0].Syntax), firsttp.Type))
+	should.Equal(t, typestr, "fp.Option[int]")
+}
