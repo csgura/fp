@@ -1,5 +1,3 @@
-//go:debug gotypesalias=1
-
 package testpk2_test
 
 import (

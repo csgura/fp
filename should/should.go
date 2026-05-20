@@ -3,8 +3,10 @@ package should
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/csgura/fp"
+	"github.com/csgura/fp/future"
 )
 
 func BeTrue(t testing.TB, b bool) {
@@ -87,25 +89,28 @@ func NotBeNil(t testing.TB, a any) {
 	}
 }
 
-func BeSuccess[T any](t testing.TB, tt fp.Try[T]) {
+func BeSuccess[T any](t testing.TB, tt fp.Try[T]) T {
 	if tt.IsFailure() {
 		t.Helper()
 		t.Fatalf("expected success, actual %s", tt.Failed().Get())
 	}
+	return tt.Get()
 }
 
-func BeFailure[T any](t testing.TB, tt fp.Try[T]) {
+func BeFailure[T any](t testing.TB, tt fp.Try[T]) error {
 	if tt.IsSuccess() {
 		t.Helper()
 		t.Fatalf("expected error, actual %v", tt.Get())
 	}
+	return tt.Failed().Get()
 }
 
-func BeSome[T any](t testing.TB, tt fp.Option[T]) {
+func BeSome[T any](t testing.TB, tt fp.Option[T]) T {
 	if tt.IsEmpty() {
 		t.Helper()
 		t.Fatalf("expected some, but none")
 	}
+	return tt.Get()
 }
 
 func BeNone[T any](t testing.TB, tt fp.Option[T]) {
@@ -120,4 +125,16 @@ func BeError(t testing.TB, err error) {
 		t.Helper()
 		t.Fatal("expected error")
 	}
+}
+
+func BeSuccessful[T any](t testing.TB, f fp.Future[T], timeout time.Duration) T {
+	t.Helper()
+	tt := future.Await(f, timeout)
+	return BeSuccess(t, tt)
+}
+
+func BeFailed[T any](t testing.TB, f fp.Future[T], timeout time.Duration) error {
+	t.Helper()
+	tt := future.Await(f, timeout)
+	return BeFailure(t, tt)
 }

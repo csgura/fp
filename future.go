@@ -31,11 +31,15 @@ type Executor interface {
 // }
 
 func NewPromise[T any]() Promise[T] {
-	return Promise[T]{atomic.New()}
+	return Promise[T]{atomic.New(), nil}
 }
 
+// struct 안에 T 가 포함되어 있지 않으면
+// future.Map 같은거 호출 할 때 Future[T]() 로 캐스팅 되면서 자동 완성되는 문제가 있음.
+// 그래서 불필요하게 포인터 타입 하나 추가
 type Promise[T any] struct {
 	status atomic.Reference
+	_      *T
 }
 
 func (r Promise[T]) Future() Future[T] {
