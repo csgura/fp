@@ -52,23 +52,9 @@ func (r Try[T]) Unapply() (T, error) {
 	}
 }
 
-func (r Try[T]) Map(mf func(T) T) Try[T] {
-	if r.IsSuccess() {
-		r.v = mf(r.v)
-	}
-	return r
-}
-
 func (r Try[T]) MapError(mf func(error) error) Try[T] {
 	if r.IsFailure() {
 		r.err = mf(r.err)
-	}
-	return r
-}
-
-func (r Try[T]) FlatMap(mf func(T) Try[T]) Try[T] {
-	if r.IsSuccess() {
-		return mf(r.v)
 	}
 	return r
 }
