@@ -13,25 +13,25 @@ import (
 )
 
 func TestEitherO(t *testing.T) {
-	the := should.Test(t)
+	should := should.Test(t)
 
 	e := fp.EitherO[string, int]{}.Reset(nil, new(10))
-	the.Option(reflectfp.MatchEitherO(reflect.TypeOf(e))).ShouldBeSome()
-	v := the.OptionT(reflectfp.GetRight(reflect.ValueOf(e))).ShouldBeSome()
-	the.Value(fmt.Sprint(v.Interface())).ShouldEqual("10")
+	should.BeSome(reflectfp.MatchEitherO(reflect.TypeOf(e)))
+	v := should.OptionT(reflectfp.GetRight(reflect.ValueOf(e))).BeSome()
+	should.Value(fmt.Sprint(v.Interface())).Equal("10")
 
 	s := e.Swap()
-	v = the.OptionT(reflectfp.GetLeft(reflect.ValueOf(s))).ShouldBeSome()
-	the.Value(fmt.Sprint(v.Interface())).ShouldEqual("10")
+	v = should.OptionT(reflectfp.GetLeft(reflect.ValueOf(s))).BeSome()
+	should.Value(fmt.Sprint(v.Interface())).Equal("10")
 
 	eto := reflectfp.MatchEitherO(reflectfp.TypeOf[fp.EitherO[string, int]]())
-	et := the.Option(eto).ShouldBeSome()
+	et := should.BeSome(eto)
 	vt := et.Left(reflect.ValueOf("hello"))
-	lv := the.Try(vt).ShouldBeSuccess().Interface().(fp.EitherO[string, int])
-	the.Value(lv.Left()).ShouldEqual("hello")
+	lv := should.BeSuccess(vt).Interface().(fp.EitherO[string, int])
+	should.Value(lv.Left()).Equal("hello")
 
 	vt = et.Right(reflect.ValueOf(10))
-	rightv := the.Try(vt).ShouldBeSuccess().Interface().(fp.EitherO[string, int])
-	the.Value(rightv.Get()).ShouldEqual(10)
+	rightv := should.BeSuccess(vt).Interface().(fp.EitherO[string, int])
+	should.Value(rightv.Get()).Equal(10)
 
 }
