@@ -37,7 +37,7 @@ func MatchEither(tpe reflect.Type) fp.Option[EitherType] {
 
 			leftm, exists := tpe.MethodByName("Left")
 
-			if !exists || getm.Type.NumIn() != 1 || getm.Type.NumOut() != 1 {
+			if !exists || leftm.Type.NumIn() != 1 || leftm.Type.NumOut() != 1 {
 				return none
 			}
 			return option.Some(EitherType{leftm.Type.Out(0), getm.Type.Out(0)})
@@ -57,7 +57,7 @@ func MatchEither(tpe reflect.Type) fp.Option[EitherType] {
 
 			leftm, exists := tpe.MethodByName("Left")
 
-			if !exists || getm.Type.NumIn() != 0 || getm.Type.NumOut() != 1 {
+			if !exists || leftm.Type.NumIn() != 0 || leftm.Type.NumOut() != 1 {
 				return none
 			}
 			return option.Some(EitherType{leftm.Type.Out(0), getm.Type.Out(0)})
