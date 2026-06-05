@@ -24,9 +24,9 @@ func MatchOption(tpe reflect.Type) fp.Option[reflect.Type] {
 		return none
 	}
 
-	getm, exists := tpe.MethodByName("Get")
+	getm, exists := tpe.MethodByName("Unapply")
 
-	if !exists || getm.Type.NumIn() != 1 || getm.Type.NumOut() != 1 {
+	if !exists || getm.Type.NumIn() != 1 || getm.Type.NumOut() != 2 {
 		return none
 	}
 

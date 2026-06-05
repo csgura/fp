@@ -2,6 +2,8 @@
 
 package fp
 
+import "net/http"
+
 func (r Option[T]) Map[R any](mf func(T) R) Option[R] {
 	if r.IsDefined() {
 		return Some(mf(r.v))
@@ -69,6 +71,249 @@ func (r Option[T]) TraverseF[R any](f func(T) Future[R]) Future[Option[R]] {
 	p := NewPromise[Option[R]]()
 	p.Success(None[R]())
 	return p.Future()
+}
+
+func (r Option[T]) All[_ Phantom[T]]() GoIter[T] {
+	return func(f func(T) bool) {
+		if r.IsDefined() {
+			f(r.Get())
+		}
+	}
+}
+
+func (r Option[T]) Foreach[_ Phantom[T]](f func(v T)) {
+	if r.IsDefined() {
+		f(r.Get())
+	}
+}
+
+func (r Option[T]) IsDefined[_ Phantom[T]]() bool {
+	return r.present
+}
+
+func (r Option[T]) IsEmpty[_ Phantom[T]]() bool {
+	return !r.IsDefined()
+}
+
+func (r Option[T]) Get[_ Phantom[T]]() T {
+	if r.IsDefined() {
+		return r.v
+	}
+	panic(ErrOptionEmpty)
+}
+
+func (r Option[T]) Filter[_ Phantom[T]](p func(v T) bool) Option[T] {
+	if r.IsDefined() {
+		if p(r.Get()) {
+			return r
+		}
+	}
+	return None[T]()
+
+}
+
+func (r Option[T]) FilterNot[_ Phantom[T]](p func(v T) bool) Option[T] {
+	if r.IsDefined() {
+		if !p(r.Get()) {
+			return r
+		}
+	}
+	return None[T]()
+
+}
+func (r Option[T]) OrElse[_ Phantom[T]](t T) T {
+	if r.IsDefined() {
+		return r.Get()
+	}
+	return t
+}
+
+func (r Option[T]) OrZero[_ Phantom[T]]() T {
+	return r.OrElseGet(Zero[T])
+}
+
+func (r Option[T]) OrElseGet[_ Phantom[T]](f func() T) T {
+	if r.IsDefined() {
+		return r.Get()
+	}
+	return f()
+}
+func (r Option[T]) Or[_ Phantom[T]](f func() Option[T]) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	return f()
+}
+
+func (r Option[T]) OrOption[_ Phantom[T]](v Option[T]) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	return v
+}
+
+func (r Option[T]) OrPtr[_ Phantom[T]](v *T) Option[T] {
+	if r.IsDefined() {
+		return r
+	}
+	if v == nil {
+		return None[T]()
+	}
+	return Some(*v)
+}
+
+func (r Option[T]) ToSeq[_ Phantom[T]]() []T {
+	if r.IsDefined() {
+		return []T{r.Get()}
+	}
+	return nil
+}
+
+func (r Option[T]) Ptr[_ Phantom[T]]() *T {
+	if r.IsDefined() {
+		return &r.v
+	}
+
+	return nil
+}
+
+func (r Option[T]) Exists[_ Phantom[T]](p func(v T) bool) bool {
+	return r.IsDefined() && p(r.v)
+}
+
+func (r Option[T]) ForAll[_ Phantom[T]](p func(v T) bool) bool {
+	return r.IsEmpty() || p(r.v)
+}
+
+func (r Try[T]) All[_ Phantom[T]]() GoIter[T] {
+	return func(f func(T) bool) {
+		if r.IsSuccess() {
+			f(r.Get())
+		}
+	}
+}
+
+func (r Try[T]) IsSuccess[_ Phantom[T]]() bool {
+	return r.success
+}
+
+func (r Try[T]) IsFailure[_ Phantom[T]]() bool {
+	return !r.IsSuccess()
+}
+
+func (r Try[T]) Get[_ Phantom[T]]() T {
+	if r.IsSuccess() {
+		return r.v
+	}
+	panic(r.Failed().Get())
+}
+
+func (r Try[T]) Unapply[_ Phantom[T]]() (T, error) {
+	if r.IsSuccess() {
+		return r.Get(), nil
+	} else {
+		var zero T
+		return zero, r.Failed().Get()
+	}
+}
+
+func (r Try[T]) MapError[_ Phantom[T]](mf func(error) error) Try[T] {
+	if r.IsFailure() {
+		r.err = mf(r.err)
+	}
+	return r
+}
+
+func (r Try[T]) Foreach[_ Phantom[T]](f func(v T)) {
+	if r.IsSuccess() {
+		f(r.Get())
+	}
+}
+func (r Try[T]) Failed[_ Phantom[T]]() Try[error] {
+	if r.IsSuccess() {
+		return Failure[error](ErrTryNotFailed)
+	}
+	if r.err == nil {
+		return Failure[error](Error(http.StatusNotAcceptable, "Try not initialized correctly"))
+	}
+	return Success(r.err)
+}
+func (r Try[T]) OrElse[_ Phantom[T]](t T) T {
+	if r.IsSuccess() {
+		return r.Get()
+	}
+	return t
+}
+
+func (r Try[T]) OrZero[_ Phantom[T]]() T {
+	return r.OrElseGet(Zero[T])
+}
+
+func (r Try[T]) OrElseGet[_ Phantom[T]](f func() T) T {
+	if r.IsSuccess() {
+		return r.Get()
+	}
+	return f()
+}
+
+func (r Try[T]) Or[_ Phantom[T]](f func() Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+	return f()
+}
+
+func (r Try[T]) OrTry[_ Phantom[T]](v Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+	return v
+}
+
+func (r Try[T]) Recover[_ Phantom[T]](f func(err error) T) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+	return Success(f(r.Failed().Get()))
+
+}
+
+func (r Try[T]) RecoverCase[_ Phantom[T]](isDefinedAt func(error) bool, then func(error) T) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+
+	if isDefinedAt(r.Failed().Get()) {
+		return Success(then(r.Failed().Get()))
+	}
+
+	return r
+}
+
+func (r Try[T]) RecoverCaseWith[_ Phantom[T]](isDefinedAt func(error) bool, then func(error) Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+
+	if isDefinedAt(r.Failed().Get()) {
+		return then(r.Failed().Get())
+	}
+
+	return r
+}
+
+func (r Try[T]) RecoverWith[_ Phantom[T]](f func(err error) Try[T]) Try[T] {
+	if r.IsSuccess() {
+		return r
+	}
+	return f(r.Failed().Get())
+}
+
+func (r Try[T]) ToSeq[_ Phantom[T]]() []T {
+	if r.IsSuccess() {
+		return []T{r.Get()}
+	}
+	return nil
 }
 
 func (r Try[T]) Map[R any](mf func(T) R) Try[R] {

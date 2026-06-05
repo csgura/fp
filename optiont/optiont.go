@@ -141,17 +141,17 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 			return try.Success(fp.Option[T]{})
 		},
 		Transform: []any{
-			fp.Option[T].IsDefined,
-			fp.Option[T].IsEmpty,
-			fp.Option[T].Filter,
-			fp.Option[T].OrElse,
-			fp.Option[T].OrZero,
-			fp.Option[T].OrElseGet,
-			fp.Option[T].Or,
-			fp.Option[T].OrOption,
-			fp.Option[T].OrPtr,
-			fp.Option[T].Recover,
-			fp.Option[T].Foreach,
+			// fp.Option[T].IsDefined,
+			// fp.Option[T].IsEmpty,
+			// fp.Option[T].Filter,
+			// fp.Option[T].OrElse,
+			// fp.Option[T].OrZero,
+			// fp.Option[T].OrElseGet,
+			// fp.Option[T].Or,
+			// fp.Option[T].OrOption,
+			// fp.Option[T].OrPtr,
+			// fp.Option[T].Recover,
+			// fp.Option[T].Foreach,
 		},
 	}
 }
