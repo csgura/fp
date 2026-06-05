@@ -66,6 +66,13 @@ func (r EitherO[L, R]) Get[_ Phantom[R]]() R {
 	return *r.right
 }
 
+func (r EitherO[L, R]) IntoOption[_ Phantom[R]]() Option[R] {
+	if r.IsRight() {
+		return Some(r.Get())
+	}
+	return None[R]()
+}
+
 func (r EitherO[L, R]) Left[_ Phantom[R]]() L {
 	if r.left == nil {
 		panic("Either.right")
@@ -77,7 +84,7 @@ func (r EitherO[L, R]) Unapply() (*L, *R) {
 	return r.left, r.right
 }
 
-func (r EitherO[L, R]) Reset(left *L, right *R) EitherO[L, R] {
+func (r EitherO[L, R]) Apply(left *L, right *R) EitherO[L, R] {
 	return EitherO[L, R]{
 		left:  left,
 		right: right,

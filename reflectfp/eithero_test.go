@@ -15,7 +15,7 @@ import (
 func TestEitherO(t *testing.T) {
 	should := should.Test(t)
 
-	e := fp.EitherO[string, int]{}.Reset(nil, new(10))
+	e := new(fp.EitherO[string, int]).Apply(nil, new(10))
 	should.BeSome(reflectfp.MatchEitherO(reflect.TypeOf(e)))
 	v := should.OptionT(reflectfp.GetRight(reflect.ValueOf(e))).BeSome()
 	should.Value(fmt.Sprint(v.Interface())).Equal("10")

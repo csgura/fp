@@ -32,7 +32,7 @@ func MatchEitherO(tpe reflect.Type) fp.Option[EitherOType] {
 				return none
 			}
 
-			resetm, exists := tpe.MethodByName("Reset")
+			resetm, exists := tpe.MethodByName("Apply")
 
 			if !exists || resetm.Type.NumIn() != 3 || resetm.Type.NumOut() != 1 {
 
@@ -104,7 +104,7 @@ func (r EitherOType) Left(value reflect.Value) fp.Try[reflect.Value] {
 
 		ret := reflect.Zero(r.EitherType)
 
-		recoverm := ret.MethodByName("Reset")
+		recoverm := ret.MethodByName("Apply")
 
 		ptrv := func() reflect.Value {
 			if !value.CanAddr() {
@@ -131,7 +131,7 @@ func (r EitherOType) Right(value reflect.Value) fp.Try[reflect.Value] {
 
 		ret := reflect.Zero(r.EitherType)
 
-		recoverm := ret.MethodByName("Reset")
+		recoverm := ret.MethodByName("Apply")
 
 		ptrv := func() reflect.Value {
 			if !value.CanAddr() {
