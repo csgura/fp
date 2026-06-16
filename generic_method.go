@@ -191,7 +191,7 @@ func (r Option[T]) ForAll[_ Phantom[T]](p func(v T) bool) bool {
 
 func (r Try[T]) All[_ Phantom[T]]() GoIter[T] {
 	return func(f func(T) bool) {
-		if r.IsSuccess() {
+		if r.success {
 			f(r.Get())
 		}
 	}
@@ -202,39 +202,45 @@ func (r Try[T]) IsSuccess[_ Phantom[T]]() bool {
 }
 
 func (r Try[T]) IsFailure[_ Phantom[T]]() bool {
-	return !r.IsSuccess()
+	return !r.success
 }
 
 func (r Try[T]) Get[_ Phantom[T]]() T {
-	if r.IsSuccess() {
+	if r.success {
 		return r.v
 	}
-	panic(r.Failed().Get())
+	if r.err == nil {
+		panic(Error(http.StatusNotAcceptable, "Try not initialized correctly"))
+	}
+	panic(ErrTryNotFailed)
 }
 
 func (r Try[T]) Unapply[_ Phantom[T]]() (T, error) {
-	if r.IsSuccess() {
-		return r.Get(), nil
+	if r.success {
+		return r.v, nil
+	} else if r.err == nil {
+		var zero T
+		return zero, Error(http.StatusNotAcceptable, "Try not initialized correctly")
 	} else {
 		var zero T
-		return zero, r.Failed().Get()
+		return zero, r.err
 	}
 }
 
 func (r Try[T]) MapError[_ Phantom[T]](mf func(error) error) Try[T] {
-	if r.IsFailure() {
+	if !r.success {
 		r.err = mf(r.err)
 	}
 	return r
 }
 
 func (r Try[T]) Foreach[_ Phantom[T]](f func(v T)) {
-	if r.IsSuccess() {
-		f(r.Get())
+	if r.success {
+		f(r.v)
 	}
 }
 func (r Try[T]) Failed[_ Phantom[T]]() Try[error] {
-	if r.IsSuccess() {
+	if r.success {
 		return Failure[error](ErrTryNotFailed)
 	}
 	if r.err == nil {
@@ -242,100 +248,113 @@ func (r Try[T]) Failed[_ Phantom[T]]() Try[error] {
 	}
 	return Success(r.err)
 }
+
 func (r Try[T]) OrElse[_ Phantom[T]](t T) T {
-	if r.IsSuccess() {
-		return r.Get()
+	if r.success {
+		return r.v
 	}
 	return t
 }
 
 func (r Try[T]) OrZero[_ Phantom[T]]() T {
-	return r.OrElseGet(Zero[T])
+	if r.success {
+		return r.v
+	}
+	var zero T
+	return zero
 }
 
 func (r Try[T]) OrElseGet[_ Phantom[T]](f func() T) T {
-	if r.IsSuccess() {
-		return r.Get()
+	if r.success {
+		return r.v
 	}
 	return f()
 }
 
 func (r Try[T]) Or[_ Phantom[T]](f func() Try[T]) Try[T] {
-	if r.IsSuccess() {
+	if r.success {
 		return r
 	}
 	return f()
 }
 
 func (r Try[T]) OrTry[_ Phantom[T]](v Try[T]) Try[T] {
-	if r.IsSuccess() {
+	if r.success {
 		return r
 	}
 	return v
 }
 
 func (r Try[T]) Recover[_ Phantom[T]](f func(err error) T) Try[T] {
-	if r.IsSuccess() {
+	_, err := r.Unapply()
+	if err == nil {
 		return r
 	}
-	return Success(f(r.Failed().Get()))
+	return Success(f(err))
 
 }
 
 func (r Try[T]) RecoverCase[_ Phantom[T]](isDefinedAt func(error) bool, then func(error) T) Try[T] {
-	if r.IsSuccess() {
+	_, err := r.Unapply()
+	if err == nil {
 		return r
 	}
 
-	if isDefinedAt(r.Failed().Get()) {
-		return Success(then(r.Failed().Get()))
+	if isDefinedAt(err) {
+		return Success(then(err))
 	}
 
 	return r
 }
 
 func (r Try[T]) RecoverCaseWith[_ Phantom[T]](isDefinedAt func(error) bool, then func(error) Try[T]) Try[T] {
-	if r.IsSuccess() {
+	_, err := r.Unapply()
+	if err == nil {
 		return r
 	}
 
-	if isDefinedAt(r.Failed().Get()) {
-		return then(r.Failed().Get())
+	if isDefinedAt(err) {
+		return then(err)
 	}
 
 	return r
 }
 
 func (r Try[T]) RecoverWith[_ Phantom[T]](f func(err error) Try[T]) Try[T] {
-	if r.IsSuccess() {
+	_, err := r.Unapply()
+	if err == nil {
 		return r
 	}
-	return f(r.Failed().Get())
+	return f(err)
 }
 
 func (r Try[T]) ToSeq[_ Phantom[T]]() []T {
-	if r.IsSuccess() {
-		return []T{r.Get()}
+	if r.success {
+		return []T{r.v}
 	}
 	return nil
 }
 
 func (r Try[T]) Map[R any](mf func(T) R) Try[R] {
-	if r.IsSuccess() {
+	if r.success {
 		return Success(mf(r.v))
 	}
 	return Failure[R](r.err)
 }
 
 func (r Try[T]) FlatMap[R any](mf func(T) Try[R]) Try[R] {
-	if r.IsSuccess() {
+	if r.success {
 		return mf(r.v)
 	}
 	return Failure[R](r.err)
 }
 
 func (r Try[T]) Replace[R any](o R) Try[R] {
-	return r.Map(Const[T](o))
+	_, err := r.Unapply()
+	if err == nil {
+		return Success(o)
+	}
+	return Failure[R](err)
 }
 
 func (r Try[T]) ReplaceS[R any](f func() R) Try[R] {
@@ -357,28 +376,30 @@ func (r Try[T]) Map2[U, R any](other Try[U], f func(T, U) R) Try[R] {
 }
 
 func (r Try[T]) IntoOption[_ Phantom[T]]() Option[T] {
-	if r.IsSuccess() {
-		return Some(r.Get())
+	if r.success {
+		return Some(r.v)
 	}
 	return None[T]()
 }
 
 func (r Try[T]) IntoFuture[_ Phantom[T]]() Future[T] {
 	p := NewPromise[T]()
-	if r.IsSuccess() {
-		p.Success(r.Get())
+	if r.success {
+		p.Success(r.v)
 		return p.Future()
 	}
-	p.Failure(r.Failed().Get())
+	_, err := r.Unapply()
+	p.Failure(err)
 	return p.Future()
 }
 
 func (r Try[T]) TraverseF[R any](f func(T) Future[R]) Future[R] {
-	if r.IsSuccess() {
-		return f(r.Get())
+	if r.success {
+		return f(r.v)
 	}
 	p := NewPromise[R]()
-	p.Failure(r.Failed().Get())
+	_, err := r.Unapply()
+	p.Failure(err)
 	return p.Future()
 }
 
@@ -386,10 +407,11 @@ func (r Future[T]) Map[R any](mf func(T) R, ctx ...Executor) Future[R] {
 	np := NewPromise[R]()
 
 	r.OnComplete(func(t Try[T]) {
-		if t.IsSuccess() {
-			np.Success(mf(t.Get()))
+		v, err := t.Unapply()
+		if err == nil {
+			np.Success(mf(v))
 		} else {
-			np.Failure(t.Failed().Get())
+			np.Failure(err)
 		}
 	}, ctx...)
 
@@ -400,12 +422,14 @@ func (r Future[T]) FlatMap[R any](mf func(T) Future[R], ctx ...Executor) Future[
 	np := NewPromise[R]()
 
 	r.OnComplete(func(t Try[T]) {
-		if t.IsSuccess() {
-			mf(t.Get()).OnComplete(func(t Try[R]) {
+		v, err := t.Unapply()
+
+		if err == nil {
+			mf(v).OnComplete(func(t Try[R]) {
 				np.Complete(t)
 			}, ctx...)
 		} else {
-			np.Failure(t.Failed().Get())
+			np.Failure(err)
 		}
 	}, ctx...)
 
@@ -435,15 +459,15 @@ func (r Seq[T]) Size[_ Phantom[T]]() int {
 }
 
 func (r Seq[T]) IsEmpty[_ Phantom[T]]() bool {
-	return r.Size() == 0
+	return len(r) == 0
 }
 
 func (r Seq[T]) NonEmpty[_ Phantom[T]]() bool {
-	return r.Size() > 0
+	return len(r) > 0
 }
 
 func (r Seq[T]) Get[_ Phantom[T]](idx int) Option[T] {
-	if r.Size() > idx {
+	if len(r) > idx {
 		return Some(r[idx])
 	} else {
 		return None[T]()
@@ -451,7 +475,7 @@ func (r Seq[T]) Get[_ Phantom[T]](idx int) Option[T] {
 }
 
 func (r Seq[T]) Head[_ Phantom[T]]() Option[T] {
-	if r.Size() > 0 {
+	if len(r) > 0 {
 		return Some(r[0])
 	} else {
 		return None[T]()
@@ -459,23 +483,23 @@ func (r Seq[T]) Head[_ Phantom[T]]() Option[T] {
 }
 
 func (r Seq[T]) Init[_ Phantom[T]]() Seq[T] {
-	if r.Size() > 1 {
-		return r[:r.Size()-1]
+	if len(r) > 1 {
+		return r[:len(r)-1]
 	} else {
 		return nil
 	}
 }
 
 func (r Seq[T]) Last[_ Phantom[T]]() Option[T] {
-	if r.Size() > 0 {
-		return Some(r[r.Size()-1])
+	if len(r) > 0 {
+		return Some(r[len(r)-1])
 	} else {
 		return None[T]()
 	}
 }
 
 func (r Seq[T]) Tail[_ Phantom[T]]() Seq[T] {
-	if r.Size() > 0 {
+	if len(r) > 0 {
 		return r[1:]
 	} else {
 		return nil
@@ -483,7 +507,7 @@ func (r Seq[T]) Tail[_ Phantom[T]]() Seq[T] {
 }
 
 func (r Seq[T]) UnSeq[_ Phantom[T]]() (Option[T], Seq[T]) {
-	if r.Size() > 0 {
+	if len(r) > 0 {
 		return r.Head(), r[1:]
 	} else {
 		return r.Head(), nil
@@ -560,12 +584,12 @@ func (r Seq[T]) Add[_ Phantom[T]](item T) Seq[T] {
 func (r Seq[T]) Append[_ Phantom[T]](items ...T) Seq[T] {
 	if len(items) > 0 {
 		tail := Seq[T](items)
-		ret := make(Seq[T], r.Size()+tail.Size())
+		ret := make(Seq[T], len(r)+tail.Size())
 
 		copy(ret, r)
 
 		for i := range tail {
-			ret[i+r.Size()] = tail[i]
+			ret[i+len(r)] = tail[i]
 		}
 
 		return ret
@@ -575,12 +599,12 @@ func (r Seq[T]) Append[_ Phantom[T]](items ...T) Seq[T] {
 
 func (r Seq[T]) Concat[_ Phantom[T]](tail Seq[T]) Seq[T] {
 	if len(tail) > 0 {
-		ret := make(Seq[T], r.Size()+tail.Size())
+		ret := make(Seq[T], len(r)+tail.Size())
 
 		copy(ret, r)
 
 		for i := range tail {
-			ret[i+r.Size()] = tail[i]
+			ret[i+len(r)] = tail[i]
 		}
 
 		return ret
@@ -589,7 +613,7 @@ func (r Seq[T]) Concat[_ Phantom[T]](tail Seq[T]) Seq[T] {
 }
 
 // func (r Seq[T]) Reduce(m Monoid[T]) T {
-// 	if r.Size() == 0 {
+// 	if len(r) == 0 {
 // 		return m.Empty()
 // 	}
 
@@ -601,10 +625,10 @@ func (r Seq[T]) Concat[_ Phantom[T]](tail Seq[T]) Seq[T] {
 // }
 
 func (r Seq[T]) Reverse[_ Phantom[T]]() Seq[T] {
-	ret := make(Seq[T], r.Size())
+	ret := make(Seq[T], len(r))
 
 	for i := range r {
-		ret[r.Size()-i-1] = r[i]
+		ret[len(r)-i-1] = r[i]
 	}
 
 	return ret
