@@ -123,40 +123,6 @@ func OrElseGetT[T any](optionT fp.OptionT[T], f func() fp.Try[T]) fp.Try[T] {
 //go:generate go run github.com/csgura/fp/internal/generator/template_gen
 
 // @internal.Generate
-func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
-	return genfp.GenerateMonadTransformer[fp.OptionT[T]]{
-		File:     "optiont_op.go",
-		TypeParm: genfp.TypeOf[T](),
-		GivenMonad: genfp.MonadFunctions{
-			Pure: try.Success[T],
-		},
-		ExposureMonad: genfp.MonadFunctions{
-			Pure:    option.Pure[T],
-			FlatMap: option.FlatMap[T, U],
-		},
-		Sequence: func(v fp.Option[fp.Try[T]]) fp.OptionT[T] {
-			if v.IsDefined() {
-				return try.Map(v.Get(), option.Some)
-			}
-			return try.Success(fp.Option[T]{})
-		},
-		Transform: []any{
-			// fp.Option[T].IsDefined,
-			// fp.Option[T].IsEmpty,
-			// fp.Option[T].Filter,
-			// fp.Option[T].OrElse,
-			// fp.Option[T].OrZero,
-			// fp.Option[T].OrElseGet,
-			// fp.Option[T].Or,
-			// fp.Option[T].OrOption,
-			// fp.Option[T].OrPtr,
-			// fp.Option[T].Recover,
-			// fp.Option[T].Foreach,
-		},
-	}
-}
-
-// @internal.Generate
 func _[A any]() genfp.GenerateMonadFunctions[fp.OptionT[A]] {
 	return genfp.GenerateMonadFunctions[fp.OptionT[A]]{
 		File:     "optiont_monad.go",

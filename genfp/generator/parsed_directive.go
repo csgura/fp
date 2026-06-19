@@ -607,10 +607,12 @@ func extractTypeParam(pk *packages.Package, exp ast.Expr) ([]TypeReference, erro
 	case *ast.SelectorExpr:
 		return extractTypeParam(pk, e.X)
 	case *ast.IndexExpr:
-		return []TypeReference{evalTypeReference(pk, e.Index)}, nil
-	case *ast.IndexListExpr:
+		xt, _ := extractTypeParam(pk, e.X)
 
-		var ret []TypeReference
+		return append(xt, evalTypeReference(pk, e.Index)), nil
+	case *ast.IndexListExpr:
+		ret, _ := extractTypeParam(pk, e.X)
+
 		for _, v := range e.Indices {
 			ret = append(ret, evalTypeReference(pk, v))
 		}
