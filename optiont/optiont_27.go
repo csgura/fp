@@ -9,6 +9,25 @@ import (
 	"github.com/csgura/fp/try"
 )
 
+type Type[T any] fp.OptionT[T]
+
+func Trans[T any](v fp.OptionT[T]) Type[T] {
+	return Type[T](v)
+}
+
+func (r Type[T]) Try() fp.OptionT[T] {
+	return fp.OptionT[T](r)
+}
+func (r Type[T]) Map[R any](f func(T) R) Type[R] {
+	return Trans(Map(r.Try(), f))
+}
+
+func (r Type[T]) FlatMap[R any](f func(T) Type[R]) Type[R] {
+	return Trans(FlatMap[T, R](r.Try(), func(v T) fp.OptionT[R] {
+		return f(v).Try()
+	}))
+}
+
 // @internal.Generate
 func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 	return genfp.GenerateMonadTransformer[fp.OptionT[T]]{
