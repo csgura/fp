@@ -89,6 +89,32 @@ var _ = genfp.GenerateFromUntil{
 		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
 		{Package: "github.com/csgura/fp/as", Name: "as"},
 	},
+	From:  3,
+	Until: genfp.MaxProduct,
+	Template: `
+func FoldFunc{{.N}}[C, {{TypeArgs 1 .N}} any](
+		{{- range $idx := Range 1 .N}}
+			f{{$idx}} func(C, A{{$idx}}) C,
+		{{- end}}
+) func(C, fp.{{TupleType .N}}) C {
+	return func(c C, tp fp.{{TupleType .N}}) C{
+		{{- range $idx := Range 1 .N}}
+			c = f{{$idx}}(c, tp.I{{$idx}})
+		{{- end}}
+		return c
+	}
+}
+	`,
+}
+
+// @internal.Generate
+var _ = genfp.GenerateFromUntil{
+	File: "tuple_gen.go",
+	Imports: []genfp.ImportPackage{
+		{Package: "github.com/csgura/fp", Name: "fp"},
+		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
+		{Package: "github.com/csgura/fp/as", Name: "as"},
+	},
 	From:  2,
 	Until: genfp.MaxProduct,
 	Template: `
