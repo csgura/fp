@@ -89,7 +89,7 @@ var _ = genfp.GenerateFromUntil{
 		{Package: "github.com/csgura/fp/hlist", Name: "hlist"},
 		{Package: "github.com/csgura/fp/as", Name: "as"},
 	},
-	From:  3,
+	From:  2,
 	Until: genfp.MaxProduct,
 	Template: `
 func FoldFunc{{.N}}[C, {{TypeArgs 1 .N}} any](
