@@ -15,6 +15,9 @@ func Success[T any](t T) Try[T] {
 }
 
 func Failure[T any](err error) Try[T] {
+	if err == nil {
+		panic("Failure error is nil")
+	}
 	var zero T
 	return Try[T]{false, zero, err}
 }
