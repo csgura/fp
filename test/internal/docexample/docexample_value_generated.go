@@ -1616,3 +1616,82 @@ func (r EmbedPrivateBuilder) FromMap(m map[string]any) EmbedPrivateBuilder {
 
 	return r
 }
+
+func (r BytesString) Contents() []byte {
+	return r.contents
+}
+
+func (r BytesString) WithContents(v []byte) BytesString {
+	r.contents = v
+	return r
+}
+
+func (r BytesString) String() string {
+	return fmt.Sprintf("docexample.BytesString{contents:%x}", r.contents)
+}
+
+type TupleReprBytesString = fp.Tuple1[[]byte]
+
+func (r BytesString) AsTuple() TupleReprBytesString {
+	return as.Tuple1(r.contents)
+}
+
+func (r BytesString) Unapply() []byte {
+	return r.contents
+}
+
+func (r BytesString) AsMap() map[string]any {
+	m := map[string]any{}
+	m["contents"] = r.contents
+	return m
+}
+
+type BytesStringBuilder BytesString
+
+func (r BytesStringBuilder) Build() BytesString {
+	return BytesString(r)
+}
+
+func (r BytesString) Builder() BytesStringBuilder {
+	return BytesStringBuilder(r)
+}
+
+func (r BytesStringBuilder) Contents(v []byte) BytesStringBuilder {
+	r.contents = v
+	return r
+}
+
+func (r BytesStringBuilder) FromTuple(t fp.Tuple1[[]byte]) BytesStringBuilder {
+	r.contents = t.I1
+	return r
+}
+
+func (r BytesStringBuilder) Apply(contents []byte) BytesStringBuilder {
+	r.contents = contents
+	return r
+}
+
+func (r BytesStringBuilder) FromMap(m map[string]any) BytesStringBuilder {
+
+	if v, ok := m["contents"].([]byte); ok {
+		r.contents = v
+	}
+
+	return r
+}
+
+type BytesStringMutable struct {
+	Contents []byte
+}
+
+func (r BytesString) AsMutable() BytesStringMutable {
+	return BytesStringMutable{
+		Contents: r.contents,
+	}
+}
+
+func (r BytesStringMutable) AsImmutable() BytesString {
+	return BytesString{
+		contents: r.Contents,
+	}
+}

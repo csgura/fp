@@ -434,6 +434,15 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 		})
 
 		fm := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
+			if f.FieldType.IsSlice() {
+				for elemType := range f.FieldType.ElemType().All() {
+					if elemType.IsBasic() {
+						if elemType.TypeName == "byte" {
+							return fmt.Sprintf("%s:%%x", f.Name)
+						}
+					}
+				}
+			}
 			return fmt.Sprintf("%s:%%v", f.Name)
 		}).MakeString(", ")
 

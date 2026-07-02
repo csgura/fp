@@ -138,3 +138,8 @@ type EmbedPrivate struct {
 	world string
 	email string
 }
+
+// @fp.Value
+type BytesString struct {
+	contents []byte
+}
