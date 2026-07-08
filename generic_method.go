@@ -215,7 +215,7 @@ func (r Try[T]) Get[_ Phantom[T]]() T {
 	panic(ErrTryNotFailed)
 }
 
-func (r Try[T]) Unapply[_ Phantom[T]]() (T, error) {
+func (r Try[T]) Unapply() (T, error) {
 	if r.success {
 		return r.v, nil
 	} else if r.err == nil {

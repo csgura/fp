@@ -43,4 +43,6 @@ func TestNaming(t *testing.T) {
 	assert.Equal(fp.ConvertNaming("PDUSession-Charging-Information", fp.CamelCase), "pdusessionChargingInformation")
 	assert.Equal(fp.ConvertNaming("PDUSession-Charging-Information", fp.PascalCase), "PDUSessionChargingInformation")
 
+	assert.Equal(fp.ConvertNaming("IKEFirstAuth", fp.CamelCase), "ikefirstAuth")
+
 }
