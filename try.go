@@ -23,8 +23,8 @@ func Failure[T any](err error) Try[T] {
 }
 
 func (r Try[T]) String() string {
-	if r.IsSuccess() {
-		return fmt.Sprintf("Success(%v)", r.Get())
+	if r.success {
+		return fmt.Sprintf("Success(%v)", r.v)
 	}
-	return fmt.Sprintf("Failure(%v)", r.Failed().Get())
+	return fmt.Sprintf("Failure(%v)", r.err)
 }

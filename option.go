@@ -66,16 +66,16 @@ func (r *Option[T]) UnmarshalJSON(b []byte) error {
 }
 
 func (r Option[T]) MarshalJSON() ([]byte, error) {
-	if r.IsDefined() {
-		return json.Marshal(r.Get())
+	if r.present {
+		return json.Marshal(r.v)
 	}
 
 	return []byte("null"), nil
 }
 
 func (r Option[T]) Unapply() (T, bool) {
-	if r.IsDefined() {
-		return r.Get(), true
+	if r.present {
+		return r.v, true
 	} else {
 		var zero T
 		return zero, false
@@ -83,7 +83,7 @@ func (r Option[T]) Unapply() (T, bool) {
 }
 
 func (r Option[T]) Recover(f func() T) Option[T] {
-	if r.IsDefined() {
+	if r.present {
 		return r
 	}
 	t := f()
@@ -91,7 +91,7 @@ func (r Option[T]) Recover(f func() T) Option[T] {
 }
 
 func (r Option[T]) String() string {
-	if r.IsDefined() {
+	if r.present {
 		return fmt.Sprintf("Some(%v)", r.v)
 	} else {
 		return "None"
