@@ -47,11 +47,11 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 			return try.Success(fp.Option[T]{})
 		},
 		Transform: []any{
-			fp.Option[T].IsDefined[fp.Phantom[T]],
+			fp.Option[T].IsDefined,
 			fp.Option[T].IsEmpty[fp.Phantom[T]],
 			fp.Option[T].Filter[fp.Phantom[T]],
-			fp.Option[T].OrElse[fp.Phantom[T]],
-			fp.Option[T].OrZero[fp.Phantom[T]],
+			fp.Option[T].OrElse,
+			fp.Option[T].OrZero,
 			fp.Option[T].OrElseGet[fp.Phantom[T]],
 			fp.Option[T].Or[fp.Phantom[T]],
 			fp.Option[T].OrOption[fp.Phantom[T]],

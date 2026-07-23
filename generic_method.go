@@ -77,7 +77,7 @@ func (r Option[T]) TraverseF[R any](f func(T) Future[R]) Future[Option[R]] {
 	return p.Future()
 }
 
-func (r Option[T]) All[_ Phantom[T]]() GoIter[T] {
+func (r Option[T]) All() GoIter[T] {
 	return func(f func(T) bool) {
 		if r.IsDefined() {
 			f(r.Get())
@@ -91,7 +91,7 @@ func (r Option[T]) Foreach[_ Phantom[T]](f func(v T)) {
 	}
 }
 
-func (r Option[T]) IsDefined[_ Phantom[T]]() bool {
+func (r Option[T]) IsDefined() bool {
 	return r.present
 }
 
@@ -99,7 +99,7 @@ func (r Option[T]) IsEmpty[_ Phantom[T]]() bool {
 	return !r.IsDefined()
 }
 
-func (r Option[T]) Get[_ Phantom[T]]() T {
+func (r Option[T]) Get() T {
 	if r.IsDefined() {
 		return r.v
 	}
@@ -125,14 +125,14 @@ func (r Option[T]) FilterNot[_ Phantom[T]](p func(v T) bool) Option[T] {
 	return None[T]()
 
 }
-func (r Option[T]) OrElse[_ Phantom[T]](t T) T {
+func (r Option[T]) OrElse(t T) T {
 	if r.IsDefined() {
 		return r.Get()
 	}
 	return t
 }
 
-func (r Option[T]) OrZero[_ Phantom[T]]() T {
+func (r Option[T]) OrZero() T {
 	return r.OrElseGet(Zero[T])
 }
 
