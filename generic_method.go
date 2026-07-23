@@ -196,6 +196,13 @@ func (r Option[T]) Fold[A any](zero A, f func(A, T) A) A {
 	return zero
 }
 
+func (r Option[T]) Either[R any](noncase func() R, somecase func(T) R) R {
+	if r.present {
+		return somecase(r.v)
+	}
+	return noncase()
+}
+
 func (r Try[T]) All[_ Phantom[T]]() GoIter[T] {
 	return func(f func(T) bool) {
 		if r.success {
@@ -417,12 +424,12 @@ func (r Try[T]) Fold[A any](zero A, f func(A, T) A) A {
 	return zero
 }
 
-func (r Try[T]) Either[R any](ef func(error) R, vf func(T) R) R {
+func (r Try[T]) Either[R any](errorcase func(error) R, successcase func(T) R) R {
 	v, err := r.Unapply()
 	if err == nil {
-		return vf(v)
+		return successcase(v)
 	}
-	return ef(err)
+	return errorcase(err)
 }
 
 func (r Future[T]) Map[R any](mf func(T) R, ctx ...Executor) Future[R] {
