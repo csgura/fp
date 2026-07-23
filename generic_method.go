@@ -189,6 +189,13 @@ func (r Option[T]) ForAll[_ Phantom[T]](p func(v T) bool) bool {
 	return r.IsEmpty() || p(r.v)
 }
 
+func (r Option[T]) Fold[A any](zero A, f func(A, T) A) A {
+	if r.present {
+		return f(zero, r.v)
+	}
+	return zero
+}
+
 func (r Try[T]) All[_ Phantom[T]]() GoIter[T] {
 	return func(f func(T) bool) {
 		if r.success {
@@ -401,6 +408,21 @@ func (r Try[T]) TraverseF[R any](f func(T) Future[R]) Future[R] {
 	_, err := r.Unapply()
 	p.Failure(err)
 	return p.Future()
+}
+
+func (r Try[T]) Fold[A any](zero A, f func(A, T) A) A {
+	if r.success {
+		return f(zero, r.v)
+	}
+	return zero
+}
+
+func (r Try[T]) Either[R any](ef func(error) R, vf func(T) R) R {
+	v, err := r.Unapply()
+	if err == nil {
+		return vf(v)
+	}
+	return ef(err)
 }
 
 func (r Future[T]) Map[R any](mf func(T) R, ctx ...Executor) Future[R] {
