@@ -198,6 +198,16 @@ type writer struct {
 	importSet
 }
 
+// FileName implements [Generator].
+func (r *writer) FileName() string {
+	return r.Filename
+}
+
+// PackageName implements [Generator].
+func (r *writer) PackageName() string {
+	return r.Package
+}
+
 func (r *writer) PackageCommentWriter() io.Writer {
 	return r.PackageCommentBuffer
 }
@@ -835,6 +845,8 @@ type ImportSet interface {
 type Writer interface {
 	io.Writer
 	ImportSet
+	PackageName() string
+	FileName() string
 	PackageCommentWriter() io.Writer
 	Iteration(start, end int) Range
 	Render(template string, funcs map[string]any, param map[string]any)
