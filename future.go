@@ -365,6 +365,6 @@ func (r Future[T]) ReplaceS[R any](f func() R) Future[R] {
 	})
 }
 
-func (r Future[T]) Void[R any]() Future[Unit] {
+func (r Future[T]) Void() Future[Unit] {
 	return r.Replace(Unit{})
 }
