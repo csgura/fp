@@ -321,3 +321,50 @@ func (r Future[T]) RecoverCaseWith(isDefinedAt func(error) bool, then func(err e
 // 	Recover(f func(err error) T, ctx ...Executor) Future[T]
 // 	RecoverWith(f func(err error) Future[T], ctx ...Executor) Future[T]
 // }
+
+func (r Future[T]) Map[R any](mf func(T) R, ctx ...Executor) Future[R] {
+	np := NewPromise[R]()
+
+	r.OnComplete(func(t Try[T]) {
+		v, err := t.Unapply()
+		if err == nil {
+			np.Success(mf(v))
+		} else {
+			np.Failure(err)
+		}
+	}, ctx...)
+
+	return np.Future()
+}
+
+func (r Future[T]) FlatMap[R any](mf func(T) Future[R], ctx ...Executor) Future[R] {
+	np := NewPromise[R]()
+
+	r.OnComplete(func(t Try[T]) {
+		v, err := t.Unapply()
+
+		if err == nil {
+			mf(v).OnComplete(func(t Try[R]) {
+				np.Complete(t)
+			}, ctx...)
+		} else {
+			np.Failure(err)
+		}
+	}, ctx...)
+
+	return np.Future()
+}
+
+func (r Future[T]) Replace[R any](o R) Future[R] {
+	return r.Map(Const[T](o))
+}
+
+func (r Future[T]) ReplaceS[R any](f func() R) Future[R] {
+	return r.Map(func(t T) R {
+		return f()
+	})
+}
+
+func (r Future[T]) Void[R any]() Future[Unit] {
+	return r.Replace(Unit{})
+}
