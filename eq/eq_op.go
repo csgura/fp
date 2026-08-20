@@ -17,7 +17,20 @@ func New[T any](f func(a, b T) bool) fp.Eq[T] {
 
 var Time fp.Eq[time.Time] = New(time.Time.Equal)
 var Bytes fp.Eq[[]byte] = New(bytes.Equal)
+var Int = Given[int]()
+var Int8 = Given[int8]()
+var Int16 = Given[int16]()
+var Int32 = Given[int32]()
+var Int64 = Given[int64]()
+var Uint = Given[uint]()
+var Uint8 = Given[uint8]()
+var Uint16 = Given[uint16]()
+var Uint32 = Given[uint32]()
+var Uint64 = Given[uint64]()
+var Float32 = Given[float32]()
+var Float64 = Given[float64]()
 var String = Given[string]()
+
 var PtrBytes fp.Eq[*[]byte] = Ptr(lazy.Done(Bytes))
 
 func Tuple1[A any](a fp.Eq[A]) fp.Eq[fp.Tuple1[A]] {

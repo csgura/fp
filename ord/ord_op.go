@@ -26,6 +26,19 @@ func New[T any](eqv fp.Eq[T], less fp.LessFunc[T]) fp.Ord[T] {
 }
 
 var Time = FromCompare(time.Time.Compare)
+var Int = Given[int]()
+var Int8 = Given[int8]()
+var Int16 = Given[int16]()
+var Int32 = Given[int32]()
+var Int64 = Given[int64]()
+var Uint = Given[uint]()
+var Uint8 = Given[uint8]()
+var Uint16 = Given[uint16]()
+var Uint32 = Given[uint32]()
+var Uint64 = Given[uint64]()
+var Float32 = Given[float32]()
+var Float64 = Given[float64]()
+var String = Given[string]()
 
 func Tuple1[A any](a fp.Ord[A]) fp.Ord[fp.Tuple1[A]] {
 	return New[fp.Tuple1[A]](
