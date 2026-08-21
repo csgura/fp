@@ -110,12 +110,6 @@ func Predicate[T any](f func(T) bool) fp.Predicate[T] {
 	return f
 }
 
-func Tupled2[A1, A2, R any](fn fp.Func2[A1, A2, R]) func(fp.Tuple2[A1, A2]) R {
-	return func(t fp.Tuple2[A1, A2]) R {
-		return fn(t.Unapply())
-	}
-}
-
 // @internal.Generate
 var _ = genfp.GenerateFromUntil{
 	File: "func_gen.go",
@@ -185,6 +179,13 @@ var _ = genfp.GenerateFromUntil{
 	From:  2,
 	Until: genfp.MaxFunc,
 	Template: `
+
+func Tupled{{.N}}[{{TypeArgs 1 .N}}, R any](fn fp.Func{{.N}}[{{TypeArgs 1 .N}}, R]) func(fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]) R {
+	return func(t fp.Tuple{{.N}}[{{TypeArgs 1 .N}}]) R {
+		return fn(t.Unapply())
+	}
+}
+
 func UnTupled{{.N}}[{{TypeArgs 1 .N}}, R any](f func(fp.{{TupleType .N}}) R) func({{TypeArgs 1 .N}}) R {
 	return func({{DeclArgs 1 .N}}) R {
 		return f(Tuple{{.N}}({{CallArgs 1 .N}}))
