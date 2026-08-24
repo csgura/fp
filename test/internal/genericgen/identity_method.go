@@ -22,14 +22,6 @@ func (m Identity[A]) Void[_ fp.Phantom[A]]() Identity[fp.Unit] {
 	return m.Replace(fp.Unit{})
 }
 
-func (m Identity[A]) Map2[B, R any](second Identity[B], fab func(A, B) R) Identity[R] {
-	return m.FlatMap(func(a A) Identity[R] {
-		return second.Map(func(b B) R {
-			return fab(a, b)
-		})
-	})
-}
-
 func (m Identity[A]) FlatMap2[B, R any](second Identity[B], fab func(A, B) Identity[R]) Identity[R] {
 	return m.FlatMap(func(a A) Identity[R] {
 		return second.FlatMap(func(b B) Identity[R] {

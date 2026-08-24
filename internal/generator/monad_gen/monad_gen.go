@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go/token"
 	"go/types"
 	"os"
 
@@ -9,6 +10,34 @@ import (
 	"github.com/csgura/fp/genfp/generator"
 	"golang.org/x/tools/go/packages"
 )
+
+func isPredefined(pkgs []*packages.Package, pos token.Pos, willGenerated map[string]bool) bool {
+	for _, p := range pkgs {
+		file := p.Fset.Position(pos)
+		if file.Filename != "" {
+			if willGenerated[file.Filename] {
+				return false
+			}
+		}
+	}
+	return true
+}
+func listMethods(p []*packages.Package, v types.Type, fileSet map[string]bool) map[string]bool {
+
+	ret := map[string]bool{}
+
+	switch tp := v.(type) {
+	case *types.Named:
+		for m := range tp.Methods() {
+			if isPredefined(p, m.Pos(), fileSet) {
+				ret[m.Name()] = true
+			}
+		}
+	}
+
+	return ret
+
+}
 
 func main() {
 	pack := os.Getenv("GOPACKAGE")
@@ -61,7 +90,7 @@ func main() {
 	}
 
 	funcList := map[string]bool{}
-	methodList := map[string]bool{}
+	methodList := map[string]map[string]bool{}
 
 	for _, p := range pkgs {
 		s := p.Types.Scope()
@@ -72,7 +101,6 @@ func main() {
 				if !fileSet[file] {
 					funcList[o.Name()] = true
 				}
-
 			}
 		}
 	}
@@ -99,7 +127,13 @@ func main() {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
-				generator.WriteMonadMethods(w, gfu, methodList)
+				generated := methodList[gfu.TargetType.Obj().Name()]
+				if generated == nil {
+					targetType := gfu.TargetType.Obj().Type()
+					generated = listMethods(pkgs, targetType, fileSet)
+				}
+				generator.WriteMonadMethods(w, gfu, generated)
+				methodList[gfu.TargetType.Obj().Name()] = generated
 			}
 		})
 	}
@@ -121,5 +155,4 @@ func main() {
 			}
 		})
 	}
-
 }
