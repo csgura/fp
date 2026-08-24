@@ -84,7 +84,7 @@ func (r SummonContext) workingScope(tcCache *metafp.TypeClassInstanceCache, req 
 }
 
 func (r SummonContext) recursiveGen() bool {
-	return option.Map(r.deriveContext, func(v DeriveContext) bool {
+	return r.deriveContext.Map(func(v DeriveContext) bool {
 		return v.recursiveGen
 	}).OrZero()
 }
@@ -182,7 +182,7 @@ type ArgumentInstance struct {
 }
 
 func (r ArgumentInstance) instanceExpr(w genfp.ImportSet, workingPkg genfp.WorkingPackage) SummonExpr {
-	param := option.Map(r.typeParam, func(v metafp.TypeClass) ParamInstance {
+	param := r.typeParam.Map(func(v metafp.TypeClass) ParamInstance {
 		return ParamInstance{
 			ArgName:   r.name,
 			TypeClass: v,
@@ -268,7 +268,7 @@ type lookupTarget struct {
 func (r lookupTarget) instance() fp.Option[metafp.TypeClassInstance] {
 	if r1, ok := either.Fold(r.target, option.ConstNone, option.Some).Unapply(); ok {
 		if r2, ok := either.Fold(r1, option.ConstNone, option.Some).Unapply(); ok {
-			return option.Map(either.Fold(r2, option.ConstNone, option.Some), DefinedInstance.Instance)
+			return either.Fold(r2, option.ConstNone, option.Some).Map(DefinedInstance.Instance)
 		}
 	}
 	return option.None[metafp.TypeClassInstance]()
@@ -308,7 +308,7 @@ func (r lookupTarget) checked() bool {
 }
 
 func (r lookupTarget) isGivenAny() bool {
-	return option.Map(r.instance(), metafp.TypeClassInstance.IsGivenAny).OrElse(false)
+	return r.instance().Map(metafp.TypeClassInstance.IsGivenAny).OrElse(false)
 }
 
 // func (r lookupTarget) isLocal() bool {
@@ -772,7 +772,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceTypePkg(ctx SummonContex
 			ti := metafp.GetTypeInfo(obj.Type())
 			rhsType := ti.ResultType()
 			if rhsType.IsInstanceOf(ctx.typeClass) {
-				return option.Map(metafp.AsTypeClassInstance(req.TypeClass, obj), func(a metafp.TypeClassInstance) DefinedInstance {
+				return metafp.AsTypeClassInstance(req.TypeClass, obj).Map(func(a metafp.TypeClassInstance) DefinedInstance {
 					return DefinedInstance{
 						instance:   a,
 						checked:    true,
@@ -830,7 +830,7 @@ func TypeClassInstanceToLookupTarget(a DefinedInstance) lookupTarget {
 	}
 }
 func (r *TypeClassSummonContext) orMust(ctx SummonContext, req metafp.RequiredInstance, name string, ins fp.Option[DefinedInstance]) lookupTarget {
-	lt := option.Map(ins, TypeClassInstanceToLookupTarget)
+	lt := ins.Map(TypeClassInstanceToLookupTarget)
 	return lt.OrElse(r.typeclassInstanceMust(ctx, req, name))
 
 }
@@ -868,7 +868,7 @@ func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx SummonContext
 		}
 
 		ret := seq.Map(ins.TypeParam.Take(notPossible.Size()), func(v metafp.TypeParam) string {
-			return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+			return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 				return r.w.TypeName(ctx.working, v.Type)
 			}).OrElse(v.Name)
 		}).MakeString(",")
@@ -883,7 +883,7 @@ func (r *TypeClassSummonContext) typeParamString(ctx SummonContext, ins metafp.T
 
 	if explicit {
 		ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
-			return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+			return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 				return r.w.TypeName(ctx.working, v.Type)
 			}).OrElse(v.Name)
 		}).MakeString(",")
@@ -907,7 +907,7 @@ func (r *TypeClassSummonContext) typeParamString(ctx SummonContext, ins metafp.T
 	// 전부 사용되지 않아 타입 추론이 불가능하다면
 	// 타입을 명시한다.
 	ret := seq.Map(ins.TypeParam.Take(notPossible.Size()), func(v metafp.TypeParam) string {
-		return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+		return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 			return r.w.TypeName(ctx.working, v.Type)
 		}).OrElse(v.Name)
 	}).MakeString(",")
@@ -1191,12 +1191,15 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 			//fmt.Printf("lookup named hlist %s\n", req.Type)
 
 			if at.Obj().Name() == "Nil" {
-				return option.Map(r.lookupTypeClassInstanceLocalDeclared(ctx, req, true, "HNil", "HListNil").
-					Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, true, "HNil", "HListNil")), TypeClassInstanceToLookupTarget).OrElse(r.typeclassInstanceMust(ctx, req, "HNil"))
+				return r.lookupTypeClassInstanceLocalDeclared(ctx, req, true, "HNil", "HListNil").
+					Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, true, "HNil", "HListNil")).
+					Map(TypeClassInstanceToLookupTarget).
+					OrElse(r.typeclassInstanceMust(ctx, req, "HNil"))
 
 			} else if at.Obj().Name() == "Cons" {
-				return option.Map(r.lookupTypeClassInstanceLocalDeclared(ctx, req, true, "HCons", "HListCons").
-					Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, true, "HCons", "HListCons")), TypeClassInstanceToLookupTarget).OrElse(r.typeclassInstanceMust(ctx, req, "HCons"))
+				return r.lookupTypeClassInstanceLocalDeclared(ctx, req, true, "HCons", "HListCons").
+					Or(r.lookupTypeClassInstancePrimitivePkgLazy(ctx, req, true, "HCons", "HListCons")).
+					Map(TypeClassInstanceToLookupTarget).OrElse(r.typeclassInstanceMust(ctx, req, "HCons"))
 			}
 		}
 		return r.namedLookupMust(ctx, req, at.Obj().Name())
@@ -1294,7 +1297,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstance(ctx SummonContext, req 
 
 // v.A , v.B
 func (r *TypeClassSummonContext) structUnapplyExpr(ctx SummonContext, named fp.Option[metafp.NamedTypeInfo], fields fp.Seq[metafp.StructField], varexpr string) string {
-	hasUnapply := option.Map(named, func(v metafp.NamedTypeInfo) bool { return v.Info.Method.Contains("Unapply") }).OrElse(false)
+	hasUnapply := named.Map(func(v metafp.NamedTypeInfo) bool { return v.Info.Method.Contains("Unapply") }).OrElse(false)
 
 	if hasUnapply {
 		return fmt.Sprintf("%s.Unapply()", varexpr)
@@ -1310,7 +1313,7 @@ func (r *TypeClassSummonContext) structUnapplyExpr(ctx SummonContext, named fp.O
 
 // struct{ A : x , B : y }
 func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Option[metafp.NamedTypeInfo], fields fp.Seq[metafp.StructField], args ...string) string {
-	hasApply := option.Map(named, func(v metafp.NamedTypeInfo) bool { return v.Info.Method.Contains("Builder") }).OrElse(false)
+	hasApply := named.Map(func(v metafp.NamedTypeInfo) bool { return v.Info.Method.Contains("Builder") }).OrElse(false)
 
 	if hasApply {
 
@@ -1335,7 +1338,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Opt
 		return fmt.Sprintf("%s: %s", v.I1, v.I2)
 	}).MakeString(",")
 
-	valuereceiver := option.Map(named, func(v metafp.NamedTypeInfo) string {
+	valuereceiver := named.Map(func(v metafp.NamedTypeInfo) string {
 		valuetp := ""
 		if v.Info.TypeParam.Size() > 0 {
 			valuetp = "[" + iterator.Map(seq.Iterator(named.Get().Info.TypeParam), func(v metafp.TypeParam) string {
@@ -1450,7 +1453,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 
 	result := r.lookupTypeClassFunc(ctx, tc, fmt.Sprintf("Labelled%d", typeArgs.Size()))
 
-	return option.Map(result, func(tm metafp.TypeClassInstance) GenericRepr {
+	return result.Map(func(tm metafp.TypeClassInstance) GenericRepr {
 		return GenericRepr{
 			Kind:         fp.GenericKindStruct,
 			Type:         as.Supplier1(sf.typeStr, ctx.working),
@@ -1462,7 +1465,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 			},
 		}
 	}).Or(func() fp.Option[GenericRepr] {
-		return option.Map(r.lookupTypeClassFunc(ctx, tc, "HConsLabelled"), func(hcons metafp.TypeClassInstance) GenericRepr {
+		return r.lookupTypeClassFunc(ctx, tc, "HConsLabelled").Map(func(hcons metafp.TypeClassInstance) GenericRepr {
 			return GenericRepr{
 				Kind:         fp.GenericKindStruct,
 				Type:         as.Supplier1(sf.typeStr, ctx.working),
@@ -2115,7 +2118,7 @@ func (r *TypeClassSummonContext) summonUntypedStruct(ctx SummonContext, tc metaf
 }
 
 func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.TypeClass, genericName string, genericRepr GenericRepr) SummonExpr {
-	mapExpr := option.Map(r.lookupTypeClassFunc(ctx, tc, "ContraGeneric"), func(generic metafp.TypeClassInstance) SummonExpr {
+	mapExpr := r.lookupTypeClassFunc(ctx, tc, "ContraGeneric").Map(func(generic metafp.TypeClassInstance) SummonExpr {
 		repr := genericRepr.ReprExpr()
 
 		retExpr := func() string {
@@ -2135,7 +2138,7 @@ func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.Type
 		return newSummonExpr(retExpr, repr.paramInstance)
 
 	}).Or(func() fp.Option[SummonExpr] {
-		return option.Map(r.lookupTypeClassFunc(ctx, tc, "Generic"), func(generic metafp.TypeClassInstance) SummonExpr {
+		return r.lookupTypeClassFunc(ctx, tc, "Generic").Map(func(generic metafp.TypeClassInstance) SummonExpr {
 			repr := genericRepr.ReprExpr()
 
 			retExpr := func() string {
@@ -2161,7 +2164,7 @@ func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.Type
 			return newSummonExpr(retExpr, repr.paramInstance)
 		})
 	}).Or(func() fp.Option[SummonExpr] {
-		return option.Map(r.lookupTypeClassFunc(ctx, tc, "IMap"), func(imapfunc metafp.TypeClassInstance) SummonExpr {
+		return r.lookupTypeClassFunc(ctx, tc, "IMap").Map(func(imapfunc metafp.TypeClassInstance) SummonExpr {
 
 			repr := genericRepr.ReprExpr()
 			retExpr := func() string {
@@ -2177,7 +2180,7 @@ func (r *TypeClassSummonContext) summonGeneric(ctx SummonContext, tc metafp.Type
 		})
 	}).Or(func() fp.Option[SummonExpr] {
 		functor := r.lookupTypeClassFunc(ctx, tc, "Map")
-		return option.Map(functor, func(v metafp.TypeClassInstance) SummonExpr {
+		return functor.Map(func(v metafp.TypeClassInstance) SummonExpr {
 			repr := genericRepr.ReprExpr()
 
 			retExpr := func() string {
@@ -2302,7 +2305,7 @@ func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) Summ
 		}).MakeString(",") + "]"
 	}
 
-	mapExpr := option.Map(tc.StructInfo, func(s metafp.TaggedStruct) SummonExpr {
+	mapExpr := tc.StructInfo.Map(func(s metafp.TaggedStruct) SummonExpr {
 		fields := s.Fields
 		//privateFields := fields.FilterNot(metafp.StructField.Public)
 		allFields := fields.FilterNot(func(v metafp.StructField) bool {

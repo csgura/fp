@@ -160,7 +160,7 @@ func TransformWith[S, A, B any](st fp.StateT[S, A], f func(fp.Try[A]) fp.StateT[
 func MapWithState[S, A, B any](st fp.StateT[S, A], f func(S, A) B) fp.StateT[S, B] {
 	return func(s S) (fp.Try[B], S) {
 		a, ns := st.Run(s)
-		return try.Map2(try.Success(ns), a, f), ns
+		return try.Success(ns).Map2(a, f), ns
 	}
 }
 

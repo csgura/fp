@@ -372,7 +372,7 @@ func toStructInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti metafp
 				Tag:          f.Tag,
 				IsPublic:     f.Public(),
 				IsVisible:    f.Public() || ti.IsSamePkg(workingPkg),
-				ElemType: option.Map(f.FieldType.ElemType(), func(v metafp.TypeInfo) genfp.TypeInfo {
+				ElemType: f.FieldType.ElemType().Map(func(v metafp.TypeInfo) genfp.TypeInfo {
 					return toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
 						Type: v,
 					})
@@ -918,9 +918,9 @@ func (r *implContext) callSuperImpl(field string) fp.Option[string] {
 	}
 
 	args := r.matchSuperMethodArgs(field)
-	argstr := option.Map(args, CallArgs.ArgList).OrElse(r.argStr)
+	argstr := args.Map(CallArgs.ArgList).OrElse(r.argStr)
 
-	implArgs := option.Map(args, as.Func3(CallArgs.ArgTypeList).ApplyLast2(r.w, r.gad.Package)).Map(func(s string) string {
+	implArgs := args.Map(as.Func3(CallArgs.ArgTypeList).ApplyLast2(r.w, r.gad.Package)).Map(func(s string) string {
 		if gad.ExtendsSelfCheck {
 			if gad.TargetAlias != nil {
 				return "self " + r.w.TypeName(gad.Package, gad.TargetAlias) + "," + s
@@ -1095,7 +1095,7 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 		}
 	}
 
-	argstr := option.Map(r.matchSuperMethodArgs(superField), CallArgs.ArgList).OrElse(r.argStr)
+	argstr := r.matchSuperMethodArgs(superField).Map(CallArgs.ArgList).OrElse(r.argStr)
 
 	if superField != "" && !gad.ExtendsByEmbedding {
 		si := r.callSuperImpl(superField)
@@ -1136,7 +1136,7 @@ func (r *implContext) callExtends(superField string) fp.Option[GeneratedExpr] {
 			return option.Some(as.Seq(si.ToSeq()).Add(sc).MakeString("\n"))
 		}
 
-		return option.Map(callSupercheck("Extends"), func(s string) GeneratedExpr {
+		return callSupercheck("Extends").Map(func(s string) GeneratedExpr {
 			return GeneratedExpr{expr: fmt.Sprintf(`
 				if r.Extends != nil {
 					%s
@@ -1163,7 +1163,7 @@ func (r *implContext) adaptorFields() (fp.Option[string], fp.Option[string]) {
 
 	cbfield = cbfield.FilterNot(fp.Const[string](opt.Private))
 
-	defaultField := option.Map(option.Of(r.isValOverride()).Filter(fp.Id), func(v bool) string {
+	defaultField := option.Of(r.isValOverride()).Filter(fp.Id).Map(func(v bool) string {
 		if opt.ValOverrideUsingPtr {
 			return fmt.Sprintf("%s *%s", r.valName, varTypeName(r.w, gad.Package, sig.Results().At(0)))
 		}
@@ -1584,8 +1584,8 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 		fp.Seq[string]{}.
 			Add(valExpr.OrElse("")).
 			Concat(cbExpr.ToSeq()).
-			Concat(option.Map(delegateExpr, GeneratedExpr.Expr).ToSeq()).
-			Concat(option.Map(callExtendsExpr, GeneratedExpr.Expr).ToSeq()).
+			Concat(delegateExpr.Map(GeneratedExpr.Expr).ToSeq()).
+			Concat(callExtendsExpr.Map(GeneratedExpr.Expr).ToSeq()).
 			Concat(defaultExpr.ToSeq()).
 			Concat(panicExpr.ToSeq()).
 			MakeString("\n\n"),

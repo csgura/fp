@@ -60,11 +60,11 @@ func FilterMapValue[K, VA, VB any](s fp.SliceT[fp.Tuple2[K, VA]], f func(VA) fp.
 }
 
 func PartitionEithers[L, R any](r fp.SliceT[fp.Either[L, R]]) (fp.SliceT[L], fp.SliceT[R]) {
-	ret := try.Map(r, func(a fp.Slice[fp.Either[L, R]]) fp.Tuple2[fp.Slice[L], fp.Slice[R]] {
+	ret := r.Map(func(a fp.Slice[fp.Either[L, R]]) fp.Tuple2[fp.Slice[L], fp.Slice[R]] {
 		return as.Tuple(slice.PartitionEithers(a))
 	})
 
-	return try.Map(ret, xtr.Head), try.Map(ret, xtr.Last)
+	return ret.Map(xtr.Head), ret.Map(xtr.Last)
 }
 
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
@@ -83,7 +83,7 @@ func _[K comparable, T, U, V any]() genfp.GenerateMonadTransformer[fp.SliceT[T]]
 		},
 		Sequence: func(v fp.Slice[fp.Try[T]]) fp.SliceT[T] {
 			return try.FoldM(iterator.FromSeq(v), fp.Slice[T]{}, func(t1 fp.Slice[T], t2 fp.Try[T]) fp.SliceT[T] {
-				return try.Map(t2, func(v T) fp.Slice[T] {
+				return t2.Map(func(v T) fp.Slice[T] {
 					return append(t1, v)
 				})
 			})

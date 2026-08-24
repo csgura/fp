@@ -341,7 +341,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 
 		valuereceiver := ts.Info.TypeStr(w, workingPackage)
 
-		useShow := option.Map(ts.Tags.Get("@fp.String"), func(v metafp.Annotation) bool {
+		useShow := ts.Tags.Get("@fp.String").Map(func(v metafp.Annotation) bool {
 			return v.Params().Get("useShow").OrElse("false") == "true"
 		}).OrElse(false)
 
@@ -386,7 +386,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 					valuetp := ""
 					if !ins.TypeParam.IsEmpty() {
 						valuetp = "[" + seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
-							return option.Map(ins.ParamMapping.Get(v.Name), func(v metafp.TypeInfo) string {
+							return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 								return w.TypeName(workingPackage, v.Type)
 							}).OrElse(v.Name)
 						}).MakeString(",") + "]"

@@ -56,7 +56,7 @@ func CaseSeqCons[T, R any](then func(T, fp.Seq[T]) R) fp.PartialFunc[fp.Seq[T], 
 
 func CaseSeqConsAnd[T, HT, TT, R any](hguard fp.PartialFunc[T, HT], tguard fp.PartialFunc[fp.Seq[T], TT], then func(HT, TT) R) fp.PartialFunc[fp.Seq[T], R] {
 	return as.PartialFunc(func(c fp.Seq[T]) bool {
-		return option.Map(c.Head(), hguard.IsDefinedAt).OrZero() && tguard.IsDefinedAt(c.Tail())
+		return c.Head().Map(hguard.IsDefinedAt).OrZero() && tguard.IsDefinedAt(c.Tail())
 	}, func(c fp.Seq[T]) R {
 		return then(hguard.Apply(c.Head().Get()), tguard.Apply(c.Tail()))
 	})

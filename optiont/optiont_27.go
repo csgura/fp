@@ -42,7 +42,7 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 		},
 		Sequence: func(v fp.Option[fp.Try[T]]) fp.OptionT[T] {
 			if v.IsDefined() {
-				return try.Map(v.Get(), option.Some)
+				return v.Get().Map(option.Some)
 			}
 			return try.Success(fp.Option[T]{})
 		},

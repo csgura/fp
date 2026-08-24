@@ -56,7 +56,7 @@ func (r *TypeClassSummonContext) toLabelledHlistRepr(ctx SummonContext, sf struc
 		} else {
 			nilpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-			conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+			conspkid := constp.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 			conspk := r.w.GetImportedName(conspkid)
 
 			namedTypeArgs := seq.Zip(sf.names, sf.typeArgs)
@@ -70,7 +70,7 @@ func (r *TypeClassSummonContext) toLabelledHlistRepr(ctx SummonContext, sf struc
 				return fmt.Sprintf("i%d", v)
 			}).MakeString(",")
 
-			hlistExpr := option.Map(option.Of(sf.namedGenerated).Filter(eq.GivenValue(true)), func(bool) string {
+			hlistExpr := option.Of(sf.namedGenerated).Filter(eq.GivenValue(true)).Map(func(bool) string {
 				return seq.Fold(seq.ZipWithIndex(namedTypeArgs).Reverse(), conspk+".Empty()", func(expr string, t3 fp.Tuple2[int, fp.Tuple2[fieldName, metafp.TypeInfoExpr]]) string {
 					idx, t2 := t3.Unapply()
 					name, tp := t2.Unapply()
@@ -150,7 +150,7 @@ func (r *TypeClassSummonContext) fromLabelledHlistRepr(ctx SummonContext, sf str
 		} else {
 			nilpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-			conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+			conspkid := constp.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 			conspk := r.w.GetImportedName(conspkid)
 
 			namedTypeArgs := seq.Zip(sf.names, sf.typeArgs)

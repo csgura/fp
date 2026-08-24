@@ -176,7 +176,7 @@ func (r Seq[T]) ToSeq() []T {
 func Map[T, U any](opt fp.List[T], fn func(v T) U) fp.List[U] {
 	return fp.MakeList(
 		func() fp.Option[U] {
-			return option.Map(Head(opt), fn)
+			return Head(opt).Map(fn)
 		},
 		func() fp.List[U] {
 			return Map(opt.Tail(), fn)
@@ -598,7 +598,7 @@ func Scan[A, B any](s fp.List[A], zero B, f func(B, A) B) fp.List[B] {
 			return option.Some(zero)
 		},
 		func() fp.List[B] {
-			z := option.Map(Head(s), cf(zero))
+			z := Head(s).Map(cf(zero))
 			if z.IsDefined() {
 				return Scan(s.Tail(), z.Get(), f)
 			}

@@ -140,7 +140,7 @@ func DecoderPtr[T any](decT lazy.Eval[Decoder[T]]) Decoder[*T] {
 			return try.Success[*T](nil)
 		}
 		ret := decT.Get().Decode(ctx, a)
-		return try.Map(ret, func(v T) *T {
+		return ret.Map(func(v T) *T {
 			return &v
 		})
 	})
@@ -160,14 +160,14 @@ func DecoderHConsLabelled[H fp.Named, T hlist.HList](heq Decoder[H], teq Decoder
 		}
 
 		var h H
-		toDecode := option.Map(option.Of(m[h.Name()]), func(v json.RawMessage) string {
+		toDecode := option.Of(m[h.Name()]).Map(func(v json.RawMessage) string {
 			return string(v)
 		}).OrElse("null")
 
 		head := heq.Decode(ctx.WithNoneWorkingObject(), toDecode)
 
 		return try.FlatMap(head, func(h H) fp.Try[hlist.Cons[H, T]] {
-			return try.Map(teq.Decode(ctx.WithSomeWorkingObject(m), a), func(t T) hlist.Cons[H, T] {
+			return teq.Decode(ctx.WithSomeWorkingObject(m), a).Map(func(t T) hlist.Cons[H, T] {
 				return hlist.Concat(h, t)
 			})
 		})
@@ -182,7 +182,7 @@ func DecoderHConsLabelled[H fp.Named, T hlist.HList](heq Decoder[H], teq Decoder
 
 func DecoderMap[T, U any](instance Decoder[T], fn func(T) U) Decoder[U] {
 	return NewDecoder(func(ctx DecoderContext, a string) fp.Try[U] {
-		return try.Map(instance.Decode(ctx, a), fn)
+		return instance.Decode(ctx, a).Map(fn)
 	})
 }
 
@@ -200,7 +200,7 @@ func DecoderNamed[T interface {
 }, A any](enc Decoder[A]) Decoder[T] {
 	return NewDecoder(func(ctx DecoderContext, a string) fp.Try[T] {
 		ret := enc.Decode(ctx, a)
-		return try.Map(ret, func(v A) T {
+		return ret.Map(func(v A) T {
 			var zero T
 			return zero.WithValue(v)
 		})
@@ -219,7 +219,7 @@ func DecoderLabelled2[N1, N2 fp.Named](ins1 Decoder[N1], ins2 Decoder[N2]) Decod
 			}
 
 			var a1 N1
-			toDecode := option.Map(option.Of(m[a1.Name()]), func(v any) string {
+			toDecode := option.Of(m[a1.Name()]).Map(func(v any) string {
 				b, _ := json.Marshal(v)
 				return string(b)
 			}).OrElse("null")
@@ -227,14 +227,14 @@ func DecoderLabelled2[N1, N2 fp.Named](ins1 Decoder[N1], ins2 Decoder[N2]) Decod
 			v1 := ins1.Decode(ctx, toDecode)
 
 			var a2 N2
-			toDecode = option.Map(option.Of(m[a2.Name()]), func(v any) string {
+			toDecode = option.Of(m[a2.Name()]).Map(func(v any) string {
 				b, _ := json.Marshal(v)
 				return string(b)
 			}).OrElse("null")
 
 			v2 := ins2.Decode(ctx, toDecode)
 
-			return try.Map2(v1, v2, func(a N1, b N2) fp.Labelled2[N1, N2] {
+			return v1.Map2(v2, func(a N1, b N2) fp.Labelled2[N1, N2] {
 				return as.Labelled2(a, b)
 			})
 		},

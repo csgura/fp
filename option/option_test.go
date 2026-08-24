@@ -52,11 +52,11 @@ func TestSome(t *testing.T) {
 	println(bufOpt.IsDefined())
 
 	intOpt := option.Some(10)
-	strOpt := option.Map(intOpt, strconv.Itoa)
+	strOpt := intOpt.Map(strconv.Itoa)
 	fmt.Println(strOpt)
 
 	intNone := option.None[int]()
-	strOpt = option.Map(intNone, strconv.Itoa)
+	strOpt = intNone.Map(strconv.Itoa)
 	fmt.Println(strOpt)
 
 	intFunctor := option.Map[int, string]

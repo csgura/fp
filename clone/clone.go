@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/slice"
 )
@@ -65,7 +64,7 @@ func Slice[T any](tclone fp.Clone[T]) fp.Clone[[]T] {
 
 func Option[T any](tclone fp.Clone[T]) fp.Clone[fp.Option[T]] {
 	return New(func(s fp.Option[T]) fp.Option[T] {
-		return option.Map(s, tclone.Clone)
+		return s.Map(tclone.Clone)
 	})
 }
 

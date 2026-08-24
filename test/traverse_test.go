@@ -12,7 +12,7 @@ func Swap[T any](a fp.Option[fp.Try[T]]) fp.Try[fp.Option[T]] {
 	if a.IsEmpty() {
 		return try.Success(option.None[T]())
 	}
-	return try.Map(a.Get(), option.Some)
+	return a.Get().Map(option.Some)
 }
 
 func TestTraverse(t *testing.T) {

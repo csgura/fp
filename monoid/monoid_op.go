@@ -52,7 +52,7 @@ func Option[T any](m fp.Monoid[T]) fp.Monoid[fp.Option[T]] {
 			if b.IsEmpty() {
 				return a
 			}
-			return option.Map2(a, b, m.Combine)
+			return a.Map2(b, m.Combine)
 		},
 	)
 }
@@ -63,7 +63,7 @@ func Try[T any](m fp.Monoid[T]) fp.Monoid[fp.Try[T]] {
 			return try.Success(m.Empty())
 		},
 		func(a fp.Try[T], b fp.Try[T]) fp.Try[T] {
-			return try.Map2(a, b, m.Combine)
+			return a.Map2(b, m.Combine)
 		},
 	)
 }
@@ -74,7 +74,7 @@ func Future[T any](m fp.Monoid[T]) fp.Monoid[fp.Future[T]] {
 			return future.Successful(m.Empty())
 		},
 		func(a fp.Future[T], b fp.Future[T]) fp.Future[T] {
-			return future.Map2(a, b, m.Combine)
+			return a.Map2(b, m.Combine)
 		},
 	)
 }

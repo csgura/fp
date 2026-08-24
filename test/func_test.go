@@ -26,45 +26,45 @@ func (r hello) String() string {
 func TestFunc(t *testing.T) {
 	ovalue := option.Some(hello{})
 
-	option.Map(ovalue, hello.String)
-	option.Map(ovalue, func(v hello) string {
+	ovalue.Map(hello.String)
+	ovalue.Map(func(v hello) string {
 		return v.String()
 	})
 
 	optr := option.Some(&hello{})
-	option.Map(optr, (*hello).String)
+	optr.Map((*hello).String)
 
 	product := func(a, b int) int {
 		return a * b
 	}
 
 	oint := option.Some(2)
-	option.Map(oint, as.Curried2(product)(2))
-	option.Map(oint, curried.Func2(
+	oint.Map(as.Curried2(product)(2))
+	oint.Map(curried.Func2(
 		monoid.Product[int]().Combine)(2),
 	)
 
-	option.Map(oint, func(a int) int {
+	oint.Map(func(a int) int {
 		return a * 2
 	})
 
 	otuple := option.Some(as.Tuple(1, 2))
-	option.Map(otuple, as.Tupled2(product))
+	otuple.Map(as.Tupled2(product))
 
-	option.Map(otuple, as.Tupled2(monoid.Product[int]().Combine))
+	otuple.Map(as.Tupled2(monoid.Product[int]().Combine))
 
-	option.Map(otuple, func(tuple fp.Tuple2[int, int]) int {
+	otuple.Map(func(tuple fp.Tuple2[int, int]) int {
 		return tuple.I1 + tuple.I2
 	})
 
 	// f := as.Func2(strconv.FormatInt).Shift()
 	// ostr := option.Map(oint, as.InstanceOf(v any))
 
-	ostr := option.Map(oint, strconv.Itoa)
-	oreader := option.Map(ostr, strings.NewReader)
+	ostr := oint.Map(strconv.Itoa)
+	oreader := ostr.Map(strings.NewReader)
 	fmt.Println(oreader)
 
-	oreader = option.Map(oint, fp.Compose2(
+	oreader = oint.Map(fp.Compose2(
 		strconv.Itoa,
 		strings.NewReader,
 	))
@@ -87,7 +87,7 @@ func TestFunc(t *testing.T) {
 	o2 := option.Some(2)
 
 	os2 := option.FlatMap(o1, func(a int) fp.Option[int] {
-		return option.Map(o2, func(b int) int {
+		return o2.Map(func(b int) int {
 			return a + b
 		})
 	})

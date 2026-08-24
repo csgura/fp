@@ -137,11 +137,11 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TypeClassDirective] {
 				if vs, ok := v.(*ast.ValueSpec); ok {
 
-					doc := option.Map(option.Of(vs.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
+					doc := option.Of(vs.Doc).Or(as.Supplier(gdDoc)).Map((*ast.CommentGroup).Text)
 
 					if doc.Filter(as.Func2(strings.Contains).ApplyLast(directive)).IsDefined() {
 
-						tags := option.Map(doc, extractTag).OrZero()
+						tags := doc.Map(extractTag).OrZero()
 						if tags.Contains(directive) {
 							info := &types.Info{
 								Types: make(map[ast.Expr]types.TypeAndValue),
@@ -167,7 +167,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 										},
 										TypeClassType: tcType,
 										TypeArgs:      typeArgs(tt.TypeArgs()),
-										Tags:          option.Map(doc, extractTag).OrZero(),
+										Tags:          doc.Map(extractTag).OrZero(),
 									})
 								} else if alias, ok := firstArg.(*types.Alias); ok && alias.TypeArgs().Len() > 0 {
 									tcType := typeInfo(alias.Obj().Type())
@@ -181,7 +181,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 										},
 										TypeClassType: tcType,
 										TypeArgs:      typeArgs(alias.TypeArgs()),
-										Tags:          option.Map(doc, extractTag).OrZero(),
+										Tags:          doc.Map(extractTag).OrZero(),
 									})
 								}
 							}
@@ -587,15 +587,17 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 		paramName := v.genericType.Name().Get()
 
 		// func[T constraint]() Eq[A] 혹은 func() Eq[A] 처럼. type parameter 목록이 잘못된 경우도 불가능
-		paramCons := option.Map(param.Filter(func(p TypeParam) bool {
+		paramCons := param.Filter(func(p TypeParam) bool {
 			return p.Name == paramName
-		}).Head(), func(p TypeParam) paramVar {
-			//fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
-			return paramVar{
-				typeParam:  types.NewTypeParam(p.TypeName, replaceTypeArgs(p.Constraint, ctx.ParamMapping)),
-				actualType: v.actualType,
-			}
-		})
+		}).
+			Head().
+			Map(func(p TypeParam) paramVar {
+				//fmt.Printf("param %s -> %s, constraint = %T(%s)\n", p.TypeName, v.actualType, p.Constraint, p.Constraint)
+				return paramVar{
+					typeParam:  types.NewTypeParam(p.TypeName, replaceTypeArgs(p.Constraint, ctx.ParamMapping)),
+					actualType: v.actualType,
+				}
+			})
 
 		return paramCons
 	}).ToSeq()

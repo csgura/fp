@@ -51,10 +51,10 @@ func TestTry(t *testing.T) {
 
 	assert.True(u.IsFailure())
 
-	var p fp.Try[string] = try.Map(u, (*url.URL).Port)
+	var p fp.Try[string] = u.Map((*url.URL).Port)
 	assert.True(p.IsFailure())
 
-	var intPort fp.Try[int] = try.Flatten(try.Map(p, try.Func1(strconv.Atoi)))
+	var intPort fp.Try[int] = try.Flatten(p.Map(try.Func1(strconv.Atoi)))
 	fmt.Println(intPort)
 	assert.True(intPort.IsFailure())
 
@@ -69,7 +69,7 @@ func TestFlatMap(t *testing.T) {
 	assert.True(u.IsSuccess())
 	fmt.Println(u)
 
-	var p fp.Try[string] = try.Map(u, (*url.URL).Port)
+	var p fp.Try[string] = u.Map((*url.URL).Port)
 	assert.True(p.IsSuccess())
 	assert.Equal(p.Get(), "8080")
 
@@ -159,13 +159,13 @@ func FunctorCompose(t *testing.T) {
 
 	ts := try.Success(s)
 
-	tm := try.Map(ts, option.Lift(fp.Id[int]))
+	tm := ts.Map(option.Lift(fp.Id[int]))
 	assert.Equal(tm, ts)
 
 	tm = try.Lift(option.Lift(fp.Id[int]))(ts)
 	assert.Equal(tm, ts)
 
-	tm = try.Map(ts, option.LiftM(func(v int) fp.Option[int] {
+	tm = ts.Map(option.LiftM(func(v int) fp.Option[int] {
 		return option.Some(v)
 	}))
 

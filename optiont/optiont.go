@@ -70,7 +70,7 @@ func NonEmptySlice[T ~[]E, E any](t T) fp.OptionT[T] {
 }
 
 func FromTry[A any](v fp.Try[A]) fp.OptionT[A] {
-	return try.Map(v, option.Some)
+	return v.Map(option.Some)
 }
 
 func Fold[T any, U any](optionT fp.OptionT[T], zero U, f func(U, T) U) U {

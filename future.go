@@ -337,6 +337,14 @@ func (r Future[T]) Map[R any](mf func(T) R, ctx ...Executor) Future[R] {
 	return np.Future()
 }
 
+func (r Future[T]) Map2[S, R any](of Future[S], mf func(T, S) R, ctx ...Executor) Future[R] {
+	return r.FlatMap(func(t T) Future[R] {
+		return of.Map(func(s S) R {
+			return mf(t, s)
+		}, ctx...)
+	}, ctx...)
+}
+
 func (r Future[T]) FlatMap[R any](mf func(T) Future[R], ctx ...Executor) Future[R] {
 	np := NewPromise[R]()
 

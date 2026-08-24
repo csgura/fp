@@ -62,7 +62,7 @@ func NonEmptySlice[T ~[]E, E any](t T) fp.PtrT[T] {
 }
 
 func FromTry[A any](v fp.Try[A]) fp.PtrT[A] {
-	return try.Map(v, ptr.Some)
+	return v.Map(ptr.Some)
 }
 
 func Fold[T any, U any](ptrT fp.PtrT[T], zero U, f func(U, T) U) U {

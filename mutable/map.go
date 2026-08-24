@@ -122,3 +122,17 @@ func (r Map[K, V]) All() fp.GoIter[fp.Tuple2[K, V]] {
 		}
 	}
 }
+
+func (r Map[K, V]) Map[R any](f func(K, V) R) Map[K, R] {
+	ret := Map[K, R]{}
+	for k, v := range r {
+		ret[k] = f(k, v)
+	}
+	return ret
+}
+
+func (r Map[K, V]) MapValue[R any](f func(V) R) Map[K, R] {
+	return r.Map(func(k K, v V) R {
+		return f(v)
+	})
+}

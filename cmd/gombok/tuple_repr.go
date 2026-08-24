@@ -6,13 +6,12 @@ import (
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/metafp"
-	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
 )
 
 func (r *TypeClassSummonContext) tupleReprType(ctx SummonContext, sf structFunctions, tptypeOpt fp.Option[metafp.TypeInfo]) func() string {
 	return func() string {
-		tuplepkid := option.Map(tptypeOpt, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+		tuplepkid := tptypeOpt.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 		tuplepk := r.w.GetImportedName(tuplepkid)
 
 		fields := sf.fields
@@ -57,7 +56,7 @@ func (r *TypeClassSummonContext) intoTupleRepr(ctx SummonContext, sf structFunct
 			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
-		tppk := r.w.GetImportedName(option.Map(tptypeOpt, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp")))
+		tppk := r.w.GetImportedName(tptypeOpt.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp")))
 		args := func() string {
 			for tptype := range tptypeOpt.All() {
 				if tptype.Fields().Size() == sf.fields.Size() {
@@ -124,7 +123,7 @@ func (r TypeClassSummonContext) fromTupleRepr(ctx SummonContext, sf structFuncti
 			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
-		tppk := r.w.GetImportedName(option.Map(tptypeOpt, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp")))
+		tppk := r.w.GetImportedName(tptypeOpt.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp", "fp")))
 
 		assign := func() string {
 			if tptypeOpt.IsDefined() && tptypeOpt.Get().Fields().Size() == sf.fields.Size() {

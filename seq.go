@@ -150,6 +150,17 @@ func (r Seq[T]) Filter[_ Phantom[T]](p func(v T) bool) Seq[T] {
 	return ret
 }
 
+func (r Seq[T]) FilterMap[S any](p func(v T) Option[S]) Seq[S] {
+	ret := make([]S, 0, len(r))
+	for _, v := range r {
+		e := p(v)
+		if e.IsDefined() {
+			ret = append(ret, e.Get())
+		}
+	}
+	return ret
+}
+
 func (r Seq[T]) FilterNot[_ Phantom[T]](p func(v T) bool) Seq[T] {
 	return r.Filter(func(t T) bool {
 		return !p(t)

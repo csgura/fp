@@ -9,7 +9,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/option"
 )
 
 func FromCompare[T any](cmp func(a, b T) int) fp.Ord[T] {
@@ -56,7 +55,7 @@ func Option[T any](m fp.Ord[T]) fp.Ord[fp.Option[T]] {
 		if !t1.IsDefined() && !t2.IsDefined() {
 			return false
 		}
-		return option.Map2(t1, t2, m.Less).OrElse(t1.IsEmpty())
+		return t1.Map2(t2, m.Less).OrElse(t1.IsEmpty())
 	})
 }
 

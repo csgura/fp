@@ -16,7 +16,7 @@ func (r *TypeClassSummonContext) hlistReprType(ctx SummonContext, sf structFunct
 	return func() string {
 		hlistpk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 
-		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+		conspkid := constp.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 		conspk := r.w.GetImportedName(conspkid)
 
 		fields := sf.fields
@@ -47,7 +47,7 @@ func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctio
 						}`, sf.typeStr(ctx.working), hlistpk, hlistpk)
 		}
 
-		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+		conspkid := constp.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 		conspk := r.w.GetImportedName(conspkid)
 
 		hlisttp := seq.Fold(sf.typeArgs.Reverse(), hlistpk+".Nil", func(b string, a metafp.TypeInfoExpr) string {
@@ -84,7 +84,7 @@ func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunct
 						}`, hlistpk, valuereceiver, valuereceiver)
 		}
 
-		conspkid := option.Map(constp, metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
+		conspkid := constp.Map(metafp.TypeInfo.PkgId).OrElse(genfp.NewImportPackage("github.com/csgura/fp/hlist", "hlist"))
 		conspk := r.w.GetImportedName(conspkid)
 
 		headfield, tailfield := func() (string, string) {
@@ -146,7 +146,7 @@ func (r *TypeClassSummonContext) summonStructHlistGenericRepr(ctx SummonContext,
 				hnil := r.lookupTypeClassFunc(ctx, tc, nilf).OrElseGet(as.Supplier2(r.lookupHNilMust, ctx, tc))
 				hlist := seq.Fold(sf.typeArgs.Take(arity).Reverse(), newSummonExpr(func() string { return hnil.PackagedName(r.w, ctx.working) }), func(tail SummonExpr, ti metafp.TypeInfoExpr) SummonExpr {
 
-					consname := option.Map(shcons, func(tci metafp.TypeClassInstance) string {
+					consname := shcons.Map(func(tci metafp.TypeClassInstance) string {
 						return tci.PackagedName(r.w, ctx.working)
 					}).OrElse("HCons")
 

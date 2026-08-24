@@ -42,7 +42,7 @@ func _[T, U, V any, K comparable]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 		},
 		Sequence: func(v fp.Seq[fp.Try[T]]) fp.SeqT[T] {
 			return try.FoldM(iterator.FromSeq(v), fp.Seq[T]{}, func(t1 fp.Seq[T], t2 fp.Try[T]) fp.SeqT[T] {
-				return try.Map(t2, t1.Add)
+				return t2.Map(t1.Add)
 			})
 
 		},

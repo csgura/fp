@@ -104,7 +104,7 @@ func EncoderOption[T any](enc Encoder[T]) Encoder[fp.Option[T]] {
 func EncoderNamed[T fp.NamedField[A], A any](enc Encoder[A]) Encoder[T] {
 	return NewEncoder(func(a T) fp.Option[string] {
 
-		return option.Map(enc.Encode(a.Value()), func(v string) string {
+		return enc.Encode(a.Value()).Map(func(v string) string {
 			return fmt.Sprintf(`"%s":%s`, a.Name(), v)
 		})
 	})
@@ -126,7 +126,7 @@ func EncoderHConsLabelled[H fp.Named, T hlist.HList](heq Encoder[H], teq Encoder
 			return option.Some(fmt.Sprintf("{%s}", head.Get()))
 		}
 
-		return option.Map(tail, func(v string) string {
+		return tail.Map(func(v string) string {
 			return fmt.Sprintf("{%s}", v)
 		})
 	})
@@ -182,7 +182,7 @@ func EncoderContraMap[T, U any](instance Encoder[T], fn func(U) T) Encoder[U] {
 func EncoderLabelled1[A fp.Named](ins1 Encoder[A]) Encoder[fp.Labelled1[A]] {
 	return NewEncoder(
 		func(a fp.Labelled1[A]) fp.Option[string] {
-			return option.Map(ins1.Encode(a.I1), func(v string) string {
+			return ins1.Encode(a.I1).Map(func(v string) string {
 				return fmt.Sprintf(`{"%s"}`, v)
 			})
 
@@ -205,7 +205,7 @@ func EncoderLabelled2[A1, A2 fp.Named](ins1 Encoder[A1], ins2 Encoder[A2]) Encod
 				return option.Some(fmt.Sprintf("{%s}", i1.Get()))
 			}
 
-			return option.Map(i2, func(v string) string {
+			return i2.Map(func(v string) string {
 				return fmt.Sprintf("{%s}", v)
 			})
 		},

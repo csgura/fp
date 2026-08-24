@@ -38,7 +38,7 @@ type Read[T any] interface {
 type ReadFunc[T any] func(string) fp.Try[Result[T]]
 
 func (r ReadFunc[T]) Read(str string) fp.Try[T] {
-	return try.Map(r.Reads(str), Result[T].Value)
+	return r.Reads(str).Map(Result[T].Value)
 }
 
 func (r ReadFunc[T]) Reads(str string) fp.Try[Result[T]] {
@@ -251,7 +251,7 @@ func TupleHCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.C
 		return try.FlatMap(hres, func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
 			//fmt.Printf("remains = %s\n", hr.remains)
 			nextHead := skipComma(hr.Remains())
-			return try.Map(tread.Reads(nextHead), func(tr Result[T]) Result[hlist.Cons[H, T]] {
+			return tread.Reads(nextHead).Map(func(tr Result[T]) Result[hlist.Cons[H, T]] {
 				return Result[hlist.Cons[H, T]]{
 					value:   hlist.Concat(hr.value, tr.value),
 					remains: tr.remains,
@@ -269,7 +269,7 @@ func HCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.Cons[H
 		return try.FlatMap(hres, func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
 			//fmt.Printf("remains = %s\n", hr.remains)
 			nextHead := skipColonColon(hr.Remains())
-			return try.Map(tread.Reads(nextHead), func(tr Result[T]) Result[hlist.Cons[H, T]] {
+			return tread.Reads(nextHead).Map(func(tr Result[T]) Result[hlist.Cons[H, T]] {
 				return Result[hlist.Cons[H, T]]{
 					value:   hlist.Concat(hr.value, tr.value),
 					remains: tr.remains,
@@ -281,7 +281,7 @@ func HCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.Cons[H
 
 func Map[A, B any](aread Read[A], fab func(A) B) Read[B] {
 	return New(func(s string) fp.Try[Result[B]] {
-		return try.Map(aread.Reads(s), func(r Result[A]) Result[B] {
+		return aread.Reads(s).Map(func(r Result[A]) Result[B] {
 			return MapResult(r, fab)
 		})
 	})
@@ -293,7 +293,7 @@ func Generic[T, Repr any](gen fp.Generic[T, Repr], reprRead Read[Repr]) Read[T] 
 		if strings.HasPrefix(s, gen.Type+"(") {
 			tupleStr := readTuple(s[len(gen.Type):])
 			res := reprRead.Reads(tupleStr.value)
-			return try.Map(res, func(r Result[Repr]) Result[T] {
+			return res.Map(func(r Result[Repr]) Result[T] {
 				return Result[T]{
 					value:   gen.From(r.value),
 					remains: tupleStr.remains,

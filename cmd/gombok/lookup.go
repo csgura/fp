@@ -34,7 +34,7 @@ func (r *TypeClassSummonContext) lookupTupleLikeTypeClassFunc(ctx SummonContext,
 		})
 	}
 
-	return option.Map(insLocal.OrOption(ins), func(a metafp.TypeClassInstance) DefinedInstance {
+	return insLocal.OrOption(ins).Map(func(a metafp.TypeClassInstance) DefinedInstance {
 		return DefinedInstance{
 			instance:   a,
 			searchName: name,

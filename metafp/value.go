@@ -191,7 +191,7 @@ func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[string] {
 				if ts, ok := v.(*ast.TypeSpec); ok && ts.Name.Name == name {
-					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
+					doc := option.Of(ts.Doc).Or(as.Supplier(gdDoc)).Map((*ast.CommentGroup).Text)
 					return doc.ToSeq()
 				}
 				return seq.Of[string]()
@@ -199,7 +199,7 @@ func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation
 		})
 	}).Head()
 
-	return option.Map(comment, extractTag).OrZero()
+	return comment.Map(extractTag).OrZero()
 }
 
 type PackagedName struct {
@@ -293,13 +293,13 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedStruct] {
 				if ts, ok := v.(*ast.TypeSpec); ok {
-					doc := option.Map(option.Of(ts.Doc).Or(as.Supplier(gdDoc)), (*ast.CommentGroup).Text)
+					doc := option.Of(ts.Doc).Or(as.Supplier(gdDoc)).Map((*ast.CommentGroup).Text)
 					if doc.Exists(func(comment string) bool {
 						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
 					}) {
 
 						return option.FlatMap(LookupStruct(working.Package(), ts.Name.Name), func(ret TaggedStruct) fp.Option[TaggedStruct] {
-							ret.Tags = option.Map(doc, extractTag).OrZero()
+							ret.Tags = doc.Map(extractTag).OrZero()
 							if !tagSeq.Exists(ret.Tags.Contains) {
 								return option.None[TaggedStruct]()
 							}
