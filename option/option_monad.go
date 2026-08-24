@@ -70,7 +70,7 @@ func ApFunc[A any, B any](tfab fp.Option[fp.Func1[A, B]], ta func() fp.Option[A]
 func MapSeqLift[A any, B any](ta fp.Option[fp.Seq[A]], f func(v A) B) fp.Option[fp.Seq[B]] {
 
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSeq(a).Map(f).ToSeq()
 	})
 }
 
@@ -78,7 +78,7 @@ func MapSeqLift[A any, B any](ta fp.Option[fp.Seq[A]], f func(v A) B) fp.Option[
 func MapSliceLift[A any, B any](ta fp.Option[[]A], f func(v A) B) fp.Option[[]B] {
 
 	return Map(ta, func(a []A) []B {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSlice(a).Map(f).ToSeq()
 	})
 }
 

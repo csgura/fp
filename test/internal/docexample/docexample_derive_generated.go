@@ -14,7 +14,7 @@ import (
 
 func EqPerson() fp.Eq[Person] {
 	return eq.ContraMap(
-		eq.Tuple2(eq.String, eq.Given[int]()),
+		eq.Tuple2(eq.String, eq.Int),
 		Person.AsTuple,
 	)
 }
@@ -28,14 +28,14 @@ func HashablePerson() fp.Hashable[Person] {
 
 func EqCar() fp.Eq[Car] {
 	return eq.ContraMap(
-		eq.Tuple3(eq.String, eq.String, eq.Given[int]()),
+		eq.Tuple3(eq.String, eq.String, eq.Int),
 		Car.AsTuple,
 	)
 }
 
 func OrdCar() fp.Ord[Car] {
 	return ord.ContraMap(
-		ord.Tuple3(ord.Given[string](), ord.Given[string](), ord.Given[int]()),
+		ord.Tuple3(ord.String, ord.String, ord.Int),
 		Car.AsTuple,
 	)
 }

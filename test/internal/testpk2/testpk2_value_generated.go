@@ -827,7 +827,7 @@ func (r Person) WithBlob(v []byte) Person {
 }
 
 func (r Person) String() string {
-	return fmt.Sprintf("testpk2.Person{name:%v, age:%v, height:%v, phone:%v, addr:%v, list:%v, seq:%v, blob:%v}", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
+	return fmt.Sprintf("testpk2.Person{name:%v, age:%v, height:%v, phone:%v, addr:%v, list:%v, seq:%v, blob:%x}", r.name, r.age, r.height, r.phone, r.addr, r.list, r.seq, r.blob)
 }
 
 type TupleReprPerson = fp.Tuple8[string, int, float64, fp.Option[string], []string, hlist.Cons[string, hlist.Cons[int, hlist.Nil]], fp.Seq[float64], []byte]
@@ -1280,7 +1280,7 @@ func (r Key) WithC(v []byte) Key {
 }
 
 func (r Key) String() string {
-	return fmt.Sprintf("testpk2.Key{a:%v, b:%v, c:%v}", r.a, r.b, r.c)
+	return fmt.Sprintf("testpk2.Key{a:%v, b:%v, c:%x}", r.a, r.b, r.c)
 }
 
 type TupleReprKey = fp.Tuple3[int, float32, []byte]

@@ -537,7 +537,7 @@ func (r *importSet) ZeroExpr(pk WorkingPackage, tpe types.Type) string {
 }
 
 func (r *importSet) TypeName(pk WorkingPackage, tpe types.Type) string {
-	//fmt.Printf("type %s %T\n", tpe.String(), tpe)
+	// fmt.Printf("type %s %T\n", tpe.String(), tpe)
 	switch realtp := tpe.(type) {
 	case *types.Basic:
 		if realtp.Kind() == types.UnsafePointer {
@@ -622,9 +622,7 @@ func (r *importSet) TypeName(pk WorkingPackage, tpe types.Type) string {
 			%s
 		}`, strings.Join(fields, "\n"))
 	case *types.Interface:
-		if realtp.NumMethods() == 0 {
-			return "any"
-		}
+
 		embeded := iterate(realtp.NumEmbeddeds(), realtp.EmbeddedType, func(idx int, v types.Type) string {
 			return r.TypeName(pk, realtp.EmbeddedType(idx))
 		})
@@ -635,6 +633,11 @@ func (r *importSet) TypeName(pk WorkingPackage, tpe types.Type) string {
 			return fmt.Sprintf("%s%s", m.Name(), r.TypeName(pk, m.Type())[4:])
 
 		})
+
+		if len(embeded) == 0 && realtp.NumMethods() == 0 {
+			return "any"
+		}
+
 		return fmt.Sprintf(`interface {
 			%s
 			%s

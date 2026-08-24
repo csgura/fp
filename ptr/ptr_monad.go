@@ -66,7 +66,7 @@ func ApFunc[A any, B any](tfab fp.Ptr[fp.Func1[A, B]], ta func() fp.Ptr[A]) fp.P
 func MapSeqLift[A any, B any](ta fp.Ptr[fp.Seq[A]], f func(v A) B) fp.Ptr[fp.Seq[B]] {
 
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSeq(a).Map(f).ToSeq()
 	})
 }
 
@@ -74,7 +74,7 @@ func MapSeqLift[A any, B any](ta fp.Ptr[fp.Seq[A]], f func(v A) B) fp.Ptr[fp.Seq
 func MapSliceLift[A any, B any](ta fp.Ptr[[]A], f func(v A) B) fp.Ptr[[]B] {
 
 	return Map(ta, func(a []A) []B {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSlice(a).Map(f).ToSeq()
 	})
 }
 

@@ -70,7 +70,7 @@ func ApFunc[L any, A any, B any](tfab fp.Either[L, fp.Func1[A, B]], ta func() fp
 func MapSeqLift[L any, A any, B any](ta fp.Either[L, fp.Seq[A]], f func(v A) B) fp.Either[L, fp.Seq[B]] {
 
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSeq(a).Map(f).ToSeq()
 	})
 }
 
@@ -78,7 +78,7 @@ func MapSeqLift[L any, A any, B any](ta fp.Either[L, fp.Seq[A]], f func(v A) B) 
 func MapSliceLift[L any, A any, B any](ta fp.Either[L, []A], f func(v A) B) fp.Either[L, []B] {
 
 	return Map(ta, func(a []A) []B {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSlice(a).Map(f).ToSeq()
 	})
 }
 

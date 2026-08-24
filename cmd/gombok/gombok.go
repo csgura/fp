@@ -185,34 +185,38 @@ func processDeref(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 							return w.TypeName(workingPackage, t.Type())
 						}).MakeString(",")
 
+						methodtplist := metafp.GetTypeParam(sig.TypeParams())
+						methodtp := metafp.TypeParamDecl(w, workingPackage, methodtplist)
+						methodins := metafp.TypeParamIns(w, workingPackage, methodtplist)
+
 						if resstr != "" {
 							if isPtrReceiver {
 								fmt.Fprintf(w, `
-									func (r *%s) %s(%s) (%s) {
-										return (*%s)(r).%s(%s)
+									func (r *%s) %s%s(%s) (%s) {
+										return (*%s)(r).%s%s(%s)
 									}
-								`, valuereceiver, name, argTypeStr, resstr, rhsTypeName, name, argstr)
+								`, valuereceiver, name, methodtp, argTypeStr, resstr, rhsTypeName, name, methodins, argstr)
 							} else {
 								fmt.Fprintf(w, `
-									func (r %s) %s(%s) (%s) {
-										return %s(r).%s(%s)
+									func (r %s) %s%s(%s) (%s) {
+										return %s(r).%s%s(%s)
 									}
-								`, valuereceiver, name, argTypeStr, resstr, rhsTypeName, name, argstr)
+								`, valuereceiver, name, methodtp, argTypeStr, resstr, rhsTypeName, name, methodins, argstr)
 							}
 						} else {
 							if isPtrReceiver {
 
 								fmt.Fprintf(w, `
-									func (r *%s) %s(%s) {
-										(*%s)(r).%s(%s)
+									func (r *%s) %s%s(%s) {
+										(*%s)(r).%s%s(%s)
 									}
-								`, valuereceiver, name, argTypeStr, rhsTypeName, name, argstr)
+								`, valuereceiver, name, methodtp, argTypeStr, rhsTypeName, name, methodins, argstr)
 							} else {
 								fmt.Fprintf(w, `
-									func (r %s) %s(%s) {
-										%s(r).%s(%s)
+									func (r %s) %s%s(%s) {
+										%s(r).%s%s(%s)
 									}
-								`, valuereceiver, name, argTypeStr, rhsTypeName, name, argstr)
+								`, valuereceiver, name, methodtp, argTypeStr, rhsTypeName, name, methodins, argstr)
 							}
 						}
 						genMethod = genMethod.Incl(name)

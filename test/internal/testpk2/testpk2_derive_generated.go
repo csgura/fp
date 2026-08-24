@@ -17,14 +17,14 @@ import (
 
 func EqPerson() fp.Eq[Person] {
 	return eq.ContraMap(
-		eq.Tuple8(eq.String, eq.Given[int](), EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Given[int](), eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes),
+		eq.Tuple8(eq.String, eq.Int, EqFloat64, eq.Option(eq.String), eq.Slice(eq.String), eq.HCons(eq.String, eq.HCons(eq.Int, eq.HNil)), EqFpSeq(EqFloat64), eq.Bytes),
 		Person.AsTuple,
 	)
 }
 
 func EqWallet() fp.Eq[Wallet] {
 	return eq.ContraMap(
-		eq.Tuple2(EqPerson(), eq.Given[int64]()),
+		eq.Tuple2(EqPerson(), eq.Int64),
 		Wallet.AsTuple,
 	)
 }

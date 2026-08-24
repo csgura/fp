@@ -14,7 +14,7 @@ import (
 
 func EqNormalStruct() fp.Eq[NormalStruct] {
 	return eq.ContraMap(
-		eq.Tuple3(eq.String, eq.Given[int](), eq.String),
+		eq.Tuple3(eq.String, eq.Int, eq.String),
 		func(v NormalStruct) fp.Tuple3[string, int, string] {
 			return fp.Tuple3[string, int, string]{
 				I1: v.Name,
@@ -176,63 +176,63 @@ func EqOver21[T any](eqT fp.Eq[T]) fp.Eq[Over21[T]] {
 		eq.HCons(
 			eqT,
 			eq.HCons(
-				eq.Given[int](),
+				eq.Int,
 				eq.HCons(
-					eq.Given[int](),
+					eq.Int,
 					eq.HCons(
-						eq.Given[int](),
+						eq.Int,
 						eq.HCons(
-							eq.Given[int](),
+							eq.Int,
 							eq.HCons(
-								eq.Given[int](),
+								eq.Int,
 								eq.HCons(
-									eq.Given[int](),
+									eq.Int,
 									eq.HCons(
-										eq.Given[int](),
+										eq.Int,
 										eq.HCons(
-											eq.Given[int](),
+											eq.Int,
 											eq.HCons(
-												eq.Given[int](),
+												eq.Int,
 												eq.HCons(
-													eq.Given[int](),
+													eq.Int,
 													eq.HCons(
-														eq.Given[int](),
+														eq.Int,
 														eq.HCons(
-															eq.Given[int](),
+															eq.Int,
 															eq.HCons(
-																eq.Given[int](),
+																eq.Int,
 																eq.HCons(
-																	eq.Given[int](),
+																	eq.Int,
 																	eq.HCons(
-																		eq.Given[int](),
+																		eq.Int,
 																		eq.HCons(
-																			eq.Given[int](),
+																			eq.Int,
 																			eq.HCons(
-																				eq.Given[int](),
+																				eq.Int,
 																				eq.HCons(
-																					eq.Given[int](),
+																					eq.Int,
 																					eq.HCons(
-																						eq.Given[int](),
+																						eq.Int,
 																						eq.HCons(
-																							eq.Given[int](),
+																							eq.Int,
 																							eq.HCons(
-																								eq.Given[int](),
+																								eq.Int,
 																								eq.HCons(
-																									eq.Given[int](),
+																									eq.Int,
 																									eq.HCons(
-																										eq.Given[int](),
+																										eq.Int,
 																										eq.HCons(
-																											eq.Given[int](),
+																											eq.Int,
 																											eq.HCons(
-																												eq.Given[int](),
+																												eq.Int,
 																												eq.HCons(
-																													eq.Given[int](),
+																													eq.Int,
 																													eq.HCons(
-																														eq.Given[int](),
+																														eq.Int,
 																														eq.HCons(
-																															eq.Given[int](),
+																															eq.Int,
 																															eq.HCons(
-																																eq.Given[int](),
+																																eq.Int,
 																																eq.HNil,
 																															),
 																														),
@@ -925,8 +925,8 @@ func DecoderOver21[T any](decoderT js.Decoder[T]) js.Decoder[Over21[T]] {
 
 func EqTestpk1LegacyStruct() fp.Eq[testpk1.LegacyStruct] {
 	return eq.ContraMap(
-		eq.Tuple3(eq.String, eq.Given[int](), eq.ContraMap(
-			eq.Tuple2(eq.String, eq.Given[int]()),
+		eq.Tuple3(eq.String, eq.Int, eq.ContraMap(
+			eq.Tuple2(eq.String, eq.Int),
 			func(v struct {
 				Hello string
 				World int

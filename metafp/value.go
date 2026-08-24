@@ -10,6 +10,7 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/as"
+	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/genfp/generator"
 	"github.com/csgura/fp/iterator"
@@ -1344,24 +1345,33 @@ func (r TypeInfo) IsNilable() bool {
 	return false
 }
 
-func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
-	if len(r.TypeParam) > 0 {
-		return "[" + seq.Iterator(r.TypeParam).Map(func(v TypeParam) string {
+func TypeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage, tp fp.Seq[TypeParam]) string {
+	if len(tp) > 0 {
+		return "[" + seq.Iterator(tp).Map(func(v TypeParam) string {
 			tn := w.TypeName(cwd, v.Constraint)
 			return fmt.Sprintf("%s %s", v.Name, tn)
 		}).MakeString(",") + "]"
 	}
 	return ""
+}
 
+func TypeParamIns(w genfp.ImportSet, cwd genfp.WorkingPackage, tp fp.Seq[TypeParam]) string {
+	namelist := seq.Iterator(tp).Map(func(v TypeParam) string {
+		return v.Name
+	}).FilterNot(eq.GivenValue("_")).ToSeq()
+
+	if len(namelist) > 0 {
+		return "[" + slice.MakeString(namelist, ",") + "]"
+	}
+	return ""
+}
+
+func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
+	return TypeParamDecl(w, cwd, r.TypeParam)
 }
 
 func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
-	if len(r.TypeParam) > 0 {
-		return "[" + seq.Iterator(r.TypeParam).Map(func(v TypeParam) string {
-			return v.Name
-		}).MakeString(",") + "]"
-	}
-	return ""
+	return TypeParamIns(w, cwd, r.TypeParam)
 }
 
 func (r TypeInfo) TypeDeclStr(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
@@ -1473,6 +1483,10 @@ func typeParam(args *types.TypeParamList) fp.Seq[TypeParam] {
 		}
 	}).ToSeq()
 	return params
+}
+
+func GetTypeParam(args *types.TypeParamList) fp.Seq[TypeParam] {
+	return typeParam(args)
 }
 
 func GetTypeInfo(tpe types.Type) TypeInfo {

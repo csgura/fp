@@ -37,7 +37,7 @@ func SubFlatMap[A any, B any](t fp.SliceT[A], f func(A) fp.Slice[B]) fp.SliceT[B
 func MapT[A any, B any](t fp.SliceT[A], f func(A) fp.Try[B]) fp.SliceT[B] {
 	sequencef := func(v fp.Slice[fp.Try[B]]) fp.SliceT[B] {
 		return try.FoldM(iterator.FromSeq(v), fp.Slice[B]{}, func(t1 fp.Slice[B], t2 fp.Try[B]) fp.SliceT[B] {
-			return try.Map(t2, func(v B) fp.Slice[B] {
+			return t2.Map(func(v B) fp.Slice[B] {
 				return append(t1, v)
 			})
 		})

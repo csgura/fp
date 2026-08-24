@@ -122,7 +122,7 @@ func (r Option[T]) ReplaceS[R any](f func() R) Option[R] {
 	})
 }
 
-func (r Option[T]) Void[R any]() Option[Unit] {
+func (r Option[T]) Void() Option[Unit] {
 	return r.Replace(Unit{})
 }
 

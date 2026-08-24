@@ -269,7 +269,7 @@ func ReadWorld() read.Read[World] {
 
 func EqTestOrderedEq() fp.Eq[TestOrderedEq] {
 	return eq.ContraMap(
-		eq.Tuple2(EqSeq(eq.Given[int](), ord.Given[int]()), EqSeq(eq.Tuple2(eq.Given[int](), eq.Given[int]()), ord.Tuple2(ord.Given[int](), ord.Given[int]()))),
+		eq.Tuple2(EqSeq(eq.Int, ord.Int), EqSeq(eq.Tuple2(eq.Int, eq.Int), ord.Tuple2(ord.Int, ord.Int))),
 		TestOrderedEq.AsTuple,
 	)
 }
@@ -294,7 +294,7 @@ func MonoidSeqMonoid() fp.Monoid[SeqMonoid] {
 
 func EqMyInt() fp.Eq[MyInt] {
 	return eq.ContraMap(
-		eq.Given[int](),
+		eq.Int,
 		func(v MyInt) int {
 			return int(v)
 		},
@@ -331,7 +331,7 @@ func EqMapEqParam[K any, V any](eqV fp.Eq[V]) fp.Eq[MapEqParam[K, V]] {
 
 func EqNotUsedProblem() fp.Eq[NotUsedProblem] {
 	return eq.ContraMap(
-		eq.Tuple1(EqMapEqParam[string](eq.Given[int]())),
+		eq.Tuple1(EqMapEqParam[string](eq.Int)),
 		NotUsedProblem.AsTuple,
 	)
 }
@@ -349,7 +349,7 @@ func EqNode() fp.Eq[Node] {
 
 func EqNoPrivate() fp.Eq[NoPrivate] {
 	return eq.ContraMap(
-		eq.Tuple1(eq.Given[int]()),
+		eq.Tuple1(eq.Int),
 		NoPrivate.AsTuple,
 	)
 }
@@ -357,65 +357,65 @@ func EqNoPrivate() fp.Eq[NoPrivate] {
 func EqOver21() fp.Eq[Over21] {
 	return eq.ContraMap(
 		eq.HCons(
-			eq.Given[int](),
+			eq.Int,
 			eq.HCons(
-				eq.Given[int](),
+				eq.Int,
 				eq.HCons(
-					eq.Given[int](),
+					eq.Int,
 					eq.HCons(
-						eq.Given[int](),
+						eq.Int,
 						eq.HCons(
-							eq.Given[int](),
+							eq.Int,
 							eq.HCons(
-								eq.Given[int](),
+								eq.Int,
 								eq.HCons(
-									eq.Given[int](),
+									eq.Int,
 									eq.HCons(
-										eq.Given[int](),
+										eq.Int,
 										eq.HCons(
-											eq.Given[int](),
+											eq.Int,
 											eq.HCons(
-												eq.Given[int](),
+												eq.Int,
 												eq.HCons(
-													eq.Given[int](),
+													eq.Int,
 													eq.HCons(
-														eq.Given[int](),
+														eq.Int,
 														eq.HCons(
-															eq.Given[int](),
+															eq.Int,
 															eq.HCons(
-																eq.Given[int](),
+																eq.Int,
 																eq.HCons(
-																	eq.Given[int](),
+																	eq.Int,
 																	eq.HCons(
-																		eq.Given[int](),
+																		eq.Int,
 																		eq.HCons(
-																			eq.Given[int](),
+																			eq.Int,
 																			eq.HCons(
-																				eq.Given[int](),
+																				eq.Int,
 																				eq.HCons(
-																					eq.Given[int](),
+																					eq.Int,
 																					eq.HCons(
-																						eq.Given[int](),
+																						eq.Int,
 																						eq.HCons(
-																							eq.Given[int](),
+																							eq.Int,
 																							eq.HCons(
-																								eq.Given[int](),
+																								eq.Int,
 																								eq.HCons(
-																									eq.Given[int](),
+																									eq.Int,
 																									eq.HCons(
-																										eq.Given[int](),
+																										eq.Int,
 																										eq.HCons(
-																											eq.Given[int](),
+																											eq.Int,
 																											eq.HCons(
-																												eq.Given[int](),
+																												eq.Int,
 																												eq.HCons(
-																													eq.Given[int](),
+																													eq.Int,
 																													eq.HCons(
-																														eq.Given[int](),
+																														eq.Int,
 																														eq.HCons(
-																															eq.Given[int](),
+																															eq.Int,
 																															eq.HCons(
-																																eq.Given[int](),
+																																eq.Int,
 																																eq.HNil,
 																															),
 																														),
@@ -1108,8 +1108,8 @@ func DecoderOver21() js.Decoder[Over21] {
 
 func EqLegacyStruct() fp.Eq[LegacyStruct] {
 	return eq.ContraMap(
-		eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
-			eq.Tuple2(eq.String, eq.Given[int]()),
+		eq.Tuple4(eq.String, eq.Int, eq.String, eq.ContraMap(
+			eq.Tuple2(eq.String, eq.Int),
 			func(v struct {
 				Hello string
 				World int
@@ -1181,8 +1181,8 @@ func DecoderLegacyStruct() js.Decoder[LegacyStruct] {
 
 func EqLocalEmbedPrivate() fp.Eq[LocalEmbedPrivate] {
 	return eq.ContraMap(
-		eq.Tuple4(eq.String, eq.Given[int](), eq.String, eq.ContraMap(
-			eq.Tuple2(eq.String, eq.Given[int]()),
+		eq.Tuple4(eq.String, eq.Int, eq.String, eq.ContraMap(
+			eq.Tuple2(eq.String, eq.Int),
 			func(v struct {
 				Hello string
 				world int
@@ -1344,6 +1344,6 @@ func init() {
 		return EqWorld()
 	}))
 	eqworld = EqWorld()
-	eqMySeqInt = EqMySeq(eq.Given[int]())
+	eqMySeqInt = EqMySeq(eq.Int)
 	kcar = EncoderCar(js.EncoderString, js.EncoderNumber[int]())
 }

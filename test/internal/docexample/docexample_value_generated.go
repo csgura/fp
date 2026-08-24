@@ -912,27 +912,45 @@ func (r OptionalInt) All() fp.GoIter[int] {
 	return fp.Option[int](r).All()
 }
 
-func (r OptionalInt) Exists(p func(v int) bool) bool {
+func (r OptionalInt) Either[R any](noncase func() R, somecase func(int) R) R {
+	return fp.Option[int](r).Either[R](noncase, somecase)
+}
+
+func (r OptionalInt) Exists[_ interface {
+	fp.Phantom[int]
+}](p func(v int) bool) bool {
 	return fp.Option[int](r).Exists(p)
 }
 
-func (r OptionalInt) Filter(p func(v int) bool) fp.Option[int] {
+func (r OptionalInt) Filter[_ interface {
+	fp.Phantom[int]
+}](p func(v int) bool) fp.Option[int] {
 	return fp.Option[int](r).Filter(p)
 }
 
-func (r OptionalInt) FilterNot(p func(v int) bool) fp.Option[int] {
+func (r OptionalInt) FilterNot[_ interface {
+	fp.Phantom[int]
+}](p func(v int) bool) fp.Option[int] {
 	return fp.Option[int](r).FilterNot(p)
 }
 
-func (r OptionalInt) FlatMap(mf func(int) fp.Option[int]) fp.Option[int] {
-	return fp.Option[int](r).FlatMap(mf)
+func (r OptionalInt) FlatMap[R any](mf func(int) fp.Option[R]) fp.Option[R] {
+	return fp.Option[int](r).FlatMap[R](mf)
 }
 
-func (r OptionalInt) ForAll(p func(v int) bool) bool {
+func (r OptionalInt) Fold[A any](zero A, f func(A, int) A) A {
+	return fp.Option[int](r).Fold[A](zero, f)
+}
+
+func (r OptionalInt) ForAll[_ interface {
+	fp.Phantom[int]
+}](p func(v int) bool) bool {
 	return fp.Option[int](r).ForAll(p)
 }
 
-func (r OptionalInt) Foreach(f func(v int)) {
+func (r OptionalInt) Foreach[_ interface {
+	fp.Phantom[int]
+}](f func(v int)) {
 	fp.Option[int](r).Foreach(f)
 }
 
@@ -940,23 +958,39 @@ func (r OptionalInt) Get() int {
 	return fp.Option[int](r).Get()
 }
 
+func (r OptionalInt) IntoFuture[E error](err func() E) fp.Future[int] {
+	return fp.Option[int](r).IntoFuture[E](err)
+}
+
+func (r OptionalInt) IntoTry[E error](err func() E) fp.Try[int] {
+	return fp.Option[int](r).IntoTry[E](err)
+}
+
 func (r OptionalInt) IsDefined() bool {
 	return fp.Option[int](r).IsDefined()
 }
 
-func (r OptionalInt) IsEmpty() bool {
+func (r OptionalInt) IsEmpty[_ interface {
+	fp.Phantom[int]
+}]() bool {
 	return fp.Option[int](r).IsEmpty()
 }
 
-func (r OptionalInt) Map(mf func(int) int) fp.Option[int] {
-	return fp.Option[int](r).Map(mf)
+func (r OptionalInt) Map[R any](mf func(int) R) fp.Option[R] {
+	return fp.Option[int](r).Map[R](mf)
+}
+
+func (r OptionalInt) Map2[U any, R any](other fp.Option[U], f func(int, U) R) fp.Option[R] {
+	return fp.Option[int](r).Map2[U, R](other, f)
 }
 
 func (r OptionalInt) MarshalJSON() ([]byte, error) {
 	return fp.Option[int](r).MarshalJSON()
 }
 
-func (r OptionalInt) Or(f func() fp.Option[int]) fp.Option[int] {
+func (r OptionalInt) Or[_ interface {
+	fp.Phantom[int]
+}](f func() fp.Option[int]) fp.Option[int] {
 	return fp.Option[int](r).Or(f)
 }
 
@@ -964,15 +998,21 @@ func (r OptionalInt) OrElse(t int) int {
 	return fp.Option[int](r).OrElse(t)
 }
 
-func (r OptionalInt) OrElseGet(f func() int) int {
+func (r OptionalInt) OrElseGet[_ interface {
+	fp.Phantom[int]
+}](f func() int) int {
 	return fp.Option[int](r).OrElseGet(f)
 }
 
-func (r OptionalInt) OrOption(v fp.Option[int]) fp.Option[int] {
+func (r OptionalInt) OrOption[_ interface {
+	fp.Phantom[int]
+}](v fp.Option[int]) fp.Option[int] {
 	return fp.Option[int](r).OrOption(v)
 }
 
-func (r OptionalInt) OrPtr(v *int) fp.Option[int] {
+func (r OptionalInt) OrPtr[_ interface {
+	fp.Phantom[int]
+}](v *int) fp.Option[int] {
 	return fp.Option[int](r).OrPtr(v)
 }
 
@@ -980,7 +1020,9 @@ func (r OptionalInt) OrZero() int {
 	return fp.Option[int](r).OrZero()
 }
 
-func (r OptionalInt) Ptr() *int {
+func (r OptionalInt) Ptr[_ interface {
+	fp.Phantom[int]
+}]() *int {
 	return fp.Option[int](r).Ptr()
 }
 
@@ -988,12 +1030,30 @@ func (r OptionalInt) Recover(f func() int) fp.Option[int] {
 	return fp.Option[int](r).Recover(f)
 }
 
+func (r OptionalInt) Replace[R any](o R) fp.Option[R] {
+	return fp.Option[int](r).Replace[R](o)
+}
+
+func (r OptionalInt) ReplaceS[R any](f func() R) fp.Option[R] {
+	return fp.Option[int](r).ReplaceS[R](f)
+}
+
 func (r OptionalInt) String() string {
 	return fp.Option[int](r).String()
 }
 
-func (r OptionalInt) ToSeq() []int {
+func (r OptionalInt) ToSeq[_ interface {
+	fp.Phantom[int]
+}]() []int {
 	return fp.Option[int](r).ToSeq()
+}
+
+func (r OptionalInt) TraverseF[R any](f func(int) fp.Future[R]) fp.Future[fp.Option[R]] {
+	return fp.Option[int](r).TraverseF[R](f)
+}
+
+func (r OptionalInt) TraverseT[R any](f func(int) fp.Try[R]) fp.Try[fp.Option[R]] {
+	return fp.Option[int](r).TraverseT[R](f)
 }
 
 func (r OptionalInt) Unapply() (int, bool) {
@@ -1002,6 +1062,10 @@ func (r OptionalInt) Unapply() (int, bool) {
 
 func (r *OptionalInt) UnmarshalJSON(b []byte) error {
 	return (*fp.Option[int])(r).UnmarshalJSON(b)
+}
+
+func (r OptionalInt) Void() fp.Option[fp.Unit] {
+	return fp.Option[int](r).Void()
 }
 
 func (r OptionalStringer[T]) Deref() fp.Option[T] {
@@ -1016,27 +1080,45 @@ func (r OptionalStringer[T]) All() fp.GoIter[T] {
 	return fp.Option[T](r).All()
 }
 
-func (r OptionalStringer[T]) Exists(p func(v T) bool) bool {
+func (r OptionalStringer[T]) Either[R any](noncase func() R, somecase func(T) R) R {
+	return fp.Option[T](r).Either[R](noncase, somecase)
+}
+
+func (r OptionalStringer[T]) Exists[_ interface {
+	fp.Phantom[T]
+}](p func(v T) bool) bool {
 	return fp.Option[T](r).Exists(p)
 }
 
-func (r OptionalStringer[T]) Filter(p func(v T) bool) fp.Option[T] {
+func (r OptionalStringer[T]) Filter[_ interface {
+	fp.Phantom[T]
+}](p func(v T) bool) fp.Option[T] {
 	return fp.Option[T](r).Filter(p)
 }
 
-func (r OptionalStringer[T]) FilterNot(p func(v T) bool) fp.Option[T] {
+func (r OptionalStringer[T]) FilterNot[_ interface {
+	fp.Phantom[T]
+}](p func(v T) bool) fp.Option[T] {
 	return fp.Option[T](r).FilterNot(p)
 }
 
-func (r OptionalStringer[T]) FlatMap(mf func(T) fp.Option[T]) fp.Option[T] {
-	return fp.Option[T](r).FlatMap(mf)
+func (r OptionalStringer[T]) FlatMap[R any](mf func(T) fp.Option[R]) fp.Option[R] {
+	return fp.Option[T](r).FlatMap[R](mf)
 }
 
-func (r OptionalStringer[T]) ForAll(p func(v T) bool) bool {
+func (r OptionalStringer[T]) Fold[A any](zero A, f func(A, T) A) A {
+	return fp.Option[T](r).Fold[A](zero, f)
+}
+
+func (r OptionalStringer[T]) ForAll[_ interface {
+	fp.Phantom[T]
+}](p func(v T) bool) bool {
 	return fp.Option[T](r).ForAll(p)
 }
 
-func (r OptionalStringer[T]) Foreach(f func(v T)) {
+func (r OptionalStringer[T]) Foreach[_ interface {
+	fp.Phantom[T]
+}](f func(v T)) {
 	fp.Option[T](r).Foreach(f)
 }
 
@@ -1044,23 +1126,39 @@ func (r OptionalStringer[T]) Get() T {
 	return fp.Option[T](r).Get()
 }
 
+func (r OptionalStringer[T]) IntoFuture[E error](err func() E) fp.Future[T] {
+	return fp.Option[T](r).IntoFuture[E](err)
+}
+
+func (r OptionalStringer[T]) IntoTry[E error](err func() E) fp.Try[T] {
+	return fp.Option[T](r).IntoTry[E](err)
+}
+
 func (r OptionalStringer[T]) IsDefined() bool {
 	return fp.Option[T](r).IsDefined()
 }
 
-func (r OptionalStringer[T]) IsEmpty() bool {
+func (r OptionalStringer[T]) IsEmpty[_ interface {
+	fp.Phantom[T]
+}]() bool {
 	return fp.Option[T](r).IsEmpty()
 }
 
-func (r OptionalStringer[T]) Map(mf func(T) T) fp.Option[T] {
-	return fp.Option[T](r).Map(mf)
+func (r OptionalStringer[T]) Map[R any](mf func(T) R) fp.Option[R] {
+	return fp.Option[T](r).Map[R](mf)
+}
+
+func (r OptionalStringer[T]) Map2[U any, R any](other fp.Option[U], f func(T, U) R) fp.Option[R] {
+	return fp.Option[T](r).Map2[U, R](other, f)
 }
 
 func (r OptionalStringer[T]) MarshalJSON() ([]byte, error) {
 	return fp.Option[T](r).MarshalJSON()
 }
 
-func (r OptionalStringer[T]) Or(f func() fp.Option[T]) fp.Option[T] {
+func (r OptionalStringer[T]) Or[_ interface {
+	fp.Phantom[T]
+}](f func() fp.Option[T]) fp.Option[T] {
 	return fp.Option[T](r).Or(f)
 }
 
@@ -1068,15 +1166,21 @@ func (r OptionalStringer[T]) OrElse(t T) T {
 	return fp.Option[T](r).OrElse(t)
 }
 
-func (r OptionalStringer[T]) OrElseGet(f func() T) T {
+func (r OptionalStringer[T]) OrElseGet[_ interface {
+	fp.Phantom[T]
+}](f func() T) T {
 	return fp.Option[T](r).OrElseGet(f)
 }
 
-func (r OptionalStringer[T]) OrOption(v fp.Option[T]) fp.Option[T] {
+func (r OptionalStringer[T]) OrOption[_ interface {
+	fp.Phantom[T]
+}](v fp.Option[T]) fp.Option[T] {
 	return fp.Option[T](r).OrOption(v)
 }
 
-func (r OptionalStringer[T]) OrPtr(v *T) fp.Option[T] {
+func (r OptionalStringer[T]) OrPtr[_ interface {
+	fp.Phantom[T]
+}](v *T) fp.Option[T] {
 	return fp.Option[T](r).OrPtr(v)
 }
 
@@ -1084,7 +1188,9 @@ func (r OptionalStringer[T]) OrZero() T {
 	return fp.Option[T](r).OrZero()
 }
 
-func (r OptionalStringer[T]) Ptr() *T {
+func (r OptionalStringer[T]) Ptr[_ interface {
+	fp.Phantom[T]
+}]() *T {
 	return fp.Option[T](r).Ptr()
 }
 
@@ -1092,12 +1198,30 @@ func (r OptionalStringer[T]) Recover(f func() T) fp.Option[T] {
 	return fp.Option[T](r).Recover(f)
 }
 
+func (r OptionalStringer[T]) Replace[R any](o R) fp.Option[R] {
+	return fp.Option[T](r).Replace[R](o)
+}
+
+func (r OptionalStringer[T]) ReplaceS[R any](f func() R) fp.Option[R] {
+	return fp.Option[T](r).ReplaceS[R](f)
+}
+
 func (r OptionalStringer[T]) String() string {
 	return fp.Option[T](r).String()
 }
 
-func (r OptionalStringer[T]) ToSeq() []T {
+func (r OptionalStringer[T]) ToSeq[_ interface {
+	fp.Phantom[T]
+}]() []T {
 	return fp.Option[T](r).ToSeq()
+}
+
+func (r OptionalStringer[T]) TraverseF[R any](f func(T) fp.Future[R]) fp.Future[fp.Option[R]] {
+	return fp.Option[T](r).TraverseF[R](f)
+}
+
+func (r OptionalStringer[T]) TraverseT[R any](f func(T) fp.Try[R]) fp.Try[fp.Option[R]] {
+	return fp.Option[T](r).TraverseT[R](f)
 }
 
 func (r OptionalStringer[T]) Unapply() (T, bool) {
@@ -1106,6 +1230,10 @@ func (r OptionalStringer[T]) Unapply() (T, bool) {
 
 func (r *OptionalStringer[T]) UnmarshalJSON(b []byte) error {
 	return (*fp.Option[T])(r).UnmarshalJSON(b)
+}
+
+func (r OptionalStringer[T]) Void() fp.Option[fp.Unit] {
+	return fp.Option[T](r).Void()
 }
 
 func (r EmbedContext) Hello() string {
