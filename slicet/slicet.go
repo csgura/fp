@@ -22,7 +22,7 @@ func Failure[A any](err error) fp.SliceT[A] {
 }
 
 func Iterator[T any](optionT fp.SliceT[T]) fp.Iterator[T] {
-	return iterator.FlatMap(try.Iterator(optionT), slice.Iterator)
+	return try.Iterator(optionT).FlatMap(slice.Iterator)
 }
 
 func All[T any](optionT fp.SliceT[T]) iter.Seq[T] {

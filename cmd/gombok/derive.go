@@ -14,7 +14,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/genfp/generator"
 	"github.com/csgura/fp/internal/max"
-	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/monoid"
 	"github.com/csgura/fp/mutable"
@@ -404,7 +403,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 		return []string{req.TypeClass.Name + publicName(v)}
 	}))
 
-	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
+	ins := itr.FlatMap(func(v string) fp.Iterator[metafp.TypeClassInstance] {
 		res := scope.FindByName(v, f)
 		// fmt.Printf("FindByName %s = %s\n", v, res)
 		return option.Iterator(res)
@@ -715,7 +714,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 		return ret
 	}))
 
-	ins := iterator.FlatMap(itr, func(v string) fp.Iterator[metafp.TypeClassInstance] {
+	ins := itr.FlatMap(func(v string) fp.Iterator[metafp.TypeClassInstance] {
 		return option.Iterator(scope.FindByName(v, f))
 	})
 

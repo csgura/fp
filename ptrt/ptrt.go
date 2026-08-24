@@ -6,7 +6,6 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/genfp"
-	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/ptr"
 	"github.com/csgura/fp/try"
 )
@@ -73,7 +72,7 @@ func Fold[T any, U any](ptrT fp.PtrT[T], zero U, f func(U, T) U) U {
 }
 
 func Iterator[T any](optionT fp.PtrT[T]) fp.Iterator[T] {
-	return iterator.FlatMap(try.Iterator(optionT), ptr.Iterator)
+	return try.Iterator(optionT).FlatMap(ptr.Iterator)
 }
 
 func All[T any](optionT fp.PtrT[T]) iter.Seq[T] {

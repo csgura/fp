@@ -25,7 +25,7 @@ func TestIterator(t *testing.T) {
 		return v < 7
 	}).Foreach(fp.Println[int])
 
-	iterator.FlatMap(seq.Iterator(s), func(v int) fp.Iterator[int] {
+	seq.Iterator(s).FlatMap(func(v int) fp.Iterator[int] {
 		println("v = ", v)
 		switch v % 3 {
 		case 0:

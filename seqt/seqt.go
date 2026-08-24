@@ -19,7 +19,7 @@ func Failure[A any](err error) fp.SeqT[A] {
 }
 
 func Iterator[T any](optionT fp.SeqT[T]) fp.Iterator[T] {
-	return iterator.FlatMap(try.Iterator(optionT), seq.Iterator)
+	return try.Iterator(optionT).FlatMap(seq.Iterator)
 }
 
 func All[T any](optionT fp.SeqT[T]) iter.Seq[T] {
