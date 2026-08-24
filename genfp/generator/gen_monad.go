@@ -813,6 +813,14 @@ func WriteMonadMethods(w Writer, md GenerateMonadMethodsDirective, definedFuncti
 		}
 	`, srctype, rettype("R")))
 
+	ctx.defineFunc("ReplaceS", fmt.Sprintf(`
+		func (m %s){{.funcname}}[R any](f func() R) %s {
+			return m.Map(func(a A) R {
+				return f()
+			})
+		}
+	`, srctype, rettype("R")))
+
 	ctx.defineFunc("Void", fmt.Sprintf(`
 		// Replace fp.Unit{} 
 		func (m %s){{.funcname}}[_ fp.Phantom[A]]() %s {
