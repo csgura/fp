@@ -180,7 +180,7 @@ func generateAdaptor(w genfp.Writer, gad generator.GenerateAdaptorDirective) {
 		fieldSet = fieldSet.Updated(k, e)
 	}
 
-	i1 := iterator.Map(iterator.FromSeq(gad.Delegate), func(v generator.DelegateDirective) string {
+	i1 := iterator.FromSeq(gad.Delegate).Map(func(v generator.DelegateDirective) string {
 		return v.Field
 	})
 
@@ -982,11 +982,11 @@ type CallArgs struct {
 }
 
 func (r CallArgs) ArgList() string {
-	return iterator.Map(iterator.FromSlice(r.args), xtr.Head).MakeString(",")
+	return iterator.FromSlice(r.args).Map(xtr.Head).MakeString(",")
 }
 
 func (r CallArgs) ArgTypeList(w genfp.Writer, pk genfp.WorkingPackage) string {
-	return iterator.Map(iterator.ZipWithIndex(iterator.FromSlice(r.args)), as.Tupled2(func(i int, v fp.Entry[typeExpr]) string {
+	return iterator.ZipWithIndex(iterator.FromSlice(r.args)).Map(as.Tupled2(func(i int, v fp.Entry[typeExpr]) string {
 		if r.variadic && i == r.args.Size()-1 {
 			return fmt.Sprintf("%s... %s", v.I1, v.I2.TypeName(w, pk))
 		}

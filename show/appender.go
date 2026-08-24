@@ -116,7 +116,7 @@ func AppendStruct(buf []string, typeName string, opt fp.ShowOption, fields ...fp
 
 	childOpt := opt.IncreaseIndent()
 
-	itr := iterator.FilterMap(iterator.FromSeq(fields), func(t fp.Entry[Appender]) fp.Option[Appender] {
+	itr := iterator.FromSeq(fields).FilterMap(func(t fp.Entry[Appender]) fp.Option[Appender] {
 		valuestr := t.I2(nil, childOpt)
 		if isEmptyString(valuestr) {
 			return option.None[Appender]()

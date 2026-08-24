@@ -433,7 +433,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 			return as.Seq(t.NotLabeled).Exists(eq.GivenValue("String.Exclude"))
 		})
 
-		fm := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
+		fm := iterator.FromSeq(printable).Map(func(f metafp.StructField) string {
 			if f.FieldType.IsSlice() {
 				for elemType := range f.FieldType.ElemType().All() {
 					if elemType.IsBasic() {
@@ -446,7 +446,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 			return fmt.Sprintf("%s:%%v", f.Name)
 		}).MakeString(", ")
 
-		fields := iterator.Map(iterator.FromSeq(printable), func(f metafp.StructField) string {
+		fields := iterator.FromSeq(printable).Map(func(f metafp.StructField) string {
 			return fmt.Sprintf("r.%s", f.Name)
 		}).MakeString(",")
 
@@ -478,11 +478,11 @@ func genUnapply(ctx TaggedStructContext, allFields fp.Seq[metafp.StructField], g
 			fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
 			arity := fp.Min(allFields.Size(), max.Product-1)
-			tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
+			tp := seq.Iterator(allFields).Take(arity).Map(func(v metafp.StructField) string {
 				return v.TypeName(w, workingPackage)
 			}).MakeString(",")
 
-			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+			fields := iterator.FromSeq(allFields).Map(func(f metafp.StructField) string {
 				return fmt.Sprintf("r.%s", f.Name)
 			}).Take(arity).MakeString(",")
 			valuetpdec := ts.Info.TypeParamDecl(w, workingPackage)
@@ -505,11 +505,11 @@ func genUnapply(ctx TaggedStructContext, allFields fp.Seq[metafp.StructField], g
 
 	if ts.Info.Method.Get("Unapply").IsEmpty() && !genMethod.Contains("Unapply") {
 
-		tp := iterator.Map(iterator.FromSeq(allFields), func(v metafp.StructField) string {
+		tp := iterator.FromSeq(allFields).Map(func(v metafp.StructField) string {
 			return v.TypeName(w, workingPackage)
 		}).MakeString(",")
 
-		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+		fields := iterator.FromSeq(allFields).Map(func(f metafp.StructField) string {
 			return fmt.Sprintf("r.%s", f.Name)
 		}).MakeString(",")
 
@@ -637,11 +637,11 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 			arity := fp.Min(allFields.Size(), max.Product-1)
 
-			tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
+			tp := seq.Iterator(allFields).Take(arity).Map(func(v metafp.StructField) string {
 				return v.TypeName(w, workingPackage)
 			}).MakeString(",")
 
-			fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+			fields := iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)).Map(func(f fp.Tuple2[int, metafp.StructField]) string {
 				return fmt.Sprintf("r.%s = t.I%d", f.I2.Name, f.I1+1)
 			}).Take(arity).MakeString("\n")
 
@@ -658,11 +658,11 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 	if !isMethodDefined(workingPackage, builderTypeName, "Apply") {
 
-		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
+		tp := seq.Iterator(allFields).Map(func(v metafp.StructField) string {
 			return fmt.Sprintf("%s %s", v.Name, v.TypeName(w, workingPackage))
 		}).MakeString(",")
 
-		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+		fields := iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)).Map(func(f fp.Tuple2[int, metafp.StructField]) string {
 			return fmt.Sprintf("r.%s = %s", f.I2.Name, f.I2.Name)
 		}).MakeString("\n")
 
@@ -678,7 +678,7 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 	if !isMethodDefined(workingPackage, builderTypeName, "FromMap") {
 
-		fields := iterator.Map(seq.Iterator(allFields), func(f metafp.StructField) string {
+		fields := seq.Iterator(allFields).Map(func(f metafp.StructField) string {
 			if f.FieldType.IsOption() {
 				optionpk := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/option", "option"))
 
@@ -724,11 +724,11 @@ func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 				fppkg := w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
-				tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
+				tp := seq.Iterator(allFields).Take(arity).Map(func(v metafp.StructField) string {
 					return namedNameType(w, workingPackage, workingPackage, ts.Name, v)
 				}).MakeString(",")
 
-				fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+				fields := iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)).Map(func(f fp.Tuple2[int, metafp.StructField]) string {
 					return fmt.Sprintf("r.%s = t.I%d.Value()", f.I2.Name, f.I1+1)
 				}).Take(arity).MakeString("\n")
 
@@ -1043,7 +1043,7 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], funcList 
 
 		valueType := ts.Info.TypeStr(w, workingPackage)
 
-		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
+		tp := seq.Iterator(allFields).Map(func(v metafp.StructField) string {
 			argName := v.Name
 			if argName == valueType {
 				argName = "v" + argName
@@ -1051,7 +1051,7 @@ func genAllArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], funcList 
 			return fmt.Sprintf("%s %s", argName, v.TypeName(w, workingPackage))
 		}).MakeString(",")
 
-		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+		fields := iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)).Map(func(f fp.Tuple2[int, metafp.StructField]) string {
 			argName := f.I2.Name
 			if argName == valueType {
 				argName = "v" + argName
@@ -1102,7 +1102,7 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], func
 
 		valueType := ts.Info.TypeStr(w, workingPackage)
 
-		tp := iterator.Map(seq.Iterator(allFields), func(v metafp.StructField) string {
+		tp := seq.Iterator(allFields).Map(func(v metafp.StructField) string {
 			argName := v.Name
 			if argName == valueType {
 				argName = "v" + argName
@@ -1111,7 +1111,7 @@ func genRequiredArgsCons(ctx TaggedStructContext, genMethod fp.Set[string], func
 			return fmt.Sprintf("%s %s", argName, v.TypeName(w, workingPackage))
 		}).MakeString(",")
 
-		fields := iterator.Map(iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)), func(f fp.Tuple2[int, metafp.StructField]) string {
+		fields := iterator.Zip(iterator.Range(0, allFields.Size()), seq.Iterator(allFields)).Map(func(f fp.Tuple2[int, metafp.StructField]) string {
 			argName := f.I2.Name
 			if argName == valueType {
 				argName = "v" + argName
@@ -1491,7 +1491,7 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	mutableType := mutableTypeName + valuetpdec
 
 	if !isTypeDefined(workingPackage, mutableTypeName) {
-		mutableFields := iterator.Map(seq.Iterator(ts.Fields), func(v metafp.StructField) string {
+		mutableFields := seq.Iterator(ts.Fields).Map(func(v metafp.StructField) string {
 
 			tag := v.Tag
 
@@ -1538,7 +1538,7 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 	if ts.Info.Method.Get("AsMutable").IsEmpty() {
 
-		fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+		fields := iterator.FromSeq(allFields).Map(func(f metafp.StructField) string {
 			fname := publicName(f.Name)
 			if fname != f.Name && ts.GetField(fname).IsDefined() {
 				fname = fname + "2"
@@ -1563,7 +1563,7 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 	if !ts.HasPrivateEmbedField() {
 		if !isMethodDefined(workingPackage, mutableTypeName, "AsImmutable") {
 
-			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+			fields := iterator.FromSeq(allFields).Map(func(f metafp.StructField) string {
 				fname := publicName(f.Name)
 				if fname != f.Name && ts.GetField(fname).IsDefined() {
 					fname = fname + "2"
@@ -1590,7 +1590,7 @@ func genMutable(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string
 
 func typeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage, p fp.Seq[metafp.TypeParam]) string {
 	if len(p) > 0 {
-		return "[" + iterator.Map(seq.Iterator(p), func(v metafp.TypeParam) string {
+		return "[" + seq.Iterator(p).Map(func(v metafp.TypeParam) string {
 			tn := w.TypeName(cwd, v.Constraint)
 			return fmt.Sprintf("%s %s", v.Name, tn)
 		}).MakeString(",") + "]"
@@ -1600,7 +1600,7 @@ func typeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage, p fp.Seq[metafp.
 
 func typeParamArg(w genfp.ImportSet, cwd genfp.WorkingPackage, p fp.Seq[metafp.TypeParam]) string {
 	if len(p) > 0 {
-		return "[" + iterator.Map(seq.Iterator(p), func(v metafp.TypeParam) string {
+		return "[" + seq.Iterator(p).Map(func(v metafp.TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}
@@ -1640,7 +1640,7 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 
 		if ts.Info.Method.Get("AsMap").IsEmpty() {
 
-			fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+			fields := iterator.FromSeq(allFields).Map(func(f metafp.StructField) string {
 				if f.FieldType.IsOption() {
 					return fmt.Sprintf(`if r.%s.IsDefined() {
 							m["%s"] = r.%s.Get()
@@ -1726,11 +1726,11 @@ func processValue(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[stri
 				arity := fp.Min(allFields.Size(), max.Product-1)
 
 				if ts.Info.Method.Get("AsLabelled").IsEmpty() {
-					tp := iterator.Map(seq.Iterator(allFields).Take(arity), func(v metafp.StructField) string {
+					tp := seq.Iterator(allFields).Take(arity).Map(func(v metafp.StructField) string {
 						return namedNameType(w, workingPackage, workingPackage, ts.Name, v)
 					}).MakeString(",")
 
-					fields := iterator.Map(iterator.FromSeq(allFields), func(f metafp.StructField) string {
+					fields := iterator.FromSeq(allFields).Map(func(f metafp.StructField) string {
 						return fmt.Sprintf(`%s{r.%s}`, namedNameType(w, workingPackage, workingPackage, ts.Name, f), f.Name)
 					}).Take(arity).MakeString(",")
 

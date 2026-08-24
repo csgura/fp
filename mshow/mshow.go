@@ -167,7 +167,7 @@ func Set[V any](showv Show[V]) Show[fp.Set[V]] {
 	return NewAppend(func(buf Buffer, v fp.Set[V], opt fp.ShowOption) Buffer {
 		opt = opt.IncreaseIndent()
 
-		showset := iterator.Map(v.Iterator(), func(v V) show.Appender {
+		showset := v.Iterator().Map(func(v V) show.Appender {
 			return AsAppender(showv, v)
 		}).ToSeq()
 
@@ -201,9 +201,9 @@ func Map[K, V any](showk Show[K], showv Show[V]) Show[fp.Map[K, V]] {
 
 		childOpt := opt.IncreaseIndent()
 
-		keyshow := seq.Sort(iterator.Map(v.Iterator(), as.Func2(product.MapKey[K, V, string]).ApplyLast(pshow(showk))).ToSeq(), ord.GivenField(fp.Tuple2[string, V].Head))
+		keyshow := seq.Sort(v.Iterator().Map(as.Func2(product.MapKey[K, V, string]).ApplyLast(pshow(showk))).ToSeq(), ord.GivenField(fp.Tuple2[string, V].Head))
 
-		showmap := iterator.FilterMap(iterator.FromSeq(keyshow), func(t fp.Tuple2[string, V]) fp.Option[show.Appender] {
+		showmap := iterator.FromSeq(keyshow).FilterMap(func(t fp.Tuple2[string, V]) fp.Option[show.Appender] {
 			valuestr := showv(nil, t.I2, childOpt)
 			if isEmptyString(valuestr) {
 				return option.None[show.Appender]()

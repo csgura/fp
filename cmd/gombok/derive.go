@@ -393,7 +393,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 	f := req.Type
 
 	scope := ctx.workingScope(r.tcCache, req.TypeClass)
-	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
+	itr := slice.Iterator(slice.FlatMap(name, func(v string) fp.Slice[string] {
 		if f.Pkg != nil && ctx.working.Path() != f.Pkg.Path() {
 			return []string{
 				req.TypeClass.Name + publicName(f.Pkg.Name()) + publicName(v),
@@ -410,7 +410,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 		return option.Iterator(res)
 	})
 
-	ins = iterator.Map(ins, func(tci metafp.TypeClassInstance) metafp.TypeClassInstance {
+	ins = ins.Map(func(tci metafp.TypeClassInstance) metafp.TypeClassInstance {
 		if tci.WillGeneratedBy.IsDefined() {
 			// 현재 생성 중인 인스턴스를 참조하는 경우에
 			// 만약 그게 함수라면, type param 개수와 , 실제 아규먼트 개수가 일치하지 않을 수 있다.
@@ -452,7 +452,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
-	filtered := iterator.FilterMap(ins, func(tci metafp.TypeClassInstance) fp.Option[DefinedInstance] {
+	filtered := ins.FilterMap(func(tci metafp.TypeClassInstance) fp.Option[DefinedInstance] {
 		none := option.None[DefinedInstance]()
 
 		if r.initVarSet.Contains(tci.Name) {
@@ -701,7 +701,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 	verbose("going lokkup tc instance %s[%s] in primitive pkg, name first = %s, f.TypeArgs.Size = %d", req.TypeClass.Name, req.Type, as.Seq(name).MakeString(","), f.TypeArgs.Size())
 	scope := ctx.primScope(r.tcCache, req.TypeClass)
 
-	itr := seq.Iterator(seq.FlatMap(name, func(v string) fp.Seq[string] {
+	itr := slice.Iterator(slice.FlatMap(name, func(v string) fp.Slice[string] {
 		ret := seq.Of(
 			req.TypeClass.Name+publicName(v),
 			publicName(v),
@@ -725,7 +725,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstancePrimitivePkg(ctx SummonC
 		ins = ins.Concat(seq.Iterator(scope.Find(f)))
 	}
 
-	filtered := iterator.FilterMap(ins, func(tci metafp.TypeClassInstance) fp.Option[DefinedInstance] {
+	filtered := ins.FilterMap(func(tci metafp.TypeClassInstance) fp.Option[DefinedInstance] {
 
 		none := option.None[DefinedInstance]()
 		if isSamePkg(ctx.working, genfp.FromTypesPackage(tci.Package)) {
@@ -1320,7 +1320,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Opt
 
 		valuetp := ""
 		if named.Get().Info.TypeParam.Size() > 0 {
-			valuetp = "[" + iterator.Map(seq.Iterator(named.Get().Info.TypeParam), func(v metafp.TypeParam) string {
+			valuetp = "[" + seq.Iterator(named.Get().Info.TypeParam).Map(func(v metafp.TypeParam) string {
 				return v.Name
 			}).MakeString(",") + "]"
 		}
@@ -1342,7 +1342,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Opt
 	valuereceiver := named.Map(func(v metafp.NamedTypeInfo) string {
 		valuetp := ""
 		if v.Info.TypeParam.Size() > 0 {
-			valuetp = "[" + iterator.Map(seq.Iterator(named.Get().Info.TypeParam), func(v metafp.TypeParam) string {
+			valuetp = "[" + seq.Iterator(named.Get().Info.TypeParam).Map(func(v metafp.TypeParam) string {
 				return v.Name
 			}).MakeString(",") + "]"
 		}
@@ -1503,7 +1503,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 
 	valuetp := ""
 	if named.Info.TypeParam.Size() > 0 {
-		valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+		valuetp = "[" + seq.Iterator(named.Info.TypeParam).Map(func(v metafp.TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}
@@ -2221,7 +2221,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 		Type: func() string {
 			valuetp := ""
 			if named.Info.TypeParam.Size() > 0 {
-				valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+				valuetp = "[" + seq.Iterator(named.Info.TypeParam).Map(func(v metafp.TypeParam) string {
 					return v.Name
 				}).MakeString(",") + "]"
 			}
@@ -2242,7 +2242,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 		ToReprExpr: func() string {
 			valuetp := ""
 			if named.Info.TypeParam.Size() > 0 {
-				valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+				valuetp = "[" + seq.Iterator(named.Info.TypeParam).Map(func(v metafp.TypeParam) string {
 					return v.Name
 				}).MakeString(",") + "]"
 			}
@@ -2256,7 +2256,7 @@ func (r *TypeClassSummonContext) summonNamed(ctx SummonContext, tc metafp.TypeCl
 		FromReprExpr: func() string {
 			valuetp := ""
 			if named.Info.TypeParam.Size() > 0 {
-				valuetp = "[" + iterator.Map(seq.Iterator(named.Info.TypeParam), func(v metafp.TypeParam) string {
+				valuetp = "[" + seq.Iterator(named.Info.TypeParam).Map(func(v metafp.TypeParam) string {
 					return v.Name
 				}).MakeString(",") + "]"
 			}
@@ -2296,12 +2296,12 @@ func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) Summ
 	valuetpdec := ""
 	valuetp := ""
 	if tc.DeriveFor.Info.TypeParam.Size() > 0 {
-		valuetpdec = "[" + iterator.Map(seq.Iterator(tc.DeriveFor.Info.TypeParam), func(v metafp.TypeParam) string {
+		valuetpdec = "[" + seq.Iterator(tc.DeriveFor.Info.TypeParam).Map(func(v metafp.TypeParam) string {
 			tn := r.w.TypeName(workingPackage, v.Constraint)
 			return fmt.Sprintf("%s %s", v.Name, tn)
 		}).MakeString(",") + "]"
 
-		valuetp = "[" + iterator.Map(seq.Iterator(tc.DeriveFor.Info.TypeParam), func(v metafp.TypeParam) string {
+		valuetp = "[" + seq.Iterator(tc.DeriveFor.Info.TypeParam).Map(func(v metafp.TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}

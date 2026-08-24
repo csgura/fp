@@ -393,7 +393,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 			func {{.funcname}}[%s, B any](ta %s, f func(v A) B) %s {
 
 				return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
-					return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+					return iterator.FromSeq(a).Map(f).ToSeq()
 				})
 			}
 
@@ -406,7 +406,7 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 		func {{.funcname}}[%s, B any](ta %s, f func(v A) B) %s {
 
 			return Map(ta, func(a []A) []B {
-				return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+				return iterator.FromSlice(a).Map(f).ToSeq()
 			})
 		}
 	`, tpargs, rettype("[]A"), rettype("[]B"),

@@ -144,14 +144,14 @@ func Replace[A, B any](ta fp.Future[A], b B) fp.Future[B] {
 // Map(ta , seq.Lift(f)) 와 동일
 func MapSeqLift[A, B any](ta fp.Future[fp.Seq[A]], f func(v A) B, ctx ...fp.Executor) fp.Future[fp.Seq[B]] {
 	return Map(ta, func(a fp.Seq[A]) fp.Seq[B] {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSeq(a).Map(f).ToSeq()
 	}, ctx...)
 }
 
 // Map(ta , seq.Lift(f)) 와 동일
 func MapSliceLift[A, B any](ta fp.Future[[]A], f func(v A) B, ctx ...fp.Executor) fp.Future[[]B] {
 	return Map(ta, func(a []A) []B {
-		return iterator.Map(iterator.FromSeq(a), f).ToSeq()
+		return iterator.FromSlice(a).Map(f).ToSeq()
 	}, ctx...)
 }
 

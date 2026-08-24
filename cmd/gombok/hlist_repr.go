@@ -54,7 +54,7 @@ func (r *TypeClassSummonContext) toHlistRepr(ctx SummonContext, sf structFunctio
 			return fmt.Sprintf("%s.Cons[%s,%s]", conspk, a.TypeName(r.w, ctx.working), b)
 		})
 
-		varlist := iterator.Map(iterator.Range(0, sf.typeArgs.Size()), func(v int) string {
+		varlist := iterator.Range(0, sf.typeArgs.Size()).Map(func(v int) string {
 			return fmt.Sprintf("i%d", v)
 		}).MakeString(",")
 

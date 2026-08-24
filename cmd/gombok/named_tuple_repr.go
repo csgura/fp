@@ -42,7 +42,7 @@ func (r *TypeClassSummonContext) intoLabelledTupleRepr(ctx SummonContext, sf str
 			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 		}).MakeString(",")
 
-		varlist := iterator.Map(iterator.Range(0, sf.typeArgs.Size()), func(v int) string {
+		varlist := iterator.Range(0, sf.typeArgs.Size()).Map(func(v int) string {
 			return fmt.Sprintf("i%d", v)
 		}).MakeString(",")
 

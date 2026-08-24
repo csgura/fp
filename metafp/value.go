@@ -105,7 +105,7 @@ func LookupStruct(pk *types.Package, name string) fp.Option[TaggedStruct] {
 	}
 
 	if st, ok := l.Type().Underlying().(*types.Struct); ok {
-		fl := iterator.Map(iterator.Range(0, st.NumFields()), func(i int) StructField {
+		fl := iterator.Range(0, st.NumFields()).Map(func(i int) StructField {
 			f := st.Field(i)
 			tn := typeInfo(f.Type())
 			return StructField{
@@ -150,7 +150,7 @@ func parseAnnotation(s string) fp.Entry[Annotation] {
 			params := s[pstart+1 : pend]
 
 			itr := iterator.FromSeq(strings.Split(params, ","))
-			p := iterator.ToGoMap(iterator.Map(itr, parseKeyValue))
+			p := iterator.ToGoMap(itr.Map(parseKeyValue))
 			return as.Tuple2(name, Annotation{
 				name:   name,
 				params: mutable.MapOf(p),
@@ -166,10 +166,10 @@ func parseAnnotation(s string) fp.Entry[Annotation] {
 }
 
 func extractTag(comment string) fp.Map[string, Annotation] {
-	list := iterator.FromSeq(strings.Split(comment, "\n"))
-	list = iterator.Map(list, strings.TrimSpace)
-	list = list.Filter(as.Func2(strings.HasPrefix).ApplyLast("@"))
-	ret := iterator.ToGoMap(iterator.Map(list, parseAnnotation))
+	list := iterator.FromSeq(strings.Split(comment, "\n")).
+		Map(strings.TrimSpace).
+		Filter(as.Func2(strings.HasPrefix).ApplyLast("@"))
+	ret := iterator.ToGoMap(list.Map(parseAnnotation))
 	return mutable.MapOf(ret)
 }
 
@@ -180,7 +180,7 @@ func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation
 			return v.Decls
 		})
 
-		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+		s3 := s2.FlatMap(func(v ast.Decl) fp.Seq[*ast.GenDecl] {
 			switch r := v.(type) {
 			case *ast.GenDecl:
 				return seq.Of(r)
@@ -188,7 +188,7 @@ func GetTagsOfType(p []*packages.Package, name string) fp.Map[string, Annotation
 			return seq.Of[*ast.GenDecl]()
 		})
 
-		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[string] {
+		return s3.FlatMap(func(gd *ast.GenDecl) fp.Seq[string] {
 			gdDoc := option.Of(gd.Doc)
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[string] {
@@ -282,7 +282,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 			return v.Decls
 		})
 
-		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+		s3 := s2.FlatMap(func(v ast.Decl) fp.Seq[*ast.GenDecl] {
 			switch r := v.(type) {
 			case *ast.GenDecl:
 				return seq.Of(r)
@@ -290,7 +290,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 			return seq.Of[*ast.GenDecl]()
 		})
 
-		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[TaggedStruct] {
+		return s3.FlatMap(func(gd *ast.GenDecl) fp.Seq[TaggedStruct] {
 			gdDoc := option.Of(gd.Doc)
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TaggedStruct] {
@@ -980,7 +980,7 @@ type atLen[T any] interface {
 }
 
 func atLenToSeq[T any, A atLen[T]](a A) fp.Seq[T] {
-	return iterator.Map(iterator.Range(0, a.Len()), func(idx int) T {
+	return iterator.Range(0, a.Len()).Map(func(idx int) T {
 		return a.At(idx)
 	}).ToSeq()
 }
@@ -1092,7 +1092,7 @@ func (r TypeInfo) NotInstantiatedParams() fp.Seq[TypeParam] {
 		})
 	}
 
-	return seq.FlatMap(r.TypeArgs, func(v TypeInfo) fp.Seq[TypeParam] {
+	return r.TypeArgs.FlatMap(func(v TypeInfo) fp.Seq[TypeParam] {
 		return v.NotInstantiatedParams()
 	})
 }
@@ -1346,7 +1346,7 @@ func (r TypeInfo) IsNilable() bool {
 
 func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 	if len(r.TypeParam) > 0 {
-		return "[" + iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
+		return "[" + seq.Iterator(r.TypeParam).Map(func(v TypeParam) string {
 			tn := w.TypeName(cwd, v.Constraint)
 			return fmt.Sprintf("%s %s", v.Name, tn)
 		}).MakeString(",") + "]"
@@ -1357,7 +1357,7 @@ func (r TypeInfo) TypeParamDecl(w genfp.ImportSet, cwd genfp.WorkingPackage) str
 
 func (r TypeInfo) TypeParamIns(w genfp.ImportSet, cwd genfp.WorkingPackage) string {
 	if len(r.TypeParam) > 0 {
-		return "[" + iterator.Map(seq.Iterator(r.TypeParam), func(v TypeParam) string {
+		return "[" + seq.Iterator(r.TypeParam).Map(func(v TypeParam) string {
 			return v.Name
 		}).MakeString(",") + "]"
 	}
@@ -1456,7 +1456,7 @@ func typeArgs(args *types.TypeList) fp.Seq[TypeInfo] {
 	if args == nil {
 		return seq.Empty[TypeInfo]()
 	}
-	ret := iterator.Map(iterator.Range(0, args.Len()), func(i int) TypeInfo {
+	ret := iterator.Range(0, args.Len()).Map(func(i int) TypeInfo {
 		return typeInfo(args.At(i))
 	}).ToSeq()
 	return ret
@@ -1465,7 +1465,7 @@ func typeParam(args *types.TypeParamList) fp.Seq[TypeParam] {
 	if args == nil {
 		return seq.Empty[TypeParam]()
 	}
-	params := iterator.Map(iterator.Range(0, args.Len()), func(i int) TypeParam {
+	params := iterator.Range(0, args.Len()).Map(func(i int) TypeParam {
 		return TypeParam{
 			Name:       args.At(i).Obj().Name(),
 			Constraint: args.At(i).Constraint(),
@@ -1527,14 +1527,14 @@ func typeInfo(tpe types.Type) TypeInfo {
 		methodMap := func() fp.Map[string, *types.Func] {
 			if realtp.NumMethods() == 0 {
 				if underIntf, ok := realtp.Underlying().(*types.Interface); ok {
-					method := iterator.Map(iterator.Range(0, underIntf.NumMethods()), func(v int) fp.Entry[*types.Func] {
+					method := iterator.Range(0, underIntf.NumMethods()).Map(func(v int) fp.Entry[*types.Func] {
 						m := underIntf.Method(v)
 						return as.Tuple2(m.Name(), m)
 					})
 					return mutable.MapOf(iterator.ToGoMap(method))
 				}
 			}
-			method := iterator.Map(iterator.Range(0, realtp.NumMethods()), func(v int) fp.Entry[*types.Func] {
+			method := iterator.Range(0, realtp.NumMethods()).Map(func(v int) fp.Entry[*types.Func] {
 				m := realtp.Method(v)
 				return as.Tuple2(m.Name(), m)
 			})
@@ -1652,7 +1652,7 @@ func BasicType(kind types.BasicKind) TypeInfo {
 }
 
 func FindPackage(pkgs []*packages.Package, path string) fp.Option[*types.Package] {
-	return iterator.FilterMap(iterator.FromSeq(pkgs), func(v *packages.Package) fp.Option[*types.Package] {
+	return iterator.FromSeq(pkgs).FilterMap(func(v *packages.Package) fp.Option[*types.Package] {
 		return findPackage(v.Types, path)
 	}).NextOption()
 }

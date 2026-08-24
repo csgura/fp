@@ -21,7 +21,7 @@ func plus(a int, b int) int {
 
 func TestIterator(t *testing.T) {
 	s := seq.Of(1, 2, 3, 4, 5, 6, 7)
-	iterator.Map(seq.Iterator(s), curried.Func2(plus)(2)).TakeWhile(func(v int) bool {
+	seq.Iterator(s).Map(curried.Func2(plus)(2)).TakeWhile(func(v int) bool {
 		return v < 7
 	}).Foreach(fp.Println[int])
 
@@ -52,7 +52,7 @@ func TestIterator(t *testing.T) {
 	fmt.Println(seq.Collect(p1))
 	fmt.Println(seq.Collect(p2))
 
-	p1, p2 = iterator.Span(iterator.Map(seq.Iterator(s), func(v int) int {
+	p1, p2 = iterator.Span(seq.Iterator(s).Map(func(v int) int {
 		println("before span v= ", v)
 		return v
 	}), func(v int) bool {
@@ -107,7 +107,7 @@ func TestZipLeft(t *testing.T) {
 	l := iterator.Range(0, 10)
 	r := iterator.Range(0, 5)
 
-	optr := iterator.Map(r, option.Some).Concat(iterator.Generate(option.None[int]))
+	optr := r.Map(option.Some).Concat(iterator.Generate(option.None[int]))
 	zl := iterator.Zip(l, optr).ToSeq()
 	assert.Equal(len(zl), 10)
 }

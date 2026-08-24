@@ -66,7 +66,7 @@ func (r *TypeClassSummonContext) toLabelledHlistRepr(ctx SummonContext, sf struc
 				return fmt.Sprintf("%s.Cons[%s,%s]", conspk, r.namedOrRuntimeStringExpr(r.w, ctx.working, sf.pack, sf.name, name.I1, sf.namedGenerated, a), b)
 			})
 
-			varlist := iterator.Map(iterator.Range(0, sf.typeArgs.Size()), func(v int) string {
+			varlist := iterator.Range(0, sf.typeArgs.Size()).Map(func(v int) string {
 				return fmt.Sprintf("i%d", v)
 			}).MakeString(",")
 

@@ -124,7 +124,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 			return v.Decls
 		})
 
-		s3 := seq.FlatMap(s2, func(v ast.Decl) fp.Seq[*ast.GenDecl] {
+		s3 := s2.FlatMap(func(v ast.Decl) fp.Seq[*ast.GenDecl] {
 			switch r := v.(type) {
 			case *ast.GenDecl:
 				return seq.Of(r)
@@ -132,7 +132,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 			return seq.Of[*ast.GenDecl]()
 		})
 
-		return seq.FlatMap(s3, func(gd *ast.GenDecl) fp.Seq[TypeClassDirective] {
+		return s3.FlatMap(func(gd *ast.GenDecl) fp.Seq[TypeClassDirective] {
 			gdDoc := option.Of(gd.Doc)
 
 			return seq.FlatMap(gd.Specs, func(v ast.Spec) fp.Seq[TypeClassDirective] {
@@ -196,7 +196,7 @@ func findTypeClsssDirective(p []*packages.Package, directive string) fp.Seq[Type
 }
 
 func FindTypeClassDerive(p []*packages.Package) fp.Seq[TypeClassDerive] {
-	return seq.FlatMap(findTypeClsssDirective(p, "@fp.Derive"), func(v TypeClassDirective) fp.Seq[TypeClassDerive] {
+	return findTypeClsssDirective(p, "@fp.Derive").FlatMap(func(v TypeClassDirective) fp.Seq[TypeClassDerive] {
 		if v.TypeArgs.Size() == 1 && v.TypeArgs.Head().Get().IsNamed() {
 			deriveFor := v.TypeArgs.Head().Get()
 
@@ -528,7 +528,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 	}
 
 	// genericType 아규먼트만 비교
-	zipped := iterator.Map(iterator.Zip(seq.Iterator(genericType.TypeArgs), seq.Iterator(typeArgs)), func(t fp.Tuple2[TypeInfo, TypeInfo]) typeCompare {
+	zipped := iterator.Zip(seq.Iterator(genericType.TypeArgs), seq.Iterator(typeArgs)).Map(func(t fp.Tuple2[TypeInfo, TypeInfo]) typeCompare {
 		return typeCompare{
 			genericType: t.I1,
 			actualType:  t.I2,
@@ -584,7 +584,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 	}
 
 	//fmt.Printf("merge = %s\n", merge)
-	paramFound := iterator.Map(iterator.FromSlice(paramArgs), func(v typeCompare) fp.Option[paramVar] {
+	paramFound := iterator.FromSlice(paramArgs).Map(func(v typeCompare) fp.Option[paramVar] {
 		paramName := v.genericType.Name().Get()
 
 		// func[T constraint]() Eq[A] 혹은 func() Eq[A] 처럼. type parameter 목록이 잘못된 경우도 불가능
@@ -744,7 +744,7 @@ func (r TypeClassInstance) check(t TypeInfo) fp.Option[TypeClassInstance] {
 }
 
 func (r TypeClassInstancesOfPackage) FindFuncHasNameArg(name fp.NameTag, t TypeInfo) fp.Option[TypeClassInstance] {
-	return seq.FlatMap(r.WithNamedArg, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+	return r.WithNamedArg.FlatMap(func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
 		return v.CheckWithName(name, t).ToSeq()
 	}).Head()
 
@@ -762,7 +762,7 @@ func (r TypeClassInstancesOfPackage) FindByNamePrefix(namePrefix string, t TypeI
 
 		return false
 	})
-	return seq.FlatMap(found, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+	return found.FlatMap(func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
 		return v.Check(t).ToSeq()
 	}).Head()
 
@@ -807,13 +807,13 @@ func (r TypeClassInstancesOfPackage) Find(t TypeInfo) fp.Seq[TypeClassInstance] 
 		return ret.ToSeq()
 	}
 
-	return seq.FlatMap(r.All, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+	return r.All.FlatMap(func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
 		return v.Check(t).ToSeq()
 	})
 }
 
 func (r TypeClassInstancesOfPackage) FindAll(t TypeInfo) fp.Seq[TypeClassInstance] {
-	return seq.FlatMap(r.All, func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
+	return r.All.FlatMap(func(v TypeClassInstance) fp.Seq[TypeClassInstance] {
 		return v.Check(t).ToSeq()
 	})
 }
@@ -919,7 +919,7 @@ func (r TypeClassScope) FindByName(name string, t TypeInfo) fp.Option[TypeClassI
 	// if name == "ShowHlistHCons" {
 	// 	fmt.Printf("find ShowHlistHCons\n")
 	// }
-	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := seq.Iterator(r.List).Map(func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindByName(name, t)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
@@ -931,7 +931,7 @@ func (r TypeClassScope) FindByNamePrefix(namePrefix string, t TypeInfo) fp.Optio
 	// if name == "ShowHlistHCons" {
 	// 	fmt.Printf("find ShowHlistHCons\n")
 	// }
-	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := seq.Iterator(r.List).Map(func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindByNamePrefix(namePrefix, t)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
@@ -943,7 +943,7 @@ func (r TypeClassScope) FindTupleLikeByNamePrefix(namePrefix string, fieldNames 
 	// if name == "ShowHlistHCons" {
 	// 	fmt.Printf("find ShowHlistHCons\n")
 	// }
-	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := seq.Iterator(r.List).Map(func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindTupleLikeByNamePrefix(namePrefix, fieldNames, tupleArgs)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
@@ -955,7 +955,7 @@ func (r TypeClassScope) FindFuncHasNameArg(namePrefix fp.NameTag, t TypeInfo) fp
 	// if name == "ShowHlistHCons" {
 	// 	fmt.Printf("find ShowHlistHCons\n")
 	// }
-	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := seq.Iterator(r.List).Map(func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindFuncHasNameArg(namePrefix, t)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
@@ -964,7 +964,7 @@ func (r TypeClassScope) FindFuncHasNameArg(namePrefix fp.NameTag, t TypeInfo) fp
 
 func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
 
-	ret := iterator.Map(seq.Iterator(r.List), func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
+	ret := seq.Iterator(r.List).Map(func(p TypeClassInstancesOfPackage) fp.Option[TypeClassInstance] {
 		return p.FindFunc(name)
 	}).Filter(fp.Option[TypeClassInstance].IsDefined).NextOption()
 
@@ -972,7 +972,7 @@ func (r TypeClassScope) FindFunc(name string) fp.Option[TypeClassInstance] {
 }
 
 func (r TypeClassScope) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
-	ret := seq.FlatMap(r.List, func(p TypeClassInstancesOfPackage) fp.Seq[TypeClassInstance] {
+	ret := r.List.FlatMap(func(p TypeClassInstancesOfPackage) fp.Seq[TypeClassInstance] {
 		return p.Find(t)
 	})
 	return ret

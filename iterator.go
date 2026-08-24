@@ -305,6 +305,10 @@ func (r Iterator[T]) Filter[_ Phantom[T]](p func(T) bool) Iterator[T] {
 	)
 }
 
+func (r Iterator[T]) FilterMap[S any](fn func(T) Option[S]) Iterator[S] {
+	return r.FlatMap(Compose(fn, IteratorOfOption))
+}
+
 func (r Iterator[T]) FilterNot[_ Phantom[T]](p func(T) bool) Iterator[T] {
 	return r.Filter(func(t T) bool {
 		return !p(t)

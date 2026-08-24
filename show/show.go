@@ -319,7 +319,7 @@ func trailingComma(opt fp.ShowOption) string {
 
 func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
 	return NewAppend(func(buf []string, s fp.Seq[T], opt fp.ShowOption) []string {
-		childStr := iterator.Map(iterator.FromSeq(s), as.Curried2(AsAppender[T])(tshow)).ToSeq()
+		childStr := iterator.FromSeq(s).Map(as.Curried2(AsAppender[T])(tshow)).ToSeq()
 		return appendSeq(buf, "Seq", childStr, opt)
 	})
 }
@@ -328,7 +328,7 @@ func Set[V any](showv fp.Show[V]) fp.Show[fp.Set[V]] {
 	return NewAppend(func(buf []string, v fp.Set[V], opt fp.ShowOption) []string {
 		opt = opt.IncreaseIndent()
 
-		showset := iterator.Map(v.Iterator(), func(v V) Appender {
+		showset := v.Iterator().Map(func(v V) Appender {
 			return AsAppender(showv, v)
 		}).ToSeq()
 
@@ -342,9 +342,9 @@ func Map[K, V any](showk fp.Show[K], showv fp.Show[V]) fp.Show[fp.Map[K, V]] {
 
 		childOpt := opt.IncreaseIndent()
 
-		keyshow := seq.Sort(iterator.Map(v.Iterator(), as.Func2(product.MapKey[K, V, string]).ApplyLast(showk.Show)).ToSeq(), ord.GivenField(fp.Entry[V].Head))
+		keyshow := seq.Sort(v.Iterator().Map(as.Func2(product.MapKey[K, V, string]).ApplyLast(showk.Show)).ToSeq(), ord.GivenField(fp.Entry[V].Head))
 
-		showmap := iterator.FilterMap(iterator.FromSeq(keyshow), func(t fp.Entry[V]) fp.Option[Appender] {
+		showmap := iterator.FromSeq(keyshow).FilterMap(func(t fp.Entry[V]) fp.Option[Appender] {
 			valuestr := showv.Append(nil, t.I2, childOpt)
 			if isEmptyString(valuestr) {
 				return option.None[Appender]()
