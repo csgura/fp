@@ -248,7 +248,7 @@ func TupleHCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.C
 		//var h H
 		//fmt.Printf("read hcons %s, htype = %T\n", s, h)
 		hres := hread.Reads(s)
-		return try.FlatMap(hres, func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
+		return hres.FlatMap(func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
 			//fmt.Printf("remains = %s\n", hr.remains)
 			nextHead := skipComma(hr.Remains())
 			return tread.Reads(nextHead).Map(func(tr Result[T]) Result[hlist.Cons[H, T]] {
@@ -266,7 +266,7 @@ func HCons[H any, T hlist.HList](hread Read[H], tread Read[T]) Read[hlist.Cons[H
 		//var h H
 		//fmt.Printf("read hcons %s, htype = %T\n", s, h)
 		hres := hread.Reads(s)
-		return try.FlatMap(hres, func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
+		return hres.FlatMap(func(hr Result[H]) fp.Try[Result[hlist.Cons[H, T]]] {
 			//fmt.Printf("remains = %s\n", hr.remains)
 			nextHead := skipColonColon(hr.Remains())
 			return tread.Reads(nextHead).Map(func(tr Result[T]) Result[hlist.Cons[H, T]] {

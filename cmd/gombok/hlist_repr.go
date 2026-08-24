@@ -132,7 +132,7 @@ func (r *TypeClassSummonContext) fromHlistRepr(ctx SummonContext, sf structFunct
 func (r *TypeClassSummonContext) summonStructHlistGenericRepr(ctx SummonContext, tc metafp.TypeClass, sf structFunctions, consf string, nilf string, force bool) fp.Option[GenericRepr] {
 	shcons := r.lookupTypeClassFunc(ctx, tc, consf)
 	if shcons.IsDefined() || force {
-		constp := option.FlatMap(shcons, func(tci metafp.TypeClassInstance) fp.Option[metafp.TypeInfo] {
+		constp := shcons.FlatMap(func(tci metafp.TypeClassInstance) fp.Option[metafp.TypeInfo] {
 			return tci.Result.TypeArgs.Head()
 		})
 		return option.Some(GenericRepr{

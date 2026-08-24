@@ -54,7 +54,7 @@ func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContex
 	result := r.lookupTupleLikeTypeClassFunc(ctx, tc, fmt.Sprintf("Struct%d", typeArgs.Size()), names, sf.typeArgs)
 
 	verbose("lookupTupleLikeTypeClassFunc Struct%d -> %t", typeArgs.Size(), result.IsDefined())
-	return option.FlatMap(result, func(di DefinedInstance) fp.Option[GenericRepr] {
+	return result.FlatMap(func(di DefinedInstance) fp.Option[GenericRepr] {
 
 		tm := di.instance
 		requiredAllTypeClass := tm.RequiredInstance.ForAll(func(v metafp.RequiredInstance) bool {

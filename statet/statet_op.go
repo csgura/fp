@@ -167,7 +167,7 @@ func MapWithState[S, A, B any](st fp.StateT[S, A], f func(S, A) B) fp.StateT[S, 
 func MapT[S, A, B any](st fp.StateT[S, A], f func(A) fp.Try[B]) fp.StateT[S, B] {
 	return func(s S) (fp.Try[B], S) {
 		a, ns := st.Run(s)
-		return try.FlatMap(a, f), ns
+		return a.FlatMap(f), ns
 	}
 }
 

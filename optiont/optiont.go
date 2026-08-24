@@ -102,7 +102,7 @@ func All[T any](optionT fp.OptionT[T]) iter.Seq[T] {
 }
 
 func OrT[T any](optionT fp.OptionT[T], f func() fp.OptionT[T]) fp.OptionT[T] {
-	return try.FlatMap(optionT, func(insideValue fp.Option[T]) fp.OptionT[T] {
+	return optionT.FlatMap(func(insideValue fp.Option[T]) fp.OptionT[T] {
 		if insideValue.IsEmpty() {
 			return f()
 		}
@@ -111,7 +111,7 @@ func OrT[T any](optionT fp.OptionT[T], f func() fp.OptionT[T]) fp.OptionT[T] {
 }
 
 func OrElseGetT[T any](optionT fp.OptionT[T], f func() fp.Try[T]) fp.Try[T] {
-	return try.FlatMap(optionT, func(insideValue fp.Option[T]) fp.Try[T] {
+	return optionT.FlatMap(func(insideValue fp.Option[T]) fp.Try[T] {
 		if insideValue.IsEmpty() {
 			return f()
 		}

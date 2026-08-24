@@ -325,7 +325,7 @@ func (r TypeClassInstancesOfPackage) FindFunc(name string) fp.Option[TypeClassIn
 
 func (r TypeClassInstancesOfPackage) FindByName(name string, t TypeInfo) fp.Option[TypeClassInstance] {
 	//fmt.Printf("find %s, from [%s]\n", name, r.ByName.Keys().MakeString(","))
-	ret := option.FlatMap(r.ByName.Get(name), as.Func2(TypeClassInstance.Check).ApplyLast(t))
+	ret := r.ByName.Get(name).FlatMap(as.Func2(TypeClassInstance.Check).ApplyLast(t))
 	return ret
 }
 
@@ -797,10 +797,10 @@ func (r TypeClassInstancesOfPackage) FindTupleLikeByNamePrefix(namePrefix string
 // t 는 Eq 쌓이지 않은 타입
 // Eq[T] 여서는 안됨
 func (r TypeClassInstancesOfPackage) Find(t TypeInfo) fp.Seq[TypeClassInstance] {
-	ret := option.FlatMap(
-		r.FixedByType.Get(t.Type.String()),
-		as.Func2(TypeClassInstance.Check).ApplyLast(t),
-	)
+	ret :=
+		r.FixedByType.Get(t.Type.String()).FlatMap(
+			as.Func2(TypeClassInstance.Check).ApplyLast(t),
+		)
 
 	if ret.IsDefined() {
 		return ret.ToSeq()

@@ -71,12 +71,12 @@ func TestFunc(t *testing.T) {
 	fmt.Println(oreader)
 
 	tstr := try.Success("25380")
-	tint := try.FlatMap(tstr, try.Func1(strconv.Atoi))
-	tprocess := try.FlatMap(tint, try.Func1(os.FindProcess))
-	killResult := try.FlatMap(tprocess, try.Unit1((*os.Process).Kill))
+	tint := tstr.FlatMap(try.Func1(strconv.Atoi))
+	tprocess := tint.FlatMap(try.Func1(os.FindProcess))
+	killResult := tprocess.FlatMap(try.Unit1((*os.Process).Kill))
 	fmt.Println(killResult)
 
-	killResult = try.FlatMap(tstr, try.Compose3(
+	killResult = tstr.FlatMap(try.Compose3(
 		try.Func1(strconv.Atoi),
 		try.Func1(os.FindProcess),
 		try.Unit1((*os.Process).Kill),
@@ -86,7 +86,7 @@ func TestFunc(t *testing.T) {
 	o1 := option.Some(1)
 	o2 := option.Some(2)
 
-	os2 := option.FlatMap(o1, func(a int) fp.Option[int] {
+	os2 := o1.FlatMap(func(a int) fp.Option[int] {
 		return o2.Map(func(b int) int {
 			return a + b
 		})

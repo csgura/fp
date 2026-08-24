@@ -66,7 +66,7 @@ func DecoderNumber[T fp.ImplicitNum]() Decoder[T] {
 }
 
 var DecoderTime = NewDecoder(func(ctx DecoderContext, a string) fp.Try[time.Time] {
-	return try.FlatMap(DecoderString.Decode(ctx, a), func(v string) fp.Try[time.Time] {
+	return DecoderString.Decode(ctx, a).FlatMap(func(v string) fp.Try[time.Time] {
 		return try.Apply(time.Parse(time.RFC3339, v))
 	})
 
@@ -166,7 +166,7 @@ func DecoderHConsLabelled[H fp.Named, T hlist.HList](heq Decoder[H], teq Decoder
 
 		head := heq.Decode(ctx.WithNoneWorkingObject(), toDecode)
 
-		return try.FlatMap(head, func(h H) fp.Try[hlist.Cons[H, T]] {
+		return head.FlatMap(func(h H) fp.Try[hlist.Cons[H, T]] {
 			return teq.Decode(ctx.WithSomeWorkingObject(m), a).Map(func(t T) hlist.Cons[H, T] {
 				return hlist.Concat(h, t)
 			})

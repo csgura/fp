@@ -359,7 +359,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 				return v.TypeClass.Name == "Show" && v.TypeClass.Package.Path() == "github.com/csgura/fp"
 			})
 
-			insOpt := option.FlatMap(showDerive, func(v metafp.TypeClassDerive) fp.Option[metafp.TypeClassInstance] {
+			insOpt := showDerive.FlatMap(func(v metafp.TypeClassDerive) fp.Option[metafp.TypeClassInstance] {
 				//fmt.Printf("find by name %s\n", v.GeneratedInstanceName())
 				return scope.FindByName(v.GeneratedInstanceName(), ts.Info)
 			}).Or(func() fp.Option[metafp.TypeClassInstance] {

@@ -90,7 +90,7 @@ func (r SummonContext) recursiveGen() bool {
 }
 
 func (r SummonContext) recursiveDerive(required metafp.RequiredInstance, notDefined NotDefinedInstance) fp.Option[metafp.TypeClassDerive] {
-	return option.FlatMap(r.deriveContext, func(ctx DeriveContext) fp.Option[metafp.TypeClassDerive] {
+	return r.deriveContext.FlatMap(func(ctx DeriveContext) fp.Option[metafp.TypeClassDerive] {
 		if ctx.recursiveGen && required.TypeClass.Id() == ctx.tc.TypeClass.Id() {
 			named := notDefined.instanceOf.AsNamed()
 			if named.IsDefined() {
@@ -2002,9 +2002,9 @@ func (r *TypeClassSummonContext) SummonExpression(tc metafp.TypeClassDerive) Sum
 		primScope:    r.tcCache.Get(tc.PrimitiveInstancePkg, tc.TypeClass),
 		tc:           tc,
 		working:      tc.Package,
-		recursiveGen: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+		recursiveGen: tc.Tags.Get("@fp.Derive").FlatMap(
 			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("recursive"))).Exists(eq.GivenValue("true")),
-		noinline: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+		noinline: tc.Tags.Get("@fp.Derive").FlatMap(
 			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("noinline"))).Exists(eq.GivenValue("true")),
 	}
 
@@ -2281,9 +2281,9 @@ func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) Summ
 		primScope:    r.tcCache.Get(tc.PrimitiveInstancePkg, tc.TypeClass),
 		tc:           tc,
 		working:      workingPackage,
-		recursiveGen: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+		recursiveGen: tc.Tags.Get("@fp.Derive").FlatMap(
 			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("recursive"))).Exists(eq.GivenValue("true")),
-		noinline: option.FlatMap(tc.Tags.Get("@fp.Derive"),
+		noinline: tc.Tags.Get("@fp.Derive").FlatMap(
 			fp.Compose2(metafp.Annotation.Params, as.Func2(fp.Map[string, string].Get).ApplyLast("noinline"))).Exists(eq.GivenValue("true")),
 	}
 

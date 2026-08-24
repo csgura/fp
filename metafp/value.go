@@ -298,7 +298,7 @@ func FindTaggedStruct(p []*packages.Package, tags ...string) fp.Seq[TaggedStruct
 						return tagSeq.Exists(func(tag string) bool { return strings.Contains(comment, tag) })
 					}) {
 
-						return option.FlatMap(LookupStruct(working.Package(), ts.Name.Name), func(ret TaggedStruct) fp.Option[TaggedStruct] {
+						return LookupStruct(working.Package(), ts.Name.Name).FlatMap(func(ret TaggedStruct) fp.Option[TaggedStruct] {
 							ret.Tags = doc.Map(extractTag).OrZero()
 							if !tagSeq.Exists(ret.Tags.Contains) {
 								return option.None[TaggedStruct]()

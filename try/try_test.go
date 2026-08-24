@@ -58,7 +58,7 @@ func TestTry(t *testing.T) {
 	fmt.Println(intPort)
 	assert.True(intPort.IsFailure())
 
-	try.FlatMap(p, try.Func1(strconv.Atoi)).Foreach(fp.Println[int])
+	p.FlatMap(try.Func1(strconv.Atoi)).Foreach(fp.Println[int])
 
 }
 
@@ -73,7 +73,7 @@ func TestFlatMap(t *testing.T) {
 	assert.True(p.IsSuccess())
 	assert.Equal(p.Get(), "8080")
 
-	var intPort fp.Try[int] = try.FlatMap(p, try.Func1(strconv.Atoi))
+	var intPort fp.Try[int] = p.FlatMap(try.Func1(strconv.Atoi))
 	fmt.Println(intPort)
 	assert.True(intPort.IsSuccess())
 	assert.Equal(intPort.Get(), 8080)

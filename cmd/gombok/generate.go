@@ -1552,7 +1552,7 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 	defaultExpr := ctx.defaultImpl()
 
 	defaultsOverExtends := defaultExpr.IsDefined() && opt.DefaultImplOverExtends
-	delegateExpr := option.FlatMap(option.Ptr(opt.Delegate), func(v generator.DelegateDirective) fp.Option[GeneratedExpr] {
+	delegateExpr := option.Ptr(opt.Delegate).FlatMap(func(v generator.DelegateDirective) fp.Option[GeneratedExpr] {
 		return ctx.callExtends(v.Field)
 	}).
 		FilterNot(fp.Const[GeneratedExpr](defaultsOverExtends))
@@ -1565,7 +1565,7 @@ func generateImpl(opt generator.ImplOptionDirective, gad generator.GenerateAdapt
 
 	unreachable = unreachable || callExtendsExpr.IsDefined() && callExtendsExpr.Get().unreachableAfter
 
-	cbExpr := option.FlatMap(cbField, func(v string) fp.Option[string] { return ctx.callCb() })
+	cbExpr := cbField.FlatMap(func(v string) fp.Option[string] { return ctx.callCb() })
 	panicExpr := option.Some(fmt.Sprintf(`panic("%s.%s not implemented")`, adaptorTypeName, t.Name()))
 	valExpr, end := ctx.valOverride(defaultExpr.IsDefined() || callExtendsExpr.IsDefined() || cbExpr.IsDefined())
 	cbExpr = cbExpr.FilterNot(func(v string) bool { return end })

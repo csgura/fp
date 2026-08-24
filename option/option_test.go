@@ -26,7 +26,7 @@ func TestSome(t *testing.T) {
 		println(v)
 	})
 
-	opt2 := option.FlatMap(opt, func(v string) fp.Option[int] {
+	opt2 := opt.FlatMap(func(v string) fp.Option[int] {
 		return option.Some(20)
 	})
 
