@@ -19,6 +19,7 @@ import (
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -79,7 +80,7 @@ func (r TypeClassDerive) InstantiatedType(t TypeInfo) TypeInfo {
 	ret.TypeParam = t.TypeParam
 
 	t.TypeParam = seq.Empty[TypeParam]()
-	t.TypeArgs = seq.Map(ret.TypeParam, func(v TypeParam) TypeInfo {
+	t.TypeArgs = ret.TypeParam.Map(func(v TypeParam) TypeInfo {
 		p := types.NewTypeParam(v.TypeName, v.Constraint)
 		return typeInfo(p)
 	})
@@ -610,11 +611,11 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 		return ctx.Failed(fp.Error(400, "all param not found"))
 	}
 
-	paramCons := seq.Map(paramFound, func(v fp.Option[paramVar]) *types.TypeParam {
+	paramCons := slice.Map(paramFound, func(v fp.Option[paramVar]) *types.TypeParam {
 		return v.Get().typeParam
 	})
 
-	paramIns := seq.Map(paramFound, func(v fp.Option[paramVar]) types.Type {
+	paramIns := slice.Map(paramFound, func(v fp.Option[paramVar]) types.Type {
 		return v.Get().actualType.Type
 	})
 
@@ -631,7 +632,7 @@ func ConstraintCheck(ctx ConstraintCheckResult, param fp.Seq[TypeParam], generic
 
 	_, err := types.Instantiate(tctx, sig, paramIns, true)
 	if err == nil {
-		mapping := seq.ToGoMap(seq.Map(seq.Map(paramFound, fp.Option[paramVar].Get), func(v paramVar) fp.Entry[TypeInfo] {
+		mapping := seq.ToGoMap(seq.Map(paramFound, fp.Option[paramVar].Get).Map(func(v paramVar) fp.Entry[TypeInfo] {
 			return as.Tuple2(v.typeParam.Obj().Name(), v.actualType)
 		}))
 
@@ -699,7 +700,7 @@ func (r TypeClassInstance) check(t TypeInfo) fp.Option[TypeClassInstance] {
 		check := ConstraintCheck(ConstraintCheckResult{Ok: true}, r.Type.TypeParam, r.Result, seq.Of(t))
 		if check.Ok {
 
-			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
+			r.RequiredInstance = r.RequiredInstance.Map(func(v RequiredInstance) RequiredInstance {
 				res := v.Type.ReplaceTypeParam(check.ParamMapping)
 				r.UsedParam = r.UsedParam.Concat(res.I1)
 				v.Type = res.I2
@@ -718,7 +719,7 @@ func (r TypeClassInstance) check(t TypeInfo) fp.Option[TypeClassInstance] {
 
 		check := t.IsInstantiatedOf(ConstraintCheckResult{Ok: true}, r.Type.TypeParam, argType)
 		if check.Ok {
-			r.RequiredInstance = seq.Map(r.RequiredInstance, func(v RequiredInstance) RequiredInstance {
+			r.RequiredInstance = r.RequiredInstance.Map(func(v RequiredInstance) RequiredInstance {
 				res := v.Type.ReplaceTypeParam(check.ParamMapping)
 				r.UsedParam = r.UsedParam.Concat(res.I1)
 				v.Type = res.I2
@@ -890,7 +891,7 @@ func (r *TypeClassInstanceCache) WillGenerated(tc TypeClassDerive) TypeClassInst
 	if tc.DeriveFor.Info.TypeParam.Size() > 0 {
 		ins.Static = false
 		ins.TypeParam = tc.DeriveFor.Info.TypeParam
-		ins.RequiredInstance = seq.Map(tc.DeriveFor.Info.TypeParam, func(v TypeParam) RequiredInstance {
+		ins.RequiredInstance = tc.DeriveFor.Info.TypeParam.Map(func(v TypeParam) RequiredInstance {
 			p := types.NewTypeParam(v.TypeName, v.Constraint)
 			return RequiredInstance{
 				TypeClass: tc.TypeClass,
@@ -1158,7 +1159,7 @@ func AsTypeClassInstance(tc TypeClass, ins types.Object) fp.Option[TypeClassInst
 						hasExplictArg = true
 					}
 
-					required := seq.Map(fargs, asRequired)
+					required := fargs.Map(asRequired)
 
 					return option.Some(TypeClassInstance{
 						Package:          ins.Pkg(),

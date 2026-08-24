@@ -16,7 +16,7 @@ func (r *TypeClassSummonContext) tupleReprType(ctx SummonContext, sf structFunct
 
 		fields := sf.fields
 
-		p := seq.Map(sf.typeArgs, func(f metafp.TypeInfoExpr) string {
+		p := sf.typeArgs.Map(func(f metafp.TypeInfoExpr) string {
 			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
@@ -52,7 +52,7 @@ func (r *TypeClassSummonContext) intoTupleRepr(ctx SummonContext, sf structFunct
 		}
 		type fieldName = fp.Entry[string]
 
-		p := seq.Map(sf.typeArgs, func(f metafp.TypeInfoExpr) string {
+		p := sf.typeArgs.Map(func(f metafp.TypeInfoExpr) string {
 			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
@@ -60,17 +60,17 @@ func (r *TypeClassSummonContext) intoTupleRepr(ctx SummonContext, sf structFunct
 		args := func() string {
 			for tptype := range tptypeOpt.All() {
 				if tptype.Fields().Size() == sf.fields.Size() {
-					return seq.Map(seq.ZipWithIndex(sf.names), func(v fp.WithIndex[fieldName]) string {
+					return seq.ZipWithIndex(sf.names).Map(func(v fp.WithIndex[fieldName]) string {
 						fi := tptype.Fields().Get(v.I1).Get()
 						return fmt.Sprintf("%s : v.%s", fi.Name, v.I2.I1)
 					}).MakeString(",\n")
 				} else {
-					return seq.Map(seq.ZipWithIndex(sf.names), func(v fp.WithIndex[fieldName]) string {
+					return seq.ZipWithIndex(sf.names).Map(func(v fp.WithIndex[fieldName]) string {
 						return fmt.Sprintf("v.%s", v.I2.I1)
 					}).MakeString(",\n")
 				}
 			}
-			return seq.Map(seq.ZipWithIndex(sf.names), func(v fp.WithIndex[fieldName]) string {
+			return seq.ZipWithIndex(sf.names).Map(func(v fp.WithIndex[fieldName]) string {
 				return fmt.Sprintf("I%d: v.%s", v.I1+1, v.I2.I1)
 			}).MakeString(",\n")
 		}()
@@ -119,7 +119,7 @@ func (r TypeClassSummonContext) fromTupleRepr(ctx SummonContext, sf structFuncti
 			}
 		}
 
-		p := seq.Map(sf.typeArgs, func(f metafp.TypeInfoExpr) string {
+		p := sf.typeArgs.Map(func(f metafp.TypeInfoExpr) string {
 			return f.TypeName(r.w, ctx.working)
 		}).MakeString(",")
 
@@ -128,12 +128,12 @@ func (r TypeClassSummonContext) fromTupleRepr(ctx SummonContext, sf structFuncti
 		assign := func() string {
 			if tptypeOpt.IsDefined() && tptypeOpt.Get().Fields().Size() == sf.fields.Size() {
 				tptype := tptypeOpt.Get()
-				return seq.Map(seq.ZipWithIndex(sf.names), func(v fp.WithIndex[fp.Entry[string]]) string {
+				return seq.ZipWithIndex(sf.names).Map(func(v fp.WithIndex[fp.Entry[string]]) string {
 					fi := tptype.Fields().Get(v.I1).Get()
 					return fmt.Sprintf("%s : t.%s", v.I2.I1, fi.Name)
 				}).MakeString(",\n")
 			} else {
-				return seq.Map(seq.ZipWithIndex(sf.names), func(v fp.WithIndex[fp.Entry[string]]) string {
+				return seq.ZipWithIndex(sf.names).Map(func(v fp.WithIndex[fp.Entry[string]]) string {
 					return fmt.Sprintf("%s : t.I%d", v.I2.I1, v.I1+1)
 				}).MakeString(",\n")
 			}

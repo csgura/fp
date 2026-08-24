@@ -17,7 +17,9 @@ import (
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 	"github.com/csgura/fp/try"
+	"github.com/csgura/fp/xtr"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -642,15 +644,15 @@ func (r TypeInfo) ReplaceTypeParam(mapping fp.Map[string, TypeInfo]) fp.Tuple2[f
 		}
 	}
 
-	newArgs := seq.Map(r.TypeArgs, func(v TypeInfo) fp.Tuple2[fp.Set[string], TypeInfo] {
+	newArgs := r.TypeArgs.Map(func(v TypeInfo) fp.Tuple2[fp.Set[string], TypeInfo] {
 		return v.ReplaceTypeParam(mapping)
 	})
 
-	r.TypeArgs = seq.Map(newArgs, func(v fp.Tuple2[fp.Set[string], TypeInfo]) TypeInfo {
+	r.TypeArgs = newArgs.Map(func(v fp.Tuple2[fp.Set[string], TypeInfo]) TypeInfo {
 		return v.I2
 	})
 
-	usedParam := seq.Reduce(seq.Map(newArgs, fp.Tuple2[fp.Set[string], TypeInfo].Head), monoid.MergeSet[string]())
+	usedParam := seq.Reduce(newArgs.Map(xtr.Head), monoid.MergeSet[string]())
 
 	return as.Tuple2(usedParam, r)
 }
@@ -992,7 +994,7 @@ func (r TypeInfo) FuncArgs() fp.Seq[TypeInfo] {
 			return nil
 		}
 		ret := atLenToSeq[*types.Var](at.Params())
-		return seq.Map(ret, func(v *types.Var) TypeInfo {
+		return ret.Map(func(v *types.Var) TypeInfo {
 			return typeInfo(v.Type())
 		})
 	}
@@ -1394,7 +1396,7 @@ func (r TypeInfo) Instantiate(arg []TypeInfo) fp.Try[TypeInfo] {
 	case *types.Named:
 		ctx := types.NewContext()
 
-		targs := seq.Map(arg, func(v TypeInfo) types.Type {
+		targs := slice.Map(arg, func(v TypeInfo) types.Type {
 			return v.Type
 		})
 
@@ -1504,7 +1506,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 
 		//TODO : type param 추가하면 난리남..
 		if params.Size() > 0 && args.Size() == 0 {
-			args = seq.Map(params, func(v TypeParam) TypeInfo {
+			args = params.Map(func(v TypeParam) TypeInfo {
 				p := types.NewTypeParam(v.TypeName, v.Constraint)
 				return typeInfo(p)
 			})
@@ -1542,7 +1544,7 @@ func typeInfo(tpe types.Type) TypeInfo {
 
 		//TODO : type param 추가하면 난리남..
 		if params.Size() > 0 && args.Size() == 0 {
-			args = seq.Map(params, func(v TypeParam) TypeInfo {
+			args = params.Map(func(v TypeParam) TypeInfo {
 				p := types.NewTypeParam(v.TypeName, v.Constraint)
 				return typeInfo(p)
 			})

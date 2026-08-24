@@ -14,7 +14,7 @@ func (r *TypeClassSummonContext) labelledTupleReprType(ctx SummonContext, sf str
 	return func() string {
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
-		names := seq.Map(sf.fields, func(v metafp.StructField) string {
+		names := sf.fields.Map(func(v metafp.StructField) string {
 			return r.structFieldNameTypeStr(ctx, sf, v)
 		}).MakeString(",")
 
@@ -38,7 +38,7 @@ func (r *TypeClassSummonContext) intoLabelledTupleRepr(ctx SummonContext, sf str
 
 		namedTypeArgs := seq.Zip(sf.names, sf.typeArgs)
 
-		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
+		labelledtp := namedTypeArgs.Map(func(tp fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
 			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 		}).MakeString(",")
 
@@ -46,7 +46,7 @@ func (r *TypeClassSummonContext) intoLabelledTupleRepr(ctx SummonContext, sf str
 			return fmt.Sprintf("i%d", v)
 		}).MakeString(",")
 
-		hlistExpr := seq.Map(seq.ZipWithIndex(namedTypeArgs), func(t3 fp.Tuple2[int, fp.Tuple2[fieldName, metafp.TypeInfoExpr]]) string {
+		hlistExpr := seq.ZipWithIndex(namedTypeArgs).Map(func(t3 fp.Tuple2[int, fp.Tuple2[fieldName, metafp.TypeInfoExpr]]) string {
 			idx, t2 := t3.Unapply()
 			name, _ := t2.Unapply()
 			return fmt.Sprintf(`%s.NamedWithTag("%s", i%d , %s)`, aspk, name.I1, idx, "`"+name.I2+"`")
@@ -86,11 +86,11 @@ func (r TypeClassSummonContext) fromLabelledTupleRepr(ctx SummonContext, sf stru
 		fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 		namedTypeArgs := seq.Zip(sf.names, sf.typeArgs)
 
-		labelledtp := seq.Map(namedTypeArgs, func(tp fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
+		labelledtp := namedTypeArgs.Map(func(tp fp.Tuple2[fieldName, metafp.TypeInfoExpr]) string {
 			return fmt.Sprintf("%s.RuntimeNamed[%s]", fppk, tp.I2.TypeName(r.w, ctx.working))
 		}).MakeString(",")
 
-		args := seq.Map(seq.ZipWithIndex(sf.names), func(v fp.Tuple2[int, fieldName]) string {
+		args := seq.ZipWithIndex(sf.names).Map(func(v fp.Tuple2[int, fieldName]) string {
 			return fmt.Sprintf("t.I%d.Value()", v.I1+1)
 		})
 

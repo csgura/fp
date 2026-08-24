@@ -8,7 +8,6 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/slice"
 )
 
@@ -22,7 +21,7 @@ func appendSeq(buf []string, typeName string, apdseq []Appender, opt fp.ShowOpti
 	}
 
 	if opt.OmitObjectBrace {
-		showseq := seq.Map(apdseq, func(v Appender) []string {
+		showseq := slice.Map(apdseq, func(v Appender) []string {
 			return v(nil, opt)
 		})
 

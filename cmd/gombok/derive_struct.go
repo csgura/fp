@@ -14,7 +14,7 @@ import (
 
 func (r *TypeClassSummonContext) exprTupleWithName(ctx SummonContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typePkg *types.Package, structName string, names fp.Seq[fp.NameTag], typeArgs fp.Seq[metafp.TypeInfoExpr], genLabelled bool) SummonExpr {
 	if len(typeArgs) > 0 {
-		list := collectSummonExpr(seq.Map(seq.Zip(typeArgs, names), func(t fp.Tuple2[metafp.TypeInfoExpr, fp.NameTag]) SummonExpr {
+		list := collectSummonExpr(seq.Zip(typeArgs, names).Map(func(t fp.Tuple2[metafp.TypeInfoExpr, fp.NameTag]) SummonExpr {
 			return r.summonRequired(ctx, metafp.RequiredInstance{
 				TypeClass: ctx.typeClass,
 				Type:      t.I1.Type,
@@ -25,7 +25,7 @@ func (r *TypeClassSummonContext) exprTupleWithName(ctx SummonContext, tc metafp.
 			aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 			fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
-			names := seq.Map(names, func(v fp.NameTag) string {
+			names := names.Map(func(v fp.NameTag) string {
 				return fmt.Sprintf("%s.NameTag(`%s`,`%s`)", aspk, v.I1, v.I2)
 			}).MakeString(",")
 
@@ -43,11 +43,11 @@ func (r *TypeClassSummonContext) exprTupleWithName(ctx SummonContext, tc metafp.
 func (r *TypeClassSummonContext) summonTupleWithNameGenericRepr(ctx SummonContext, tc metafp.TypeClass, sf structFunctions) fp.Option[GenericRepr] {
 
 	fields := sf.fields
-	names := seq.Map(fields, func(v metafp.StructField) fp.NameTag {
+	names := fields.Map(func(v metafp.StructField) fp.NameTag {
 		return as.NameTag(v.Name, v.Tag)
 	})
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+	typeArgs := fields.Map(func(v metafp.StructField) metafp.TypeInfoExpr {
 		return v.TypeInfoExpr(ctx.working)
 	})
 

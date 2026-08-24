@@ -72,7 +72,7 @@ func TestFibonacci(t *testing.T) {
 	printFirst10(l4)
 
 	s := seq.Of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-	s2 := seq.Map(s, as.Curried2(monoid.Product[int]().Combine)(5))
+	s2 := s.Map(as.Curried2(monoid.Product[int]().Combine)(5))
 	f := s2.Find(as.Curried2(ord.Given[int]().Less)(20))
 	fmt.Println(f)
 

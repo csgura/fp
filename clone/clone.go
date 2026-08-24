@@ -7,7 +7,6 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
-	"github.com/csgura/fp/seq"
 	"github.com/csgura/fp/slice"
 )
 
@@ -42,7 +41,7 @@ var HNil = New(func(hlist.Nil) hlist.Nil {
 
 func Seq[T any](tclone fp.Clone[T]) fp.Clone[fp.Seq[T]] {
 	return New(func(s fp.Seq[T]) fp.Seq[T] {
-		return seq.Map(s, tclone.Clone)
+		return s.Map(tclone.Clone)
 	})
 }
 

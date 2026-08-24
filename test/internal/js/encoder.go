@@ -9,7 +9,7 @@ import (
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/lazy"
 	"github.com/csgura/fp/option"
-	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 )
 
 type Encoder[T any] interface {
@@ -59,7 +59,7 @@ func EncoderSeq[T any](enc Encoder[T]) Encoder[fp.Seq[T]] {
 		if len(s) == 0 {
 			return option.None[string]()
 		}
-		return option.Some("[" + seq.Map(s, func(v T) string {
+		return option.Some("[" + s.Map(func(v T) string {
 			return enc.Encode(v).OrElse("null")
 		}).MakeString(",") + "]")
 	})
@@ -86,9 +86,9 @@ func EncoderSlice[T any](enc Encoder[T]) Encoder[[]T] {
 		if len(s) == 0 {
 			return option.None[string]()
 		}
-		return option.Some("[" + seq.Map(s, func(v T) string {
+		return option.Some("[" + slice.MakeString(slice.Map(s, func(v T) string {
 			return enc.Encode(v).OrElse("null")
-		}).MakeString(",") + "]")
+		}), ",") + "]")
 	})
 }
 func EncoderOption[T any](enc Encoder[T]) Encoder[fp.Option[T]] {

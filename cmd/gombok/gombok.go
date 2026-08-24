@@ -385,7 +385,7 @@ func genStringMethod(ctx TaggedStructContext, allFields fp.Seq[metafp.StructFiel
 
 					valuetp := ""
 					if !ins.TypeParam.IsEmpty() {
-						valuetp = "[" + seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
+						valuetp = "[" + ins.TypeParam.Map(func(v metafp.TypeParam) string {
 							return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 								return w.TypeName(workingPackage, v.Type)
 							}).OrElse(v.Name)

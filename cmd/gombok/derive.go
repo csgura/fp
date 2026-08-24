@@ -20,6 +20,7 @@ import (
 	"github.com/csgura/fp/mutable"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 	"github.com/csgura/fp/try"
 	"github.com/csgura/fp/xtr"
 	"golang.org/x/tools/go/packages"
@@ -166,9 +167,9 @@ func (r SummonExpr) ParamInstance() fp.Seq[ParamInstance] {
 
 func collectSummonExpr(list fp.Seq[SummonExpr]) SummonExpr {
 	expr := func() string {
-		return seq.Map(list, SummonExpr.Expr).MakeString(",")
+		return list.Map(SummonExpr.Expr).MakeString(",")
 	}
-	paramList := seq.Reduce(seq.Map(list, SummonExpr.ParamInstance), MergeSeqDistinct(EqParamInstance))
+	paramList := seq.Reduce(list.Map(SummonExpr.ParamInstance), MergeSeqDistinct(EqParamInstance))
 	return SummonExpr{
 		expr:          expr,
 		paramInstance: paramList,
@@ -371,7 +372,7 @@ func (r *TypeClassSummonContext) typeclassInstanceMust(ctx SummonContext, req me
 	ret := NotDefinedInstance{
 		instanceOf: f,
 		name:       genName,
-		required: seq.Map(f.TypeArgs, func(v metafp.TypeInfo) metafp.RequiredInstance {
+		required: f.TypeArgs.Map(func(v metafp.TypeInfo) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
 				TypeClass: req.TypeClass,
 				Type:      v,
@@ -422,7 +423,7 @@ func (r *TypeClassSummonContext) lookupTypeClassInstanceLocalDeclared(ctx Summon
 
 				// paramInstance 에  실제 인스턴스의 아규먼트 목록이 있다.
 				// RequiredInstance 를  실제 아규먼트로 변경 해주어야 함.
-				tci.RequiredInstance = seq.Map(expr.Get().paramInstance, func(v ParamInstance) metafp.RequiredInstance {
+				tci.RequiredInstance = expr.Get().paramInstance.Map(func(v ParamInstance) metafp.RequiredInstance {
 					return metafp.RequiredInstance{
 						TypeClass: v.TypeClass,
 						Type:      tci.ParamMapping.Get(v.ParamName).Get(),
@@ -575,7 +576,7 @@ func (r *TypeClassSummonContext) lookupTupleTypeClassFunc(ctx SummonContext, tc 
 			return none
 		}
 		tupleType := metafp.GetTypeInfo(tupleDef.Type())
-		targs := seq.Map(tupleArgs, func(v metafp.TypeInfoExpr) metafp.TypeInfo {
+		targs := tupleArgs.Map(func(v metafp.TypeInfoExpr) metafp.TypeInfo {
 			return v.Type
 		})
 
@@ -620,7 +621,7 @@ func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.Typ
 			continue
 		}
 		if v.Type.IsTuple() {
-			req := seq.Map(v.Type.TypeArgs, func(t metafp.TypeInfo) metafp.RequiredInstance {
+			req := v.Type.TypeArgs.Map(func(t metafp.TypeInfo) metafp.RequiredInstance {
 				return metafp.RequiredInstance{
 					TypeClass: v.TypeClass,
 					Type:      t,
@@ -651,7 +652,7 @@ func (r *TypeClassSummonContext) checkRequired(ctx SummonContext, tci metafp.Typ
 				tc, rgen := ctx.recursiveDerive(v, NotDefinedInstance{
 					instanceOf: v.Type,
 					name:       v.TypeClass.Name + publicName(v.Type.TypeName),
-					required: seq.Map(v.Type.TypeArgs, func(ti metafp.TypeInfo) metafp.RequiredInstance {
+					required: v.Type.TypeArgs.Map(func(ti metafp.TypeInfo) metafp.RequiredInstance {
 						return metafp.RequiredInstance{
 							TypeClass: v.TypeClass,
 							Type:      ti,
@@ -852,7 +853,7 @@ func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx SummonContext
 		ins := lt.instance().Get()
 
 		// 타입 추론이 가능하려면,  모든 타입 파라미터가, 아규먼트에서 사용되어야 한다.
-		possible := seq.Map(ins.TypeParam, func(v metafp.TypeParam) bool {
+		possible := ins.TypeParam.Map(func(v metafp.TypeParam) bool {
 			return ins.UsedParam.Contains(v.Name)
 		})
 
@@ -867,7 +868,7 @@ func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx SummonContext
 			notPossible = possible
 		}
 
-		ret := seq.Map(ins.TypeParam.Take(notPossible.Size()), func(v metafp.TypeParam) string {
+		ret := ins.TypeParam.Take(notPossible.Size()).Map(func(v metafp.TypeParam) string {
 			return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 				return r.w.TypeName(ctx.working, v.Type)
 			}).OrElse(v.Name)
@@ -882,7 +883,7 @@ func (r *TypeClassSummonContext) typeParamStringOfLookupTarget(ctx SummonContext
 func (r *TypeClassSummonContext) typeParamString(ctx SummonContext, ins metafp.TypeClassInstance, explicit bool) fp.Option[string] {
 
 	if explicit {
-		ret := seq.Map(ins.TypeParam, func(v metafp.TypeParam) string {
+		ret := ins.TypeParam.Map(func(v metafp.TypeParam) string {
 			return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 				return r.w.TypeName(ctx.working, v.Type)
 			}).OrElse(v.Name)
@@ -891,7 +892,7 @@ func (r *TypeClassSummonContext) typeParamString(ctx SummonContext, ins metafp.T
 	}
 
 	// 타입 추론이 가능하려면,  모든 타입 파라미터가, 아규먼트에서 사용되어야 한다.
-	possible := seq.Map(ins.TypeParam, func(v metafp.TypeParam) bool {
+	possible := ins.TypeParam.Map(func(v metafp.TypeParam) bool {
 		return ins.UsedParam.Contains(v.Name)
 	})
 
@@ -906,7 +907,7 @@ func (r *TypeClassSummonContext) typeParamString(ctx SummonContext, ins metafp.T
 
 	// 전부 사용되지 않아 타입 추론이 불가능하다면
 	// 타입을 명시한다.
-	ret := seq.Map(ins.TypeParam.Take(notPossible.Size()), func(v metafp.TypeParam) string {
+	ret := ins.TypeParam.Take(notPossible.Size()).Map(func(v metafp.TypeParam) string {
 		return ins.ParamMapping.Get(v.Name).Map(func(v metafp.TypeInfo) string {
 			return r.w.TypeName(ctx.working, v.Type)
 		}).OrElse(v.Name)
@@ -932,7 +933,7 @@ func MergeSeqDistinct[T any](eqt fp.Eq[T]) fp.Monoid[fp.Seq[T]] {
 }
 
 func (r *TypeClassSummonContext) summonArgs(ctx SummonContext, args fp.Seq[metafp.RequiredInstance]) SummonExpr {
-	list := seq.Map(args, func(t metafp.RequiredInstance) SummonExpr {
+	list := args.Map(func(t metafp.RequiredInstance) SummonExpr {
 		// TODO: checkRequired 에서  lookup 하는 코드 있음. checkRequired 에서 한번 했으면 안하게 할 필요 있음.
 		ret := r.summonRequired(ctx, t)
 		if t.Lazy {
@@ -951,7 +952,7 @@ func (r *TypeClassSummonContext) summonArgs(ctx SummonContext, args fp.Seq[metaf
 }
 
 func (r *TypeClassSummonContext) summonArgsWithRequiredFound(ctx SummonContext, args fp.Seq[fp.Tuple2[metafp.RequiredInstance, metafp.TypeClassInstance]], explicit bool) SummonExpr {
-	list := seq.Map(args, func(t fp.Tuple2[metafp.RequiredInstance, metafp.TypeClassInstance]) SummonExpr {
+	list := args.Map(func(t fp.Tuple2[metafp.RequiredInstance, metafp.TypeClassInstance]) SummonExpr {
 		// TODO: checkRequired 에서  lookup 하는 코드 있음. checkRequired 에서 한번 했으면 안하게 할 필요 있음.
 		ret := r.exprTypeClassInstance(ctx, t.I2, explicit)
 		if t.I1.Lazy {
@@ -1125,7 +1126,7 @@ func (r *TypeClassSummonContext) exprLookupTarget(ctx SummonContext, lt lookupTa
 func (r *TypeClassSummonContext) exprTypeClassMember(ctx SummonContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typeArgs fp.Seq[metafp.TypeInfoExpr], fieldOf fp.Option[metafp.TypeInfo]) SummonExpr {
 	if len(typeArgs) > 0 {
 
-		list := r.summonArgs(ctx, seq.Map(typeArgs, func(t metafp.TypeInfoExpr) metafp.RequiredInstance {
+		list := r.summonArgs(ctx, typeArgs.Map(func(t metafp.TypeInfoExpr) metafp.RequiredInstance {
 			return metafp.RequiredInstance{
 				TypeClass: tc,
 				Type:      t.Type,
@@ -1146,7 +1147,7 @@ func (r *TypeClassSummonContext) exprTypeClassMember(ctx SummonContext, tc metaf
 
 func (r *TypeClassSummonContext) exprTypeClassMemberLabelled(ctx SummonContext, tc metafp.TypeClass, lt metafp.TypeClassInstance, typePkg *types.Package, structName string, names fp.Seq[string], typeArgs fp.Seq[metafp.TypeInfoExpr], genLabelled bool) SummonExpr {
 	if len(typeArgs) > 0 {
-		list := collectSummonExpr(seq.Map(seq.Zip(typeArgs, names), func(t fp.Tuple2[metafp.TypeInfoExpr, string]) SummonExpr {
+		list := collectSummonExpr(seq.Zip(typeArgs, names).Map(func(t fp.Tuple2[metafp.TypeInfoExpr, string]) SummonExpr {
 			return r.summonFpNamed(ctx, tc, typePkg, structName, t.I2, t.I1, genLabelled)
 		}))
 
@@ -1304,11 +1305,11 @@ func (r *TypeClassSummonContext) structUnapplyExpr(ctx SummonContext, named fp.O
 	}
 
 	//fields = fields.Filter(func(v metafp.StructField) bool { return v.Public() })
-	names := seq.Map(fields, func(v metafp.StructField) string {
+	names := fields.Map(func(v metafp.StructField) string {
 		return v.Name
 	})
 
-	return seq.Map(names, func(v string) string { return fmt.Sprintf("%s.%s", varexpr, v) }).MakeString(",")
+	return names.Map(func(v string) string { return fmt.Sprintf("%s.%s", varexpr, v) }).MakeString(",")
 }
 
 // struct{ A : x , B : y }
@@ -1331,10 +1332,10 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Opt
 	}
 
 	//fields = fields.Filter(func(v metafp.StructField) bool { return v.Public() })
-	names := seq.Map(fields, func(v metafp.StructField) string {
+	names := fields.Map(func(v metafp.StructField) string {
 		return v.Name
 	})
-	argslist := seq.Map(seq.Zip(names, args), func(v fp.Entry[string]) string {
+	argslist := seq.Zip(names, args).Map(func(v fp.Entry[string]) string {
 		return fmt.Sprintf("%s: %s", v.I1, v.I2)
 	}).MakeString(",")
 
@@ -1347,7 +1348,7 @@ func (r *TypeClassSummonContext) structApplyExpr(ctx SummonContext, named fp.Opt
 		}
 		return fmt.Sprintf("%s%s", v.PackagedName(r.w, ctx.working), valuetp)
 	}).OrElseGet(func() string {
-		return "struct { " + seq.Map(fields, func(v metafp.StructField) string {
+		return "struct { " + fields.Map(func(v metafp.StructField) string {
 			if v.Embedded {
 				return v.TypeName(r.w, ctx.working)
 			}
@@ -1375,7 +1376,7 @@ func (r *TypeClassSummonContext) namedOrRuntimeType(working genfp.WorkingPackage
 		ti := metafp.GetTypeInfo(obj.Type())
 		if ti.TypeParam.Size() > 0 {
 			ctx := types.NewContext()
-			targs := seq.Map(ti.TypeParam, func(v metafp.TypeParam) types.Type {
+			targs := ti.TypeParam.Map(func(v metafp.TypeParam) types.Type {
 				return types.NewTypeParam(v.TypeName, v.Constraint)
 			})
 
@@ -1443,11 +1444,11 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 
 	type fieldName = fp.Entry[string]
 	fields := sf.fields
-	names := seq.Map(fields, func(v metafp.StructField) fieldName {
+	names := fields.Map(func(v metafp.StructField) fieldName {
 		return as.Tuple(v.Name, v.Tag)
 	})
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+	typeArgs := fields.Map(func(v metafp.StructField) metafp.TypeInfoExpr {
 		return v.TypeInfoExpr(ctx.working)
 	})
 
@@ -1461,7 +1462,7 @@ func (r *TypeClassSummonContext) summonLabelledGenericRepr(ctx SummonContext, tc
 			ToReprExpr:   r.intoLabelledTupleRepr(ctx, sf),
 			FromReprExpr: r.fromLabelledTupleRepr(ctx, sf),
 			ReprExpr: func() SummonExpr {
-				return r.exprTypeClassMemberLabelled(ctx, tc, tm, sf.pack, sf.name, seq.Map(names, xtr.Head), typeArgs, sf.namedGenerated)
+				return r.exprTypeClassMemberLabelled(ctx, tc, tm, sf.pack, sf.name, names.Map(xtr.Head), typeArgs, sf.namedGenerated)
 			},
 		}
 	}).Or(func() fp.Option[GenericRepr] {
@@ -1519,12 +1520,12 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 		fields = fields.Filter(func(v metafp.StructField) bool { return v.Public() })
 	}
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+	typeArgs := fields.Map(func(v metafp.StructField) metafp.TypeInfoExpr {
 		return v.TypeInfoExpr(ctx.working)
 	})
 
 	type fieldName = fp.Entry[string]
-	names := seq.Map(fields, func(v metafp.StructField) fieldName {
+	names := fields.Map(func(v metafp.StructField) fieldName {
 		return as.Tuple(v.Name, v.Tag)
 	})
 
@@ -1594,12 +1595,12 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 		// }
 
 		unapplyFunc = func(structIns string) string {
-			return seq.Map(names, func(v fieldName) string { return fmt.Sprintf("%s.%s", structIns, v.I1) }).MakeString(",")
+			return names.Map(func(v fieldName) string { return fmt.Sprintf("%s.%s", structIns, v.I1) }).MakeString(",")
 
 		}
 
 		applyFunc = func(fieldValues []string) string {
-			argslist := seq.Map(seq.Zip(names, fieldValues), func(v fp.Tuple2[fieldName, string]) string {
+			argslist := seq.Zip(names, fieldValues).Map(func(v fp.Tuple2[fieldName, string]) string {
 				return fmt.Sprintf("%s: %s", v.I1.I1, v.I2)
 			}).MakeString(",")
 
@@ -1631,7 +1632,7 @@ func (r *TypeClassSummonContext) namedStructFuncs(ctx SummonContext, named metaf
 func (r *TypeClassSummonContext) untypedStructFuncs(ctx SummonContext, tpe metafp.TypeInfo, fields fp.Seq[metafp.StructField]) structFunctions {
 
 	typeStr := func(pk genfp.WorkingPackage) string {
-		valuereceiver := "struct { " + seq.Map(fields, func(v metafp.StructField) string {
+		valuereceiver := "struct { " + fields.Map(func(v metafp.StructField) string {
 			if v.Embedded {
 				return v.TypeName(r.w, ctx.working)
 
@@ -1645,12 +1646,12 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx SummonContext, tpe metaf
 		return valuereceiver
 	}
 
-	typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+	typeArgs := fields.Map(func(v metafp.StructField) metafp.TypeInfoExpr {
 		return v.TypeInfoExpr(ctx.working)
 	})
 
 	type fieldName = fp.Entry[string]
-	names := seq.Map(fields, func(v metafp.StructField) fieldName {
+	names := fields.Map(func(v metafp.StructField) fieldName {
 		return as.Tuple2(v.Name, v.Tag)
 	})
 
@@ -1748,10 +1749,10 @@ func (r *TypeClassSummonContext) untypedStructFuncs(ctx SummonContext, tpe metaf
 		// fromTuple:    applyFuncExpr,
 		typeStr: typeStr,
 		unapply: func(structIns string) string {
-			return seq.Map(names, func(v fieldName) string { return fmt.Sprintf("%s.%s", structIns, v.I1) }).MakeString(",")
+			return names.Map(func(v fieldName) string { return fmt.Sprintf("%s.%s", structIns, v.I1) }).MakeString(",")
 		},
 		apply: func(fieldValues []string) string {
-			argslist := seq.Map(seq.Zip(names, fieldValues), func(v fp.Tuple2[fieldName, string]) string {
+			argslist := seq.Zip(names, fieldValues).Map(func(v fp.Tuple2[fieldName, string]) string {
 				return fmt.Sprintf("%s: %s", v.I1.I1, v.I2)
 			}).MakeString(",")
 
@@ -1844,7 +1845,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc me
 		Kind: fp.GenericKindTuple,
 		Type: func() string {
 			tuplepk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
-			p := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+			p := typeArgs.Map(func(f metafp.TypeInfoExpr) string {
 				return f.TypeName(r.w, ctx.working)
 			}).MakeString(",")
 
@@ -1879,7 +1880,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc me
 			// 		aspk, arity,
 			// 	)
 			// }
-			tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+			tp := typeArgs.Map(func(f metafp.TypeInfoExpr) string {
 				return f.TypeName(r.w, ctx.working)
 			}).Take(arity).MakeString(",")
 
@@ -1901,7 +1902,7 @@ func (r *TypeClassSummonContext) summonTupleGenericRepr(ctx SummonContext, tc me
 					)
 				} else {
 
-					tp := seq.Map(typeArgs, func(f metafp.TypeInfoExpr) string {
+					tp := typeArgs.Map(func(f metafp.TypeInfoExpr) string {
 						return f.TypeName(r.w, ctx.working)
 					}).Take(arity).MakeString(",")
 
@@ -2039,7 +2040,7 @@ func (r *TypeClassSummonContext) summon(ctx SummonContext, req metafp.RequiredIn
 				aspk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp/as", "as"))
 				fppk := r.w.GetImportedName(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
 
-				names := seq.Map(req.NameTag.Get().Left(), func(v fp.NameTag) string {
+				names := req.NameTag.Get().Left().Map(func(v fp.NameTag) string {
 					return fmt.Sprintf("%s.NameTag(`%s`,`%s`)", aspk, v.I1, v.I2)
 				}).MakeString(",")
 				return fmt.Sprintf("[]%s.Named{%s}", fppk, names)
@@ -2051,7 +2052,7 @@ func (r *TypeClassSummonContext) summon(ctx SummonContext, req metafp.RequiredIn
 	if t.IsTuple() {
 		// TODO: alias 된 타입에 대해, 별도의 구현이 있는 경우??
 		ut := t.Unalias()
-		return option.Some(r.summonTuple(ctx, req.TypeClass, seq.Map(ut.TypeArgs, func(v metafp.TypeInfo) metafp.TypeInfoExpr {
+		return option.Some(r.summonTuple(ctx, req.TypeClass, ut.TypeArgs.Map(func(v metafp.TypeInfo) metafp.TypeInfoExpr {
 			return metafp.TypeInfoExpr{
 				Type: v,
 			}
@@ -2324,7 +2325,7 @@ func (r *TypeClassSummonContext) _deriveFuncExpr(tc metafp.TypeClassDerive) Summ
 			// 	return fmt.Sprintf("%s%s %s[%s] ", privateName(v.TypeClass.Name), p.Name, tcname, p.Name)
 			// }).MakeString(",")
 
-			fargs := seq.Map(mapExpr.paramInstance, as.Func3(ParamInstance.Expr).ApplyLast2(r.w, ctx.tc.Package)).MakeString(",")
+			fargs := mapExpr.paramInstance.Map(as.Func3(ParamInstance.Expr).ApplyLast2(r.w, ctx.tc.Package)).MakeString(",")
 			return fmt.Sprintf(`
 						%sfunc %s%s( %s ) %s[%s%s] {
 							return %s
@@ -2419,7 +2420,7 @@ func NewTypeClassSummonContext(pkgs []*packages.Package, importSet genfp.ImportS
 		),
 	).OrElse(true)
 
-	initSet := seq.ToGoSet(seq.Map(summons, func(v generator.TaggedVar) string {
+	initSet := slice.ToGoSet(slice.Map(summons, func(v generator.TaggedVar) string {
 		return v.Name
 	}))
 	return &TypeClassSummonContext{

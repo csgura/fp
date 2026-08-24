@@ -21,7 +21,7 @@ func (r *TypeClassSummonContext) hlistReprType(ctx SummonContext, sf structFunct
 
 		fields := sf.fields
 
-		typeArgs := seq.Map(fields, func(v metafp.StructField) metafp.TypeInfoExpr {
+		typeArgs := fields.Map(func(v metafp.StructField) metafp.TypeInfoExpr {
 			return v.TypeInfoExpr(ctx.working)
 		})
 

@@ -6,6 +6,7 @@ import (
 	"github.com/csgura/fp/genfp"
 	"github.com/csgura/fp/hlist"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/slice"
 )
 
 type Derives[T any] interface {
@@ -58,7 +59,7 @@ func NewSplitTag[T any](f SplitTagFunc[T]) SplitTag[T] {
 
 func IMap[A, B any](instance Split[A], fab func(A) B, fba func(B) A) Split[B] {
 	return New(func(t B) []B {
-		return seq.Map(instance.Split(fba(t)), fab)
+		return slice.Map(instance.Split(fba(t)), fab)
 	})
 }
 

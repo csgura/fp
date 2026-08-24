@@ -24,7 +24,7 @@ func TestFuture(t *testing.T) {
 	fp.Println(p.Future())
 
 	s := seq.Of(1, 2, 3, 4)
-	seqFuture := seq.Map(s, func(v int) fp.Future[int] {
+	seqFuture := s.Map(func(v int) fp.Future[int] {
 		return future.Apply(func() int {
 			time.Sleep(100 * time.Millisecond)
 			return v * v

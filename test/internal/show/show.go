@@ -6,7 +6,6 @@ import (
 
 	"github.com/csgura/fp"
 	"github.com/csgura/fp/hlist"
-	"github.com/csgura/fp/seq"
 )
 
 type Derives[T any] interface {
@@ -42,7 +41,7 @@ var HNil = New(func(hlist.Nil) string {
 
 func Seq[T any](tshow fp.Show[T]) fp.Show[fp.Seq[T]] {
 	return New(func(s fp.Seq[T]) string {
-		return "[" + seq.Map(s, tshow.Show).MakeString(",") + "]"
+		return "[" + s.Map(tshow.Show).MakeString(",") + "]"
 	})
 }
 
