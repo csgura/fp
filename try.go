@@ -204,7 +204,7 @@ func (r Try[T]) ReplaceS[R any](f func() R) Try[R] {
 	})
 }
 
-func (r Try[T]) Void[R any]() Try[Unit] {
+func (r Try[T]) Void() Try[Unit] {
 	return r.Replace(Unit{})
 }
 
