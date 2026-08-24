@@ -26,6 +26,8 @@ func main() {
 	}
 
 	genmonad := generator.FindGenerateMonadFunctions(pkgs, "@internal.Generate")
+	genmonadmethods := generator.FindGenerateMonadMethods(pkgs, "@internal.Generate")
+
 	gentraverse := generator.FindGenerateTraverseFunctions(pkgs, "@internal.Generate")
 	monadt := generator.FindGenerateMonadTransfomers(pkgs, "@internal.Generate")
 	applicatives := generator.FindGenerateApplicatives(pkgs, "@internal.Generate")
@@ -35,6 +37,12 @@ func main() {
 		fullpath := cwd + "/" + file
 		fileSet[fullpath] = true
 	}
+
+	for file := range genmonadmethods {
+		fullpath := cwd + "/" + file
+		fileSet[fullpath] = true
+	}
+
 	for file := range gentraverse {
 		fullpath := cwd + "/" + file
 		fileSet[fullpath] = true
@@ -53,6 +61,7 @@ func main() {
 	}
 
 	funcList := map[string]bool{}
+	methodList := map[string]bool{}
 
 	for _, p := range pkgs {
 		s := p.Types.Scope()
@@ -82,6 +91,15 @@ func main() {
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
 				generator.WriteMonadFunctions(w, gfu, funcList)
+			}
+		})
+	}
+
+	for file, list := range genmonadmethods {
+
+		genfp.Generate(pack, file, func(w genfp.Writer) {
+			for _, gfu := range list {
+				generator.WriteMonadMethods(w, gfu, methodList)
 			}
 		})
 	}

@@ -646,6 +646,13 @@ type GenerateMonadFunctions[T any] struct {
 	TypeParm TypeTag
 }
 
+type GenerateMonadMethods[T any] struct {
+	// 생성될 file 이름
+	File     string
+	Pure     any
+	TypeParm TypeTag
+}
+
 type GenerateTraverseFunctions[T any] struct {
 	// 생성될 file 이름
 	File     string

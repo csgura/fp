@@ -648,3 +648,297 @@ func WriteMonadFunctions(w Writer, md GenerateMonadFunctionsDirective, definedFu
 		}
 	`)
 }
+
+func WriteMonadMethods(w Writer, md GenerateMonadMethodsDirective, definedFunction map[string]bool) {
+
+	tp := md.TargetType.TypeArgs()
+	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+		if tp, ok := t.(*types.TypeParam); ok {
+			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+				return fmt.Sprintf("A %s", w.TypeName(md.Package, tp.Constraint()))
+			} else {
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package, tp.Constraint()))
+			}
+		}
+		return ""
+
+	}), func(v string) bool { return v != "" }), ",")
+
+	tpargs1 := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+		if tp, ok := t.(*types.TypeParam); ok {
+			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+				return fmt.Sprintf("A1 %s", w.TypeName(md.Package, tp.Constraint()))
+			} else {
+				return fmt.Sprintf("%s %s", tp.Obj().Name(), w.TypeName(md.Package, tp.Constraint()))
+			}
+		}
+		return ""
+
+	}), func(v string) bool { return v != "" }), ",")
+
+	rettype := NameParamReplaced(w, md.Package, md.TargetType, md.TypeParm)
+
+	srctype := rettype("A")
+	// rettp := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+	// 	if tp, ok := t.(*types.TypeParam); ok {
+	// 		if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+	// 			return "R"
+
+	// 		} else {
+	// 			return tp.Obj().Name()
+	// 		}
+	// 	}
+	// 	return ""
+	// }), func(v string) bool { return v != "" }), ",")
+	//w.AddImport(genfp.NewImportPackage("github.com/csgura/fp", "fp"))
+
+	//typeparams := TypeParamReplaced(w, md.Package.Types, md.TargetType, md.TypeParm)
+	fixedParams := strings.Join(FixedParams(w, md.Package, md.TargetType, md.TypeParm), ",")
+
+	pureins := CallFunc(w, md.Pure)
+	// puref := func(args ...any) string {
+	// 	return fmt.Sprintf("%s(%s)", pureins(replaceParam{
+	// 		md.TypeParm.String(): "A",
+	// 	}), fmt.Sprintf("%s", args...))
+	// }
+
+	funcs := map[string]any{
+		"pure": func(of string) string {
+			return pureins(replaceParam{
+				md.TypeParm.String(): of,
+			})
+		},
+
+		"infer": func(extra ...string) string {
+			if fixedParams == "" {
+				if len(extra) > 0 {
+					return "[" + strings.Join(extra, ",") + "]"
+				}
+				return ""
+			}
+			if len(extra) > 0 {
+				return fmt.Sprintf("[%s,%s]", fixedParams, strings.Join(extra, ","))
+			}
+			return fmt.Sprintf("[%s]", fixedParams)
+		},
+
+		"monad": rettype,
+		"monadIns": func(start, until int) string {
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				fmt.Fprintf(f, "ins%d %s", j, rettype("A%d", j))
+			}
+			return f.String()
+		},
+		"monadTypes": func(start, until int) string {
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				fmt.Fprintf(f, "%s", rettype("A%d", j))
+			}
+			return f.String()
+		},
+		"funcChain": func(start, until int, funcType ...string) string {
+			ft := "fp.Func1"
+			if len(funcType) > 0 {
+				ft = funcType[0]
+			}
+
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				if j == until {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, "R")
+				} else {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, fmt.Sprintf("A%d", j+1))
+				}
+			}
+			return f.String()
+		},
+		"monadFuncChain": func(start, until int, funcType ...string) string {
+			ft := "fp.Func1"
+			if len(funcType) > 0 {
+				ft = funcType[0]
+			}
+
+			f := &bytes.Buffer{}
+			for j := start; j <= until; j++ {
+				if j != start {
+					fmt.Fprintf(f, ", ")
+				}
+				if j == until {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, rettype("R"))
+				} else {
+					fmt.Fprintf(f, "f%d %s[A%d,%s]", j, ft, j, rettype("A%d", j+1))
+				}
+			}
+			return f.String()
+		},
+	}
+	param := map[string]any{
+		"tpargs":  tpargs,
+		"tpargs1": tpargs1,
+
+		"tp": md.TypeParm.String(),
+	}
+
+	ctx := genFuncContext{
+		w:               w,
+		definedFunction: definedFunction,
+		funcs:           funcs,
+		param:           param,
+	}
+
+	ctx.w.AddImport(genfp.Import("github.com/csgura/fp"))
+	ctx.defineFunc("Map", `
+			func (m {{monad "A"}}){{.funcname}}[R any](f func(A) R) {{monad "R"}} {
+				return m.FlatMap(func(a A) {{monad "R"}} {
+					return {{pure "R"}}(f(a))
+				})
+			}
+		`,
+	)
+	ctx.defineFunc("Replace", fmt.Sprintf(`
+		// haskell 의 <$
+		// map . const 와 같은 함수
+		func (m %s){{.funcname}}[R any](b R) %s {
+			return m.Map(fp.Const[A](b))
+		}
+	`, srctype, rettype("R")))
+
+	ctx.defineFunc("Void", fmt.Sprintf(`
+		// Replace fp.Unit{} 
+		func (m %s){{.funcname}}[_ fp.Phantom[A]]() %s {
+			return m.Replace(fp.Unit{})
+		}
+	`, srctype, rettype("fp.Unit")))
+
+	ctx.defineFunc("Map2", fmt.Sprintf(`
+		func (m %s){{.funcname}}[B, R any](second %s, fab func(A, B) R) %s {
+			return m.FlatMap(func(a A) %s {
+				return second.Map(func(b B) R {
+					return fab(a, b)
+				})
+			})
+		}
+	`, srctype, rettype("B"), rettype("R"), rettype("R"),
+	))
+
+	ctx.defineFunc("FlatMap2", `
+		func (m {{monad "A"}}){{.funcname}}[B, R any](second {{monad "B"}}, fab func(A, B) {{monad "R"}}) {{monad "R"}} {
+			return m.FlatMap(func( a A) {{monad "R"}} {
+				return second.FlatMap(func(b B) {{monad "R"}} {
+					return fab(a,b)
+				})
+			})
+		}
+	`)
+
+	//	w.AddImport(genfp.NewImportPackage("github.com/csgura/fp/curried", "curried"))
+
+	ctx.defineFunc("Method1", `
+		// FlatMap 과는 아규먼트 순서가 다른 함수로
+		// Go 나 Java 에서는 메소드 레퍼런스를 이용하여,  객체내의 메소드를 리턴 타입만 lift 된 형태로 리턴하게 할 수 있음.
+		// Method 라는 이름보다  Ap 와 비슷한 이름이 좋을 거 같은데
+		// Ap와 비슷한 이름으로 하기에는 Ap 와 타입이 너무 다름.
+		func (m {{monad "A"}}){{.funcname}}[B, R any](fab func(a A, b B) R) func(B) {{monad "R"}} {
+			return func(b B) {{monad "R"}} {
+				return m.Map(func(a A) R {
+					return fab(a,b)
+				})
+			}
+		}
+	`)
+
+	ctx.defineFunc("FlatMethod1", `
+		func (m {{monad "A"}}){{.funcname}}[B, R any](ta {{monad "A"}}, fab func(a A, b B) {{monad "R"}}) func(B) {{monad "R"}} {
+			return func(b B) {{monad "R"}} {
+				return m.FlatMap(func(a A) {{monad "R"}} {
+					return fab(a,b)
+				})
+			}
+		}
+	`)
+	ctx.defineFunc("Method2", `
+		func (m {{monad "A"}}){{.funcname}}[B, C, R any](fabc func(a A, b B, c C) R) func(B, C) {{monad "R"}} {
+			return func(b B, c C) {{monad "R"}} {
+				return m.Map(func(a A) R {
+					return fabc(a, b, c)
+				})
+			}
+		}
+	`)
+	ctx.defineFunc("FlatMethod2", `
+		func (m {{monad "A"}}){{.funcname}}[B, C, R any](fabc func(a A, b B, c C) {{monad "R"}}) func(B, C) {{monad "R"}} {
+			return func(b B, c C) {{monad "R"}} {
+				return m.FlatMap(func(a A) {{monad "R"}} {
+					return fabc(a, b, c)
+				})
+			}
+		}
+
+	`)
+
+	ctx.defineFunc("With", `
+		// fp.With 의 monad 버젼
+		// fp.With 가 Flip 과 사실상 같은 것처럼
+		// FlapMap 의 Flip 버젼과 동일
+		// var b fp.Try[B]
+		// a := try.Sucesss(A{})
+		// a.FlatMap(b.With(A.WithB))
+		// 형태로 코딩 가능
+		func (m {{monad "A"}}){{.funcname}}[S any](withf func(S, A) S) func(S) {{monad "S"}} {
+			return m.Method1(func(a A , s S) S {
+				return withf(s,a)
+			})
+		}
+	`)
+
+	ctx.defineFuncs(3, genfp.MaxFunc, "Map{{.N}}", `
+		func (ins1 {{monad "A1"}}){{.funcname}}[{{TypeArgs 2 .N}}, R any]({{monadIns 2 .N}}, f func({{DeclArgs 1 .N}}) R) {{monad "R"}} {
+			return ins1.FlatMap(func (a1 A1) {{monad "R"}} {
+				return ins2.Map{{dec .N}}({{CallArgs 3 .N "ins"}}, func({{DeclArgs 2 .N}}) R {
+					return f({{CallArgs 1 .N "a"}})
+				})
+			})
+		}
+	`)
+
+	ctx.defineFuncs(3, genfp.MaxFunc, "FlatMap{{.N}}", `
+		func (ins1 {{monad "A1"}}){{.funcname}}[{{TypeArgs 2 .N}}, R any]({{monadIns 2 .N}}, f func({{DeclArgs 1 .N}}) {{monad "R"}}) {{monad "R"}} {
+			return ins1.FlatMap(func (a1 A1) {{monad "R"}} {
+				return ins2.FlatMap{{dec .N}}({{CallArgs 3 .N "ins"}}, func({{DeclArgs 2 .N}}) {{monad "R"}} {
+					return f({{CallArgs 1 .N "a"}})
+				})
+			})
+		}
+	`)
+
+	ctx.defineFuncs(3, genfp.MaxFunc, "Method{{.N}}", `
+		func (m {{monad "A1"}}){{.funcname}}[{{TypeArgs 2 .N}}, R any](fa1 func({{DeclArgs 1 .N}}) R) func({{TypeArgs 2 .N}}) {{monad "R"}} {
+			return func({{DeclArgs 2 .N}}) {{monad "R"}} {
+				return m.Map(func(a1 A1) R {
+					return fa1({{CallArgs 1 .N}})
+				})
+			}
+		}
+	`)
+
+	ctx.defineFuncs(3, genfp.MaxFunc, "FlatMethod{{.N}}", `
+		func (m {{monad "A1"}}){{.funcname}}[{{TypeArgs 2 .N}}, R any](fa1 func({{DeclArgs 1 .N}}) {{monad "R"}}) func({{TypeArgs 2 .N}}) {{monad "R"}} {
+			return func({{DeclArgs 2 .N}}) {{monad "R"}} {
+				return m.FlatMap(func(a1 A1) {{monad "R"}} {
+					return fa1({{CallArgs 1 .N}})
+				})
+			}
+		}
+	`)
+
+}

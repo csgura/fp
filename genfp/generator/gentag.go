@@ -186,6 +186,23 @@ func FindGenerateMonadFunctions(p []*packages.Package, tags ...string) map[strin
 	return ret
 }
 
+func FindGenerateMonadMethods(p []*packages.Package, tags ...string) map[string][]GenerateMonadMethodsDirective {
+	ret := map[string][]GenerateMonadMethodsDirective{}
+	genseq := FindTaggedCompositeVariable(p, "GenerateMonadMethods", tags...)
+	for _, cl := range genseq {
+		gfu, err := ParseGenerateMonadMethods(cl)
+		if err != nil {
+			fmt.Printf("invalid generate directive : %s\n", err)
+		} else {
+			s := ret[gfu.File]
+			s = append(s, gfu)
+			ret[gfu.File] = s
+		}
+	}
+
+	return ret
+}
+
 func FindGenerateTraverseFunctions(p []*packages.Package, tags ...string) map[string][]GenerateMonadFunctionsDirective {
 	ret := map[string][]GenerateMonadFunctionsDirective{}
 	genseq := FindTaggedCompositeVariable(p, "GenerateTraverseFunctions", tags...)
