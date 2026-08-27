@@ -16,10 +16,6 @@ func (r Identity[T]) FlatMap[S any](f func(T) Identity[S]) Identity[S] {
 	return f(r.v)
 }
 
-func (r Identity[T]) Map2() {
-
-}
-
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate

@@ -17,8 +17,6 @@ func (m Identity[A]) Replace[R any](b R) Identity[R] {
 	return m.Map(fp.Const[A](b))
 }
 
-// haskell 의 <$
-// map . const 와 같은 함수
 func (m Identity[A]) ReplaceS[R any](f func() R) Identity[R] {
 	return m.Map(func(a A) R {
 		return f()
@@ -28,6 +26,14 @@ func (m Identity[A]) ReplaceS[R any](f func() R) Identity[R] {
 // Replace fp.Unit{}
 func (m Identity[A]) Void[_ fp.Phantom[A]]() Identity[fp.Unit] {
 	return m.Replace(fp.Unit{})
+}
+
+func (m Identity[A]) Map2[B, R any](second Identity[B], fab func(A, B) R) Identity[R] {
+	return m.FlatMap(func(a A) Identity[R] {
+		return second.Map(func(b B) R {
+			return fab(a, b)
+		})
+	})
 }
 
 func (m Identity[A]) FlatMap2[B, R any](second Identity[B], fab func(A, B) Identity[R]) Identity[R] {
