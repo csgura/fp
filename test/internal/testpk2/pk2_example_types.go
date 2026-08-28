@@ -288,8 +288,13 @@ func (r privateContext) Secret(message ...string) privateContext {
 }
 
 // @fp.WithPubField
+type sealedContext struct {
+	privateContext
+}
+
+// @fp.WithPubField
 type ChildContext struct {
 	BaseContext
-	privateContext
+	sealedContext
 	child string
 }

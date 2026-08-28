@@ -473,8 +473,19 @@ type BaseContext struct {
 	hello string
 }
 
+func (r BaseContext) WithHonor(message string) BaseContext {
+	r.hello = message + ", sir"
+	return r
+}
+
 // @fp.Value
 type SecondContext struct {
 	BaseContext
 	world string
+}
+
+// @fp.Value
+type ThirdContext struct {
+	SecondContext
+	universe string
 }

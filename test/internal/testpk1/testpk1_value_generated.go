@@ -3849,6 +3849,11 @@ func (r SecondContext) WithHello(v string) SecondContext {
 	return r
 }
 
+func (r SecondContext) WithHonor(message string) SecondContext {
+	r.BaseContext = r.BaseContext.WithHonor(message)
+	return r
+}
+
 func (r SecondContext) String() string {
 	return fmt.Sprintf("testpk1.SecondContext{BaseContext:%v, world:%v}", r.BaseContext, r.world)
 }
@@ -3926,5 +3931,137 @@ func (r SecondContextMutable) AsImmutable() SecondContext {
 	return SecondContext{
 		BaseContext: r.BaseContext,
 		world:       r.World,
+	}
+}
+
+func (r ThirdContext) Universe() string {
+	return r.universe
+}
+
+func (r ThirdContext) GetSecondContext() SecondContext {
+	return r.SecondContext
+}
+
+func (r ThirdContext) GetBase() SecondContext {
+	return r.SecondContext
+}
+
+func (r ThirdContext) WithUniverse(v string) ThirdContext {
+	r.universe = v
+	return r
+}
+
+func (r ThirdContext) WithSecondContext(v SecondContext) ThirdContext {
+	r.SecondContext = v
+	return r
+}
+
+func (r ThirdContext) WithBase(v SecondContext) ThirdContext {
+	r.SecondContext = v
+	return r
+}
+
+func (r ThirdContext) WithBaseContext(v BaseContext) ThirdContext {
+	r.BaseContext = v
+	return r
+}
+
+func (r ThirdContext) WithHonor(message string) ThirdContext {
+	r.BaseContext = r.BaseContext.WithHonor(message)
+	return r
+}
+
+func (r ThirdContext) WithWorld(v string) ThirdContext {
+	r.world = v
+	return r
+}
+
+func (r ThirdContext) WithContext(v context.Context) ThirdContext {
+	r.Context = v
+	return r
+}
+
+func (r ThirdContext) WithHello(v string) ThirdContext {
+	r.hello = v
+	return r
+}
+
+func (r ThirdContext) String() string {
+	return fmt.Sprintf("testpk1.ThirdContext{SecondContext:%v, universe:%v}", r.SecondContext, r.universe)
+}
+
+type TupleReprThirdContext = fp.Tuple2[SecondContext, string]
+
+func (r ThirdContext) AsTuple() TupleReprThirdContext {
+	return as.Tuple2(r.SecondContext, r.universe)
+}
+
+func (r ThirdContext) Unapply() (SecondContext, string) {
+	return r.SecondContext, r.universe
+}
+
+func (r ThirdContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["SecondContext"] = r.SecondContext
+	m["universe"] = r.universe
+	return m
+}
+
+type ThirdContextBuilder ThirdContext
+
+func (r ThirdContextBuilder) Build() ThirdContext {
+	return ThirdContext(r)
+}
+
+func (r ThirdContext) Builder() ThirdContextBuilder {
+	return ThirdContextBuilder(r)
+}
+
+func (r ThirdContextBuilder) Universe(v string) ThirdContextBuilder {
+	r.universe = v
+	return r
+}
+
+func (r ThirdContextBuilder) FromTuple(t fp.Tuple2[SecondContext, string]) ThirdContextBuilder {
+	r.SecondContext = t.I1
+	r.universe = t.I2
+	return r
+}
+
+func (r ThirdContextBuilder) Apply(SecondContext SecondContext, universe string) ThirdContextBuilder {
+	r.SecondContext = SecondContext
+	r.universe = universe
+	return r
+}
+
+func (r ThirdContextBuilder) FromMap(m map[string]any) ThirdContextBuilder {
+
+	if v, ok := m["SecondContext"].(SecondContext); ok {
+		r.SecondContext = v
+	}
+
+	if v, ok := m["universe"].(string); ok {
+		r.universe = v
+	}
+
+	return r
+}
+
+type ThirdContextMutable struct {
+	SecondContext
+	Universe string
+}
+
+func (r ThirdContext) AsMutable() ThirdContextMutable {
+	return ThirdContextMutable{
+		SecondContext: r.SecondContext,
+		Universe:      r.universe,
+	}
+}
+
+func (r ThirdContextMutable) AsImmutable() ThirdContext {
+	return ThirdContext{
+		SecondContext: r.SecondContext,
+		universe:      r.Universe,
 	}
 }

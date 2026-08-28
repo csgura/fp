@@ -879,15 +879,7 @@ func isGenerated(w genfp.WorkingPackage, pos token.Pos) bool {
 	return false
 }
 
-func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annotation, genMethod fp.Set[string]) fp.Set[string] {
-
-	if f.FieldType.IsSamePkg(ctx.workingPackage) {
-		embedFieldList := ctx.GeneratedWithFuncList(f.FieldType)
-		for _, ef := range embedFieldList {
-			genMethod = genWith(ctx, ef.Name, ef, anno, genMethod)
-		}
-	}
-
+func exposeWithMethod(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annotation, genMethod fp.Set[string]) fp.Set[string] {
 	allMethods := f.FieldType.Method.Iterator()
 	withMethods := iterator.FilterValue(allMethods, func(k *types.Func) bool {
 		return !isGenerated(ctx.workingPackage, k.Pos())
@@ -947,8 +939,23 @@ func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annot
 		}()
 
 	}
-
 	return genMethod
+}
+
+func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annotation, genMethod fp.Set[string]) fp.Set[string] {
+
+	if f.FieldType.IsSamePkg(ctx.workingPackage) {
+		embedFieldList := ctx.GeneratedWithFuncList(f.FieldType)
+		for _, ef := range embedFieldList {
+			if anno.Name() == "@fp.WithPubField" && !f.Public() {
+			} else {
+				genMethod = genWith(ctx, ef.Name, ef, anno, genMethod)
+			}
+			genMethod = exposeWithMethod(ctx, ef, anno, genMethod)
+		}
+	}
+
+	return exposeWithMethod(ctx, f, anno, genMethod)
 }
 
 func genWith(
@@ -1248,11 +1255,15 @@ func (r TaggedStructContext) GeneratedWithFuncList(stType metafp.TypeInfo) fp.Se
 					return v.Embedded
 				})
 
+				embedFieldPrivate := embedField.Filter(func(v metafp.StructField) bool {
+					return !v.Public()
+				})
+
 				supers := embedField.FlatMap(func(sf metafp.StructField) fp.Seq[metafp.StructField] {
 					return r.GeneratedWithFuncList(sf.FieldType)
 				})
 
-				return allFields.Filter(metafp.StructField.Public).Concat(supers)
+				return allFields.Filter(metafp.StructField.Public).Concat(embedFieldPrivate).Concat(supers)
 			}
 		}
 	}

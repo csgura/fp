@@ -2542,6 +2542,11 @@ func (r privateContextMutable) AsImmutable() privateContext {
 	}
 }
 
+func (r sealedContext) Secret(message ...string) sealedContext {
+	r.privateContext = r.privateContext.Secret(message...)
+	return r
+}
+
 func (r ChildContext) WithBaseContext(v BaseContext) ChildContext {
 	r.BaseContext = v
 	return r
@@ -2559,11 +2564,6 @@ func (r ChildContext) WithMessage(v string) ChildContext {
 
 func (r ChildContext) Hello(hello string, world string) ChildContext {
 	r.BaseContext = r.BaseContext.Hello(hello, world)
-	return r
-}
-
-func (r ChildContext) WithPrivate(v string) ChildContext {
-	r.private = v
 	return r
 }
 
