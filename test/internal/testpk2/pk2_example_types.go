@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	rf "reflect"
+	"strings"
 	"sync/atomic"
 
 	"github.com/csgura/fp"
@@ -282,8 +283,8 @@ type privateContext struct {
 	private string
 }
 
-func (r privateContext) Secret(message string) privateContext {
-	return privateContext{private: message}
+func (r privateContext) Secret(message ...string) privateContext {
+	return privateContext{private: strings.Join(message, ",")}
 }
 
 // @fp.WithPubField

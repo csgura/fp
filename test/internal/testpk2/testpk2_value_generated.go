@@ -2567,8 +2567,8 @@ func (r ChildContext) WithPrivate(v string) ChildContext {
 	return r
 }
 
-func (r ChildContext) Secret(message string) ChildContext {
-	r.privateContext = r.privateContext.Secret(message)
+func (r ChildContext) Secret(message ...string) ChildContext {
+	r.privateContext = r.privateContext.Secret(message...)
 	return r
 }
 

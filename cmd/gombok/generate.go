@@ -300,19 +300,36 @@ func removePkgPrefix(v string) string {
 	return v
 }
 
-func convVar(is genfp.ImportSet, workingPkg genfp.WorkingPackage, vprefix string) func(i int, t *types.Var) genfp.VarInfo {
+func convVar(
+	is genfp.ImportSet,
+	workingPkg genfp.WorkingPackage,
+	vprefix string,
+	numVar int,
+	isVariadic bool,
+) func(i int, t *types.Var) genfp.VarInfo {
 	return func(i int, t *types.Var) genfp.VarInfo {
 		varname := t.Name()
 		if varname == "" {
 			varname = fmt.Sprintf("%s%d", vprefix, i)
 		}
 
+		typeInfo := toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
+			Type: metafp.GetTypeInfo(t.Type()),
+		})
+
+		if typeInfo.IsSlice && isVariadic && i == numVar-1 {
+			return genfp.VarInfo{
+				Index:    i,
+				Name:     varname,
+				Type:     typeInfo,
+				Variadic: true,
+			}
+		}
+
 		return genfp.VarInfo{
 			Index: i,
 			Name:  varname,
-			Type: toTypeInfo(is, workingPkg, metafp.TypeInfoExpr{
-				Type: metafp.GetTypeInfo(t.Type()),
-			}),
+			Type:  typeInfo,
 		}
 	}
 }
@@ -325,10 +342,10 @@ func toInterfaceInfo(is genfp.ImportSet, workingPkg genfp.WorkingPackage, ti met
 		ml := iterator.Sort(ti.Method.Iterator(), ord.GivenKey[string, *types.Func]())
 		methods := ml.Map(func(v fp.Entry[*types.Func]) genfp.InterfaceMethodInfo {
 			args := v.I2.Signature().Params()
-			argsDef := iterate(args.Len(), args.At, convVar(is, workingPkg, "arg"))
+			argsDef := iterate(args.Len(), args.At, convVar(is, workingPkg, "arg", args.Len(), v.I2.Signature().Variadic()))
 
 			rets := v.I2.Signature().Results()
-			retDef := iterate(rets.Len(), rets.At, convVar(is, workingPkg, "ret"))
+			retDef := iterate(rets.Len(), rets.At, convVar(is, workingPkg, "ret", args.Len(), false))
 
 			return genfp.InterfaceMethodInfo{
 				Name:       v.I1,
@@ -739,6 +756,31 @@ func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[g
 			}
 			return fmt.Sprint(v)
 		},
+		"ArgDecl": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.VarInfo:
+				if rv.Variadic {
+					return fmt.Sprintf("%s ...%s", rv.Name, w.TypeName(workingPkg, rv.Type.TypeArgs[0].Type))
+				}
+				return fmt.Sprintf("%s %s", rv.Name, w.TypeName(workingPkg, rv.Type.Type))
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					if rv.Variadic {
+						return fmt.Sprintf("%s ...%s", rv.Name, w.TypeName(workingPkg, rv.Type.TypeArgs[0].Type))
+					}
+					return fmt.Sprintf("%s %s", rv.Name, w.TypeName(workingPkg, rv.Type.Type))
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					if v.Variadic {
+						return fmt.Sprintf("%s ...%s", v.Name, w.TypeName(workingPkg, v.Type.TypeArgs[0].Type))
+					}
+					return fmt.Sprintf("%s %s", v.Name, w.TypeName(workingPkg, v.Type.Type))
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+		},
 		"VarName": func(v any) string {
 			switch rv := v.(type) {
 			case genfp.VarInfo:
@@ -754,6 +796,33 @@ func templFunc(w genfp.Writer, workingPkg genfp.WorkingPackage, imports fp.Seq[g
 				}).MakeString(",")
 			}
 			return fmt.Sprint(v)
+
+		},
+		"ArgName": func(v any) string {
+			switch rv := v.(type) {
+			case genfp.VarInfo:
+				if rv.Variadic {
+					return rv.Name + "..."
+				}
+				return rv.Name
+
+			case *genfp.VarInfo:
+				if rv != nil {
+					if rv.Variadic {
+						return rv.Name + "..."
+					}
+					return rv.Name
+				}
+			case []genfp.VarInfo:
+				return seq.Map(rv, func(v genfp.VarInfo) string {
+					if v.Variadic {
+						return v.Name + "..."
+					}
+					return v.Name
+				}).MakeString(",")
+			}
+			return fmt.Sprint(v)
+
 		},
 	}
 }

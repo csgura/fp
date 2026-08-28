@@ -408,8 +408,9 @@ type GenerateFromStructs struct {
 type VarInfo struct {
 	Index int
 	// 선언에 변수이름 없으면 ""
-	Name string
-	Type TypeInfo
+	Name     string
+	Type     TypeInfo
+	Variadic bool
 }
 
 func (r VarInfo) String() string {

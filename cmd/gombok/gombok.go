@@ -927,7 +927,7 @@ func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annot
 				//ftp := f.TypeName(w, workingPackage)
 				args := v.I2.Signature().Params()
 
-				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg")).Widen()
+				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg", args.Len(), v.I2.Signature().Variadic())).Widen()
 
 				params := map[string]any{
 					"receiver": valuereceiver,
@@ -936,8 +936,8 @@ func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annot
 					"field":    f,
 				}
 				w.Render(`
-						func (r {{.receiver}}) {{.withfunc}}({{.args | VarDecl }}) {{.receiver}} {
-							r.{{.field.Name}} = r.{{.field.Name}}.{{.withfunc}}({{.args | VarName}})
+						func (r {{.receiver}}) {{.withfunc}}({{.args | ArgDecl }}) {{.receiver}} {
+							r.{{.field.Name}} = r.{{.field.Name}}.{{.withfunc}}({{.args | ArgName}})
 							return r
 						}
 					`, templFunc(w, workingPackage, nil, ctx.summCtx), params)
