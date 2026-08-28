@@ -951,7 +951,9 @@ func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annot
 			} else {
 				genMethod = genWith(ctx, ef.Name, ef, anno, genMethod)
 			}
-			genMethod = exposeWithMethod(ctx, ef, anno, genMethod)
+			if ef.Embedded {
+				genMethod = exposeWithMethod(ctx, ef, anno, genMethod)
+			}
 		}
 	}
 
