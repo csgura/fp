@@ -277,8 +277,18 @@ func (r BaseContext) Hello(hello string, world string) BaseContext {
 	}
 }
 
+// @fp.Value
+type privateContext struct {
+	private string
+}
+
+func (r privateContext) Secret(message string) privateContext {
+	return privateContext{private: message}
+}
+
 // @fp.WithPubField
 type ChildContext struct {
 	BaseContext
+	privateContext
 	child string
 }

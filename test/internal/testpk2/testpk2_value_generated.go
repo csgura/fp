@@ -2463,6 +2463,85 @@ func (r BaseContext) WithMessage(v string) BaseContext {
 	return r
 }
 
+func (r privateContext) Private() string {
+	return r.private
+}
+
+func (r privateContext) WithPrivate(v string) privateContext {
+	r.private = v
+	return r
+}
+
+func (r privateContext) String() string {
+	return fmt.Sprintf("testpk2.privateContext{private:%v}", r.private)
+}
+
+type TupleReprprivateContext = fp.Tuple1[string]
+
+func (r privateContext) AsTuple() TupleReprprivateContext {
+	return as.Tuple1(r.private)
+}
+
+func (r privateContext) Unapply() string {
+	return r.private
+}
+
+func (r privateContext) AsMap() map[string]any {
+	m := map[string]any{}
+	m["private"] = r.private
+	return m
+}
+
+type privateContextBuilder privateContext
+
+func (r privateContextBuilder) Build() privateContext {
+	return privateContext(r)
+}
+
+func (r privateContext) Builder() privateContextBuilder {
+	return privateContextBuilder(r)
+}
+
+func (r privateContextBuilder) Private(v string) privateContextBuilder {
+	r.private = v
+	return r
+}
+
+func (r privateContextBuilder) FromTuple(t fp.Tuple1[string]) privateContextBuilder {
+	r.private = t.I1
+	return r
+}
+
+func (r privateContextBuilder) Apply(private string) privateContextBuilder {
+	r.private = private
+	return r
+}
+
+func (r privateContextBuilder) FromMap(m map[string]any) privateContextBuilder {
+
+	if v, ok := m["private"].(string); ok {
+		r.private = v
+	}
+
+	return r
+}
+
+type privateContextMutable struct {
+	Private string
+}
+
+func (r privateContext) AsMutable() privateContextMutable {
+	return privateContextMutable{
+		Private: r.private,
+	}
+}
+
+func (r privateContextMutable) AsImmutable() privateContext {
+	return privateContext{
+		private: r.Private,
+	}
+}
+
 func (r ChildContext) WithBaseContext(v BaseContext) ChildContext {
 	r.BaseContext = v
 	return r
@@ -2480,6 +2559,16 @@ func (r ChildContext) WithMessage(v string) ChildContext {
 
 func (r ChildContext) Hello(hello string, world string) ChildContext {
 	r.BaseContext = r.BaseContext.Hello(hello, world)
+	return r
+}
+
+func (r ChildContext) WithPrivate(v string) ChildContext {
+	r.private = v
+	return r
+}
+
+func (r ChildContext) Secret(message string) ChildContext {
+	r.privateContext = r.privateContext.Secret(message)
 	return r
 }
 

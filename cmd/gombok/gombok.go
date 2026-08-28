@@ -835,10 +835,6 @@ func genPublicWiths(
 		return genMethod
 	}
 
-	//valuetpdec := ""
-
-	//valuetpdec = "[" + ts.Info.TypeParamDecl(w, workingPackage) + "]"
-
 	publicFields.Foreach(func(f metafp.StructField) {
 
 		genMethod = genWith(ctx, f.Name, f, anno, genMethod)
@@ -846,6 +842,26 @@ func genPublicWiths(
 			genMethod = genWith(ctx, "Base", f, anno, genMethod)
 		}
 
+		if f.Embedded {
+			genMethod = exposeWith(ctx, f, anno, genMethod)
+		}
+
+	})
+	return genMethod
+}
+
+func exposeFieldsWith(
+	ctx TaggedStructContext,
+	embedFields fp.Seq[metafp.StructField],
+	anno metafp.Annotation,
+	genMethod fp.Set[string],
+) fp.Set[string] {
+
+	if embedFields.Size() == 0 {
+		return genMethod
+	}
+
+	embedFields.Foreach(func(f metafp.StructField) {
 		if f.Embedded {
 			genMethod = exposeWith(ctx, f, anno, genMethod)
 		}
@@ -1023,9 +1039,13 @@ func processWith(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[strin
 	}
 
 	if anno, ok := ts.Tags.Get("@fp.WithPubField").Unapply(); ok {
-
+		allFields := applyFields(ts)
+		privateEmbedFields := allFields.Filter(func(v metafp.StructField) bool {
+			return v.Embedded && !v.Public()
+		})
 		publicFields := ts.Fields.Filter(metafp.StructField.Public)
 		genMethod = genPublicWiths(ctx, publicFields, anno, genMethod)
+		genMethod = exposeFieldsWith(ctx, privateEmbedFields, anno, genMethod)
 
 	}
 	return genMethod
