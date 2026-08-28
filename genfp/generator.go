@@ -716,6 +716,7 @@ type WorkingPackage interface {
 	Package() *types.Package
 	FindNode(pos token.Pos) ast.Node
 	EvalTypeExpr(typeExpr ast.Expr) (types.Type, []ImportPackage)
+	Position(pos token.Pos) token.Position
 }
 
 func NewWorkingPackage(pk *types.Package, fset *token.FileSet, syntax []*ast.File) WorkingPackage {
@@ -746,6 +747,11 @@ type workingPackage struct {
 	fset           *token.FileSet
 	syntax         []*ast.File
 	currentPackage *types.Package
+}
+
+// Position implements [WorkingPackage].
+func (w *workingPackage) Position(pos token.Pos) token.Position {
+	return w.fset.Position(pos)
 }
 
 func (w *workingPackage) EvalTypeExpr(typeExpr ast.Expr) (types.Type, []ImportPackage) {

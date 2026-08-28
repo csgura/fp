@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go/token"
 	"go/types"
 	"os"
 	"path"
@@ -853,6 +854,15 @@ func genPublicWiths(
 	return genMethod
 }
 
+func isGenerated(w genfp.WorkingPackage, pos token.Pos) bool {
+	file := w.Position(pos)
+	if file.Filename != "" {
+		return strings.HasSuffix(file.Filename, "_generated.go")
+	}
+
+	return false
+}
+
 func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annotation, genMethod fp.Set[string]) fp.Set[string] {
 
 	if f.FieldType.IsSamePkg(ctx.workingPackage) {
@@ -860,80 +870,68 @@ func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annot
 		for _, ef := range embedFieldList {
 			genMethod = genWith(ctx, ef.Name, ef, anno, genMethod)
 		}
-	} else {
-		allMethods := f.FieldType.Method.Iterator()
-		withMethods := iterator.FilterKey(allMethods, func(k string) bool {
-			return strings.HasPrefix(k, "With")
-		})
-		checkedMethods := iterator.FilterValue(withMethods, func(v *types.Func) bool {
-			if v.Signature().Results().Len() != 1 {
-				return false
-			}
+	}
 
-			rett := metafp.GetTypeInfo(v.Signature().Results().At(0).Type())
+	allMethods := f.FieldType.Method.Iterator()
+	withMethods := iterator.FilterValue(allMethods, func(k *types.Func) bool {
+		return !isGenerated(ctx.workingPackage, k.Pos())
+	})
 
-			return rett.ID == f.FieldType.ID
-		})
+	checkedMethods := iterator.FilterValue(withMethods, func(v *types.Func) bool {
+		if v.Signature().Results().Len() != 1 {
+			return false
+		}
 
-		w := ctx.w
+		rett := metafp.GetTypeInfo(v.Signature().Results().At(0).Type())
 
-		ts := ctx.ts
+		return rett.ID == f.FieldType.ID
+	})
 
-		workingPackage := ctx.workingPackage
-		valuetp := ts.Info.TypeParamIns(w, workingPackage)
+	w := ctx.w
 
-		valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+	ts := ctx.ts
 
-		methods := iterator.Sort(checkedMethods, ord.Key[string, *types.Func](ord.Given[string]()))
-		for _, v := range methods {
-			func() {
-				withName := v.I1
-				if ts.Info.Method.Get(withName).IsEmpty() && !genMethod.Contains(withName) {
+	workingPackage := ctx.workingPackage
+	valuetp := ts.Info.TypeParamIns(w, workingPackage)
 
-					if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
-						if ts.RhsType.Get().Method.Contains(withName) {
-							return
-						}
+	valuereceiver := fmt.Sprintf("%s%s", ts.Name, valuetp)
+
+	methods := iterator.Sort(checkedMethods, ord.Key[string, *types.Func](ord.Given[string]()))
+	for _, v := range methods {
+		func() {
+			withName := v.I1
+			if ts.Info.Method.Get(withName).IsEmpty() && !genMethod.Contains(withName) {
+
+				if anno.Params().Get("override").OrElse("false") != "true" && ts.Tags.Contains("@fp.Deref") && ts.RhsType.IsDefined() {
+					if ts.RhsType.Get().Method.Contains(withName) {
+						return
 					}
+				}
 
-					//ftp := f.TypeName(w, workingPackage)
-					args := v.I2.Signature().Params()
+				//ftp := f.TypeName(w, workingPackage)
+				args := v.I2.Signature().Params()
 
-					argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg")).Widen()
+				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg")).Widen()
 
-					params := map[string]any{
-						"receiver": valuereceiver,
-						"withfunc": withName,
-						"args":     argsDef,
-						"field":    f,
-					}
-					w.Render(`
+				params := map[string]any{
+					"receiver": valuereceiver,
+					"withfunc": withName,
+					"args":     argsDef,
+					"field":    f,
+				}
+				w.Render(`
 						func (r {{.receiver}}) {{.withfunc}}({{.args | VarDecl }}) {{.receiver}} {
 							r.{{.field.Name}} = r.{{.field.Name}}.{{.withfunc}}({{.args | VarName}})
 							return r
 						}
 					`, templFunc(w, workingPackage, nil, ctx.summCtx), params)
 
-					genMethod = genMethod.Incl(withName)
-				}
-			}()
-
-		}
-
-		// embedsEmbdes := f.FieldType.Fields().Filter(func(v metafp.StructField) bool {
-		// 	return v.Embedded
-		// })
-		// for _, e := range embedsEmbdes {
-		// 	genMethod = exposeWith(ctx, e, anno, genMethod)
-		// }
-		//		slice.FilterMapValue(methods, func(v VA) fp.Option[VB] {})
-		/*
-					func (r EmbedOtherPackage) WithMessage(v string) EmbedOtherPackage {
-				r.World = r.World.WithMessage(v)
-				return r
+				genMethod = genMethod.Incl(withName)
 			}
-		*/
+		}()
+
 	}
+
 	return genMethod
 }
 

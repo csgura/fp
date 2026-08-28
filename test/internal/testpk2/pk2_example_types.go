@@ -265,3 +265,20 @@ type ThirdContext struct {
 	testpk1.SecondContext
 	universe string
 }
+
+// @fp.WithPubField
+type BaseContext struct {
+	Message string
+}
+
+func (r BaseContext) Hello(hello string, world string) BaseContext {
+	return BaseContext{
+		Message: hello + " " + world,
+	}
+}
+
+// @fp.WithPubField
+type ChildContext struct {
+	BaseContext
+	child string
+}

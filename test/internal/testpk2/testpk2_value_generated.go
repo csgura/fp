@@ -2,7 +2,6 @@
 package testpk2
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/csgura/fp"
@@ -15,7 +14,6 @@ import (
 	"os"
 	rf "reflect"
 	"sync/atomic"
-	"time"
 )
 
 func (r Hello) World() string {
@@ -2273,16 +2271,6 @@ func (r EmbedOtherPackage) WithBase(v testpk1.World) EmbedOtherPackage {
 	return r
 }
 
-func (r EmbedOtherPackage) WithMessage(v string) EmbedOtherPackage {
-	r.World = r.World.WithMessage(v)
-	return r
-}
-
-func (r EmbedOtherPackage) WithTimestamp(v time.Time) EmbedOtherPackage {
-	r.World = r.World.WithTimestamp(v)
-	return r
-}
-
 func (r EmbedOtherPackage) String() string {
 	return fmt.Sprintf("testpk2.EmbedOtherPackage{World:%v, universe:%v}", r.World, r.universe)
 }
@@ -2390,26 +2378,6 @@ func (r ThirdContext) WithBase(v testpk1.SecondContext) ThirdContext {
 	return r
 }
 
-func (r ThirdContext) WithBaseContext(v testpk1.BaseContext) ThirdContext {
-	r.SecondContext = r.SecondContext.WithBaseContext(v)
-	return r
-}
-
-func (r ThirdContext) WithContext(v context.Context) ThirdContext {
-	r.SecondContext = r.SecondContext.WithContext(v)
-	return r
-}
-
-func (r ThirdContext) WithHello(v string) ThirdContext {
-	r.SecondContext = r.SecondContext.WithHello(v)
-	return r
-}
-
-func (r ThirdContext) WithWorld(v string) ThirdContext {
-	r.SecondContext = r.SecondContext.WithWorld(v)
-	return r
-}
-
 func (r ThirdContext) String() string {
 	return fmt.Sprintf("testpk2.ThirdContext{SecondContext:%v, universe:%v}", r.SecondContext, r.universe)
 }
@@ -2488,6 +2456,31 @@ func (r ThirdContextMutable) AsImmutable() ThirdContext {
 		SecondContext: r.SecondContext,
 		universe:      r.Universe,
 	}
+}
+
+func (r BaseContext) WithMessage(v string) BaseContext {
+	r.Message = v
+	return r
+}
+
+func (r ChildContext) WithBaseContext(v BaseContext) ChildContext {
+	r.BaseContext = v
+	return r
+}
+
+func (r ChildContext) WithBase(v BaseContext) ChildContext {
+	r.BaseContext = v
+	return r
+}
+
+func (r ChildContext) WithMessage(v string) ChildContext {
+	r.Message = v
+	return r
+}
+
+func (r ChildContext) Hello(hello string, world string) ChildContext {
+	r.BaseContext = r.BaseContext.Hello(hello, world)
+	return r
 }
 
 func (r NotIgnored) Ig() int {
