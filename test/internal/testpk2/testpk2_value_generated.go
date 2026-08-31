@@ -2592,6 +2592,16 @@ func (r validatedSetter[REQ, RES]) Pre(a string) validatedSetter[REQ, RES] {
 	return r
 }
 
+func (r genericStatSetter[REQ, RES, S]) WithGeneric[S2 any](s S2) genericStatSetter[REQ, RES, S] {
+	r.genericSetter = r.genericSetter.WithGeneric[S2](s)
+	return r
+}
+
+func (r genericStatSetter[REQ, RES, S]) Pre(a string) genericStatSetter[REQ, RES, S] {
+	r.serverSetter = r.serverSetter.Pre(a)
+	return r
+}
+
 func (r NotIgnored) Ig() int {
 	return r.ig
 }

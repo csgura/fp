@@ -1687,3 +1687,74 @@ func findPackage(pk *types.Package, path string) fp.Option[*types.Package] {
 	}
 	return option.None[*types.Package]()
 }
+
+func RenameTypeParam(t types.Type, mapping fp.Map[string, string]) types.Type {
+	switch tv := t.(type) {
+	case *types.Interface:
+		embeds := iterate(tv.NumEmbeddeds(), tv.EmbeddedType, func(i int, t types.Type) types.Type {
+			return RenameTypeParam(t, mapping)
+		})
+
+		method := iterate(tv.NumExplicitMethods(), tv.ExplicitMethod, func(i int, t *types.Func) *types.Func {
+			ns := RenameTypeParam(t.Signature(), mapping)
+			return types.NewFunc(token.NoPos, t.Pkg(), t.Name(), ns.(*types.Signature))
+		})
+
+		return types.NewInterfaceType(method, embeds)
+	case *types.Signature:
+		params := tv.Params()
+		nparams := iterate(params.Len(), params.At, func(i int, t *types.Var) *types.Var {
+			rt := RenameTypeParam(t.Type(), mapping)
+			return types.NewVar(token.NoPos, t.Pkg(), t.Name(), rt)
+		})
+
+		result := tv.Results()
+		nresult := iterate(result.Len(), result.At, func(i int, t *types.Var) *types.Var {
+			rt := RenameTypeParam(t.Type(), mapping)
+			return types.NewVar(token.NoPos, t.Pkg(), t.Name(), rt)
+		})
+
+		rp := iterate(tv.RecvTypeParams().Len(), tv.RecvTypeParams().At, func(i int, t *types.TypeParam) *types.TypeParam {
+			return RenameTypeParam(t, mapping).(*types.TypeParam)
+		})
+
+		tp := iterate(tv.TypeParams().Len(), tv.TypeParams().At, func(i int, t *types.TypeParam) *types.TypeParam {
+			return RenameTypeParam(t, mapping).(*types.TypeParam)
+		})
+
+		return types.NewSignatureType(tv.Recv(), rp, tp, types.NewTuple(nparams...), types.NewTuple(nresult...), tv.Variadic())
+
+	case *types.TypeParam:
+		ti := mapping.Get(tv.Obj().Name())
+		if ti.IsDefined() {
+			return types.NewTypeParam(types.NewTypeName(token.NoPos, tv.Obj().Pkg(), ti.Get(), tv.Obj().Type()), tv.Constraint())
+		}
+		return types.NewTypeParam(tv.Obj(), tv.Constraint())
+	case *types.Named:
+		//fmt.Printf("replaceTypeParam %s, params = %s, args = %s\n", t, tv.TypeParams(), tv.TypeArgs())
+
+		if tv.TypeArgs().Len() > 0 {
+			newargs := atLenToSeq(tv.TypeArgs()).Map(func(t types.Type) types.Type {
+				return RenameTypeParam(t, mapping)
+			})
+			ctx := types.NewContext()
+			nt, err := types.Instantiate(ctx, tv.Origin(), newargs, true)
+			if err != nil {
+				fmt.Printf("instantiate error :%s\n", err)
+				return t
+			}
+			return nt
+		}
+	case *types.Map:
+		kt := RenameTypeParam(tv.Key(), mapping)
+		vt := RenameTypeParam(tv.Elem(), mapping)
+		return types.NewMap(kt, vt)
+	case *types.Slice:
+		nt := RenameTypeParam(tv.Elem(), mapping)
+		return types.NewSlice(nt)
+	case *types.Pointer:
+		nt := RenameTypeParam(tv.Elem(), mapping)
+		return types.NewPointer(nt)
+	}
+	return t
+}

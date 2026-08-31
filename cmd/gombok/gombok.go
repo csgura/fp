@@ -14,12 +14,14 @@ import (
 	"github.com/csgura/fp/as"
 	"github.com/csgura/fp/eq"
 	"github.com/csgura/fp/genfp"
+	"github.com/csgura/fp/hash"
 	"github.com/csgura/fp/internal/max"
 	"github.com/csgura/fp/iterator"
 	"github.com/csgura/fp/metafp"
 	"github.com/csgura/fp/option"
 	"github.com/csgura/fp/ord"
 	"github.com/csgura/fp/seq"
+	"github.com/csgura/fp/xtr"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -920,13 +922,44 @@ func exposeWithMethod(ctx TaggedStructContext, f metafp.StructField, anno metafp
 
 				sig := v.I2.Signature()
 				//ftp := f.TypeName(w, workingPackage)
-				args := sig.Params()
-
-				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg", args.Len(), sig.Variadic())).Widen()
 
 				methodtplist := metafp.GetTypeParam(sig.TypeParams())
+
+				replaceTp := methodtplist.FilterMap(func(tp metafp.TypeParam) fp.Option[fp.Entry[string]] {
+					hasSametp := ts.Info.TypeParam.Exists(func(v metafp.TypeParam) bool {
+						return v.Name == tp.Name
+					})
+					if hasSametp {
+						n := 2
+						for {
+							newname := fmt.Sprintf("%s%d", tp.Name, n)
+							ok := ts.Info.TypeParam.ForAll(func(v metafp.TypeParam) bool {
+								return v.Name != newname
+							})
+							if ok {
+								return option.Some(as.Tuple(tp.Name, tp.Name+"2"))
+							}
+							n++
+						}
+					}
+					return option.None[fp.Entry[string]]()
+				})
+
+				methodtplist = methodtplist.Map(func(tp metafp.TypeParam) metafp.TypeParam {
+					newname := replaceTp.Find(func(v fp.Entry[string]) bool {
+						return v.I1 == tp.Name
+					}).Map(xtr.Last)
+					tp.Name = newname.OrElse(tp.Name)
+					return tp
+				})
 				methodtp := metafp.TypeParamDecl(w, workingPackage, methodtplist)
 				methodins := metafp.TypeParamIns(w, workingPackage, methodtplist)
+
+				replacedSig := metafp.RenameTypeParam(sig, seq.ToMap(replaceTp, hash.String))
+
+				args := replacedSig.(*types.Signature).Params()
+
+				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg", args.Len(), sig.Variadic())).Widen()
 
 				params := map[string]any{
 					"receiver":  valuereceiver,

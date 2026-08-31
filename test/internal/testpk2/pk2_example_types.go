@@ -321,3 +321,8 @@ func (r genericSetter[REQ, RES]) WithGeneric[S any](s S) genericSetter[REQ, RES]
 type validatedSetter[REQ, RES any] struct {
 	genericSetter[REQ, RES]
 }
+
+// @fp.WithPubField
+type genericStatSetter[REQ, RES, S any] struct {
+	genericSetter[REQ, RES]
+}
