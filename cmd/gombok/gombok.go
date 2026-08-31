@@ -918,20 +918,28 @@ func exposeWithMethod(ctx TaggedStructContext, f metafp.StructField, anno metafp
 					}
 				}
 
+				sig := v.I2.Signature()
 				//ftp := f.TypeName(w, workingPackage)
-				args := v.I2.Signature().Params()
+				args := sig.Params()
 
-				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg", args.Len(), v.I2.Signature().Variadic())).Widen()
+				argsDef := iterate(args.Len(), args.At, convVar(w, workingPackage, "arg", args.Len(), sig.Variadic())).Widen()
+
+				methodtplist := metafp.GetTypeParam(sig.TypeParams())
+				methodtp := metafp.TypeParamDecl(w, workingPackage, methodtplist)
+				methodins := metafp.TypeParamIns(w, workingPackage, methodtplist)
 
 				params := map[string]any{
-					"receiver": valuereceiver,
-					"withfunc": withName,
-					"args":     argsDef,
-					"field":    f,
+					"receiver":  valuereceiver,
+					"withfunc":  withName,
+					"args":      argsDef,
+					"methodtp":  methodtp,
+					"methodins": methodins,
+
+					"field": f,
 				}
 				w.Render(`
-						func (r {{.receiver}}) {{.withfunc}}({{.args | ArgDecl }}) {{.receiver}} {
-							r.{{.field.Name}} = r.{{.field.Name}}.{{.withfunc}}({{.args | ArgName}})
+						func (r {{.receiver}}) {{.withfunc}}{{.methodtp}}({{.args | ArgDecl }}) {{.receiver}} {
+							r.{{.field.Name}} = r.{{.field.Name}}.{{.withfunc}}{{.methodins}}({{.args | ArgName}})
 							return r
 						}
 					`, templFunc(w, workingPackage, nil, ctx.summCtx), params)

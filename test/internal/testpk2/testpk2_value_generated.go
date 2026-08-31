@@ -2582,6 +2582,11 @@ func (r genericSetter[REQ, RES]) Pre(a string) genericSetter[REQ, RES] {
 	return r
 }
 
+func (r validatedSetter[REQ, RES]) WithGeneric[S any](s S) validatedSetter[REQ, RES] {
+	r.genericSetter = r.genericSetter.WithGeneric[S](s)
+	return r
+}
+
 func (r validatedSetter[REQ, RES]) Pre(a string) validatedSetter[REQ, RES] {
 	r.serverSetter = r.serverSetter.Pre(a)
 	return r

@@ -313,6 +313,10 @@ type genericSetter[REQ, RES any] struct {
 	serverSetter
 }
 
+func (r genericSetter[REQ, RES]) WithGeneric[S any](s S) genericSetter[REQ, RES] {
+	return r
+}
+
 // @fp.WithPubField
 type validatedSetter[REQ, RES any] struct {
 	genericSetter[REQ, RES]
