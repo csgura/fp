@@ -2378,6 +2378,11 @@ func (r ThirdContext) WithBase(v testpk1.SecondContext) ThirdContext {
 	return r
 }
 
+func (r ThirdContext) WithHonor(message string) ThirdContext {
+	r.BaseContext = r.BaseContext.WithHonor(message)
+	return r
+}
+
 func (r ThirdContext) String() string {
 	return fmt.Sprintf("testpk2.ThirdContext{SecondContext:%v, universe:%v}", r.SecondContext, r.universe)
 }
@@ -2569,6 +2574,16 @@ func (r ChildContext) Hello(hello string, world string) ChildContext {
 
 func (r ChildContext) Secret(message ...string) ChildContext {
 	r.privateContext = r.privateContext.Secret(message...)
+	return r
+}
+
+func (r genericSetter[REQ, RES]) Pre(a string) genericSetter[REQ, RES] {
+	r.serverSetter = r.serverSetter.Pre(a)
+	return r
+}
+
+func (r validatedSetter[REQ, RES]) Pre(a string) validatedSetter[REQ, RES] {
+	r.serverSetter = r.serverSetter.Pre(a)
 	return r
 }
 

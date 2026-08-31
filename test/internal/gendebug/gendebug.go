@@ -1,25 +1,22 @@
 package gendebug
 
-import (
-	"fmt"
-	"io"
-
-	"github.com/csgura/fp/genfp"
-)
-
 //go:generate go run github.com/csgura/fp/cmd/gombok
 
-// @fp.Generate
-var _ = genfp.GenerateAdaptor[fmt.Stringer]{
-	ExtendsWith: map[string]genfp.TypeTag{
-		"Closer": genfp.TypeOf[io.Closer](),
-	},
-	Options: []genfp.ImplOption{
-		{
-			Method: fmt.Stringer.String,
-			DefaultImpl: func(closer io.Closer) string {
-				return "hello"
-			},
-		},
-	},
+type serverSetter struct {
+	message string
+}
+
+func (r serverSetter) Pre(a string) serverSetter {
+
+	return r
+}
+
+// @fp.WithPubField
+type genericSetter[REQ, RES any] struct {
+	serverSetter
+}
+
+// @fp.WithPubField
+type validatedSetter[REQ, RES any] struct {
+	genericSetter[REQ, RES]
 }

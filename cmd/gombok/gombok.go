@@ -543,11 +543,13 @@ func processString(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[str
 	return genMethod
 }
 
+func emptyStructFilter(v metafp.StructField) bool {
+	// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
+	return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.FieldType.Underlying().IsStruct() && v.FieldType.Fields().Size() == 0)
+}
+
 func applyFields(ts metafp.TaggedStruct) fp.Seq[metafp.StructField] {
-	return ts.Fields.FilterNot(func(v metafp.StructField) bool {
-		// field 가 아무 것도 없는 embedded struct 는 생성에서 제외
-		return strings.HasPrefix(v.Name, "_") || (v.Embedded && v.FieldType.Underlying().IsStruct() && v.FieldType.Fields().Size() == 0)
-	})
+	return ts.Fields.FilterNot(emptyStructFilter)
 }
 
 func genBuilder(ctx TaggedStructContext, genMethod fp.Set[string]) fp.Set[string] {
@@ -951,13 +953,17 @@ func exposeWith(ctx TaggedStructContext, f metafp.StructField, anno metafp.Annot
 			} else {
 				genMethod = genWith(ctx, ef.Name, ef, anno, genMethod)
 			}
-			if ef.Embedded {
-				genMethod = exposeWithMethod(ctx, ef, anno, genMethod)
-			}
 		}
 	}
 
-	return exposeWithMethod(ctx, f, anno, genMethod)
+	genMethod = exposeWithMethod(ctx, f, anno, genMethod)
+
+	embeds := ctx.AllEmbededFiedls(f.FieldType)
+	for _, ef := range embeds {
+		genMethod = exposeWithMethod(ctx, ef, anno, genMethod)
+	}
+
+	return genMethod
 }
 
 func genWith(
@@ -1228,6 +1234,18 @@ func genTaggedStruct(w genfp.Writer, workingPackage genfp.WorkingPackage, st fp.
 
 	})
 
+}
+
+func (r TaggedStructContext) AllEmbededFiedls(stType metafp.TypeInfo) fp.Seq[metafp.StructField] {
+	embedFields := stType.Fields().Filter(func(v metafp.StructField) bool {
+		return v.Embedded
+	}).FilterNot(emptyStructFilter)
+
+	supers := embedFields.FlatMap(func(sf metafp.StructField) fp.Seq[metafp.StructField] {
+		return r.AllEmbededFiedls(sf.FieldType)
+	})
+
+	return embedFields.Concat(supers)
 }
 
 func (r TaggedStructContext) GeneratedWithFuncList(stType metafp.TypeInfo) fp.Seq[metafp.StructField] {

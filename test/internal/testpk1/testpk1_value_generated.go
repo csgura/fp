@@ -3966,11 +3966,6 @@ func (r ThirdContext) WithBaseContext(v BaseContext) ThirdContext {
 	return r
 }
 
-func (r ThirdContext) WithHonor(message string) ThirdContext {
-	r.BaseContext = r.BaseContext.WithHonor(message)
-	return r
-}
-
 func (r ThirdContext) WithWorld(v string) ThirdContext {
 	r.world = v
 	return r
@@ -3983,6 +3978,11 @@ func (r ThirdContext) WithContext(v context.Context) ThirdContext {
 
 func (r ThirdContext) WithHello(v string) ThirdContext {
 	r.hello = v
+	return r
+}
+
+func (r ThirdContext) WithHonor(message string) ThirdContext {
+	r.BaseContext = r.BaseContext.WithHonor(message)
 	return r
 }
 
