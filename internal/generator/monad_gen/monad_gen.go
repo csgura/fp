@@ -109,7 +109,18 @@ func main() {
 
 		genfp.Generate(pack, file, func(w genfp.Writer) {
 			for _, gfu := range list {
-				generator.WriteMonadTransformers(w, gfu, funcList)
+				generated := map[string]bool{}
+				if gfu.TransformerType != nil {
+					generated = methodList[gfu.TransformerType.GenericType.Obj().Name()]
+					if generated == nil {
+						targetType := gfu.TransformerType.GenericType.Obj().Type()
+						generated = listMethods(pkgs, targetType, fileSet)
+					}
+				}
+				generator.WriteMonadTransformers(w, gfu, funcList, generated)
+				if gfu.TransformerType != nil {
+					methodList[gfu.TransformerType.GenericType.Obj().Name()] = generated
+				}
 			}
 		})
 	}

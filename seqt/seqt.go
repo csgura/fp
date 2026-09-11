@@ -26,6 +26,16 @@ func All[T any](optionT fp.SeqT[T]) iter.Seq[T] {
 	return Iterator(optionT).All()
 }
 
+type Type[A any] fp.SeqT[A]
+
+func Trans[A any](v fp.SeqT[A]) Type[A] {
+	return Type[A](v)
+}
+
+func (r Type[T]) Try() fp.SeqT[T] {
+	return fp.SeqT[T](r)
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
@@ -45,6 +55,11 @@ func _[T, U, V any, K comparable]() genfp.GenerateMonadTransformer[fp.SeqT[T]] {
 				return t2.Map(t1.Add)
 			})
 
+		},
+		TransformerType: genfp.TransformerType{
+			Type:    genfp.TypeOf[Type[T]](),
+			Apply:   Trans[T],
+			Unapply: Type[T].Try,
 		},
 		Transform: []any{
 			fp.Seq[T].Filter[fp.Phantom[T]],

@@ -67,6 +67,16 @@ func PartitionEithers[L, R any](r fp.SliceT[fp.Either[L, R]]) (fp.SliceT[L], fp.
 	return ret.Map(xtr.Head), ret.Map(xtr.Last)
 }
 
+type Type[A any] fp.SliceT[A]
+
+func Trans[A any](v fp.SliceT[A]) Type[A] {
+	return Type[A](v)
+}
+
+func (r Type[T]) Try() fp.SliceT[T] {
+	return fp.SliceT[T](r)
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
@@ -88,6 +98,11 @@ func _[K comparable, T, U, V any]() genfp.GenerateMonadTransformer[fp.SliceT[T]]
 				})
 			})
 
+		},
+		TransformerType: genfp.TransformerType{
+			Type:    genfp.TypeOf[Type[T]](),
+			Apply:   Trans[T],
+			Unapply: Type[T].Try,
 		},
 		Transform: []any{
 			slice.Filter[T],

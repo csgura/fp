@@ -23,12 +23,20 @@ func Map[A any, B any](t fp.PtrT[A], f func(A) B) fp.PtrT[B] {
 	})
 }
 
+func (r Type[A]) Map[B any](f func(A) B) Type[B] {
+	return Trans[B](Map(Type[A].Try(r), f))
+}
+
 func SubFlatMap[A any, B any](t fp.PtrT[A], f func(A) fp.Ptr[B]) fp.PtrT[B] {
 	return try.Map(t, func(ma fp.Ptr[A]) fp.Ptr[B] {
 		return ptr.FlatMap[A, B](ma, func(a A) fp.Ptr[B] {
 			return f(a)
 		})
 	})
+}
+
+func (r Type[A]) SubFlatMap[B any](f func(A) fp.Ptr[B]) Type[B] {
+	return Trans[B](SubFlatMap(Type[A].Try(r), f))
 }
 
 func MapT[A any, B any](t fp.PtrT[A], f func(A) fp.Try[B]) fp.PtrT[B] {
@@ -41,6 +49,10 @@ func MapT[A any, B any](t fp.PtrT[A], f func(A) fp.Try[B]) fp.PtrT[B] {
 	return try.FlatMap(Map(t, f), sequencef)
 }
 
+func (r Type[A]) MapT[B any](f func(A) fp.Try[B]) Type[B] {
+	return Trans[B](MapT(Type[A].Try(r), f))
+}
+
 func FlatMap[A any, B any](t fp.PtrT[A], f func(A) fp.PtrT[B]) fp.PtrT[B] {
 
 	flatten := func(v fp.Ptr[fp.Ptr[B]]) fp.Ptr[B] {
@@ -51,8 +63,20 @@ func FlatMap[A any, B any](t fp.PtrT[A], f func(A) fp.PtrT[B]) fp.PtrT[B] {
 
 }
 
+func (r Type[A]) FlatMap[B any](f func(A) Type[B]) Type[B] {
+	return Trans[B](FlatMap(Type[A].Try(r), func(a A) fp.PtrT[B] {
+		return Type[B].Try(f(a))
+	}))
+}
+
 func IsDefined[T any](ptrT fp.PtrT[T]) fp.Try[bool] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) bool {
+		return ptr.IsDefined[T](insideValue)
+	})
+}
+
+func (ptrT Type[T]) IsDefined() fp.Try[bool] {
+	return try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) bool {
 		return ptr.IsDefined[T](insideValue)
 	})
 }
@@ -63,14 +87,32 @@ func IsEmpty[T any](ptrT fp.PtrT[T]) fp.Try[bool] {
 	})
 }
 
+func (ptrT Type[T]) IsEmpty() fp.Try[bool] {
+	return try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) bool {
+		return ptr.IsEmpty[T](insideValue)
+	})
+}
+
 func Filter[T any](ptrT fp.PtrT[T], p func(v T) bool) fp.PtrT[T] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) fp.Ptr[T] {
 		return ptr.Filter[T](insideValue, p)
 	})
 }
 
+func (ptrT Type[T]) Filter(p func(v T) bool) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) fp.Ptr[T] {
+		return ptr.Filter[T](insideValue, p)
+	}))
+}
+
 func OrElse[T any](ptrT fp.PtrT[T], t T) fp.Try[T] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) T {
+		return ptr.OrElse[T](insideValue, t)
+	})
+}
+
+func (ptrT Type[T]) OrElse(t T) fp.Try[T] {
+	return try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) T {
 		return ptr.OrElse[T](insideValue, t)
 	})
 }
@@ -81,8 +123,20 @@ func OrZero[T any](ptrT fp.PtrT[T]) fp.Try[T] {
 	})
 }
 
+func (ptrT Type[T]) OrZero() fp.Try[T] {
+	return try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) T {
+		return ptr.OrZero[T](insideValue)
+	})
+}
+
 func OrElseGet[T any](ptrT fp.PtrT[T], f func() T) fp.Try[T] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) T {
+		return ptr.OrElseGet[T](insideValue, f)
+	})
+}
+
+func (ptrT Type[T]) OrElseGet(f func() T) fp.Try[T] {
+	return try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) T {
 		return ptr.OrElseGet[T](insideValue, f)
 	})
 }
@@ -93,10 +147,22 @@ func Or[T any](ptrT fp.PtrT[T], f func() fp.Ptr[T]) fp.PtrT[T] {
 	})
 }
 
+func (ptrT Type[T]) Or(f func() fp.Ptr[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) fp.Ptr[T] {
+		return ptr.Or[T](insideValue, f)
+	}))
+}
+
 func OrOption[T any](ptrT fp.PtrT[T], v fp.Option[T]) fp.PtrT[T] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) fp.Ptr[T] {
 		return ptr.OrOption[T](insideValue, v)
 	})
+}
+
+func (ptrT Type[T]) OrOption(v fp.Option[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) fp.Ptr[T] {
+		return ptr.OrOption[T](insideValue, v)
+	}))
 }
 
 func OrPtr[T any](ptrT fp.PtrT[T], v fp.Ptr[T]) fp.PtrT[T] {
@@ -105,8 +171,20 @@ func OrPtr[T any](ptrT fp.PtrT[T], v fp.Ptr[T]) fp.PtrT[T] {
 	})
 }
 
+func (ptrT Type[T]) OrPtr(v fp.Ptr[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) fp.Ptr[T] {
+		return ptr.OrPtr[T](insideValue, v)
+	}))
+}
+
 func Recover[T any](ptrT fp.PtrT[T], f func() T) fp.PtrT[T] {
 	return try.Map(ptrT, func(insideValue fp.Ptr[T]) fp.Ptr[T] {
 		return ptr.Recover[T](insideValue, f)
 	})
+}
+
+func (ptrT Type[T]) Recover(f func() T) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(ptrT), func(insideValue fp.Ptr[T]) fp.Ptr[T] {
+		return ptr.Recover[T](insideValue, f)
+	}))
 }

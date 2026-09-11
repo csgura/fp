@@ -79,6 +79,16 @@ func All[T any](optionT fp.PtrT[T]) iter.Seq[T] {
 	return Iterator(optionT).All()
 }
 
+type Type[A any] fp.PtrT[A]
+
+func Trans[A any](v fp.PtrT[A]) Type[A] {
+	return Type[A](v)
+}
+
+func (r Type[T]) Try() fp.PtrT[T] {
+	return fp.PtrT[T](r)
+}
+
 //go:generate go run github.com/csgura/fp/internal/generator/monad_gen
 
 // @internal.Generate
@@ -110,6 +120,11 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.PtrT[T]] {
 			ptr.OrOption[T],
 			ptr.OrPtr[T],
 			ptr.Recover[T],
+		},
+		TransformerType: genfp.TransformerType{
+			Type:    genfp.TypeOf[Type[T]](),
+			Apply:   Trans[T],
+			Unapply: Type[T].Try,
 		},
 	}
 }

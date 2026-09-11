@@ -118,9 +118,12 @@ func NameParamReplaced(w Writer, pk genfp.WorkingPackage, realtp GenericType, p 
 
 type genFuncContext struct {
 	w               Writer
+	functionSuffix  string
 	definedFunction map[string]bool
-	funcs           map[string]any
-	param           map[string]any
+	definedMethod   map[string]bool
+
+	funcs map[string]any
+	param map[string]any
 }
 
 func (r genFuncContext) defineFunc(name string, template string) {
@@ -128,6 +131,17 @@ func (r genFuncContext) defineFunc(name string, template string) {
 		r.param["funcname"] = name
 		r.w.Render(template, r.funcs, r.param)
 		r.definedFunction[name] = true
+	}
+}
+
+func (r genFuncContext) defineMethod(name string, on bool, template string) {
+	if on {
+		if !r.definedMethod[name] {
+			r.param["funcname"] = name
+			r.param["funcnameWithSuffix"] = name + r.functionSuffix
+			r.w.Render(template, r.funcs, r.param)
+			r.definedMethod[name] = true
+		}
 	}
 }
 

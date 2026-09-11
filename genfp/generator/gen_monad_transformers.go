@@ -134,7 +134,7 @@ func FlatMapRetType(w genfp.Writer, pk genfp.WorkingPackage, tr TypeReference, f
 
 type replaceParam map[string]string
 
-func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective, definedFunc map[string]bool) {
+func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective, definedFunc map[string]bool, transfomerTypeDefinedMethods map[string]bool) {
 
 	tp := md.TargetType.TypeArgs()
 	tpargs := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
@@ -160,6 +160,37 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 		return ""
 
 	}), func(v string) bool { return v != "" }), ",")
+
+	tpins := seqMakeString(seqFilter(iterate(tp.Len(), tp.At, func(i int, t types.Type) string {
+		if tp, ok := t.(*types.TypeParam); ok {
+			if tp.Obj().Name() == md.TypeParm.Obj().Name() {
+				return "A"
+			} else {
+				return tp.Obj().Name()
+			}
+		}
+		return ""
+
+	}), func(v string) bool { return v != "" }), ",")
+
+	transformerType := func(string, ...any) string {
+		panic("no transfomer type")
+	}
+
+	unapplyf := func(replace map[string]string) string {
+		panic("no transfomer type")
+	}
+
+	applyf := func(replace map[string]string) string {
+		panic("no transfomer type")
+	}
+
+	if md.TransformerType != nil {
+		transformerType = NameParamReplaced(w, md.Package, md.TransformerType.GenericType, md.TypeParm)
+		unapplyf = CallFunc(w, md.TransformerType.Unapply)
+		applyf = CallFunc(w, md.TransformerType.Apply)
+
+	}
 
 	outertype := NameParamReplaced(w, md.Package, md.TargetType, md.TypeParm)
 	innertype := NameParamReplaced(w, md.Package, md.ExposureMonadType, md.TypeParm)
@@ -259,6 +290,16 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				flatmapRet:           to,
 			})
 		},
+		"unapply": func(to string) string {
+			return unapplyf(replaceParam{
+				md.TypeParm.String(): to,
+			})
+		},
+		"apply": func(to string) string {
+			return applyf(replaceParam{
+				md.TypeParm.String(): to,
+			})
+		},
 
 		"infer": func(extra ...string) string {
 			if fixedStr == "" {
@@ -273,10 +314,10 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 			return fmt.Sprintf("[%s]", fixedParams)
 		},
 
-		"combined": combinedtype,
-		"inner":    innertype,
-		"outer":    outertype,
-
+		"combined":   combinedtype,
+		"inner":      innertype,
+		"outer":      outertype,
+		"transfomer": transformerType,
 		"monadIns": func(start, until int) string {
 			f := &bytes.Buffer{}
 			for j := start; j <= until; j++ {
@@ -326,18 +367,27 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 	param := map[string]any{
 		"tpargs":  tpargs,
 		"tpargs1": tpargs1,
+		"tpins":   tpins,
 
-		"tp":           md.TypeParm.String(),
-		"name":         suffixName,
-		"givenMap":     givenMap,
-		"givenFlatMap": givenFlatMap,
+		"tp":             md.TypeParm.String(),
+		"name":           suffixName,
+		"givenMap":       givenMap,
+		"givenFlatMap":   givenFlatMap,
+		"targetTypeName": md.TargetType.Obj().Name(),
+		"suffix":         suffixName,
 	}
 
 	ctx := genFuncContext{
 		w:               w,
 		definedFunction: definedFunc,
+		definedMethod:   transfomerTypeDefinedMethods,
 		funcs:           funcs,
 		param:           param,
+		functionSuffix:  suffixName,
+	}
+
+	if md.TransformerType != nil {
+
 	}
 
 	ctx.defineFunc("Pure"+suffixName, `
@@ -377,6 +427,13 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 			})
 		}
 	`)
+
+	ctx.defineMethod("Map", md.TransformerType != nil, `
+		func (r {{transfomer "A"}}) {{.funcname}}[B any](f func(A) B) {{transfomer "B"}} {
+			return {{apply "B"}}({{.funcnameWithSuffix}}({{unapply "A"}}(r), f))
+		}
+	`)
+
 	ctx.defineFunc("SubFlatMap"+suffixName, `
 		func {{.funcname}}[{{.tpargs}},B any](t {{combined "A"}}, f func(A) {{inner "B"}}) {{combined "B"}} {
 			return {{.givenMap}}(t, func( ma {{inner "A"}} )  {{inner "B"}} {
@@ -384,6 +441,12 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					return f(a)
 				})
 			})
+		}
+	`)
+
+	ctx.defineMethod("SubFlatMap", md.TransformerType != nil, `
+		func (r {{transfomer "A"}}) {{.funcname}}[B any](f func(A) {{inner "B"}}) {{transfomer "B"}} {
+			return {{apply "B"}}({{.funcnameWithSuffix}}({{unapply "A"}}(r), f))
 		}
 	`)
 
@@ -401,6 +464,12 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 			}
 		`)
 
+		ctx.defineMethod(maptname, md.TransformerType != nil, `
+			func (r {{transfomer "A"}}) {{.funcname}}[B any](f func(A) {{outer "B"}}) {{transfomer "B"}} {
+				return {{apply "B"}}({{.funcname}}({{unapply "A"}}(r), f))
+			}
+		`)
+
 		ctx.param["maptfunc"] = maptname
 
 		ctx.defineFunc("FlatMap"+suffixName, `
@@ -412,6 +481,14 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 				return {{.givenMap}}({{.maptfunc}}(t, f), flatten)
 
+			}
+		`)
+
+		ctx.defineMethod("FlatMap", md.TransformerType != nil, `
+			func (r {{transfomer "A"}}) {{.funcname}}[B any](f func(A) {{transfomer "B"}}) {{transfomer "B"}} {
+				return {{apply "B"}}({{.funcnameWithSuffix}}({{unapply "A"}}(r), func(a A) {{combined "B"}}{
+				 	return {{unapply "B"}}(f(a))
+				}))
 			}
 		`)
 	}
@@ -441,6 +518,7 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 				return -1
 			}), func(v int) bool { return v >= 0 }))
 
+			methodOk := ok
 			if !ok {
 				for i := 0; i < sig.Params().Len(); i++ {
 					tpe := sig.Params().At(i)
@@ -448,10 +526,20 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 						//fmt.Printf("compare name %s %t\n", gt.Obj().Name(), gt.Obj().Name() == md.ExposureMonadType.Obj().Name())
 						if gt.Obj() == md.ExposureMonadType.Obj() {
 							targIdx = i
-							targetParam = seqMakeString(iterate(gt.TypeArgs().Len(), gt.TypeArgs().At, func(i int, t types.Type) string {
+							typeArgs := iterate(gt.TypeArgs().Len(), gt.TypeArgs().At, func(i int, t types.Type) types.Type {
+								return t
+							})
+							targetParam = seqMakeString(seqMap(typeArgs, func(t types.Type) string {
 								return w.TypeName(md.Package, t)
 							}), ",")
 							ok = true
+
+							methodOk = seqAll(typeArgs, func(v types.Type) bool {
+								if tp, ok := v.(*types.TypeParam); ok {
+									return tp.Constraint() == md.TypeParm.Constraint()
+								}
+								return false
+							})
 							break
 						}
 					}
@@ -471,6 +559,13 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 
 					return fmt.Sprintf("%s %s", argName(i, t), tpe)
 				})
+
+				receiverType := ""
+				if md.TransformerType != nil {
+					receiverType = fmt.Sprintf("%s %s", targName, transformerType(targetParam))
+				}
+
+				methodArgTypeStr := append(append([]string{}, argTypeStr[0:targIdx]...), argTypeStr[targIdx+1:]...)
 
 				callArgs := iterate(sig.Params().Len(), sig.Params().At, func(i int, t *types.Var) string {
 
@@ -492,18 +587,41 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 					return ""
 				})...)
 
+				methodtp := append(fixedParams, seqMap(t.TypeParams, func(v TypeReference) string {
+					if p, ok := v.Type.(*types.TypeParam); ok {
+						if p.String() != targetParam {
+							return fmt.Sprintf("%s %s", p.String(), w.TypeName(md.Package, p.Constraint()))
+						}
+					}
+					return ""
+				})...)
+
+				methodtp = seqFilter(methodtp, func(v string) bool {
+					return v != ""
+				})
+
+				methodtpstr := ""
+
+				if len(methodtp) > 0 {
+					methodtpstr = "[" + seqMakeString(methodtp, ",") + "]"
+				}
 				param["trans"] = t.Name
 				param["args"] = seqMakeString(argTypeStr, ",")
+				param["methodArgs"] = seqMakeString(methodArgTypeStr, ",")
+				param["receiver"] = receiverType
+
 				param["callArgs"] = seqMakeString(callArgs, ",")
 
 				param["targName"] = targName
 				param["transExpr"] = exprString(t.TypeReference.Expr)
 				param["tparams"] = seqMakeString(tp, ",")
+				param["methodtparams"] = methodtpstr
 
 				param["targ"] = targetParam
 				ctx := genFuncContext{
 					w:               w,
 					definedFunction: definedFunc,
+					definedMethod:   transfomerTypeDefinedMethods,
 					funcs:           funcs,
 					param:           param,
 				}
@@ -519,14 +637,39 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 									} )
 								}
 							`)
+
+							ctx.defineMethod(t.Name, methodOk && md.TransformerType != nil, `
+								func ({{.receiver}}){{.trans}}{{.name}}{{.methodtparams}}({{.methodArgs}}) {{.retType}} {
+									return {{.givenFlatMap}}({{unapply .targ}}({{.targName}}), func(insideValue {{inner (.targ)}}) {{.retType}} {
+										return {{.transExpr}}({{.callArgs}})
+									} )
+								}
+							`)
+
 						} else {
 							if gt, gtok := sig.Results().At(0).Type().(GenericType); gtok && gt.Obj() == md.ExposureMonadType.Obj() {
 
-								retarg := seqMakeString(iterate(gt.TypeArgs().Len(), gt.TypeArgs().At, func(i int, t types.Type) string {
+								rettypeargs := iterate(gt.TypeArgs().Len(), gt.TypeArgs().At, func(i int, t types.Type) types.Type {
+									return t
+								})
+
+								retarg := seqMakeString(seqMap(rettypeargs, func(t types.Type) string {
 									return w.TypeName(md.Package, t)
 								}), ",")
 
+								retok := seqAll(rettypeargs, func(v types.Type) bool {
+									if _, ok := v.(*types.TypeParam); ok {
+										return ok
+									}
+									return false
+								})
+
 								param["trtype"] = combinedtype(retarg)
+								if md.TransformerType != nil {
+									param["mtrtype"] = transformerType(retarg)
+								}
+								param["retarg"] = retarg
+
 								ctx.defineFunc(t.Name+suffixName, `
 									func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{.trtype}} {
 										return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
@@ -534,10 +677,25 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 										} )
 									}
 								`)
+
+								ctx.defineMethod(t.Name, methodOk && retok && md.TransformerType != nil, `
+									func ({{.receiver}}){{.trans}}{{.methodtparams}}({{.methodArgs}}) {{.mtrtype}} {
+										return {{apply .retarg}}({{.givenMap}}({{unapply .targ}}({{.targName}}), func(insideValue {{inner (.targ)}}) {{.retType}} {
+											return {{.transExpr}}({{.callArgs}})
+										}))
+									}
+								`)
 							} else {
 								ctx.defineFunc(t.Name+suffixName, `
 									func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {{outer (.retType)}} {
 										return {{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) {{.retType}} {
+											return {{.transExpr}}({{.callArgs}})
+										} )
+									}
+								`)
+								ctx.defineMethod(t.Name, methodOk && md.TransformerType != nil, `
+									func ({{.receiver}}){{.trans}}{{.methodtparams}}({{.methodArgs}}) {{outer (.retType)}} {
+										return {{.givenMap}}({{unapply .targ}}({{.targName}}), func(insideValue {{inner (.targ)}}) {{.retType}} {
 											return {{.transExpr}}({{.callArgs}})
 										} )
 									}
@@ -556,11 +714,28 @@ func WriteMonadTransformers(w genfp.Writer, md GenerateMonadTransformerDirective
 								} )
 							}
 						`)
+
+						ctx.defineMethod(t.Name, methodOk && md.TransformerType != nil, `
+							func ({{.receiver}}){{.trans}}{{.methodtparams}}({{.methodArgs}}) {{outer (.retType)}} {
+								return {{.givenMap}}({{unapply .targ}}({{.targName}}), func(insideValue {{inner (.targ)}}) {{.retType}} {
+									return {{.asTuple}}({{.transExpr}}({{.callArgs}}))
+								} )
+							}
+						`)
 					}
 				} else {
 					ctx.defineFunc(t.Name+suffixName, `
 						func {{.trans}}{{.name}}[{{.tparams}}]({{.args}}) {
 							{{.givenMap}}({{.targName}}, func(insideValue {{inner (.targ)}}) error {
+								{{.transExpr}}({{.callArgs}})
+								return nil
+							} )
+						}
+					`)
+
+					ctx.defineMethod(t.Name, methodOk && md.TransformerType != nil, `
+						func ({{.receiver}}){{.trans}}{{.methodtparams}}({{.methodArgs}}) {
+							{{.givenMap}}({{unapply .targ}}({{.targName}}), func(insideValue {{inner (.targ)}}) error {
 								{{.transExpr}}({{.callArgs}})
 								return nil
 							} )

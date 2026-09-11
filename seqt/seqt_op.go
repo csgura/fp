@@ -26,12 +26,20 @@ func Map[A any, B any](t fp.SeqT[A], f func(A) B) fp.SeqT[B] {
 	})
 }
 
+func (r Type[A]) Map[B any](f func(A) B) Type[B] {
+	return Trans[B](Map(Type[A].Try(r), f))
+}
+
 func SubFlatMap[A any, B any](t fp.SeqT[A], f func(A) fp.Seq[B]) fp.SeqT[B] {
 	return try.Map(t, func(ma fp.Seq[A]) fp.Seq[B] {
 		return seq.FlatMap[A, B](ma, func(a A) fp.Seq[B] {
 			return f(a)
 		})
 	})
+}
+
+func (r Type[A]) SubFlatMap[B any](f func(A) fp.Seq[B]) Type[B] {
+	return Trans[B](SubFlatMap(Type[A].Try(r), f))
 }
 
 func MapT[A any, B any](t fp.SeqT[A], f func(A) fp.Try[B]) fp.SeqT[B] {
@@ -41,6 +49,10 @@ func MapT[A any, B any](t fp.SeqT[A], f func(A) fp.Try[B]) fp.SeqT[B] {
 		})
 	}
 	return try.FlatMap(Map(t, f), sequencef)
+}
+
+func (r Type[A]) MapT[B any](f func(A) fp.Try[B]) Type[B] {
+	return Trans[B](MapT(Type[A].Try(r), f))
 }
 
 func FlatMap[A any, B any](t fp.SeqT[A], f func(A) fp.SeqT[B]) fp.SeqT[B] {
@@ -53,10 +65,22 @@ func FlatMap[A any, B any](t fp.SeqT[A], f func(A) fp.SeqT[B]) fp.SeqT[B] {
 
 }
 
+func (r Type[A]) FlatMap[B any](f func(A) Type[B]) Type[B] {
+	return Trans[B](FlatMap(Type[A].Try(r), func(a A) fp.SeqT[B] {
+		return Type[B].Try(f(a))
+	}))
+}
+
 func Filter[T any](seqT fp.SeqT[T], p func(v T) bool) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Filter[fp.Phantom[T]](insideValue, p)
 	})
+}
+
+func (seqT Type[T]) Filter(p func(v T) bool) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Filter[fp.Phantom[T]](insideValue, p)
+	}))
 }
 
 func Add[T any](seqT fp.SeqT[T], item T) fp.SeqT[T] {
@@ -65,10 +89,22 @@ func Add[T any](seqT fp.SeqT[T], item T) fp.SeqT[T] {
 	})
 }
 
+func (seqT Type[T]) Add(item T) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Add[fp.Phantom[T]](insideValue, item)
+	}))
+}
+
 func Append[T any](seqT fp.SeqT[T], items T) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Append[fp.Phantom[T]](insideValue, items)
 	})
+}
+
+func (seqT Type[T]) Append(items T) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Append[fp.Phantom[T]](insideValue, items)
+	}))
 }
 
 func Concat[T any](seqT fp.SeqT[T], tail fp.Seq[T]) fp.SeqT[T] {
@@ -77,14 +113,32 @@ func Concat[T any](seqT fp.SeqT[T], tail fp.Seq[T]) fp.SeqT[T] {
 	})
 }
 
+func (seqT Type[T]) Concat(tail fp.Seq[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Concat[fp.Phantom[T]](insideValue, tail)
+	}))
+}
+
 func Drop[T any](seqT fp.SeqT[T], n int) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Drop[fp.Phantom[T]](insideValue, n)
 	})
 }
 
+func (seqT Type[T]) Drop(n int) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Drop[fp.Phantom[T]](insideValue, n)
+	}))
+}
+
 func Exists[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[bool] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) bool {
+		return fp.Seq[T].Exists[fp.Phantom[T]](insideValue, p)
+	})
+}
+
+func (seqT Type[T]) Exists(p func(v T) bool) fp.Try[bool] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) bool {
 		return fp.Seq[T].Exists[fp.Phantom[T]](insideValue, p)
 	})
 }
@@ -95,14 +149,32 @@ func FilterNot[T any](seqT fp.SeqT[T], p func(v T) bool) fp.SeqT[T] {
 	})
 }
 
+func (seqT Type[T]) FilterNot(p func(v T) bool) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].FilterNot[fp.Phantom[T]](insideValue, p)
+	}))
+}
+
 func Find[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[fp.Option[T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Option[T] {
 		return fp.Seq[T].Find[fp.Phantom[T]](insideValue, p)
 	})
 }
 
+func (seqT Type[T]) Find(p func(v T) bool) fp.Try[fp.Option[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Option[T] {
+		return fp.Seq[T].Find[fp.Phantom[T]](insideValue, p)
+	})
+}
+
 func ForAll[T any](seqT fp.SeqT[T], p func(v T) bool) fp.Try[bool] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) bool {
+		return fp.Seq[T].ForAll[fp.Phantom[T]](insideValue, p)
+	})
+}
+
+func (seqT Type[T]) ForAll(p func(v T) bool) fp.Try[bool] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) bool {
 		return fp.Seq[T].ForAll[fp.Phantom[T]](insideValue, p)
 	})
 }
@@ -114,8 +186,21 @@ func Foreach[T any](seqT fp.SeqT[T], f func(v T)) {
 	})
 }
 
+func (seqT Type[T]) Foreach(f func(v T)) {
+	try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) error {
+		fp.Seq[T].Foreach[fp.Phantom[T]](insideValue, f)
+		return nil
+	})
+}
+
 func Get[T any](seqT fp.SeqT[T], idx int) fp.Try[fp.Option[T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Option[T] {
+		return fp.Seq[T].Get[fp.Phantom[T]](insideValue, idx)
+	})
+}
+
+func (seqT Type[T]) Get(idx int) fp.Try[fp.Option[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Option[T] {
 		return fp.Seq[T].Get[fp.Phantom[T]](insideValue, idx)
 	})
 }
@@ -126,10 +211,22 @@ func Head[T any](seqT fp.SeqT[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
+func (seqT Type[T]) Head() fp.Try[fp.Option[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Option[T] {
+		return fp.Seq[T].Head[fp.Phantom[T]](insideValue)
+	})
+}
+
 func Tail[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Tail[fp.Phantom[T]](insideValue)
 	})
+}
+
+func (seqT Type[T]) Tail() Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Tail[fp.Phantom[T]](insideValue)
+	}))
 }
 
 func Init[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
@@ -138,8 +235,20 @@ func Init[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
 	})
 }
 
+func (seqT Type[T]) Init() Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Init[fp.Phantom[T]](insideValue)
+	}))
+}
+
 func IsEmpty[T any](seqT fp.SeqT[T]) fp.Try[bool] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) bool {
+		return fp.Seq[T].IsEmpty[fp.Phantom[T]](insideValue)
+	})
+}
+
+func (seqT Type[T]) IsEmpty() fp.Try[bool] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) bool {
 		return fp.Seq[T].IsEmpty[fp.Phantom[T]](insideValue)
 	})
 }
@@ -150,8 +259,20 @@ func Last[T any](seqT fp.SeqT[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
+func (seqT Type[T]) Last() fp.Try[fp.Option[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Option[T] {
+		return fp.Seq[T].Last[fp.Phantom[T]](insideValue)
+	})
+}
+
 func MakeString[T any](seqT fp.SeqT[T], sep string) fp.Try[string] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) string {
+		return fp.Seq[T].MakeString[fp.Phantom[T]](insideValue, sep)
+	})
+}
+
+func (seqT Type[T]) MakeString(sep string) fp.Try[string] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) string {
 		return fp.Seq[T].MakeString[fp.Phantom[T]](insideValue, sep)
 	})
 }
@@ -162,14 +283,32 @@ func NonEmpty[T any](seqT fp.SeqT[T]) fp.Try[bool] {
 	})
 }
 
+func (seqT Type[T]) NonEmpty() fp.Try[bool] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) bool {
+		return fp.Seq[T].NonEmpty[fp.Phantom[T]](insideValue)
+	})
+}
+
 func Reverse[T any](seqT fp.SeqT[T]) fp.SeqT[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[T] {
 		return fp.Seq[T].Reverse[fp.Phantom[T]](insideValue)
 	})
 }
 
+func (seqT Type[T]) Reverse() Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Reverse[fp.Phantom[T]](insideValue)
+	}))
+}
+
 func Size[T any](seqT fp.SeqT[T]) fp.Try[int] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) int {
+		return fp.Seq[T].Size[fp.Phantom[T]](insideValue)
+	})
+}
+
+func (seqT Type[T]) Size() fp.Try[int] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) int {
 		return fp.Seq[T].Size[fp.Phantom[T]](insideValue)
 	})
 }
@@ -180,14 +319,32 @@ func Take[T any](seqT fp.SeqT[T], n int) fp.SeqT[T] {
 	})
 }
 
+func (seqT Type[T]) Take(n int) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return fp.Seq[T].Take[fp.Phantom[T]](insideValue, n)
+	}))
+}
+
 func Span[T any](seqT fp.SeqT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
 		return as.Tuple2(seq.Span[T](insideValue, p))
 	})
 }
 
+func (seqT Type[T]) Span(p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
+		return as.Tuple2(seq.Span[T](insideValue, p))
+	})
+}
+
 func Partition[T any](seqT fp.SeqT[T], p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
+		return as.Tuple2(seq.Partition[T](insideValue, p))
+	})
+}
+
+func (seqT Type[T]) Partition(p func(T) bool) fp.Try[fp.Tuple2[fp.Seq[T], fp.Seq[T]]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Tuple2[fp.Seq[T], fp.Seq[T]] {
 		return as.Tuple2(seq.Partition[T](insideValue, p))
 	})
 }
@@ -202,6 +359,12 @@ func FilterMap[T any, U any](seqT fp.SeqT[T], fn func(v T) fp.Option[U]) fp.SeqT
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
 		return seq.FilterMap[T, U](insideValue, fn)
 	})
+}
+
+func (seqT Type[T]) FilterMap[U any](fn func(v T) fp.Option[U]) Type[U] {
+	return Trans[U](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[U] {
+		return seq.FilterMap[T, U](insideValue, fn)
+	}))
 }
 
 func MapKey[T any, U any, V any](seqT fp.SeqT[fp.Tuple2[T, V]], f func(T) U) fp.SeqT[fp.Tuple2[U, V]] {
@@ -234,10 +397,22 @@ func Fold[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) U) fp.Try[U] {
 	})
 }
 
+func (seqT Type[T]) Fold[U any](zero U, f func(U, T) U) fp.Try[U] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) U {
+		return seq.Fold[T, U](insideValue, zero, f)
+	})
+}
+
 func Scan[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) U) fp.SeqT[U] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Seq[U] {
 		return seq.Scan[T, U](insideValue, zero, f)
 	})
+}
+
+func (seqT Type[T]) Scan[U any](zero U, f func(U, T) U) Type[U] {
+	return Trans[U](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[U] {
+		return seq.Scan[T, U](insideValue, zero, f)
+	}))
 }
 
 func Sort[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.SeqT[T] {
@@ -246,8 +421,20 @@ func Sort[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.SeqT[T] {
 	})
 }
 
+func (seqT Type[T]) Sort(ord fp.Ord[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Seq[T] {
+		return seq.Sort[T](insideValue, ord)
+	}))
+}
+
 func Min[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) fp.Option[T] {
+		return seq.Min[T](insideValue, ord)
+	})
+}
+
+func (seqT Type[T]) Min(ord fp.Ord[T]) fp.Try[fp.Option[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Option[T] {
 		return seq.Min[T](insideValue, ord)
 	})
 }
@@ -258,8 +445,20 @@ func Max[T any](seqT fp.SeqT[T], ord fp.Ord[T]) fp.Try[fp.Option[T]] {
 	})
 }
 
+func (seqT Type[T]) Max(ord fp.Ord[T]) fp.Try[fp.Option[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Option[T] {
+		return seq.Max[T](insideValue, ord)
+	})
+}
+
 func FoldTry[T any, U any](seqT fp.SeqT[T], zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
 	return try.FlatMap(seqT, func(insideValue fp.Seq[T]) fp.Try[U] {
+		return seq.FoldTry[T, U](insideValue, zero, f)
+	})
+}
+
+func (seqT Type[T]) FoldTry[U any](zero U, f func(U, T) fp.Try[U]) fp.Try[U] {
+	return try.FlatMap(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Try[U] {
 		return seq.FoldTry[T, U](insideValue, zero, f)
 	})
 }
@@ -270,8 +469,20 @@ func FoldError[T any](seqT fp.SeqT[T], f func(T) error) fp.Try[error] {
 	})
 }
 
+func (seqT Type[T]) FoldError(f func(T) error) fp.Try[error] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) error {
+		return seq.FoldError[T](insideValue, f)
+	})
+}
+
 func Reduce[T any](seqT fp.SeqT[T], m fp.Monoid[T]) fp.Try[T] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) T {
+		return seq.Reduce[T](insideValue, m)
+	})
+}
+
+func (seqT Type[T]) Reduce(m fp.Monoid[T]) fp.Try[T] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) T {
 		return seq.Reduce[T](insideValue, m)
 	})
 }
@@ -306,8 +517,20 @@ func ToSet[T any](seqT fp.SeqT[T], hasher fp.Hashable[T]) fp.Try[fp.Set[T]] {
 	})
 }
 
+func (seqT Type[T]) ToSet(hasher fp.Hashable[T]) fp.Try[fp.Set[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) fp.Set[T] {
+		return seq.ToSet[T](insideValue, hasher)
+	})
+}
+
 func GroupBy[T any, K comparable](seqT fp.SeqT[T], keyFunc func(T) K) fp.Try[map[K]fp.Seq[T]] {
 	return try.Map(seqT, func(insideValue fp.Seq[T]) map[K]fp.Seq[T] {
+		return seq.GroupBy[T, K](insideValue, keyFunc)
+	})
+}
+
+func (seqT Type[T]) GroupBy[K comparable](keyFunc func(T) K) fp.Try[map[K]fp.Seq[T]] {
+	return try.Map(Type[T].Try(seqT), func(insideValue fp.Seq[T]) map[K]fp.Seq[T] {
 		return seq.GroupBy[T, K](insideValue, keyFunc)
 	})
 }

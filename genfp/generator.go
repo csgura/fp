@@ -445,7 +445,7 @@ func (r *writer) saveFile() (ImportSet, error) {
 		formatted, ferr := r.makeFile()
 		if ferr != nil {
 			log.Println(ferr.LineNumbered())
-			log.Println(ferr.FormatError)
+			log.Printf("position %s", ferr.FormatError)
 			return ferr
 		}
 

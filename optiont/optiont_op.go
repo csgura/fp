@@ -23,12 +23,20 @@ func Map[A any, B any](t fp.OptionT[A], f func(A) B) fp.OptionT[B] {
 	})
 }
 
+func (r Type[A]) Map[B any](f func(A) B) Type[B] {
+	return Trans[B](Map(Type[A].Try(r), f))
+}
+
 func SubFlatMap[A any, B any](t fp.OptionT[A], f func(A) fp.Option[B]) fp.OptionT[B] {
 	return try.Map(t, func(ma fp.Option[A]) fp.Option[B] {
 		return option.FlatMap[A, B](ma, func(a A) fp.Option[B] {
 			return f(a)
 		})
 	})
+}
+
+func (r Type[A]) SubFlatMap[B any](f func(A) fp.Option[B]) Type[B] {
+	return Trans[B](SubFlatMap(Type[A].Try(r), f))
 }
 
 func MapT[A any, B any](t fp.OptionT[A], f func(A) fp.Try[B]) fp.OptionT[B] {
@@ -41,6 +49,10 @@ func MapT[A any, B any](t fp.OptionT[A], f func(A) fp.Try[B]) fp.OptionT[B] {
 	return try.FlatMap(Map(t, f), sequencef)
 }
 
+func (r Type[A]) MapT[B any](f func(A) fp.Try[B]) Type[B] {
+	return Trans[B](MapT(Type[A].Try(r), f))
+}
+
 func FlatMap[A any, B any](t fp.OptionT[A], f func(A) fp.OptionT[B]) fp.OptionT[B] {
 
 	flatten := func(v fp.Option[fp.Option[B]]) fp.Option[B] {
@@ -51,8 +63,20 @@ func FlatMap[A any, B any](t fp.OptionT[A], f func(A) fp.OptionT[B]) fp.OptionT[
 
 }
 
+func (r Type[A]) FlatMap[B any](f func(A) Type[B]) Type[B] {
+	return Trans[B](FlatMap(Type[A].Try(r), func(a A) fp.OptionT[B] {
+		return Type[B].Try(f(a))
+	}))
+}
+
 func IsDefined[T any](optionT fp.OptionT[T]) fp.Try[bool] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) bool {
+		return fp.Option[T].IsDefined(insideValue)
+	})
+}
+
+func (optionT Type[T]) IsDefined() fp.Try[bool] {
+	return try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) bool {
 		return fp.Option[T].IsDefined(insideValue)
 	})
 }
@@ -63,14 +87,32 @@ func IsEmpty[T any](optionT fp.OptionT[T]) fp.Try[bool] {
 	})
 }
 
+func (optionT Type[T]) IsEmpty() fp.Try[bool] {
+	return try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) bool {
+		return fp.Option[T].IsEmpty[fp.Phantom[T]](insideValue)
+	})
+}
+
 func Filter[T any](optionT fp.OptionT[T], p func(v T) bool) fp.OptionT[T] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
 		return fp.Option[T].Filter[fp.Phantom[T]](insideValue, p)
 	})
 }
 
+func (optionT Type[T]) Filter(p func(v T) bool) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].Filter[fp.Phantom[T]](insideValue, p)
+	}))
+}
+
 func OrElse[T any](optionT fp.OptionT[T], t T) fp.Try[T] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) T {
+		return fp.Option[T].OrElse(insideValue, t)
+	})
+}
+
+func (optionT Type[T]) OrElse(t T) fp.Try[T] {
+	return try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) T {
 		return fp.Option[T].OrElse(insideValue, t)
 	})
 }
@@ -81,8 +123,20 @@ func OrZero[T any](optionT fp.OptionT[T]) fp.Try[T] {
 	})
 }
 
+func (optionT Type[T]) OrZero() fp.Try[T] {
+	return try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) T {
+		return fp.Option[T].OrZero(insideValue)
+	})
+}
+
 func OrElseGet[T any](optionT fp.OptionT[T], f func() T) fp.Try[T] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) T {
+		return fp.Option[T].OrElseGet[fp.Phantom[T]](insideValue, f)
+	})
+}
+
+func (optionT Type[T]) OrElseGet(f func() T) fp.Try[T] {
+	return try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) T {
 		return fp.Option[T].OrElseGet[fp.Phantom[T]](insideValue, f)
 	})
 }
@@ -93,10 +147,22 @@ func Or[T any](optionT fp.OptionT[T], f func() fp.Option[T]) fp.OptionT[T] {
 	})
 }
 
+func (optionT Type[T]) Or(f func() fp.Option[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].Or[fp.Phantom[T]](insideValue, f)
+	}))
+}
+
 func OrOption[T any](optionT fp.OptionT[T], v fp.Option[T]) fp.OptionT[T] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
 		return fp.Option[T].OrOption[fp.Phantom[T]](insideValue, v)
 	})
+}
+
+func (optionT Type[T]) OrOption(v fp.Option[T]) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].OrOption[fp.Phantom[T]](insideValue, v)
+	}))
 }
 
 func OrPtr[T any](optionT fp.OptionT[T], v *T) fp.OptionT[T] {
@@ -105,14 +171,33 @@ func OrPtr[T any](optionT fp.OptionT[T], v *T) fp.OptionT[T] {
 	})
 }
 
+func (optionT Type[T]) OrPtr(v *T) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].OrPtr[fp.Phantom[T]](insideValue, v)
+	}))
+}
+
 func Recover[T any](optionT fp.OptionT[T], f func() T) fp.OptionT[T] {
 	return try.Map(optionT, func(insideValue fp.Option[T]) fp.Option[T] {
 		return fp.Option[T].Recover(insideValue, f)
 	})
 }
 
+func (optionT Type[T]) Recover(f func() T) Type[T] {
+	return Trans[T](try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) fp.Option[T] {
+		return fp.Option[T].Recover(insideValue, f)
+	}))
+}
+
 func Foreach[T any](optionT fp.OptionT[T], f func(v T)) {
 	try.Map(optionT, func(insideValue fp.Option[T]) error {
+		fp.Option[T].Foreach[fp.Phantom[T]](insideValue, f)
+		return nil
+	})
+}
+
+func (optionT Type[T]) Foreach(f func(v T)) {
+	try.Map(Type[T].Try(optionT), func(insideValue fp.Option[T]) error {
 		fp.Option[T].Foreach[fp.Phantom[T]](insideValue, f)
 		return nil
 	})

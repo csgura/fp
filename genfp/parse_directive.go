@@ -665,6 +665,11 @@ type MonadFunctions struct {
 	FlatMap any
 }
 
+type TransformerType struct {
+	Type    TypeTag
+	Apply   any
+	Unapply any
+}
 type GenerateMonadTransformer[T any] struct {
 	// 생성될 함수 이름의 suffix
 	// 지정하지 않으면 GivenMonad 이름이 들어감.
@@ -689,6 +694,8 @@ type GenerateMonadTransformer[T any] struct {
 	// ExposureMonad 를 첫번째 아규먼트로 받는 함수들을 지정하면
 	// Monad transformer 를 아규먼트로 받는 코드를 생성해 줌
 	Transform []any
+
+	TransformerType TransformerType
 }
 
 type Mapping struct {

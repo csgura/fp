@@ -1206,12 +1206,13 @@ type GenerateMonadTransformerDirective struct {
 	TargetType        *types.Named
 	ExposureMonadType GenericType
 	// 생성될 file 이름
-	File          string
-	TypeParm      *types.TypeParam
-	GivenMonad    MonadFunctions
-	ExposureMonad MonadFunctions
-	Sequence      TypeReference
-	Transform     []FuncReference
+	File            string
+	TypeParm        *types.TypeParam
+	GivenMonad      MonadFunctions
+	ExposureMonad   MonadFunctions
+	Sequence        TypeReference
+	Transform       []FuncReference
+	TransformerType *TransformerType
 }
 
 func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirective, error) {
@@ -1248,7 +1249,7 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 		return ret, fmt.Errorf("inside type is not named type : %s", typeArgs)
 	}
 
-	names := []string{"Name", "File", "TypeParm", "GivenMonad", "ExposureMonad", "Sequence", "Transform"}
+	names := []string{"Name", "File", "TypeParm", "GivenMonad", "ExposureMonad", "Sequence", "Transform", "TransformerType"}
 	for idx, e := range lit.Lit.Elts {
 		if idx >= len(names) {
 			return ret, fmt.Errorf("invalid number of literals")
@@ -1312,6 +1313,12 @@ func ParseGenerateMonadTransformer(lit TaggedLit) (GenerateMonadTransformerDirec
 				return ret, err
 			}
 			ret.Transform = v
+		case "TransformerType":
+			v, err := evalTransformerType(lit.Package, value)
+			if err != nil {
+				return ret, err
+			}
+			ret.TransformerType = &v
 		}
 	}
 	ctx := types.NewContext()
@@ -1364,6 +1371,48 @@ func evalMonadFunctions(p *packages.Package, e ast.Expr) (MonadFunctions, error)
 		return ret, nil
 	}
 	return MonadFunctions{}, fmt.Errorf("expr is not composite expr : %T", e)
+
+}
+
+type TransformerType struct {
+	Type        TypeReference
+	GenericType GenericType
+	Apply       TypeReference
+	Unapply     TypeReference
+}
+
+func evalTransformerType(p *packages.Package, e ast.Expr) (TransformerType, error) {
+	if lt, ok := e.(*ast.CompositeLit); ok {
+		ret := TransformerType{}
+		names := []string{"Type", "Apply", "Unapply"}
+		for idx, e := range lt.Elts {
+			if idx >= len(names) {
+				return TransformerType{}, fmt.Errorf("invalid number of literals")
+			}
+
+			name := names[idx]
+			name, value := asKeyValue(e, name)
+
+			switch name {
+			case "Type":
+				v, err := evalTypeOf(p)(p, value)
+				if err != nil {
+					return ret, err
+				}
+				gt, ok := v.Type.(GenericType)
+				if !ok {
+					return TransformerType{}, fmt.Errorf("invalid transfomer type")
+				}
+				ret.GenericType = gt
+			case "Apply":
+				ret.Apply = evalTypeReference(p, value)
+			case "Unapply":
+				ret.Unapply = evalTypeReference(p, value)
+			}
+		}
+		return ret, nil
+	}
+	return TransformerType{}, fmt.Errorf("expr is not composite expr : %T", e)
 
 }
 

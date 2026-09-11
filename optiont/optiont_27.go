@@ -9,24 +9,25 @@ import (
 	"github.com/csgura/fp/try"
 )
 
-type Type[T any] fp.OptionT[T]
+type Type[A any] fp.OptionT[A]
 
-func Trans[T any](v fp.OptionT[T]) Type[T] {
-	return Type[T](v)
+func Trans[A any](v fp.OptionT[A]) Type[A] {
+	return Type[A](v)
 }
 
 func (r Type[T]) Try() fp.OptionT[T] {
 	return fp.OptionT[T](r)
 }
-func (r Type[T]) Map[R any](f func(T) R) Type[R] {
-	return Trans(Map(r.Try(), f))
-}
 
-func (r Type[T]) FlatMap[R any](f func(T) Type[R]) Type[R] {
-	return Trans(FlatMap[T, R](r.Try(), func(v T) fp.OptionT[R] {
-		return f(v).Try()
-	}))
-}
+// func (r Type[T]) Map[R any](f func(T) R) Type[R] {
+// 	return Trans(Map(r.Try(), f))
+// }
+
+// func (r Type[T]) FlatMap[R any](f func(T) Type[R]) Type[R] {
+// 	return Trans(FlatMap[T, R](r.Try(), func(v T) fp.OptionT[R] {
+// 		return f(v).Try()
+// 	}))
+// }
 
 // @internal.Generate
 func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
@@ -58,6 +59,11 @@ func _[T, U any]() genfp.GenerateMonadTransformer[fp.OptionT[T]] {
 			fp.Option[T].OrPtr[fp.Phantom[T]],
 			fp.Option[T].Recover,
 			fp.Option[T].Foreach[fp.Phantom[T]],
+		},
+		TransformerType: genfp.TransformerType{
+			Type:    genfp.TypeOf[Type[T]](),
+			Apply:   Trans[T],
+			Unapply: Type[T].Try,
 		},
 	}
 }
