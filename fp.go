@@ -29,6 +29,11 @@ func (r *Unit) UnmarshalJSON(data []byte) error {
 
 type Nothing struct{}
 
+// Phantom 타입은 method 선언할 때 interface 를 만족시키지 않는 method로 만들고 싶은 경우에 사용
+// func (r sometype[T]) Get[fp.Phantom[T]]()  T와 같이 선언하면,  Get 메소드는 interface 를 만족시키지 않음
+// sometype[int] instantiated 될 때 Get 은 호출되지 않으면 코드가 생성되지 않음.
+// 바이너리 크기를 줄이고, 컴파일 시간을 줄일 수 있음
+// Phantom[T] 는 *T 와 같은 타입이기 때문에 메소드 호출시 타입을 명시하지 않아도 컴파일러에서 타입 추론을 자동으로 함.
 type Phantom[T any] = *T
 
 type Tuple1[T1 any] struct {
